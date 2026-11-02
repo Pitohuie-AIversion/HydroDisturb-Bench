@@ -39,6 +39,7 @@ from hydro_disturb_bench.comsol_java.bridge import (
     run_study,
     update_parameter,
     _run_bridge,
+    _posix_rename_noreplace,
     publish_staging_file,
     quarantine_staging_file,
     list_quarantine_records,
@@ -46,6 +47,15 @@ from hydro_disturb_bench.comsol_java.bridge import (
     task_staging_session,
     is_task_active,
 )
+
+
+def _make_fake_comsolbatch(tmp_path: Path) -> Path:
+    """Helper to create dummy comsolbatch binary for both Windows and Linux testing."""
+    p_win = tmp_path / "comsolbatch.exe"
+    p_nix = tmp_path / "comsolbatch"
+    p_win.write_bytes(b"fake binary")
+    p_nix.write_bytes(b"fake binary")
+    return p_win if sys.platform == "win32" else p_nix
 
 
 def test_error_mapping():
@@ -115,8 +125,7 @@ def test_bridge_error_propagation(tmp_path):
     """Errors returned in JSON from the Java process must be mapped and raised."""
     base = tmp_path / "base.mph"
     base.write_bytes(b"content")
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"fake binary")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     err_json = json.dumps({
         "status": "ERROR",
@@ -141,8 +150,7 @@ def test_bridge_node_not_found_propagation(tmp_path):
     """NODE_NOT_FOUND error from Java must raise NodeNotFoundError."""
     base = tmp_path / "base.mph"
     base.write_bytes(b"content")
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"fake binary")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     err_json = json.dumps({
         "status": "ERROR",
@@ -167,8 +175,7 @@ def test_inspection_schema_contract(tmp_path):
     """Successful inspect_model must produce compliant dictionary schema."""
     base = tmp_path / "base.mph"
     base.write_bytes(b"base data")
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"fake binary")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     inspection_payload = {
         "status": "SUCCESS",
@@ -238,8 +245,7 @@ def test_baseline_integrity_check_failure(tmp_path):
     base = tmp_path / "base.mph"
     base.write_bytes(b"initial data")
     out = tmp_path / "out.mph"
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"fake binary")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     def side_effect_modify(cmd, *args, **kwargs):
         # Simulate tool corrupting/modifying the source file
@@ -274,8 +280,7 @@ def test_baseline_integrity_check_failure(tmp_path):
 
 def test_subprocess_nonzero_exit_code_fails_closed(tmp_path):
     """If comsolbatch returns non-zero without valid SUCCESS JSON, ComsolConnectionError must be raised."""
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
     mock_proc = MagicMock()
     mock_proc.returncode = 1
     mock_proc.stdout = "Fatal Java Virtual Machine error"
@@ -291,8 +296,7 @@ def test_subprocess_nonzero_exit_code_fails_closed(tmp_path):
 
 def test_invalid_json_fails_closed(tmp_path):
     """If ComsolBridge prints invalid/truncated JSON within sentinels, fail closed."""
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
     mock_proc = MagicMock()
     mock_proc.returncode = 0
     mock_proc.stdout = "<<<JSON_START>>>\n{truncated json:\n<<<JSON_END>>>"
@@ -313,8 +317,7 @@ def test_preexisting_output_file_strictly_preserved_on_failure(tmp_path):
     out = tmp_path / "valid_prior_result.mph"
     out.write_bytes(b"crucial valid pre-existing result")
     prior_content = out.read_bytes()
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     def side_effect_fail(cmd_args, **kwargs):
         # Even if the subprocess wrote something to staging or crashed
@@ -340,8 +343,7 @@ def test_comsol_midrun_abort_quarantines_and_does_not_publish(tmp_path):
     base = tmp_path / "base.mph"
     base.write_bytes(b"initial baseline data")
     out = tmp_path / "target_output.mph"
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     def side_effect_abort_during_write(cmd_args, **kwargs):
         # The staging path is passed as positional argument 6 to comsolbatch
@@ -383,8 +385,7 @@ def test_symlink_output_path_rejected(tmp_path):
 
 def test_non_dict_json_fails_closed(tmp_path):
     """If ComsolBridge prints a valid JSON array or primitive instead of object, fail closed."""
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
     mock_proc = MagicMock()
     mock_proc.returncode = 0
     mock_proc.stdout = "<<<JSON_START>>>\n[1, 2, 3]\n<<<JSON_END>>>"
@@ -400,8 +401,7 @@ def test_non_dict_json_fails_closed(tmp_path):
 
 def test_schema_missing_fields_fails_closed(tmp_path):
     """If ComsolBridge prints SUCCESS but misses required schema fields, fail closed."""
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
     mock_proc = MagicMock()
     mock_proc.returncode = 0
     # Missing api_specification
@@ -424,8 +424,7 @@ def test_preexisting_final_file_blocks_successful_run_when_overwrite_forbidden(t
     out.write_bytes(b"prior valuable result that must not be overwritten")
     prior_content = out.read_bytes()
 
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     def side_effect_success(cmd_args, **kwargs):
         # Position 6 in comsolbatch invocation is the staging file
@@ -536,15 +535,15 @@ def test_quarantine_listing_and_recovery(tmp_path):
     orphan_file.write_bytes(b"abandoned staging file")
 
     # Recover unclaimed staging
-    recovered = recover_unclaimed_staging(tmp_path)
+    recovered = recover_unclaimed_staging(tmp_path, min_age_sec=0.0)
     assert len(recovered) == 1
-    assert recovered[0].name == "orphan_stage_abandoned_model.mph"
+    assert recovered[0].name.startswith("orphan_stage_abandoned_model")
     assert not orphan_file.exists()
 
     # List quarantine records
     records = list_quarantine_records(tmp_path)
     assert len(records) == 1
-    assert records[0]["name"] == "orphan_stage_abandoned_model.mph"
+    assert records[0]["name"].startswith("orphan_stage_abandoned_model")
     assert records[0]["size_bytes"] == len(b"abandoned staging file")
 
 
@@ -557,7 +556,7 @@ def test_quarantine_failure_preserves_staging_file_in_place(tmp_path):
     out = tmp_path / "final.mph"
 
     # Simulate quarantine filesystem failure (e.g. permission denied)
-    with patch.object(Path, "replace", side_effect=OSError("Quarantine storage unavailable")):
+    with patch("hydro_disturb_bench.comsol_java.bridge._safe_quarantine_move", side_effect=OSError("Quarantine storage unavailable")):
         res = quarantine_staging_file(staging_file, out, "test_id", reason="failed")
 
     # Return value is None indicating transfer failure
@@ -611,8 +610,7 @@ def test_source_model_mutation_fails_before_publish_and_quarantines(tmp_path):
     base = tmp_path / "base.mph"
     base.write_bytes(b"trusted baseline model")
     out = tmp_path / "final_output.mph"
-    fake_exe = tmp_path / "comsolbatch.exe"
-    fake_exe.write_bytes(b"")
+    fake_exe = _make_fake_comsolbatch(tmp_path)
 
     def side_effect_corrupt_source(cmd_args, **kwargs):
         # Position 6 in comsolbatch invocation is the staging file
@@ -689,3 +687,184 @@ except FileExistsError:
     # Neither staging file remains in .staging
     assert not stage_a.exists()
     assert not stage_b.exists()
+
+
+def test_quarantine_collision_never_overwrites_existing_artifact(tmp_path):
+    """When multiple quarantine transfers collide on identical target filenames, neither is overwritten."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    out = tmp_path / "colliding_output.mph"
+
+    stage1 = staging_dir / "stage_one.mph"
+    stage1.write_bytes(b"Artifact 1 contents that must be preserved")
+
+    stage2 = staging_dir / "stage_two.mph"
+    stage2.write_bytes(b"Artifact 2 contents that must not overwrite artifact 1")
+
+    # Quarantine stage1
+    q1 = quarantine_staging_file(stage1, out, "shared_stage_id", reason="failed")
+    assert q1 is not None and q1.is_file()
+    assert q1.read_bytes() == b"Artifact 1 contents that must be preserved"
+
+    # Quarantine stage2 with identical stage_id, reason, and output_path
+    q2 = quarantine_staging_file(stage2, out, "shared_stage_id", reason="failed")
+    assert q2 is not None and q2.is_file()
+    assert q2.read_bytes() == b"Artifact 2 contents that must not overwrite artifact 1"
+
+    # Crucial assertion: q1 and q2 are distinct files; q1 was NOT overwritten
+    assert q1 != q2
+    assert q1.is_file() and q1.read_bytes() == b"Artifact 1 contents that must be preserved"
+
+    # Both records appear in quarantine listing
+    records = list_quarantine_records(tmp_path)
+    assert len(records) == 2
+
+
+def test_fresh_unleased_file_retained_by_recovery(tmp_path):
+    """A fresh staging file without a lease file (age < min_age_sec) must be preserved in .staging."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    unleased_file = staging_dir / "stage_fresh_unleased_model.mph"
+    unleased_file.write_bytes(b"active computation data in progress")
+
+    # When min_age_sec is large, it must be skipped and retained in staging
+    recovered, skipped = recover_unclaimed_staging(tmp_path, min_age_sec=60.0, return_skipped=True)
+    assert len(recovered) == 0
+    assert len(skipped) == 1
+    assert "fresh_unleased_file" in skipped[0]["reason"]
+    assert unleased_file.is_file(), "Fresh unleased file was prematurely moved to quarantine!"
+    assert unleased_file.read_bytes() == b"active computation data in progress"
+
+    # When min_age_sec is 0 (confirmed orphan after waiting), it is recovered
+    recovered2 = recover_unclaimed_staging(tmp_path, min_age_sec=0.0)
+    assert len(recovered2) == 1
+    assert recovered2[0].name.startswith("orphan_stage_fresh_unleased_model.mph")
+    assert not unleased_file.exists()
+
+
+def test_recovery_reentrance_is_idempotent(tmp_path):
+    """Repeated calls to recover_unclaimed_staging must be safe, idempotent, and non-destructive."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    orphan1 = staging_dir / "stage_task1_output.mph"
+    orphan1.write_bytes(b"orphan run 1")
+
+    orphan2 = staging_dir / "stage_task2_output.mph"
+    orphan2.write_bytes(b"orphan run 2")
+
+    # First recovery
+    rec1 = recover_unclaimed_staging(tmp_path, min_age_sec=0.0)
+    assert len(rec1) == 2
+
+    # Second recovery immediately (re-entry): staging is empty, no-op
+    rec2 = recover_unclaimed_staging(tmp_path, min_age_sec=0.0)
+    assert len(rec2) == 0
+
+    # Quarantine records remain intact
+    records = list_quarantine_records(tmp_path)
+    assert len(records) == 2
+
+    # Add a third orphan and run recovery again
+    orphan3 = staging_dir / "stage_task3_output.mph"
+    orphan3.write_bytes(b"orphan run 3")
+
+    rec3 = recover_unclaimed_staging(tmp_path, min_age_sec=0.0)
+    assert len(rec3) == 1
+
+    records2 = list_quarantine_records(tmp_path)
+    assert len(records2) == 3
+
+
+def test_multiprocess_quarantine_race_no_overwrite(tmp_path):
+    """Multiple processes racing to quarantine files to the same target name do not overwrite each other."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    out = tmp_path / "shared_race_out.mph"
+
+    stage_a = staging_dir / "stage_procA.mph"
+    stage_a.write_bytes(b"Quarantine payload from process A")
+
+    stage_b = staging_dir / "stage_procB.mph"
+    stage_b.write_bytes(b"Quarantine payload from process B")
+
+    worker_code = """
+import sys, pathlib
+from hydro_disturb_bench.comsol_java.bridge import quarantine_staging_file
+
+stage = pathlib.Path(sys.argv[1])
+out = pathlib.Path(sys.argv[2])
+task_id = sys.argv[3]
+res = quarantine_staging_file(stage, out, task_id, reason="conflict")
+if res is not None:
+    sys.exit(0)
+else:
+    sys.exit(1)
+"""
+
+    sub_env = {**os.environ, "PYTHONPATH": "src"}
+    p1 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_a), str(out), "race_task"], env=sub_env)
+    p2 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_b), str(out), "race_task"], env=sub_env)
+
+    rc1 = p1.wait()
+    rc2 = p2.wait()
+
+    assert rc1 == 0 and rc2 == 0
+
+    # Both payloads must exist in quarantine under conflict_race_task_shared_race_out*
+    q_files = list((tmp_path / "quarantine").glob("conflict_race_task_*"))
+    assert len(q_files) == 2
+
+    contents = {f.read_bytes() for f in q_files}
+    assert b"Quarantine payload from process A" in contents
+    assert b"Quarantine payload from process B" in contents
+
+
+def test_publish_failure_preserves_staging_file(tmp_path):
+    """When atomic publish encounters an unexpected error, the staging file is preserved in place."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage = staging_dir / "stage_valuable.mph"
+    stage.write_bytes(b"precious numerical model")
+    out = tmp_path / "final_model.mph"
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._atomic_publish_new_file", side_effect=OSError("Disk write error")):
+        with pytest.raises(OSError, match="Disk write error"):
+            publish_staging_file(stage, out, "valuable_task", allow_overwrite=False)
+
+    # Staging file MUST still exist in staging, completely preserved!
+    assert stage.is_file()
+    assert stage.read_bytes() == b"precious numerical model"
+    assert not out.exists()
+
+
+def test_posix_atomic_no_overwrite_fails_closed(tmp_path):
+    """Verify _posix_rename_noreplace fails closed and strictly avoids replace() TOCTOU races."""
+    stage = tmp_path / "stage.mph"
+    stage.write_bytes(b"new stage data")
+    dest = tmp_path / "dest.mph"
+    dest.write_bytes(b"existing destination data")
+
+    # 1. When destination already exists, fails closed with FileExistsError
+    with pytest.raises(FileExistsError, match="already exists"):
+        _posix_rename_noreplace(stage, dest, None)
+
+    # Destination data is unchanged; stage data is intact
+    assert dest.read_bytes() == b"existing destination data"
+    assert stage.read_bytes() == b"new stage data"
+
+    # 2. When destination does not exist, but kernel syscall fails/unsupported, fails closed
+    dest_nonexistent = tmp_path / "nonexistent.mph"
+    with patch("ctypes.CDLL") as mock_cdll:
+        mock_libc = MagicMock()
+        mock_libc.syscall.return_value = -1
+        mock_cdll.return_value = mock_libc
+        with patch("ctypes.get_errno", return_value=38):  # ENOSYS (38)
+            with pytest.raises(FileExistsError, match="Atomic no-overwrite publish failed or is unsupported"):
+                _posix_rename_noreplace(stage, dest_nonexistent, None)
+
+    # Must NOT have created or replaced dest_nonexistent!
+    assert not dest_nonexistent.exists()
+    assert stage.is_file()
+    assert stage.read_bytes() == b"new stage data"

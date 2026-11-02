@@ -9,14 +9,19 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
+import errno
 import os
 from pathlib import Path
 import subprocess
 import sys
 import time
 import uuid
-import winreg
 from typing import Any
+
+if sys.platform == "win32":
+    import winreg
+else:
+    winreg = None  # type: ignore[assignment]
 
 
 # Error code constants matching project contract
@@ -430,6 +435,83 @@ def task_staging_session(staging_path: Path | str, stage_id: str):
             pass
 
 
+def _is_file_locked(file_path: Path) -> bool:
+    """Check if a file is currently open or locked by an active process."""
+    file_path = Path(file_path)
+    if not file_path.is_file():
+        return False
+    if sys.platform == "win32":
+        try:
+            with open(file_path, "r+b") as test_f:
+                import msvcrt
+                try:
+                    msvcrt.locking(test_f.fileno(), msvcrt.LK_NBLCK, 1)
+                    msvcrt.locking(test_f.fileno(), msvcrt.LK_UNLCK, 1)
+                except OSError:
+                    return True
+            return False
+        except (PermissionError, OSError):
+            return True
+    else:
+        try:
+            with open(file_path, "r+b") as test_f:
+                import fcntl
+                try:
+                    fcntl.flock(test_f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    fcntl.flock(test_f.fileno(), fcntl.LOCK_UN)
+                except (BlockingIOError, OSError):
+                    return True
+            return False
+        except (PermissionError, OSError):
+            return True
+
+
+def _safe_quarantine_move(src_path: Path, quarantine_dir: Path, base_filename: str) -> Path:
+    """Move src_path into quarantine_dir under a unique name, strictly forbidding overwrite.
+
+    Safety Guarantees:
+    - Never overwrites an existing diagnostic artifact.
+    - If base_filename already exists or races, appends timestamp and monotonic counter.
+    - Preserves src_path completely in place if moving fails.
+    """
+    quarantine_dir = Path(quarantine_dir)
+    quarantine_dir.mkdir(parents=True, exist_ok=True)
+    src_path = Path(src_path)
+
+    path_obj = Path(base_filename)
+    stem = path_obj.stem
+    suffix = path_obj.suffix
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+
+    counter = 0
+    while True:
+        if counter == 0:
+            target = quarantine_dir / base_filename
+        else:
+            target = quarantine_dir / f"{stem}_{timestamp}_{counter}{suffix}"
+
+        if target.exists():
+            counter += 1
+            continue
+
+        try:
+            if sys.platform == "win32":
+                os.rename(src_path, target)
+            else:
+                try:
+                    os.link(src_path, target)
+                    src_path.unlink()
+                except OSError as err:
+                    if err.errno == errno.EEXIST or target.exists():
+                        counter += 1
+                        continue
+                    _posix_rename_noreplace(src_path, target, err)
+            return target
+        except FileExistsError:
+            counter += 1
+            continue
+
+
 def quarantine_staging_file(
     staging_path: Path | str,
     output_path: Path | str,
@@ -439,6 +521,7 @@ def quarantine_staging_file(
     """Move a staging file into quarantine to isolate failures or conflicts.
 
     Guarantees:
+    - Strictly forbids overwriting existing diagnostic artifacts.
     - If moving fails (e.g., target disk full, permission denied), staging_path is
       STRICTLY PRESERVED in place (never unlinked) and a warning is logged to sys.stderr.
 
@@ -455,15 +538,13 @@ def quarantine_staging_file(
     if not staging_path.is_file():
         return None
     quarantine_dir = Path(output_path).parent / "quarantine"
-    quarantine_dir.mkdir(parents=True, exist_ok=True)
-    target = quarantine_dir / f"{reason}_{stage_id}_{Path(output_path).name}"
+    base_name = f"{reason}_{stage_id}_{Path(output_path).name}"
     try:
-        staging_path.replace(target)
-        return target
+        return _safe_quarantine_move(staging_path, quarantine_dir, base_name)
     except OSError as err:
         # Strictly preserve staging file in place. NEVER unlink on quarantine failure!
         sys.stderr.write(
-            f"[QUARANTINE_WARNING] Failed to quarantine staging file {staging_path} to {target}: {err}. "
+            f"[QUARANTINE_WARNING] Failed to quarantine staging file {staging_path} to {quarantine_dir / base_name}: {err}. "
             f"Artifact retained in staging directory.\n"
         )
         return None
@@ -532,17 +613,28 @@ def _atomic_publish_new_file(staging_path: Path, output_path: Path, stage_id: st
         try:
             os.link(staging_path, output_path)
             staging_path.unlink()
+        except FileExistsError:
+            raise
         except OSError as err:
-            if output_path.exists():
+            if err.errno == errno.EEXIST or output_path.exists():
                 raise FileExistsError(f"Destination output file already exists: {output_path}") from err
             _posix_rename_noreplace(staging_path, output_path, err)
 
 
-def _posix_rename_noreplace(staging_path: Path, output_path: Path, original_err: Exception) -> None:
-    """Linux kernel SYS_renameat2 with RENAME_NOREPLACE (flag 1)."""
+def _posix_rename_noreplace(staging_path: Path, output_path: Path, original_err: Exception | None = None) -> None:
+    """Linux kernel SYS_renameat2 with RENAME_NOREPLACE (flag 1).
+
+    Fails closed if atomic no-overwrite cannot be guaranteed, strictly avoiding
+    TOCTOU race conditions from replace() fallbacks.
+    """
+    if output_path.exists():
+        raise FileExistsError(f"Destination output file already exists: {output_path}")
+
     try:
+        if sys.platform == "win32":
+            raise OSError("SYS_renameat2 is not supported on Windows")
         import ctypes
-        libc = ctypes.CDLL(None)
+        libc = ctypes.CDLL(None, use_errno=True)
         SYS_renameat2 = 316 if sys.maxsize > 2**32 else 353
         if hasattr(os, "uname") and os.uname().machine.startswith("aarch64"):
             SYS_renameat2 = 276
@@ -551,20 +643,25 @@ def _posix_rename_noreplace(staging_path: Path, output_path: Path, original_err:
         ret = libc.syscall(
             SYS_renameat2,
             AT_FDCWD,
-            str(staging_path).encode("utf-8"),
+            os.fsencode(staging_path),
             AT_FDCWD,
-            str(output_path).encode("utf-8"),
+            os.fsencode(output_path),
             RENAME_NOREPLACE,
         )
         if ret != 0:
             errno_val = ctypes.get_errno()
-            if errno_val == 17:  # EEXIST
+            if errno_val == errno.EEXIST:
                 raise FileExistsError(f"Destination output file already exists: {output_path}")
-            raise OSError(errno_val, os.strerror(errno_val))
-    except (AttributeError, OSError):
+            raise OSError(errno_val, f"SYS_renameat2 failed: {os.strerror(errno_val)}")
+    except (AttributeError, OSError) as err:
         if output_path.exists():
-            raise FileExistsError(f"Destination output file already exists: {output_path}") from original_err
-        staging_path.replace(output_path)
+            raise FileExistsError(
+                f"Destination output file already exists: {output_path}"
+            ) from (original_err or err)
+        # Fail closed: never call staging_path.replace(output_path), which introduces TOCTOU overwrite race.
+        raise FileExistsError(
+            f"Atomic no-overwrite publish failed or is unsupported on destination: {output_path} ({err})"
+        ) from (original_err or err)
 
 
 def publish_staging_file(
@@ -661,8 +758,9 @@ def recover_unclaimed_staging(
 
     Safety Guarantees:
     - Active tasks holding a lease lock or living PID are strictly preserved and skipped.
-    - Files with unconfirmed status younger than min_age_sec are retained.
-    - Confirmed orphans (lease lock released & PID dead) are safely archived into quarantine/orphan_{name}.
+    - Files with unconfirmed status or younger than min_age_sec are strictly retained.
+    - Never overwrites existing diagnostic artifacts in quarantine.
+    - Confirmed orphans (lease lock released & PID dead & min_age reached) are safely archived into quarantine/orphan_{name}.
     - Staging files are never unlinked upon quarantine failure.
     """
     p = Path(directory)
@@ -683,9 +781,10 @@ def recover_unclaimed_staging(
         parts = f.name.split("_")
         stage_id = parts[1] if len(parts) >= 2 else ""
         lease_file = staging_dir / f".lease_{stage_id}.lock" if stage_id else None
+        has_lease = (lease_file is not None and lease_file.is_file())
 
-        # Check if task is actively running
-        if lease_file and is_task_active(lease_file):
+        # Check if task is actively running via lease file
+        if has_lease and is_task_active(lease_file):
             skipped_active.append({
                 "path": str(f.resolve()),
                 "stage_id": stage_id,
@@ -693,8 +792,29 @@ def recover_unclaimed_staging(
             })
             continue
 
-        file_age = now - f.stat().st_mtime
-        if file_age < min_age_sec and not lease_file:
+        try:
+            stat_res = f.stat()
+            file_age = now - stat_res.st_mtime
+        except OSError as stat_err:
+            # Status cannot be confirmed: retain staging file
+            skipped_active.append({
+                "path": str(f.resolve()),
+                "stage_id": stage_id,
+                "reason": f"unconfirmed_stat_error: {stat_err}",
+            })
+            continue
+
+        # If lease exists but inactive, check min_age_sec
+        if has_lease and file_age < min_age_sec:
+            skipped_active.append({
+                "path": str(f.resolve()),
+                "stage_id": stage_id,
+                "reason": f"recent_terminated_task (age {file_age:.1f}s < {min_age_sec}s)",
+            })
+            continue
+
+        # If file has NO lease file on disk, check min_age_sec
+        if not has_lease and file_age < min_age_sec:
             skipped_active.append({
                 "path": str(f.resolve()),
                 "stage_id": stage_id,
@@ -702,11 +822,21 @@ def recover_unclaimed_staging(
             })
             continue
 
-        target = quarantine_dir / f"orphan_{f.name}"
+        # Check if file is currently open or locked by any process
+        if _is_file_locked(f):
+            skipped_active.append({
+                "path": str(f.resolve()),
+                "stage_id": stage_id,
+                "reason": "file_currently_locked_or_in_use",
+            })
+            continue
+
+        # Confirmed orphan: move into quarantine without overwriting any existing artifact
+        base_name = f"orphan_{f.name}"
         try:
-            f.replace(target)
+            target = _safe_quarantine_move(f, quarantine_dir, base_name)
             recovered.append(target)
-            if lease_file and lease_file.is_file():
+            if has_lease and lease_file.is_file():
                 lease_file.unlink(missing_ok=True)
         except OSError as err:
             sys.stderr.write(f"[RECOVER_WARNING] Failed to quarantine orphan staging file {f}: {err}\n")
