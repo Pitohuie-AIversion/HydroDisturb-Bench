@@ -3,6 +3,8 @@
 **A reproducible CFD case-generation and hidden-disturbance benchmark for submerged cylinder wakes.**
 
 > **Status: research scaffold / NOT a validated CFD dataset.** No COMSOL `.mph` file or solver result is included. CFD numerical verification and COMSOL–MPh integration must be performed on the target installation before using output as ground truth.
+>
+> **Platform Support**: The officially supported and formally accepted target environment for development and remote compute servers is **Windows 11 / Windows Server 64-bit with COMSOL Multiphysics 6.4 (Win64)**. Linux compatibility is experimental and remains unaccepted in this phase; the project makes no claims of verified cross-platform production support.
 
 ## Scope
 

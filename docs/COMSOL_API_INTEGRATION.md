@@ -36,6 +36,15 @@ The local installation was confirmed via Windows Registry `HKLM:\SOFTWARE\COMSOL
     - Chapter 1: Java API Overview & Standalone Execution
     - Chapter 2: `ModelUtil`, `ModelNode`, `Parameters`, `Study`, `Solver`
 
+### 2.1 Formal Platform Scope & Tiering (Phase 1 Acceptance)
+
+The project standardizes both the local development workstation and future remote compute servers on **Windows 64-bit**.
+
+| Platform Tier | Scope & Status | Technical Implementation & Guarantees |
+|---|---|---|
+| **Tier 1: Officially Supported & Formally Accepted** | **Windows + COMSOL Multiphysics 6.4 (Win64)** | Production target for development workstations and remote computational servers. Formal acceptance completed across all contracts: OpenJDK 21 toolchain (`comsolbatch.exe`), model tree inspection, parameter mutation, live CFD solving, baseline SHA-256 immutability, atomic publication (`os.rename`), process-exclusive leases (`msvcrt.locking`), and collision-free quarantine. |
+| **Tier 2: Unverified / Unaccepted (Phase 1)** | **Linux / POSIX Systems** | Cross-platform stubs (e.g. `fcntl`, `SYS_renameat2`) exist in the repository, but **Linux compatibility is NOT formally accepted for Phase 1 production use**. The project explicitly does not claim full cross-platform verification at this stage. Linux-specific production certification is deferred to future work. |
+
 ## 3. Strict Safety Contracts
 
 ### 3.1 Baseline Model Immutability & Pre-Publish Verification
