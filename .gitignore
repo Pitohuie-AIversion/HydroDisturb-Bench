@@ -23,3 +23,7 @@ runs/
 .DS_Store
 .idea/
 .vscode/
+*.class
+*.status
+.comsol/
+

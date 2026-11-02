@@ -23,3 +23,6 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: marks tests as requiring real COMSOL installation (deselect with '-m \"not integration\"')",
+]

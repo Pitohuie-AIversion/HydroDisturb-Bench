@@ -59,3 +59,22 @@ The adapter's parameter check does not verify actual boundary selections, PDE ch
 ## Output contract
 
 The first adapter only saves a solved `.mph` to a **new output path**. It does **not** export `u`, `v`, `p`, pressure convention, mesh mask, force field, or HDF5 dataset yet. Implement and validate those separately; do not describe such files as available until verified.
+
+## Actual Benchmark Model Parameters (`case/cylinder_flow.mph`)
+
+The real model audited on the system (`case/cylinder_flow.mph`) is the 2D Schäfer-Turek benchmark model. Through official Java API inspection, its actual parameters are:
+
+| Name | Expression | Evaluated Value | Unit | Description |
+| --- | --- | --- | --- | --- |
+| `H` | `0.41[m]` | 0.41 | m | Channel height |
+| `L` | `2.2[m]` | 2.2 | m | Channel length |
+| `W` | `1[m]` | 1.0 | m | Channel width (out-of-plane, not modeled) |
+| `R` | `0.05[m]` | 0.05 | m | Cylinder radius (cylinder diameter $D = 2R = 0.1\text{ m}$) |
+| `U_mean` | `1[m/s]` | 1.0 | m/s | Mean inflow velocity |
+
+### Mapping to Planned Parameter Contract
+
+1. **Reynolds Number ($Re$)**: The existing model does not define `Re` as an independent parameter. Instead, $Re = \frac{\rho U_{\text{mean}} (2R)}{\mu}$. Modifying $Re$ for testing requires scaling `U_mean` (or fluid viscosity `mu` in material settings).
+2. **Velocity Parameter**: The model uses `U_mean` rather than `Uin` for the parabolic inlet velocity profile: $u(0,y,t) = 4 U_{\text{mean}} y (H - y) / H^2$.
+3. **Disturbance Forcing**: Parameters `A_accel`, `xc`, `yc`, `sigma`, `t0`, `duration`, `dirx`, `diry` do not yet exist in the unperturbed benchmark model and will be added during subsequent dataset generation phases after explicit volume force physics validation.
+
