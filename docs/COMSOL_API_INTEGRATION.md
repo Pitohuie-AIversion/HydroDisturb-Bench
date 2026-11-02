@@ -44,25 +44,39 @@ The baseline CFD model (e.g., `case/cylinder_flow.mph`) represents a trusted, be
 - After the operation completes, the hash is re-computed and compared.
 - If the hash differs, the bridge raises `ModelValidationError` (`MODEL_VALIDATION_FAILED`) immediately.
 
-### 3.2 Copy-on-Write Isolation
-Direct in-place modification of baseline models is strictly prohibited:
-- Parameter updates and solver runs require a distinct `output_path`.
-- If `model_path.resolve() == output_path.resolve()`, the operation is aborted before invoking COMSOL.
+### 3.2 Task-Isolated Staging and Atomic Publication Protocol
+Direct in-place modification or uncoordinated file generation is strictly prohibited:
+- Parameter updates and solver runs require an `output_path` distinct from the baseline model.
+- Symbolic links are strictly rejected (`output_path.is_symlink()`).
+- **Zero Data-Loss Guarantee**: COMSOL executes against an isolated task-specific staging path:
+  `output_path.parent / ".staging" / f"stage_{task_id}_{output_path.name}"`.
+  The target `output_path` is never passed directly to COMSOL to write to.
+- **Pre-Existing File Safety**: If a failure or exception occurs, the target `output_path` is **never touched or deleted**. Any pre-existing valid result at `output_path` remains completely intact and unaffected.
+- **Failure Quarantine**: If COMSOL leaves behind a corrupted or partial staging file upon failure, it is safely moved to `output_path.parent / "quarantine" / f"failed_{task_id}_{output_path.name}"` to preserve diagnostic logs while keeping working paths clean.
+- **Atomic Publication**: Only when COMSOL finishes cleanly (exit code 0), emits valid structured SUCCESS JSON, passes numerical solution checks, and generates a non-empty staging file, is the staging file atomically renamed to `output_path` via `os.replace`.
 
 ### 3.3 Dynamic Discovery (Zero Guessing)
 - Node tags (`comp1`, `geom1`, `mesh1`, `spf`, `std1`, `sol1`) are dynamically extracted from the actual model object.
 - Parameters (`U_mean`, `H`, `L`, `W`, `R`) are verified for existence and units prior to applying changes.
 
-### 3.4 Error Codes and Exception Hierarchy
+### 3.4 Numerical Solution Integrity Verification
+Checking for the existence of `sol1` alone is insufficient because solver nodes may pre-exist in the model template. The bridge strictly validates:
+1. `sol.getPVals()`: Confirms non-empty time step arrays matching requested ranges.
+2. `sol.getU(1)`: Extracts solution field degree-of-freedom vectors (e.g. 70,139 DOFs).
+3. **NaN / Inf Scanning**: Verifies that every component in the solution vector is finite and non-NaN.
+4. **Non-Triviality**: Verifies that the field contains non-zero physical flow data.
+5. If any numerical check fails, the bridge aborts with `SOLVER_FAILED`, and the model is not saved.
+
+### 3.5 Error Codes and Exception Hierarchy
 The interface enforces typed error categories:
 - `MODEL_NOT_FOUND`: Target `.mph` file does not exist.
 - `API_UNSUPPORTED`: Requested Java API not present in current COMSOL version.
 - `NODE_NOT_FOUND`: Target component, geometry, mesh, physics, or study tag not found.
 - `INVALID_PARAMETER`: Target parameter is not defined in model, or expression is malformed.
 - `INVALID_UNIT`: Parameter unit is unrecognized or dimensionally invalid.
-- `COMSOL_CONNECTION_FAILED`: Subprocess execution failed or batch runner crashed.
-- `MODEL_VALIDATION_FAILED`: Baseline hash mutated or saved output is invalid.
-- `SOLVER_FAILED`: COMSOL solver exited with error or failed to generate solution nodes.
+- `COMSOL_CONNECTION_FAILED`: Subprocess execution failed, comsolbatch crashed, or JSON schema malformed.
+- `MODEL_VALIDATION_FAILED`: Baseline hash mutated or staging file invalid.
+- `SOLVER_FAILED`: COMSOL solver exited with error, produced NaN/Inf, or failed to record solution steps.
 
 ## 4. Verified Java API Methods
 
