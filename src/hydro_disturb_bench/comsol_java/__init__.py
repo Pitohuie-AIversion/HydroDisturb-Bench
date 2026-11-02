@@ -23,6 +23,11 @@ from .bridge import (
     inspect_model,
     run_study,
     update_parameter,
+    file_publish_lock,
+    publish_staging_file,
+    quarantine_staging_file,
+    list_quarantine_records,
+    recover_unclaimed_staging,
 )
 
 __all__ = [
@@ -49,4 +54,9 @@ __all__ = [
     "inspect_model",
     "update_parameter",
     "run_study",
+    "file_publish_lock",
+    "publish_staging_file",
+    "quarantine_staging_file",
+    "list_quarantine_records",
+    "recover_unclaimed_staging",
 ]

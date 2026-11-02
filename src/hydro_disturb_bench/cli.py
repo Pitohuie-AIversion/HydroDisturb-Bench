@@ -45,12 +45,14 @@ def main(argv: list[str] | None = None) -> int:
     j_upd.add_argument("--name", required=True, help="Parameter name to modify")
     j_upd.add_argument("--expr", required=True, help="New parameter expression with unit (e.g. '1.2[m/s]')")
     j_upd.add_argument("--descr", default="", help="Optional parameter description")
+    j_upd.add_argument("--allow-overwrite", action="store_true", default=False, help="Allow overwriting destination if it already exists")
 
     j_solve = sub.add_parser("java-solve", help="Execute a study on a validated model copy via COMSOL Java API")
     j_solve.add_argument("--model", required=True, help="Model to solve")
     j_solve.add_argument("--output", required=True, help="Output path for solved model")
     j_solve.add_argument("--study", required=True, help="Study tag (e.g. 'std1')")
     j_solve.add_argument("--tlist", default="", help="Optional override for time list (e.g. 'range(0, 0.05, 0.1)')")
+    j_solve.add_argument("--allow-overwrite", action="store_true", default=False, help="Allow overwriting destination if it already exists")
 
     args = parser.parse_args(argv)
 
@@ -100,6 +102,7 @@ def main(argv: list[str] | None = None) -> int:
             param_name=args.name,
             param_expr=args.expr,
             descr=args.descr,
+            allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))
     elif args.cmd == "java-solve":
@@ -109,6 +112,7 @@ def main(argv: list[str] | None = None) -> int:
             output_path=Path(args.output),
             study_tag=args.study,
             tlist_override=args.tlist,
+            allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))
 

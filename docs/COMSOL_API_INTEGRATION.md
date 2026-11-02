@@ -44,28 +44,38 @@ The baseline CFD model (e.g., `case/cylinder_flow.mph`) represents a trusted, be
 - After the operation completes, the hash is re-computed and compared.
 - If the hash differs, the bridge raises `ModelValidationError` (`MODEL_VALIDATION_FAILED`) immediately.
 
-### 3.2 Task-Isolated Staging and Atomic Publication Protocol
+### 3.2 Task-Isolated Staging and Cross-Process Atomic Publication Protocol
 Direct in-place modification or uncoordinated file generation is strictly prohibited:
 - Parameter updates and solver runs require an `output_path` distinct from the baseline model.
 - Symbolic links are strictly rejected (`output_path.is_symlink()`).
-- **Zero Data-Loss Guarantee**: COMSOL executes against an isolated task-specific staging path:
+- **Task Isolation**: COMSOL executes against an isolated task-specific staging path:
   `output_path.parent / ".staging" / f"stage_{task_id}_{output_path.name}"`.
-  The target `output_path` is never passed directly to COMSOL to write to.
-- **Pre-Existing File Safety**: If a failure or exception occurs, the target `output_path` is **never touched or deleted**. Any pre-existing valid result at `output_path` remains completely intact and unaffected.
-- **Failure Quarantine**: If COMSOL leaves behind a corrupted or partial staging file upon failure, it is safely moved to `output_path.parent / "quarantine" / f"failed_{task_id}_{output_path.name}"` to preserve diagnostic logs while keeping working paths clean.
-- **Atomic Publication**: Only when COMSOL finishes cleanly (exit code 0), emits valid structured SUCCESS JSON, passes numerical solution checks, and generates a non-empty staging file, is the staging file atomically renamed to `output_path` via `os.replace`.
+  The final `output_path` is never exposed directly to COMSOL during simulation.
+- **Cross-Process Coordination**: Publication is guarded by an OS-level file lock:
+  `output_path.parent / ".locks" / f"{output_path.name}.lock"`, utilizing `msvcrt.locking` on Windows and `fcntl.flock` on POSIX.
+- **Strict Default Overwrite Prohibition**: `allow_overwrite` defaults to `False`. If another process has already published to `output_path`, the incoming task fails closed and raises `FileExistsError`.
+- **Pre-Existing File Protection**: Under no circumstance is a pre-existing destination file deleted or corrupted on failure.
+- **Conflict Quarantine**: When a successful computation cannot publish because the destination exists and overwrite is forbidden, the completed staging file is moved to `quarantine/conflict_{task_id}_{output_path.name}`. This guarantees that user computation is never silently lost or overwritten, allowing auditing or manual recovery.
+- **Failure Quarantine**: If COMSOL crashes or leaves a corrupt staging file, it is moved to `quarantine/failed_{task_id}_{output_path.name}`.
+- **Crash / Orphan Recovery**: Orphaned staging files from interrupted or aborted runs can be audited and recovered using `recover_unclaimed_staging(directory)` and `list_quarantine_records(directory)`.
 
 ### 3.3 Dynamic Discovery (Zero Guessing)
 - Node tags (`comp1`, `geom1`, `mesh1`, `spf`, `std1`, `sol1`) are dynamically extracted from the actual model object.
 - Parameters (`U_mean`, `H`, `L`, `W`, `R`) are verified for existence and units prior to applying changes.
 
-### 3.4 Numerical Solution Integrity Verification
-Checking for the existence of `sol1` alone is insufficient because solver nodes may pre-exist in the model template. The bridge strictly validates:
-1. `sol.getPVals()`: Confirms non-empty time step arrays matching requested ranges.
-2. `sol.getU(1)`: Extracts solution field degree-of-freedom vectors (e.g. 70,139 DOFs).
-3. **NaN / Inf Scanning**: Verifies that every component in the solution vector is finite and non-NaN.
-4. **Non-Triviality**: Verifies that the field contains non-zero physical flow data.
-5. If any numerical check fails, the bridge aborts with `SOLVER_FAILED`, and the model is not saved.
+### 3.4 Two-Grade Verification Architecture
+To maintain clear separation of concerns, the system defines two independent acceptance grades:
+- **Grade 1: COMSOL API Solver Execution & Numerical Sanity (Round 1 Scope)**
+  1. `sol.getPVals()`: Confirms non-empty time step arrays matching requested ranges.
+  2. `sol.getU(1)`: Extracts solution field degree-of-freedom vectors (e.g. 70,139 DOFs).
+  3. **NaN / Inf Scanning**: Verifies that every component in the solution vector is finite and non-NaN.
+  4. **Non-Triviality**: Verifies that the field contains non-zero physical flow data.
+  5. If any numerical check fails, the bridge aborts with `SOLVER_FAILED`, and the model is not saved.
+- **Grade 2: CFD Physical Benchmark Validation (Round 2 Scope)**
+  Reserved for the second development round:
+  1. True Reynolds number calibration ($Re = 100$ based on fluid properties $\rho, \mu$, cylinder diameter $D$, and inlet velocity $U_\infty$).
+  2. Low-blockage domain definition (adequate blockage ratio $< 5\%$, inlet $10D$, outlet $30D$, lateral $10D$).
+  3. Physical wake metrics: vortex shedding frequency Strouhal number ($St \approx 0.164 \pm 0.005$), drag coefficient ($C_D$), and lift oscillation ($C_L$).
 
 ### 3.5 Error Codes and Exception Hierarchy
 The interface enforces typed error categories:

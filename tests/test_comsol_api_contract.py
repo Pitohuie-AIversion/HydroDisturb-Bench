@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import concurrent.futures
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -35,6 +36,9 @@ from hydro_disturb_bench.comsol_java.bridge import (
     run_study,
     update_parameter,
     _run_bridge,
+    publish_staging_file,
+    list_quarantine_records,
+    recover_unclaimed_staging,
 )
 
 
@@ -404,3 +408,135 @@ def test_schema_missing_fields_fails_closed(tmp_path):
                 with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
                     with pytest.raises(ComsolConnectionError, match="Schema violation"):
                         _run_bridge(["inspect-api"], root=tmp_path)
+
+
+def test_preexisting_final_file_blocks_successful_run_when_overwrite_forbidden(tmp_path):
+    """When allow_overwrite=False (default), existing target file blocks publish and preserves staging artifact in quarantine."""
+    base = tmp_path / "base.mph"
+    base.write_bytes(b"baseline model data")
+    out = tmp_path / "target_existing.mph"
+    out.write_bytes(b"prior valuable result that must not be overwritten")
+    prior_content = out.read_bytes()
+
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+
+    def side_effect_success(cmd_args, **kwargs):
+        # Position 6 in comsolbatch invocation is the staging file
+        staging_file = Path(cmd_args[6])
+        staging_file.write_bytes(b"newly computed successful result")
+        mock_proc = MagicMock()
+        mock_proc.returncode = 0
+        mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"SUCCESS\", \"operation\": \"update_parameter\", \"param_name\": \"U_mean\", \"new_expr\": \"2.0\", \"readback_value\": 2.0}\n<<<JSON_END>>>"
+        mock_proc.stderr = ""
+        return mock_proc
+
+    # 1. Default allow_overwrite=False must raise FileExistsError
+    with patch("subprocess.run", side_effect=side_effect_success):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(FileExistsError, match="overwrite is forbidden"):
+                        update_parameter(base, out, "U_mean", "2.0")
+
+    # Original destination file MUST be completely unaltered
+    assert out.is_file(), "Original file disappeared!"
+    assert out.read_bytes() == prior_content, "Original file was corrupted or overwritten!"
+
+    # Staging directory must be clean (no dangling unmanaged files)
+    staging_files = list((out.parent / ".staging").glob("stage_*"))
+    assert len(staging_files) == 0, f"Dangling staging files left in .staging: {staging_files}"
+
+    # Quarantined conflict artifact MUST exist with newly computed bytes
+    conflict_files = list((out.parent / "quarantine").glob("conflict_*"))
+    assert len(conflict_files) == 1, "Conflict staging artifact was not preserved in quarantine!"
+    assert conflict_files[0].read_bytes() == b"newly computed successful result"
+
+    # 2. When allow_overwrite=True is explicitly passed, it should replace
+    with patch("subprocess.run", side_effect=side_effect_success):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    res = update_parameter(base, out, "U_mean", "2.0", allow_overwrite=True)
+
+    assert res.get("status") == "SUCCESS"
+    assert out.read_bytes() == b"newly computed successful result"
+
+
+def test_concurrent_publish_race_same_target_only_one_succeeds(tmp_path):
+    """When two concurrent processes race to publish to the same destination, exactly one succeeds."""
+    out = tmp_path / "race_target.mph"
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    stage_a = staging_dir / "stage_taskA_race_target.mph"
+    stage_a.write_bytes(b"Task A completed model bytes")
+
+    stage_b = staging_dir / "stage_taskB_race_target.mph"
+    stage_b.write_bytes(b"Task B completed model bytes")
+
+    results = []
+
+    def run_publish(stage_path: Path, task_id: str):
+        try:
+            publish_staging_file(
+                staging_path=stage_path,
+                output_path=out,
+                stage_id=task_id,
+                allow_overwrite=False,
+            )
+            return (task_id, "SUCCESS", None)
+        except Exception as e:
+            return (task_id, "ERROR", e)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        futs = [
+            executor.submit(run_publish, stage_a, "taskA"),
+            executor.submit(run_publish, stage_b, "taskB"),
+        ]
+        results = [f.result() for f in futs]
+
+    successes = [r for r in results if r[1] == "SUCCESS"]
+    failures = [r for r in results if r[1] == "ERROR"]
+
+    # Exactly one succeeded and one failed closed
+    assert len(successes) == 1, f"Expected 1 success, got {len(successes)}: {results}"
+    assert len(failures) == 1, f"Expected 1 failure, got {len(failures)}: {results}"
+    assert isinstance(failures[0][2], FileExistsError)
+
+    # Destination file exists and contains full uncorrupted content of winner
+    assert out.is_file()
+    winner_id = successes[0][0]
+    expected_bytes = b"Task A completed model bytes" if winner_id == "taskA" else b"Task B completed model bytes"
+    assert out.read_bytes() == expected_bytes
+
+    # Loser's staging file was safely moved to quarantine as conflict_*
+    loser_id = failures[0][0]
+    quarantine_files = list((tmp_path / "quarantine").glob(f"conflict_{loser_id}_*"))
+    assert len(quarantine_files) == 1
+    loser_bytes = b"Task B completed model bytes" if winner_id == "taskA" else b"Task A completed model bytes"
+    assert quarantine_files[0].read_bytes() == loser_bytes
+
+    # Staging directory is clean
+    assert not stage_a.exists()
+    assert not stage_b.exists()
+
+
+def test_quarantine_listing_and_recovery(tmp_path):
+    """Verify list_quarantine_records and recover_unclaimed_staging utilities."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    orphan_file = staging_dir / "stage_abandoned_model.mph"
+    orphan_file.write_bytes(b"abandoned staging file")
+
+    # Recover unclaimed staging
+    recovered = recover_unclaimed_staging(tmp_path)
+    assert len(recovered) == 1
+    assert recovered[0].name == "orphan_stage_abandoned_model.mph"
+    assert not orphan_file.exists()
+
+    # List quarantine records
+    records = list_quarantine_records(tmp_path)
+    assert len(records) == 1
+    assert records[0]["name"] == "orphan_stage_abandoned_model.mph"
+    assert records[0]["size_bytes"] == len(b"abandoned staging file")

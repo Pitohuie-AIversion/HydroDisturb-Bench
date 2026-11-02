@@ -6,12 +6,14 @@ model immutability, parameter validation, and detailed execution logging.
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 import uuid
 import winreg
 from typing import Any
@@ -306,12 +308,205 @@ def inspect_model(model_path: Path | str, root: Path | None = None) -> dict[str,
     return res
 
 
+def quarantine_staging_file(
+    staging_path: Path | str,
+    output_path: Path | str,
+    stage_id: str,
+    reason: str = "failed",
+) -> Path | None:
+    """Move a staging file into quarantine to isolate failures or conflicts.
+
+    Args:
+        staging_path: Path to the temporary staging artifact.
+        output_path: Intended final output path (used to determine parent dir and filename).
+        stage_id: Unique task identifier.
+        reason: 'failed' (execution failure) or 'conflict' (destination collision).
+
+    Returns:
+        Path to the quarantined file, or None if staging_path did not exist.
+    """
+    staging_path = Path(staging_path)
+    if not staging_path.is_file():
+        return None
+    quarantine_dir = Path(output_path).parent / "quarantine"
+    quarantine_dir.mkdir(parents=True, exist_ok=True)
+    target = quarantine_dir / f"{reason}_{stage_id}_{Path(output_path).name}"
+    try:
+        staging_path.replace(target)
+        return target
+    except OSError:
+        staging_path.unlink(missing_ok=True)
+        return None
+
+
+@contextlib.contextmanager
+def file_publish_lock(
+    lock_path: Path | str,
+    timeout_sec: float = 30.0,
+    poll_interval: float = 0.05,
+):
+    """Acquire a cross-process lock for publishing files safely.
+
+    Uses `msvcrt.locking` on Windows and `fcntl.flock` on POSIX systems.
+    Prevents concurrent processes from overwriting or corrupting the destination.
+    """
+    lock_path = Path(lock_path)
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    f = open(lock_path, "a+b")
+    start_time = time.monotonic()
+    locked = False
+    try:
+        while True:
+            try:
+                f.seek(0)
+                if sys.platform == "win32":
+                    import msvcrt
+                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                locked = True
+                break
+            except (OSError, BlockingIOError):
+                if time.monotonic() - start_time >= timeout_sec:
+                    raise TimeoutError(
+                        f"Timed out after {timeout_sec:.1f}s waiting for publish lock on: {lock_path}"
+                    )
+                time.sleep(poll_interval)
+        yield
+    finally:
+        if locked:
+            try:
+                f.seek(0)
+                if sys.platform == "win32":
+                    import msvcrt
+                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            except OSError:
+                pass
+        try:
+            f.close()
+        except OSError:
+            pass
+
+
+def publish_staging_file(
+    staging_path: Path | str,
+    output_path: Path | str,
+    stage_id: str,
+    allow_overwrite: bool = False,
+    lock_timeout_sec: float = 30.0,
+) -> None:
+    """Atomically publish a verified staging file to final output_path.
+
+    Enforces:
+    1. Cross-process publication synchronization using a dedicated lock file.
+    2. Symbolic link rejection on destination path.
+    3. Default forbid overwrite (`allow_overwrite=False`).
+    4. Conflict isolation: if destination already exists and overwrite is forbidden,
+       moves staging file to quarantine/conflict_{stage_id}_{output_path.name}
+       and raises FileExistsError (preserving pre-existing destination and staging data).
+    5. Clean atomic publication via os.replace or os.rename.
+    """
+    output_path = Path(output_path)
+    staging_path = Path(staging_path)
+
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
+    if not staging_path.is_file() or staging_path.stat().st_size == 0:
+        if staging_path.is_file():
+            staging_path.unlink(missing_ok=True)
+        raise ModelValidationError(
+            f"Staging model file is missing or empty before publish: {staging_path}"
+        )
+
+    lock_dir = output_path.parent / ".locks"
+    lock_file = lock_dir / f"{output_path.name}.lock"
+
+    with file_publish_lock(lock_file, timeout_sec=lock_timeout_sec):
+        # Re-check symlink inside lock in case created concurrently
+        if output_path.is_symlink():
+            raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
+        if output_path.exists():
+            if not allow_overwrite:
+                conflict_target = quarantine_staging_file(
+                    staging_path, output_path, stage_id, reason="conflict"
+                )
+                raise FileExistsError(
+                    f"Destination output file already exists and overwrite is forbidden: {output_path}. "
+                    f"Staging artifact preserved in quarantine at {conflict_target}"
+                )
+            staging_path.replace(output_path)
+        else:
+            # Destination does not exist yet: atomic rename / move
+            if sys.platform == "win32":
+                try:
+                    os.rename(staging_path, output_path)
+                except FileExistsError:
+                    if not allow_overwrite:
+                        conflict_target = quarantine_staging_file(
+                            staging_path, output_path, stage_id, reason="conflict"
+                        )
+                        raise FileExistsError(
+                            f"Destination output file already exists and overwrite is forbidden: {output_path}. "
+                            f"Staging artifact preserved in quarantine at {conflict_target}"
+                        )
+                    staging_path.replace(output_path)
+            else:
+                staging_path.replace(output_path)
+
+
+def list_quarantine_records(directory: Path | str) -> list[dict[str, Any]]:
+    """List all quarantined files in the given directory or its 'quarantine' subdirectory."""
+    p = Path(directory)
+    q_dir = p if p.name == "quarantine" else p / "quarantine"
+    if not q_dir.is_dir():
+        return []
+    records = []
+    for f in sorted(q_dir.iterdir()):
+        if f.is_file():
+            kind = "conflict" if f.name.startswith("conflict_") else "failed"
+            records.append({
+                "path": str(f.resolve()),
+                "name": f.name,
+                "kind": kind,
+                "size_bytes": f.stat().st_size,
+                "mtime": f.stat().st_mtime,
+            })
+    return records
+
+
+def recover_unclaimed_staging(directory: Path | str) -> list[Path]:
+    """Identify and quarantine orphan staging files left behind by interrupted runs."""
+    p = Path(directory)
+    staging_dir = p if p.name == ".staging" else p / ".staging"
+    if not staging_dir.is_dir():
+        return []
+    quarantine_dir = staging_dir.parent / "quarantine"
+    quarantine_dir.mkdir(parents=True, exist_ok=True)
+    recovered = []
+    for f in sorted(staging_dir.iterdir()):
+        if f.is_file() and f.name.startswith("stage_"):
+            target = quarantine_dir / f"orphan_{f.name}"
+            try:
+                f.replace(target)
+                recovered.append(target)
+            except OSError:
+                pass
+    return recovered
+
+
 def update_parameter(
     model_path: Path | str,
     output_path: Path | str,
     param_name: str,
     param_expr: str,
     descr: str = "",
+    allow_overwrite: bool = False,
     root: Path | None = None,
 ) -> dict[str, Any]:
     """Modify a verified parameter in a model copy and read back the value."""
@@ -357,26 +552,15 @@ def update_parameter(
     try:
         res = _run_bridge(args, root=root)
     except Exception:
-        # Quarantine staging artifact if it was created; NEVER touch output_path!
-        if staging_path.is_file():
-            quarantine_dir = output_path.parent / "quarantine"
-            quarantine_dir.mkdir(parents=True, exist_ok=True)
-            quarantine_target = quarantine_dir / f"failed_{stage_id}_{output_path.name}"
-            try:
-                staging_path.replace(quarantine_target)
-            except OSError:
-                staging_path.unlink(missing_ok=True)
+        quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
         raise
 
-    if not staging_path.is_file() or staging_path.stat().st_size == 0:
-        if staging_path.is_file():
-            staging_path.unlink(missing_ok=True)
-        raise ModelValidationError(
-            f"update_parameter reported success but staging model file is missing or empty: {staging_path}"
-        )
-
-    # Atomically publish verified staging file to final output_path
-    staging_path.replace(output_path)
+    publish_staging_file(
+        staging_path=staging_path,
+        output_path=output_path,
+        stage_id=stage_id,
+        allow_overwrite=allow_overwrite,
+    )
 
     # Verify baseline model was completely untouched
     hash_after = compute_file_hash(model_path)
@@ -397,6 +581,7 @@ def run_study(
     output_path: Path | str,
     study_tag: str,
     tlist_override: str = "",
+    allow_overwrite: bool = False,
     root: Path | None = None,
 ) -> dict[str, Any]:
     """Execute a study on a validated model copy and save results to output_path."""
@@ -435,26 +620,15 @@ def run_study(
     try:
         res = _run_bridge(args, root=root)
     except Exception:
-        # Quarantine staging artifact if it was created; NEVER touch output_path!
-        if staging_path.is_file():
-            quarantine_dir = output_path.parent / "quarantine"
-            quarantine_dir.mkdir(parents=True, exist_ok=True)
-            quarantine_target = quarantine_dir / f"failed_{stage_id}_{output_path.name}"
-            try:
-                staging_path.replace(quarantine_target)
-            except OSError:
-                staging_path.unlink(missing_ok=True)
+        quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
         raise
 
-    if not staging_path.is_file() or staging_path.stat().st_size == 0:
-        if staging_path.is_file():
-            staging_path.unlink(missing_ok=True)
-        raise ModelValidationError(
-            f"run_study reported success but staging model file is missing or empty: {staging_path}"
-        )
-
-    # Atomically publish verified staging file to final output_path
-    staging_path.replace(output_path)
+    publish_staging_file(
+        staging_path=staging_path,
+        output_path=output_path,
+        stage_id=stage_id,
+        allow_overwrite=allow_overwrite,
+    )
 
     # Verify baseline model untouched
     hash_after = compute_file_hash(model_path)
