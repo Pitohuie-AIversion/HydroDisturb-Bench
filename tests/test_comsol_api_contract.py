@@ -234,6 +234,7 @@ def test_baseline_integrity_check_failure(tmp_path):
     def side_effect_modify(*args, **kwargs):
         # Simulate tool corrupting/modifying the source file
         base.write_bytes(b"tampered data")
+        out.write_bytes(b"valid non-empty output")
         res = MagicMock()
         res.returncode = 0
         payload = json.dumps({
@@ -258,3 +259,65 @@ def test_baseline_integrity_check_failure(tmp_path):
                 with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
                     with pytest.raises(ModelValidationError, match="Safety violation: original model file was modified"):
                         update_parameter(base, out, "U_mean", "2.0")
+
+
+def test_subprocess_nonzero_exit_code_fails_closed(tmp_path):
+    """If comsolbatch returns non-zero without valid SUCCESS JSON, ComsolConnectionError must be raised."""
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+    mock_proc = MagicMock()
+    mock_proc.returncode = 1
+    mock_proc.stdout = "Fatal Java Virtual Machine error"
+    mock_proc.stderr = "OutOfMemoryError"
+
+    with patch("subprocess.run", return_value=mock_proc):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(ComsolConnectionError, match="exit code 1"):
+                        _run_bridge(["inspect-api"], root=tmp_path)
+
+
+def test_invalid_json_fails_closed(tmp_path):
+    """If ComsolBridge prints invalid/truncated JSON within sentinels, fail closed."""
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+    mock_proc = MagicMock()
+    mock_proc.returncode = 0
+    mock_proc.stdout = "<<<JSON_START>>>\n{truncated json:\n<<<JSON_END>>>"
+    mock_proc.stderr = ""
+
+    with patch("subprocess.run", return_value=mock_proc):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(ComsolConnectionError, match="Failed to decode JSON"):
+                        _run_bridge(["inspect-api"], root=tmp_path)
+
+
+def test_failed_update_cleans_up_output_file(tmp_path):
+    """If an operation throws an error, any created or corrupted output file must be cleaned up."""
+    base = tmp_path / "base.mph"
+    base.write_bytes(b"initial data")
+    out = tmp_path / "out.mph"
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+
+    def side_effect_fail_and_leave_file(*args, **kwargs):
+        # Simulate solver/COMSOL writing a partial file before aborting
+        out.write_bytes(b"corrupt partial file")
+        mock_proc = MagicMock()
+        mock_proc.returncode = 0
+        mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"ERROR\", \"error_code\": \"SOLVER_FAILED\", \"message\": \"divergence\"}\n<<<JSON_END>>>"
+        return mock_proc
+
+    with patch("subprocess.run", side_effect=side_effect_fail_and_leave_file):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(SolverFailedError):
+                        update_parameter(base, out, "U_mean", "2.0")
+
+    # Output file must NOT exist on disk after failure
+    assert not out.exists(), "Corrupted output file was left behind after failure!"
+

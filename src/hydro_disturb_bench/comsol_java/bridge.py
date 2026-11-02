@@ -215,25 +215,37 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     start_tag = "<<<JSON_START>>>"
     end_tag = "<<<JSON_END>>>"
 
-    if start_tag not in stdout or end_tag not in stdout:
+    # Attempt to extract structured JSON report
+    data: dict[str, Any] | None = None
+    if start_tag in stdout and end_tag in stdout:
+        json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError as err:
+            raise ComsolConnectionError(
+                f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+            ) from err
+
+    # If the bridge emitted a structured error, propagate it as a typed exception
+    if data and data.get("status") != "SUCCESS":
+        err_code = data.get("error_code", ERR_COMSOL_CONNECTION_FAILED)
+        msg = data.get("message", "Bridge execution failed")
+        details = data.get("details", "")
+        raise map_error(err_code, msg, details)
+
+    # If subprocess returned non-zero without a structured SUCCESS
+    if proc.returncode != 0:
         raise ComsolConnectionError(
-            f"ComsolBridge execution produced invalid output (exit code {proc.returncode}):\n"
+            f"ComsolBridge process failed with exit code {proc.returncode}:\n"
             f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
         )
 
-    json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
-    try:
-        data = json.loads(json_str)
-    except json.JSONDecodeError as err:
+    # If no valid structured output was emitted
+    if not data or data.get("status") != "SUCCESS":
         raise ComsolConnectionError(
-            f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
-        ) from err
-
-    if data.get("status") == "ERROR":
-        err_code = data.get("error_code", ERR_COMSOL_CONNECTION_FAILED)
-        msg = data.get("message", "Unknown bridge error")
-        details = data.get("details", "")
-        raise map_error(err_code, msg, details)
+            f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+            f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+        )
 
     data.setdefault("log", stdout)
     return data
@@ -308,7 +320,22 @@ def update_parameter(
     if descr:
         args.append(descr.strip())
 
-    res = _run_bridge(args, root=root)
+    try:
+        res = _run_bridge(args, root=root)
+    except Exception:
+        if output_path.is_file():
+            try:
+                output_path.unlink()
+            except OSError:
+                pass
+        raise
+
+    if not output_path.is_file() or output_path.stat().st_size == 0:
+        if output_path.is_file():
+            output_path.unlink(missing_ok=True)
+        raise ModelValidationError(
+            f"update_parameter reported success but output model file is missing or empty: {output_path}"
+        )
 
     # Verify baseline model was completely untouched
     hash_after = compute_file_hash(model_path)
@@ -356,7 +383,22 @@ def run_study(
     if tlist_override:
         args.append(tlist_override.strip())
 
-    res = _run_bridge(args, root=root)
+    try:
+        res = _run_bridge(args, root=root)
+    except Exception:
+        if output_path.is_file():
+            try:
+                output_path.unlink()
+            except OSError:
+                pass
+        raise
+
+    if not output_path.is_file() or output_path.stat().st_size == 0:
+        if output_path.is_file():
+            output_path.unlink(missing_ok=True)
+        raise ModelValidationError(
+            f"run_study reported success but output model file is missing or empty: {output_path}"
+        )
 
     # Verify baseline model untouched
     hash_after = compute_file_hash(model_path)
