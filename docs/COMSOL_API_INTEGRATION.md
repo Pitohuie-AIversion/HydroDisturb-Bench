@@ -38,23 +38,27 @@ The local installation was confirmed via Windows Registry `HKLM:\SOFTWARE\COMSOL
 
 ## 3. Strict Safety Contracts
 
-### 3.1 Baseline Model Immutability
+### 3.1 Baseline Model Immutability & Pre-Publish Verification
 The baseline CFD model (e.g., `case/cylinder_flow.mph`) represents a trusted, benchmark reference.
 - Before every operation (even read-only inspection), the SHA-256 hash of the input file is computed.
-- After the operation completes, the hash is re-computed and compared.
-- If the hash differs, the bridge raises `ModelValidationError` (`MODEL_VALIDATION_FAILED`) immediately.
+- **Pre-Publish Verification**: In mutating operations (`update_parameter`, `run_study`), the hash of the source model is re-verified **before** any attempt to publish the final output file.
+- If the source hash mutated during execution, the staging file is safely quarantined as `failed_*`, `ModelValidationError` is raised, and the destination `output_path` is **never published**.
 
-### 3.2 Task-Isolated Staging and Cross-Process Atomic Publication Protocol
+### 3.2 Task-Isolated Staging, Task Leases, and Cross-Process Atomic Publication Protocol
 Direct in-place modification or uncoordinated file generation is strictly prohibited:
 - Parameter updates and solver runs require an `output_path` distinct from the baseline model.
 - Symbolic links are strictly rejected (`output_path.is_symlink()`).
-- **Task Isolation**: COMSOL executes against an isolated task-specific staging path:
+- **Task Isolation & Active Leases**: COMSOL executes against an isolated task-specific staging path:
   `output_path.parent / ".staging" / f"stage_{task_id}_{output_path.name}"`.
-  The final `output_path` is never exposed directly to COMSOL during simulation.
+  The task creates and holds an exclusive lease lock on `.staging / f".lease_{task_id}.lock"` via `task_staging_session`. This OS-level kernel lock remains active for the full duration of computation and publishing.
+- **Active Task Protection in Recovery**: `recover_unclaimed_staging` checks `is_task_active()`. Any task holding an active lease lock or active PID is **strictly skipped and preserved**. Only confirmed dead orphan tasks (lock released by OS upon process exit/crash) are archived into `quarantine/orphan_{name}`.
+- **Quarantine Resilience (Zero Data-Loss)**: If quarantine transfer fails (e.g., permission issue or destination storage fault), `quarantine_staging_file` logs a warning and **strictly preserves the staging file in place**, never calling `unlink()`.
 - **Cross-Process Coordination**: Publication is guarded by an OS-level file lock:
   `output_path.parent / ".locks" / f"{output_path.name}.lock"`, utilizing `msvcrt.locking` on Windows and `fcntl.flock` on POSIX.
 - **Strict Default Overwrite Prohibition**: `allow_overwrite` defaults to `False`. If another process has already published to `output_path`, the incoming task fails closed and raises `FileExistsError`.
-- **Pre-Existing File Protection**: Under no circumstance is a pre-existing destination file deleted or corrupted on failure.
+- **Cross-Platform Atomic No-Overwrite**:
+  - Windows: Uses `os.rename()`, which is guaranteed by the OS kernel to fail with `FileExistsError` (WinError 183) if the destination exists.
+  - POSIX / Linux: Uses `os.link()` followed by `unlink()`, which is guaranteed by POSIX specification to fail with `FileExistsError` (`EEXIST`) if the destination exists (with `SYS_renameat2` `RENAME_NOREPLACE` fallback).
 - **Conflict Quarantine**: When a successful computation cannot publish because the destination exists and overwrite is forbidden, the completed staging file is moved to `quarantine/conflict_{task_id}_{output_path.name}`. This guarantees that user computation is never silently lost or overwritten, allowing auditing or manual recovery.
 - **Failure Quarantine**: If COMSOL crashes or leaves a corrupt staging file, it is moved to `quarantine/failed_{task_id}_{output_path.name}`.
 - **Crash / Orphan Recovery**: Orphaned staging files from interrupted or aborted runs can be audited and recovered using `recover_unclaimed_staging(directory)` and `list_quarantine_records(directory)`.

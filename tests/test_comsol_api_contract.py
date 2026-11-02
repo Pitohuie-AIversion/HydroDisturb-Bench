@@ -5,6 +5,9 @@ and output schema contracts using controlled mocks without requiring a live COMS
 """
 from __future__ import annotations
 
+import os
+import sys
+import subprocess
 import json
 from pathlib import Path
 import concurrent.futures
@@ -37,8 +40,11 @@ from hydro_disturb_bench.comsol_java.bridge import (
     update_parameter,
     _run_bridge,
     publish_staging_file,
+    quarantine_staging_file,
     list_quarantine_records,
     recover_unclaimed_staging,
+    task_staging_session,
+    is_task_active,
 )
 
 
@@ -540,3 +546,146 @@ def test_quarantine_listing_and_recovery(tmp_path):
     assert len(records) == 1
     assert records[0]["name"] == "orphan_stage_abandoned_model.mph"
     assert records[0]["size_bytes"] == len(b"abandoned staging file")
+
+
+def test_quarantine_failure_preserves_staging_file_in_place(tmp_path):
+    """When quarantine directory transfer fails (e.g. disk/permission error), staging file must be preserved in place, never unlinked."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    staging_file = staging_dir / "stage_test_data.mph"
+    staging_file.write_bytes(b"valuable simulation artifact")
+    out = tmp_path / "final.mph"
+
+    # Simulate quarantine filesystem failure (e.g. permission denied)
+    with patch.object(Path, "replace", side_effect=OSError("Quarantine storage unavailable")):
+        res = quarantine_staging_file(staging_file, out, "test_id", reason="failed")
+
+    # Return value is None indicating transfer failure
+    assert res is None
+
+    # Staging file MUST still exist in place with full contents (never unlinked)
+    assert staging_file.is_file(), "Staging file was erroneously deleted on quarantine failure!"
+    assert staging_file.read_bytes() == b"valuable simulation artifact"
+
+
+def test_active_task_not_quarantined_by_recovery(tmp_path):
+    """An active task currently computing/holding a staging lease lock must NEVER be touched by recovery."""
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    active_stage = staging_dir / "stage_active1_final.mph"
+    active_stage.write_bytes(b"actively computing simulation data")
+
+    orphan_stage = staging_dir / "stage_abandoned2_final.mph"
+    orphan_stage.write_bytes(b"abandoned orphan data")
+
+    # Active task holds a task lease session
+    with task_staging_session(active_stage, "active1"):
+        # Another process runs recover_unclaimed_staging
+        recovered, skipped = recover_unclaimed_staging(tmp_path, min_age_sec=0.0, return_skipped=True)
+
+        # Only the abandoned orphan was recovered
+        assert len(recovered) == 1
+        assert recovered[0].name == "orphan_stage_abandoned2_final.mph"
+
+        # The active task was skipped and reported
+        assert len(skipped) == 1
+        assert skipped[0]["stage_id"] == "active1"
+        assert skipped[0]["reason"] == "active_task_lease_held"
+
+        # The active task's staging file MUST remain completely intact in .staging
+        assert active_stage.is_file(), "Active task file was erroneously moved to quarantine!"
+        assert active_stage.read_bytes() == b"actively computing simulation data"
+
+    # After active task finishes, simulate it was cleanly published or cleaned up
+    active_stage.unlink()
+    orphan_stage2 = staging_dir / "stage_abandoned3_final.mph"
+    orphan_stage2.write_bytes(b"more orphan data")
+    recovered2 = recover_unclaimed_staging(tmp_path, min_age_sec=0.0)
+    assert len(recovered2) == 1
+    assert recovered2[0].name == "orphan_stage_abandoned3_final.mph"
+
+
+def test_source_model_mutation_fails_before_publish_and_quarantines(tmp_path):
+    """If source model is modified during computation, fail closed BEFORE publishing and quarantine staging artifact."""
+    base = tmp_path / "base.mph"
+    base.write_bytes(b"trusted baseline model")
+    out = tmp_path / "final_output.mph"
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+
+    def side_effect_corrupt_source(cmd_args, **kwargs):
+        # Position 6 in comsolbatch invocation is the staging file
+        staging_file = Path(cmd_args[6])
+        staging_file.write_bytes(b"computed result from corrupted source")
+        # Simulate unauthorized modification of source model during computation
+        base.write_bytes(b"corrupted or modified baseline content")
+        mock_proc = MagicMock()
+        mock_proc.returncode = 0
+        mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"SUCCESS\", \"operation\": \"update_parameter\", \"param_name\": \"U_mean\", \"new_expr\": \"2.0\", \"readback_value\": 2.0}\n<<<JSON_END>>>"
+        mock_proc.stderr = ""
+        return mock_proc
+
+    with patch("subprocess.run", side_effect=side_effect_corrupt_source):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(ModelValidationError, match="original model file was modified"):
+                        update_parameter(base, out, "U_mean", "2.0")
+
+    # Destination MUST NOT have been published!
+    assert not out.exists(), "Final output file was published despite baseline corruption!"
+
+    # Staging file was safely quarantined as failed_*
+    quarantine_files = list((out.parent / "quarantine").glob("failed_*"))
+    assert len(quarantine_files) == 1, "Failed artifact was not preserved in quarantine!"
+    assert quarantine_files[0].read_bytes() == b"computed result from corrupted source"
+
+
+def test_multiprocess_publish_race_same_target_only_one_succeeds(tmp_path):
+    """Verify that multiple independent OS processes racing to publish to the same destination are synchronized by the OS file lock."""
+    out = tmp_path / "mp_race_target.mph"
+    staging_dir = tmp_path / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    stage_a = staging_dir / "stage_procA_mp_race_target.mph"
+    stage_a.write_bytes(b"Process A output model bytes")
+
+    stage_b = staging_dir / "stage_procB_mp_race_target.mph"
+    stage_b.write_bytes(b"Process B output model bytes")
+
+    worker_code = """
+import sys, pathlib
+from hydro_disturb_bench.comsol_java.bridge import publish_staging_file
+
+stage = pathlib.Path(sys.argv[1])
+out = pathlib.Path(sys.argv[2])
+task_id = sys.argv[3]
+try:
+    publish_staging_file(stage, out, task_id, allow_overwrite=False)
+    sys.exit(0)
+except FileExistsError:
+    sys.exit(2)
+"""
+
+    sub_env = {**os.environ, "PYTHONPATH": "src"}
+    p1 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_a), str(out), "procA"], env=sub_env)
+    p2 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_b), str(out), "procB"], env=sub_env)
+
+    rc1 = p1.wait()
+    rc2 = p2.wait()
+
+    # Exactly one process succeeded (rc=0) and one process was blocked and raised FileExistsError (rc=2)
+    assert sorted([rc1, rc2]) == [0, 2], f"Expected [0, 2] from racing processes, got {[rc1, rc2]}"
+
+    # Output file exists and is intact
+    assert out.is_file()
+    assert out.read_bytes() in (b"Process A output model bytes", b"Process B output model bytes")
+
+    # The loser's staging file was safely moved to quarantine as conflict_*
+    quarantine_files = list((tmp_path / "quarantine").glob("conflict_proc*"))
+    assert len(quarantine_files) == 1
+
+    # Neither staging file remains in .staging
+    assert not stage_a.exists()
+    assert not stage_b.exists()

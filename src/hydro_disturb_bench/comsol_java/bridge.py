@@ -308,6 +308,128 @@ def inspect_model(model_path: Path | str, root: Path | None = None) -> dict[str,
     return res
 
 
+def is_pid_alive(pid: int) -> bool:
+    """Check if process with given PID is currently alive on the host system."""
+    if pid <= 0:
+        return False
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+            if handle:
+                exit_code = ctypes.c_ulong()
+                kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code))
+                kernel32.CloseHandle(handle)
+                STILL_ACTIVE = 259
+                return exit_code.value == STILL_ACTIVE
+            return False
+        except Exception:
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+
+def is_task_active(lease_file: Path | str) -> bool:
+    """Check whether a staging lease file corresponds to a currently running task."""
+    lease_path = Path(lease_file)
+    if not lease_path.is_file():
+        return False
+    try:
+        f = open(lease_path, "a+b")
+    except OSError:
+        # File is locked exclusively by another process, definitely active!
+        return True
+
+    try:
+        f.seek(0)
+        if sys.platform == "win32":
+            import msvcrt
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+        # Lock was acquirable without blocking; now check PID from metadata as second defense
+        try:
+            f.seek(0)
+            content = f.read().decode("utf-8", errors="ignore").strip()
+            if content:
+                meta = json.loads(content)
+                pid = meta.get("pid")
+                if pid and is_pid_alive(int(pid)):
+                    return True
+        except Exception:
+            pass
+        return False
+    except (OSError, BlockingIOError):
+        # File lock could not be acquired: another process is actively holding it!
+        return True
+    finally:
+        try:
+            f.close()
+        except OSError:
+            pass
+
+
+@contextlib.contextmanager
+def task_staging_session(staging_path: Path | str, stage_id: str):
+    """Manage lifecycle and active lease lock for a staging task.
+
+    Creates and holds an exclusive non-blocking lock on `.lease_{stage_id}.lock`.
+    While the task process is running, this lock remains held by the operating system kernel.
+    If the process terminates, crashes, or is killed, the operating system kernel unconditionally
+    releases the file lock.
+    """
+    staging_path = Path(staging_path)
+    staging_path.parent.mkdir(parents=True, exist_ok=True)
+    lease_file = staging_path.parent / f".lease_{stage_id}.lock"
+
+    f = open(lease_file, "a+b")
+    locked = False
+    try:
+        f.seek(0)
+        f.truncate(0)
+        meta = json.dumps({"pid": os.getpid(), "stage_id": stage_id, "start_time": time.time()})
+        f.write(meta.encode("utf-8"))
+        f.flush()
+        f.seek(0)
+        if sys.platform == "win32":
+            import msvcrt
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        locked = True
+        yield
+    finally:
+        if locked:
+            try:
+                f.seek(0)
+                if sys.platform == "win32":
+                    import msvcrt
+                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            except OSError:
+                pass
+        try:
+            f.close()
+        except OSError:
+            pass
+        try:
+            lease_file.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
 def quarantine_staging_file(
     staging_path: Path | str,
     output_path: Path | str,
@@ -316,6 +438,10 @@ def quarantine_staging_file(
 ) -> Path | None:
     """Move a staging file into quarantine to isolate failures or conflicts.
 
+    Guarantees:
+    - If moving fails (e.g., target disk full, permission denied), staging_path is
+      STRICTLY PRESERVED in place (never unlinked) and a warning is logged to sys.stderr.
+
     Args:
         staging_path: Path to the temporary staging artifact.
         output_path: Intended final output path (used to determine parent dir and filename).
@@ -323,7 +449,7 @@ def quarantine_staging_file(
         reason: 'failed' (execution failure) or 'conflict' (destination collision).
 
     Returns:
-        Path to the quarantined file, or None if staging_path did not exist.
+        Path to the quarantined file, or None if moving failed or staging_path did not exist.
     """
     staging_path = Path(staging_path)
     if not staging_path.is_file():
@@ -334,8 +460,12 @@ def quarantine_staging_file(
     try:
         staging_path.replace(target)
         return target
-    except OSError:
-        staging_path.unlink(missing_ok=True)
+    except OSError as err:
+        # Strictly preserve staging file in place. NEVER unlink on quarantine failure!
+        sys.stderr.write(
+            f"[QUARANTINE_WARNING] Failed to quarantine staging file {staging_path} to {target}: {err}. "
+            f"Artifact retained in staging directory.\n"
+        )
         return None
 
 
@@ -392,6 +522,51 @@ def file_publish_lock(
             pass
 
 
+def _atomic_publish_new_file(staging_path: Path, output_path: Path, stage_id: str) -> None:
+    """Atomically publish staging_path to output_path if output_path does NOT exist."""
+    if sys.platform == "win32":
+        # Windows: os.rename fails with FileExistsError (WinError 183) if output_path exists
+        os.rename(staging_path, output_path)
+    else:
+        # POSIX / Linux: link() is an atomic kernel operation that fails with EEXIST if output_path exists
+        try:
+            os.link(staging_path, output_path)
+            staging_path.unlink()
+        except OSError as err:
+            if output_path.exists():
+                raise FileExistsError(f"Destination output file already exists: {output_path}") from err
+            _posix_rename_noreplace(staging_path, output_path, err)
+
+
+def _posix_rename_noreplace(staging_path: Path, output_path: Path, original_err: Exception) -> None:
+    """Linux kernel SYS_renameat2 with RENAME_NOREPLACE (flag 1)."""
+    try:
+        import ctypes
+        libc = ctypes.CDLL(None)
+        SYS_renameat2 = 316 if sys.maxsize > 2**32 else 353
+        if hasattr(os, "uname") and os.uname().machine.startswith("aarch64"):
+            SYS_renameat2 = 276
+        AT_FDCWD = -100
+        RENAME_NOREPLACE = 1
+        ret = libc.syscall(
+            SYS_renameat2,
+            AT_FDCWD,
+            str(staging_path).encode("utf-8"),
+            AT_FDCWD,
+            str(output_path).encode("utf-8"),
+            RENAME_NOREPLACE,
+        )
+        if ret != 0:
+            errno_val = ctypes.get_errno()
+            if errno_val == 17:  # EEXIST
+                raise FileExistsError(f"Destination output file already exists: {output_path}")
+            raise OSError(errno_val, os.strerror(errno_val))
+    except (AttributeError, OSError):
+        if output_path.exists():
+            raise FileExistsError(f"Destination output file already exists: {output_path}") from original_err
+        staging_path.replace(output_path)
+
+
 def publish_staging_file(
     staging_path: Path | str,
     output_path: Path | str,
@@ -408,7 +583,7 @@ def publish_staging_file(
     4. Conflict isolation: if destination already exists and overwrite is forbidden,
        moves staging file to quarantine/conflict_{stage_id}_{output_path.name}
        and raises FileExistsError (preserving pre-existing destination and staging data).
-    5. Clean atomic publication via os.replace or os.rename.
+    5. Clean atomic publication via atomic filesystem primitives on both Windows and POSIX.
     """
     output_path = Path(output_path)
     staging_path = Path(staging_path)
@@ -418,7 +593,7 @@ def publish_staging_file(
 
     if not staging_path.is_file() or staging_path.stat().st_size == 0:
         if staging_path.is_file():
-            staging_path.unlink(missing_ok=True)
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="empty")
         raise ModelValidationError(
             f"Staging model file is missing or empty before publish: {staging_path}"
         )
@@ -442,21 +617,18 @@ def publish_staging_file(
                 )
             staging_path.replace(output_path)
         else:
-            # Destination does not exist yet: atomic rename / move
-            if sys.platform == "win32":
-                try:
-                    os.rename(staging_path, output_path)
-                except FileExistsError:
-                    if not allow_overwrite:
-                        conflict_target = quarantine_staging_file(
-                            staging_path, output_path, stage_id, reason="conflict"
-                        )
-                        raise FileExistsError(
-                            f"Destination output file already exists and overwrite is forbidden: {output_path}. "
-                            f"Staging artifact preserved in quarantine at {conflict_target}"
-                        )
-                    staging_path.replace(output_path)
-            else:
+            # Destination does not exist yet: atomic rename / move without overwrite
+            try:
+                _atomic_publish_new_file(staging_path, output_path, stage_id)
+            except FileExistsError:
+                if not allow_overwrite:
+                    conflict_target = quarantine_staging_file(
+                        staging_path, output_path, stage_id, reason="conflict"
+                    )
+                    raise FileExistsError(
+                        f"Destination output file already exists and overwrite is forbidden: {output_path}. "
+                        f"Staging artifact preserved in quarantine at {conflict_target}"
+                    )
                 staging_path.replace(output_path)
 
 
@@ -469,7 +641,7 @@ def list_quarantine_records(directory: Path | str) -> list[dict[str, Any]]:
     records = []
     for f in sorted(q_dir.iterdir()):
         if f.is_file():
-            kind = "conflict" if f.name.startswith("conflict_") else "failed"
+            kind = "conflict" if f.name.startswith("conflict_") else ("orphan" if f.name.startswith("orphan_") else "failed")
             records.append({
                 "path": str(f.resolve()),
                 "name": f.name,
@@ -480,23 +652,67 @@ def list_quarantine_records(directory: Path | str) -> list[dict[str, Any]]:
     return records
 
 
-def recover_unclaimed_staging(directory: Path | str) -> list[Path]:
-    """Identify and quarantine orphan staging files left behind by interrupted runs."""
+def recover_unclaimed_staging(
+    directory: Path | str,
+    min_age_sec: float = 30.0,
+    return_skipped: bool = False,
+) -> list[Path] | tuple[list[Path], list[dict[str, Any]]]:
+    """Identify and quarantine orphan staging files left behind by crashed/interrupted runs.
+
+    Safety Guarantees:
+    - Active tasks holding a lease lock or living PID are strictly preserved and skipped.
+    - Files with unconfirmed status younger than min_age_sec are retained.
+    - Confirmed orphans (lease lock released & PID dead) are safely archived into quarantine/orphan_{name}.
+    - Staging files are never unlinked upon quarantine failure.
+    """
     p = Path(directory)
     staging_dir = p if p.name == ".staging" else p / ".staging"
     if not staging_dir.is_dir():
-        return []
+        return ([], []) if return_skipped else []
+
     quarantine_dir = staging_dir.parent / "quarantine"
     quarantine_dir.mkdir(parents=True, exist_ok=True)
     recovered = []
+    skipped_active = []
+    now = time.time()
+
     for f in sorted(staging_dir.iterdir()):
-        if f.is_file() and f.name.startswith("stage_"):
-            target = quarantine_dir / f"orphan_{f.name}"
-            try:
-                f.replace(target)
-                recovered.append(target)
-            except OSError:
-                pass
+        if not f.is_file() or not f.name.startswith("stage_"):
+            continue
+
+        parts = f.name.split("_")
+        stage_id = parts[1] if len(parts) >= 2 else ""
+        lease_file = staging_dir / f".lease_{stage_id}.lock" if stage_id else None
+
+        # Check if task is actively running
+        if lease_file and is_task_active(lease_file):
+            skipped_active.append({
+                "path": str(f.resolve()),
+                "stage_id": stage_id,
+                "reason": "active_task_lease_held",
+            })
+            continue
+
+        file_age = now - f.stat().st_mtime
+        if file_age < min_age_sec and not lease_file:
+            skipped_active.append({
+                "path": str(f.resolve()),
+                "stage_id": stage_id,
+                "reason": f"fresh_unleased_file (age {file_age:.1f}s < {min_age_sec}s)",
+            })
+            continue
+
+        target = quarantine_dir / f"orphan_{f.name}"
+        try:
+            f.replace(target)
+            recovered.append(target)
+            if lease_file and lease_file.is_file():
+                lease_file.unlink(missing_ok=True)
+        except OSError as err:
+            sys.stderr.write(f"[RECOVER_WARNING] Failed to quarantine orphan staging file {f}: {err}\n")
+
+    if return_skipped:
+        return recovered, skipped_active
     return recovered
 
 
@@ -549,25 +765,28 @@ def update_parameter(
     if descr:
         args.append(descr.strip())
 
-    try:
-        res = _run_bridge(args, root=root)
-    except Exception:
-        quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
-        raise
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
 
-    publish_staging_file(
-        staging_path=staging_path,
-        output_path=output_path,
-        stage_id=stage_id,
-        allow_overwrite=allow_overwrite,
-    )
+        # Verify baseline model integrity BEFORE publishing to final destination!
+        hash_after = compute_file_hash(model_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise ModelValidationError(
+                f"Safety violation: original model file was modified during parameter update! "
+                f"Original SHA-256 changed from {hash_before} to {hash_after}. "
+                f"Staging artifact quarantined; output file was NOT published."
+            )
 
-    # Verify baseline model was completely untouched
-    hash_after = compute_file_hash(model_path)
-    if hash_before != hash_after:
-        raise ModelValidationError(
-            f"Safety violation: original model file was modified during parameter update! "
-            f"Original SHA-256 changed from {hash_before} to {hash_after}"
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
         )
 
     res["source_sha256"] = hash_before
@@ -617,25 +836,28 @@ def run_study(
     if tlist_override:
         args.append(tlist_override.strip())
 
-    try:
-        res = _run_bridge(args, root=root)
-    except Exception:
-        quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
-        raise
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
 
-    publish_staging_file(
-        staging_path=staging_path,
-        output_path=output_path,
-        stage_id=stage_id,
-        allow_overwrite=allow_overwrite,
-    )
+        # Verify baseline model integrity BEFORE publishing to final destination!
+        hash_after = compute_file_hash(model_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise ModelValidationError(
+                f"Safety violation: source model was modified during study run! "
+                f"Original SHA-256 changed from {hash_before} to {hash_after}. "
+                f"Staging artifact quarantined; output file was NOT published."
+            )
 
-    # Verify baseline model untouched
-    hash_after = compute_file_hash(model_path)
-    if hash_before != hash_after:
-        raise ModelValidationError(
-            f"Safety violation: source model was modified during study run! "
-            f"Original SHA-256 changed from {hash_before} to {hash_after}"
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
         )
 
     res["source_sha256"] = hash_before

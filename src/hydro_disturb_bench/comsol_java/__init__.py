@@ -28,6 +28,8 @@ from .bridge import (
     quarantine_staging_file,
     list_quarantine_records,
     recover_unclaimed_staging,
+    is_task_active,
+    task_staging_session,
 )
 
 __all__ = [
@@ -59,4 +61,6 @@ __all__ = [
     "quarantine_staging_file",
     "list_quarantine_records",
     "recover_unclaimed_staging",
+    "is_task_active",
+    "task_staging_session",
 ]
