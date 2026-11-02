@@ -178,6 +178,13 @@ def test_real_comsol_run_study_and_solution_check(tmp_path: Path):
     log_text = res.get("log", "")
     assert len(log_text) > 0
 
+    # Verify numerical solution validity (degrees of freedom, time steps, no NaN/Inf)
+    stats = res.get("solution_stats", {})
+    assert stats.get("num_dofs", 0) > 0
+    assert stats.get("num_timesteps", 0) >= 3
+    assert stats.get("has_nan_or_inf") is False
+    assert stats.get("has_physical_field") is True
+
     # Verify baseline model unchanged
     hash_final = compute_file_hash(BASELINE_MODEL_PATH)
     assert hash_initial == hash_final, "Baseline model hash altered during run_study!"

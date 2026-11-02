@@ -424,6 +424,48 @@ public class ComsolBridge {
             return;
         }
 
+        SolverSequence solSeq = model.sol(solTags[0]);
+        double[] pvals = null;
+        try {
+            pvals = solSeq.getPVals();
+        } catch (Throwable t) {}
+
+        if (pvals == null || pvals.length == 0) {
+            outputError("SOLVER_FAILED", "Solver completed but no time step solution values were recorded.", "");
+            return;
+        }
+
+        int numDofs = 0;
+        boolean hasNanOrInf = false;
+        boolean hasPhysicalField = false;
+        try {
+            double[] uvec = solSeq.getU(1);
+            if (uvec != null && uvec.length > 0) {
+                numDofs = uvec.length;
+                for (double v : uvec) {
+                    if (Double.isNaN(v) || Double.isInfinite(v)) {
+                        hasNanOrInf = true;
+                        break;
+                    }
+                    if (Math.abs(v) > 1e-12) {
+                        hasPhysicalField = true;
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            outputError("SOLVER_FAILED", "Failed to retrieve solution field vector: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        if (hasNanOrInf) {
+            outputError("SOLVER_FAILED", "Solver produced invalid numerical values (NaN or Inf detected in solution vector).", "");
+            return;
+        }
+        if (!hasPhysicalField) {
+            outputError("SOLVER_FAILED", "Solver produced trivial all-zero field data.", "");
+            return;
+        }
+
         try {
             model.save(outputPath);
         } catch (Throwable t) {
@@ -438,6 +480,14 @@ public class ComsolBridge {
         sb.append("  \"study_tag\": ").append(quote(studyTag)).append(",\n");
         sb.append("  \"elapsed_ms\": ").append(elapsedMs).append(",\n");
         sb.append("  \"sol_tags\": ").append(stringArrayToJson(solTags)).append(",\n");
+        sb.append("  \"solution_stats\": {\n");
+        sb.append("    \"num_dofs\": ").append(numDofs).append(",\n");
+        sb.append("    \"num_timesteps\": ").append(pvals.length).append(",\n");
+        sb.append("    \"time_min\": ").append(pvals[0]).append(",\n");
+        sb.append("    \"time_max\": ").append(pvals[pvals.length - 1]).append(",\n");
+        sb.append("    \"has_nan_or_inf\": false,\n");
+        sb.append("    \"has_physical_field\": true\n");
+        sb.append("  },\n");
         sb.append("  \"source_model\": ").append(quote(modelPath)).append(",\n");
         sb.append("  \"output_model\": ").append(quote(outputPath)).append("\n");
         sb.append("}\n");

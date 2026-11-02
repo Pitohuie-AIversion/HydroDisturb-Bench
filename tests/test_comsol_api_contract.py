@@ -231,10 +231,11 @@ def test_baseline_integrity_check_failure(tmp_path):
     fake_exe = tmp_path / "comsolbatch.exe"
     fake_exe.write_bytes(b"fake binary")
 
-    def side_effect_modify(*args, **kwargs):
+    def side_effect_modify(cmd, *args, **kwargs):
         # Simulate tool corrupting/modifying the source file
         base.write_bytes(b"tampered data")
-        out.write_bytes(b"valid non-empty output")
+        staging_file = Path(cmd[6])
+        staging_file.write_bytes(b"valid non-empty staging output")
         res = MagicMock()
         res.returncode = 0
         payload = json.dumps({
@@ -295,29 +296,111 @@ def test_invalid_json_fails_closed(tmp_path):
                         _run_bridge(["inspect-api"], root=tmp_path)
 
 
-def test_failed_update_cleans_up_output_file(tmp_path):
-    """If an operation throws an error, any created or corrupted output file must be cleaned up."""
+def test_preexisting_output_file_strictly_preserved_on_failure(tmp_path):
+    """If an operation fails, any pre-existing valid file at output_path must be completely preserved!"""
     base = tmp_path / "base.mph"
-    base.write_bytes(b"initial data")
-    out = tmp_path / "out.mph"
+    base.write_bytes(b"initial baseline data")
+    out = tmp_path / "valid_prior_result.mph"
+    out.write_bytes(b"crucial valid pre-existing result")
+    prior_content = out.read_bytes()
     fake_exe = tmp_path / "comsolbatch.exe"
     fake_exe.write_bytes(b"")
 
-    def side_effect_fail_and_leave_file(*args, **kwargs):
-        # Simulate solver/COMSOL writing a partial file before aborting
-        out.write_bytes(b"corrupt partial file")
+    def side_effect_fail(cmd_args, **kwargs):
+        # Even if the subprocess wrote something to staging or crashed
         mock_proc = MagicMock()
         mock_proc.returncode = 0
         mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"ERROR\", \"error_code\": \"SOLVER_FAILED\", \"message\": \"divergence\"}\n<<<JSON_END>>>"
         return mock_proc
 
-    with patch("subprocess.run", side_effect=side_effect_fail_and_leave_file):
+    with patch("subprocess.run", side_effect=side_effect_fail):
         with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
             with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
                 with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
                     with pytest.raises(SolverFailedError):
                         update_parameter(base, out, "U_mean", "2.0")
 
-    # Output file must NOT exist on disk after failure
-    assert not out.exists(), "Corrupted output file was left behind after failure!"
+    # Assert pre-existing file at output_path was NOT deleted and NOT altered!
+    assert out.is_file(), "Pre-existing output file was erroneously deleted on failure!"
+    assert out.read_bytes() == prior_content, "Pre-existing output file was corrupted on failure!"
 
+
+def test_comsol_midrun_abort_quarantines_and_does_not_publish(tmp_path):
+    """If COMSOL aborts mid-run leaving a partial staging file, it is quarantined and not published."""
+    base = tmp_path / "base.mph"
+    base.write_bytes(b"initial baseline data")
+    out = tmp_path / "target_output.mph"
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+
+    def side_effect_abort_during_write(cmd_args, **kwargs):
+        # The staging path is passed as positional argument 6 to comsolbatch
+        staging_file = Path(cmd_args[6])
+        staging_file.write_bytes(b"partial corrupted mph bytes")
+        mock_proc = MagicMock()
+        mock_proc.returncode = 1
+        mock_proc.stdout = "Fatal error inside COMSOL engine"
+        mock_proc.stderr = "Native crash"
+        return mock_proc
+
+    with patch("subprocess.run", side_effect=side_effect_abort_during_write):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(ComsolConnectionError):
+                        update_parameter(base, out, "U_mean", "2.0")
+
+    # Final output must NOT exist
+    assert not out.exists(), "Corrupted partial file was published to output path!"
+    # Staging file must have been moved to quarantine
+    quarantine_files = list((out.parent / "quarantine").glob("failed_*"))
+    assert len(quarantine_files) == 1, "Failed artifact was not preserved in quarantine!"
+    assert quarantine_files[0].read_bytes() == b"partial corrupted mph bytes"
+
+
+def test_symlink_output_path_rejected(tmp_path):
+    """Output paths pointing to symbolic links must be rejected for safety."""
+    base = tmp_path / "base.mph"
+    base.write_bytes(b"base")
+    real_out = tmp_path / "real_file.mph"
+    real_out.write_bytes(b"real")
+    sym_out = tmp_path / "sym_link.mph"
+
+    with patch.object(Path, "is_symlink", return_value=True):
+        with pytest.raises(ModelValidationError, match="symbolic link"):
+            update_parameter(base, sym_out, "U_mean", "1.5")
+
+
+def test_non_dict_json_fails_closed(tmp_path):
+    """If ComsolBridge prints a valid JSON array or primitive instead of object, fail closed."""
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+    mock_proc = MagicMock()
+    mock_proc.returncode = 0
+    mock_proc.stdout = "<<<JSON_START>>>\n[1, 2, 3]\n<<<JSON_END>>>"
+    mock_proc.stderr = ""
+
+    with patch("subprocess.run", return_value=mock_proc):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(ComsolConnectionError, match="expected JSON object, got list"):
+                        _run_bridge(["inspect-api"], root=tmp_path)
+
+
+def test_schema_missing_fields_fails_closed(tmp_path):
+    """If ComsolBridge prints SUCCESS but misses required schema fields, fail closed."""
+    fake_exe = tmp_path / "comsolbatch.exe"
+    fake_exe.write_bytes(b"")
+    mock_proc = MagicMock()
+    mock_proc.returncode = 0
+    # Missing api_specification
+    mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"SUCCESS\", \"operation\": \"inspect_api\"}\n<<<JSON_END>>>"
+    mock_proc.stderr = ""
+
+    with patch("subprocess.run", return_value=mock_proc):
+        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
+            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
+                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+                    with pytest.raises(ComsolConnectionError, match="Schema violation"):
+                        _run_bridge(["inspect-api"], root=tmp_path)

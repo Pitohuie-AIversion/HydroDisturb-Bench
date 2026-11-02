@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import uuid
 import winreg
 from typing import Any
 
@@ -216,7 +217,7 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     end_tag = "<<<JSON_END>>>"
 
     # Attempt to extract structured JSON report
-    data: dict[str, Any] | None = None
+    data: Any = None
     if start_tag in stdout and end_tag in stdout:
         json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
         try:
@@ -226,12 +227,20 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
                 f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
             ) from err
 
+    # Top-level JSON must be an object/dict
+    if data is not None and not isinstance(data, dict):
+        raise ComsolConnectionError(
+            f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+        )
+
     # If the bridge emitted a structured error, propagate it as a typed exception
     if data and data.get("status") != "SUCCESS":
-        err_code = data.get("error_code", ERR_COMSOL_CONNECTION_FAILED)
+        err_code = data.get("error_code")
+        if not isinstance(err_code, str):
+            err_code = ERR_COMSOL_CONNECTION_FAILED
         msg = data.get("message", "Bridge execution failed")
         details = data.get("details", "")
-        raise map_error(err_code, msg, details)
+        raise map_error(str(err_code), str(msg), str(details))
 
     # If subprocess returned non-zero without a structured SUCCESS
     if proc.returncode != 0:
@@ -246,6 +255,24 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
             f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
             f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
         )
+
+    # Strict schema validation
+    op = data.get("operation")
+    if not isinstance(op, str):
+        raise ComsolConnectionError("ComsolBridge JSON response missing valid string field 'operation'")
+
+    if op == "inspect_api":
+        if "comsol_version" not in data or "api_specification" not in data:
+            raise ComsolConnectionError("Schema violation in inspect_api response: missing version or specification")
+    elif op == "inspect_model":
+        if "model_tag" not in data or "parameters" not in data or "components" not in data:
+            raise ComsolConnectionError("Schema violation in inspect_model response: missing model_tag, parameters, or components")
+    elif op == "update_parameter":
+        if "param_name" not in data or "new_expr" not in data or "readback_value" not in data:
+            raise ComsolConnectionError("Schema violation in update_parameter response: missing param_name, new_expr, or readback_value")
+    elif op == "run_study":
+        if "study_tag" not in data or "elapsed_ms" not in data or "sol_tags" not in data or "solution_stats" not in data:
+            raise ComsolConnectionError("Schema violation in run_study response: missing study_tag, elapsed_ms, sol_tags, or solution_stats")
 
     data.setdefault("log", stdout)
     return data
@@ -294,6 +321,9 @@ def update_parameter(
     if not model_path.is_file():
         raise ModelNotFoundError(f"Source model file does not exist: {model_path}")
 
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
     if model_path.resolve() == output_path.resolve():
         raise ModelValidationError(
             "Refusing to overwrite original baseline model: source and output path are identical"
@@ -309,11 +339,15 @@ def update_parameter(
     hash_before = compute_file_hash(model_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
 
     args = [
         "update-param",
         str(model_path.resolve()),
-        str(output_path.resolve()),
+        str(staging_path.resolve()),
         param_name.strip(),
         param_expr.strip(),
     ]
@@ -323,19 +357,26 @@ def update_parameter(
     try:
         res = _run_bridge(args, root=root)
     except Exception:
-        if output_path.is_file():
+        # Quarantine staging artifact if it was created; NEVER touch output_path!
+        if staging_path.is_file():
+            quarantine_dir = output_path.parent / "quarantine"
+            quarantine_dir.mkdir(parents=True, exist_ok=True)
+            quarantine_target = quarantine_dir / f"failed_{stage_id}_{output_path.name}"
             try:
-                output_path.unlink()
+                staging_path.replace(quarantine_target)
             except OSError:
-                pass
+                staging_path.unlink(missing_ok=True)
         raise
 
-    if not output_path.is_file() or output_path.stat().st_size == 0:
-        if output_path.is_file():
-            output_path.unlink(missing_ok=True)
+    if not staging_path.is_file() or staging_path.stat().st_size == 0:
+        if staging_path.is_file():
+            staging_path.unlink(missing_ok=True)
         raise ModelValidationError(
-            f"update_parameter reported success but output model file is missing or empty: {output_path}"
+            f"update_parameter reported success but staging model file is missing or empty: {staging_path}"
         )
+
+    # Atomically publish verified staging file to final output_path
+    staging_path.replace(output_path)
 
     # Verify baseline model was completely untouched
     hash_after = compute_file_hash(model_path)
@@ -346,6 +387,7 @@ def update_parameter(
         )
 
     res["source_sha256"] = hash_before
+    res["output_model"] = str(output_path.resolve())
     res["output_sha256"] = compute_file_hash(output_path)
     return res
 
@@ -364,6 +406,9 @@ def run_study(
     if not model_path.is_file():
         raise ModelNotFoundError(f"Source model file does not exist: {model_path}")
 
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
     if model_path.resolve() == output_path.resolve():
         raise ModelValidationError(
             "Refusing to overwrite baseline model: source and output path are identical"
@@ -373,11 +418,15 @@ def run_study(
     hash_before = compute_file_hash(model_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
 
     args = [
         "run-study",
         str(model_path.resolve()),
-        str(output_path.resolve()),
+        str(staging_path.resolve()),
         study_tag.strip(),
     ]
     if tlist_override:
@@ -386,19 +435,26 @@ def run_study(
     try:
         res = _run_bridge(args, root=root)
     except Exception:
-        if output_path.is_file():
+        # Quarantine staging artifact if it was created; NEVER touch output_path!
+        if staging_path.is_file():
+            quarantine_dir = output_path.parent / "quarantine"
+            quarantine_dir.mkdir(parents=True, exist_ok=True)
+            quarantine_target = quarantine_dir / f"failed_{stage_id}_{output_path.name}"
             try:
-                output_path.unlink()
+                staging_path.replace(quarantine_target)
             except OSError:
-                pass
+                staging_path.unlink(missing_ok=True)
         raise
 
-    if not output_path.is_file() or output_path.stat().st_size == 0:
-        if output_path.is_file():
-            output_path.unlink(missing_ok=True)
+    if not staging_path.is_file() or staging_path.stat().st_size == 0:
+        if staging_path.is_file():
+            staging_path.unlink(missing_ok=True)
         raise ModelValidationError(
-            f"run_study reported success but output model file is missing or empty: {output_path}"
+            f"run_study reported success but staging model file is missing or empty: {staging_path}"
         )
+
+    # Atomically publish verified staging file to final output_path
+    staging_path.replace(output_path)
 
     # Verify baseline model untouched
     hash_after = compute_file_hash(model_path)
@@ -409,5 +465,6 @@ def run_study(
         )
 
     res["source_sha256"] = hash_before
+    res["output_model"] = str(output_path.resolve())
     res["output_sha256"] = compute_file_hash(output_path)
     return res
