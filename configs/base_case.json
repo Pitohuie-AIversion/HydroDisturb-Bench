@@ -1,0 +1,29 @@
+{
+  "fluid": {
+    "density_kg_m3": 998.2,
+    "kinematic_viscosity_m2_s": 1.004e-6
+  },
+  "cylinder": {
+    "diameter_m": 0.01,
+    "reynolds": 100
+  },
+  "domain": {
+    "upstream_D": 10,
+    "downstream_D": 30,
+    "half_height_D": 10
+  },
+  "time": {
+    "end_star": 140,
+    "output_dt_star": 0.1
+  },
+  "disturbance": {
+    "type": "gaussian_body_acceleration",
+    "xc_D": [2, 12],
+    "yc_D": [-2, 2],
+    "sigma_D": [0.2, 0.5],
+    "a_star": [0.05, 0.3],
+    "t0_star": [60, 90],
+    "duration_star": [2, 8],
+    "theta_rad": [0, 6.283185307179586]
+  }
+}

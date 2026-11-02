@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hydrodisturb-bench"
+version = "0.1.0"
+description = "Case planning and optional COMSOL automation for hidden-disturbance underwater cylinder wakes"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "HydroDisturb-Bench contributors"}]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+comsol = ["MPh>=1.2"]
+
+[project.scripts]
+hydrobench = "hydro_disturb_bench.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
