@@ -58,4 +58,5 @@ select = [
 ignore = [
     "E501",  # line too long (handled by formatter)
     "F841",  # local variable assigned but never used (common in fixtures/plots)
+    "E402",  # module level import not at top of file (scripts modify sys.path)
 ]

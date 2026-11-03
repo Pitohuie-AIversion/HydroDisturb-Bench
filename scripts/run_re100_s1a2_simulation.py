@@ -65,7 +65,7 @@ def main() -> int:
     )
     t1 = time.time()
     wall_clock = t1 - t0
-    print(f"   [SOLVER SUCCESS] Wall-clock time: {wall_clock:.2f} s ({wall_clock/60:.2f} min)")
+    print(f"   [SOLVER SUCCESS] Wall-clock time: {wall_clock:.2f} s ({wall_clock / 60:.2f} min)")
 
     sol_stats = solve_res.get("solution_stats", {})
     print(f"   Num DOFs:        {sol_stats.get('num_dofs')}")

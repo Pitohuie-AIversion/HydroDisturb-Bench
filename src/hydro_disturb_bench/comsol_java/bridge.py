@@ -199,7 +199,11 @@ def ensure_bridge_compiled(root: Path | None = None) -> Path:
             errors="replace",
             check=False,
         )
-        if proc.returncode != 0:
+        if (
+            proc.returncode != 0
+            or "ERROR: Compilation failed" in proc.stdout
+            or "ERROR: Compilation failed" in proc.stderr
+        ):
             raise ComsolConnectionError(
                 f"Failed to compile ComsolBridge.java (exit code {proc.returncode}):\n{proc.stderr}\n{proc.stdout}"
             )
@@ -1066,6 +1070,8 @@ def run_study(
     output_path: Path | str,
     study_tag: str,
     tlist_override: str = "",
+    rtol_override: str = "",
+    maxstep_override: str = "",
     allow_overwrite: bool = False,
     root: Path | None = None,
 ) -> dict[str, Any]:
@@ -1099,8 +1105,12 @@ def run_study(
         str(staging_path.resolve()),
         study_tag.strip(),
     ]
-    if tlist_override:
+    if tlist_override or rtol_override or maxstep_override:
         args.append(tlist_override.strip())
+    if rtol_override or maxstep_override:
+        args.append(rtol_override.strip())
+    if maxstep_override:
+        args.append(maxstep_override.strip())
 
     with task_staging_session(staging_path, stage_id):
         try:
@@ -1442,7 +1452,9 @@ def export_s1_diagnostics(
 
     if required_snapshots is None:
         if snapshot_times is not None:
-            required_snapshots = tuple(f"vorticity_t{int(round(t))}s_comsol.png" for t in snapshot_times)
+            required_snapshots = tuple(
+                f"vorticity_t{int(round(t))}s_comsol.png" for t in snapshot_times
+            )
         elif expected_t_final > 105.0:
             required_snapshots = S1_A2_REQUIRED_SNAPSHOTS
         else:

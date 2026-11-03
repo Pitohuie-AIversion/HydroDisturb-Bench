@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_DIR) not in sys.path:
@@ -16,7 +15,6 @@ from hydro_disturb_bench.comsol_java import (
     compute_file_hash,
 )
 from hydro_disturb_bench.io import (
-    ComsolExportValidationError,
     load_comsol_1d_timeseries,
     validate_s1_diagnostics,
 )
@@ -144,7 +142,9 @@ def test_growing_amplitude_signal_rejected_as_limit_cycle():
     last5_amps = amps[-5:]
     rel_drift = (max(last5_amps) - min(last5_amps)) / np.mean(last5_amps) * 100.0
     # Must exceed 2% threshold
-    assert rel_drift > 2.0, f"Growing amplitude signal was falsely deemed stable: drift={rel_drift:.2f}%"
+    assert rel_drift > 2.0, (
+        f"Growing amplitude signal was falsely deemed stable: drift={rel_drift:.2f}%"
+    )
 
 
 def test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds():
@@ -162,7 +162,9 @@ def test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds():
     zc = []
     for i in range(len(t_late) - 1):
         if cl_late[i] <= 0.0 < cl_late[i + 1]:
-            t_zero = t_late[i] - cl_late[i] * (t_late[i + 1] - t_late[i]) / (cl_late[i + 1] - cl_late[i])
+            t_zero = t_late[i] - cl_late[i] * (t_late[i + 1] - t_late[i]) / (
+                cl_late[i + 1] - cl_late[i]
+            )
             zc.append(float(t_zero))
 
     n_cycles = len(zc) - 1
@@ -236,3 +238,33 @@ def test_s1a_legacy_100s_interface_unaffected():
     assert val.get("num_steps") == 501
     assert len(val.get("snapshots", [])) == 4
     assert val.get("manifest", {}).get("status") == "COMPLETED"
+
+
+def test_s1a2_upgraded_vorticity_snapshots_and_comparison():
+    """Verify that upgraded wake-zoom vorticity snapshots and t=195s comparison figure exist and meet quality specs."""
+    from PIL import Image
+
+    s1a2_dir = Path("runs/re100_s1a2_trial")
+    snapshots = [
+        "vorticity_t10s_comsol.png",
+        "vorticity_t40s_comsol.png",
+        "vorticity_t100s_comsol.png",
+        "vorticity_t195s_comsol.png",
+        "vorticity_t200s_comsol.png",
+    ]
+    for s in snapshots:
+        p = s1a2_dir / s
+        assert p.is_file(), f"Missing upgraded snapshot: {s}"
+        assert p.stat().st_size > 50_000, f"Snapshot {s} too small ({p.stat().st_size} bytes)"
+        with Image.open(p) as img:
+            w, h = img.size
+            assert w >= 1200, f"Snapshot {s} width {w} < 1200px"
+            assert h >= 500, f"Snapshot {s} height {h} < 500px"
+
+    comp_img = s1a2_dir / "re100_s1a2_vorticity_t195s_comparison.png"
+    assert comp_img.is_file(), "Missing t=195s old vs upgraded comparison figure"
+    assert comp_img.stat().st_size > 100_000, "Comparison figure too small"
+
+    montage_img = s1a2_dir / "re100_s1a2_vorticity_snapshots.png"
+    assert montage_img.is_file(), "Missing 5-moment vorticity montage figure"
+    assert montage_img.stat().st_size > 100_000, "Montage figure too small"

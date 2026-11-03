@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,6 +15,7 @@ if sys.platform == "win32":
         pass
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -131,10 +131,14 @@ def main() -> int:
         expected_source_hash=h_s1a2,
     )
     print(f"   Manifest Status: {val.get('manifest', {}).get('status')}")
-    print(f"   Time Range:      {val.get('time_range')} s ({val.get('num_steps')} steps, dt = {val.get('dt')} s)")
+    print(
+        f"   Time Range:      {val.get('time_range')} s ({val.get('num_steps')} steps, dt = {val.get('dt')} s)"
+    )
     print(f"   Series count:    {len(val.get('series', {}))}")
     print(f"   Snapshots count: {len(val.get('snapshots', []))}")
-    print("   [DATA CONTRACT VALIDATED] 7 time series + 5 snapshots verified, no NaN/Inf, manifest verified.")
+    print(
+        "   [DATA CONTRACT VALIDATED] 7 time series + 5 snapshots verified, no NaN/Inf, manifest verified."
+    )
 
     # 3. Load all 7 time series
     t_cl, cl = load_comsol_1d_timeseries(S1A2_DIR / "lift_coeff.txt")[:2]
@@ -165,26 +169,36 @@ def main() -> int:
     drift_cl_amp = abs(cl_amp_w2 - cl_amp_w1) / cl_amp_w1 * 100.0
     drift_cd_amp = abs(cd_amp_w2 - cd_amp_w1) / cd_amp_w1 * 100.0
 
-    print(f"   Window 1 [120, 160] s (t* in [120.7, 160.9]):")
-    print(f"     <Cd> = {cd_mean_w1:.4f}, Cd' = {cd_amp_w1:.4f}, Cl' = {cl_amp_w1:.4f}, <Cl> = {cl_mean_w1:.4e}")
-    print(f"   Window 2 [160, 200] s (t* in [160.9, 201.2]):")
-    print(f"     <Cd> = {cd_mean_w2:.4f}, Cd' = {cd_amp_w2:.4f}, Cl' = {cl_amp_w2:.4f}, <Cl> = {cl_mean_w2:.4e}")
-    print(f"   Window-to-Window Drift:")
+    print("   Window 1 [120, 160] s (t* in [120.7, 160.9]):")
+    print(
+        f"     <Cd> = {cd_mean_w1:.4f}, Cd' = {cd_amp_w1:.4f}, Cl' = {cl_amp_w1:.4f}, <Cl> = {cl_mean_w1:.4e}"
+    )
+    print("   Window 2 [160, 200] s (t* in [160.9, 201.2]):")
+    print(
+        f"     <Cd> = {cd_mean_w2:.4f}, Cd' = {cd_amp_w2:.4f}, Cl' = {cl_amp_w2:.4f}, <Cl> = {cl_mean_w2:.4e}"
+    )
+    print("   Window-to-Window Drift:")
     print(f"     Mean Cd drift:       {drift_cd_mean:.3f}% (Target: < 1%)")
     print(f"     Lift amplitude drift:{drift_cl_amp:.3f}% (Target: < 2%)")
     print(f"     Drag amplitude drift:{drift_cd_amp:.3f}%")
 
     # 5. Cycle-by-Cycle Zero Crossing Breakdown for t in [100, 200] s
     print("\n4. Cycle-by-Cycle Breakdown (t in [100, 200] s):")
-    m_late = (t_cl >= 100.0)
+    m_late = t_cl >= 100.0
     zc_late = compute_zero_crossings(t_cl[m_late], cl[m_late])
     n_cycles = len(zc_late) - 1
     print(f"   Total complete cycles in [100, 200] s: {n_cycles}")
 
     cycle_records: list[dict[str, Any]] = []
-    print("   -------------------------------------------------------------------------------------")
-    print("   Cycle | t_start (s) | t_end (s) | Period T (s) | Freq (Hz) | Strouhal | Cl' amp | <Cd>  | Cd' amp")
-    print("   -------------------------------------------------------------------------------------")
+    print(
+        "   -------------------------------------------------------------------------------------"
+    )
+    print(
+        "   Cycle | t_start (s) | t_end (s) | Period T (s) | Freq (Hz) | Strouhal | Cl' amp | <Cd>  | Cd' amp"
+    )
+    print(
+        "   -------------------------------------------------------------------------------------"
+    )
     for k in range(n_cycles):
         t_s = float(zc_late[k])
         t_e = float(zc_late[k + 1])
@@ -195,19 +209,25 @@ def main() -> int:
         cl_a = float((np.max(cl[idx]) - np.min(cl[idx])) / 2.0)
         cd_m = float(np.mean(cd[idx]))
         cd_a = float((np.max(cd[idx]) - np.min(cd[idx])) / 2.0)
-        cycle_records.append({
-            "cycle": k + 1,
-            "t_start": t_s,
-            "t_end": t_e,
-            "period": t_period,
-            "freq": freq,
-            "st": st,
-            "cl_amp": cl_a,
-            "cd_mean": cd_m,
-            "cd_amp": cd_a,
-        })
-        print(f"     {k+1:3d} |   {t_s:9.2f} | {t_e:9.2f} |      {t_period:7.3f} |   {freq:7.4f} |   {st:6.4f} |  {cl_a:6.4f} | {cd_m:5.4f} |  {cd_a:6.4f}")
-    print("   -------------------------------------------------------------------------------------")
+        cycle_records.append(
+            {
+                "cycle": k + 1,
+                "t_start": t_s,
+                "t_end": t_e,
+                "period": t_period,
+                "freq": freq,
+                "st": st,
+                "cl_amp": cl_a,
+                "cd_mean": cd_m,
+                "cd_amp": cd_a,
+            }
+        )
+        print(
+            f"     {k + 1:3d} |   {t_s:9.2f} | {t_e:9.2f} |      {t_period:7.3f} |   {freq:7.4f} |   {st:6.4f} |  {cl_a:6.4f} | {cd_m:5.4f} |  {cd_a:6.4f}"
+        )
+    print(
+        "   -------------------------------------------------------------------------------------"
+    )
 
     # 6. Stability Criteria Evaluation on Last 5 Consecutive Complete Cycles
     last5 = cycle_records[-5:]
@@ -226,23 +246,44 @@ def main() -> int:
     drift_cd_5 = float((max(cd_mean_last5) - min(cd_mean_last5)) / mean_cd_5 * 100.0)
 
     # Wake probe trend check in [160, 200] s
-    m_late_wake = (t_wu >= 160.0)
+    m_late_wake = t_wu >= 160.0
     poly_wu = np.polyfit(t_wu[m_late_wake], wu[m_late_wake], 1)
     poly_wv = np.polyfit(t_wv[m_late_wake], wv[m_late_wake], 1)
     slope_wu = float(poly_wu[0])
     slope_wv = float(poly_wv[0])
 
     print("\n5. Recommended Stability Criteria Assessment (Last 5 Cycles):")
-    print(f"   Cycle range: Cycles {last5[0]['cycle']} to {last5[-1]['cycle']} (t in [{last5[0]['t_start']:.2f}, {last5[-1]['t_end']:.2f}] s)")
-    print(f"   (1) Strouhal Drift:      {drift_st_5:.3f}%  (Threshold < 1.0%) -> {'[MET]' if drift_st_5 < 1.0 else '[EXCEEDED]'}")
-    print(f"       Mean St = {mean_st_5:.4f}, Range = [{min(st_last5):.4f}, {max(st_last5):.4f}], Mean T = {mean_period_5:.3f} s")
-    print(f"   (2) Lift Amplitude Drift:{drift_cl_amp_5:.3f}%  (Threshold < 2.0%) -> {'[MET]' if drift_cl_amp_5 < 2.0 else '[EXCEEDED]'}")
-    print(f"       Mean Cl' = {mean_cl_amp_5:.4f}, Range = [{min(cl_amp_last5):.4f}, {max(cl_amp_last5):.4f}]")
-    print(f"   (3) Mean Drag Drift:     {drift_cd_5:.3f}%  (Threshold < 1.0%) -> {'[MET]' if drift_cd_5 < 1.0 else '[EXCEEDED]'}")
-    print(f"       Mean <Cd> = {mean_cd_5:.4f}, Range = [{min(cd_mean_last5):.4f}, {max(cd_mean_last5):.4f}]")
-    print(f"   (4) Wake Probe Trend:    Slope(u) = {slope_wu:.2e} m/s^2, Slope(v) = {slope_wv:.2e} m/s^2 -> {'[STABLE NO DRIFT]' if abs(slope_wu) < 1e-4 and abs(slope_wv) < 1e-4 else '[TREND DETECTED]'}")
+    print(
+        f"   Cycle range: Cycles {last5[0]['cycle']} to {last5[-1]['cycle']} (t in [{last5[0]['t_start']:.2f}, {last5[-1]['t_end']:.2f}] s)"
+    )
+    print(
+        f"   (1) Strouhal Drift:      {drift_st_5:.3f}%  (Threshold < 1.0%) -> {'[MET]' if drift_st_5 < 1.0 else '[EXCEEDED]'}"
+    )
+    print(
+        f"       Mean St = {mean_st_5:.4f}, Range = [{min(st_last5):.4f}, {max(st_last5):.4f}], Mean T = {mean_period_5:.3f} s"
+    )
+    print(
+        f"   (2) Lift Amplitude Drift:{drift_cl_amp_5:.3f}%  (Threshold < 2.0%) -> {'[MET]' if drift_cl_amp_5 < 2.0 else '[EXCEEDED]'}"
+    )
+    print(
+        f"       Mean Cl' = {mean_cl_amp_5:.4f}, Range = [{min(cl_amp_last5):.4f}, {max(cl_amp_last5):.4f}]"
+    )
+    print(
+        f"   (3) Mean Drag Drift:     {drift_cd_5:.3f}%  (Threshold < 1.0%) -> {'[MET]' if drift_cd_5 < 1.0 else '[EXCEEDED]'}"
+    )
+    print(
+        f"       Mean <Cd> = {mean_cd_5:.4f}, Range = [{min(cd_mean_last5):.4f}, {max(cd_mean_last5):.4f}]"
+    )
+    print(
+        f"   (4) Wake Probe Trend:    Slope(u) = {slope_wu:.2e} m/s^2, Slope(v) = {slope_wv:.2e} m/s^2 -> {'[STABLE NO DRIFT]' if abs(slope_wu) < 1e-4 and abs(slope_wv) < 1e-4 else '[TREND DETECTED]'}"
+    )
 
-    all_criteria_met = (drift_st_5 < 1.0) and (drift_cl_amp_5 < 2.0) and (drift_cd_5 < 1.0) and (abs(slope_wu) < 1e-4)
+    all_criteria_met = (
+        (drift_st_5 < 1.0)
+        and (drift_cl_amp_5 < 2.0)
+        and (drift_cd_5 < 1.0)
+        and (abs(slope_wu) < 1e-4)
+    )
 
     # 7. Frequency Cross-Validation in Late Window [120, 200] s
     print("\n6. Frequency & Strouhal Cross-Validation (t in [120, 200] s, T_win = 80s):")
@@ -255,24 +296,38 @@ def main() -> int:
     st_pp = f_pp * D / U_INF
 
     print(f"   Discrete Resolution: Delta f = 1/80s = {df_fft:.4f} Hz -> Delta St = {dst_fft:.4f}")
-    print(f"   (A) FFT Peak Spectrum:  f = {f_fft:.4f} Hz -> St_FFT = {st_fft:.4f} (+/- {dst_fft:.4f})")
-    print(f"   (B) Zero-Crossing:      f = {1.0/mean_period_5:.4f} Hz -> St_zc  = {mean_st_5:.4f}")
+    print(
+        f"   (A) FFT Peak Spectrum:  f = {f_fft:.4f} Hz -> St_FFT = {st_fft:.4f} (+/- {dst_fft:.4f})"
+    )
+    print(
+        f"   (B) Zero-Crossing:      f = {1.0 / mean_period_5:.4f} Hz -> St_zc  = {mean_st_5:.4f}"
+    )
     print(f"   (C) Peak-to-Peak:       f = {f_pp:.4f} Hz -> St_pp  = {st_pp:.4f}")
-    print(f"   (D) Literature (Unconfined): St_lit ~ 0.164 (Williamson 1989)")
-    print(f"   [NOTE] Current St ~ 0.158 - 0.159 is consistently measured across zero-crossing, peak-to-peak, and FFT.")
+    print("   (D) Literature (Unconfined): St_lit ~ 0.164 (Williamson 1989)")
+    print(
+        "   [NOTE] Current St ~ 0.158 - 0.159 is consistently measured across zero-crossing, peak-to-peak, and FFT."
+    )
 
     # 8. Comparison with Stage S1-A (100s) Results
     print("\n7. Comparison with Stage S1-A (100s) Results:")
-    print("   S1-A (t=60-100s):   St ~ 0.148 - 0.154, Cl' grew from 0.165 to 0.304, <Cd> grew from 1.263 to 1.336")
-    print(f"   S1-A2 (t=160-200s): St = {mean_st_5:.4f}, Cl' stabilized at {mean_cl_amp_5:.4f}, <Cd> stabilized at {mean_cd_5:.4f}")
-    print(f"   [CONCLUSION] The wake has clearly reached limit-cycle saturation beyond t = 140s!")
+    print(
+        "   S1-A (t=60-100s):   St ~ 0.148 - 0.154, Cl' grew from 0.165 to 0.304, <Cd> grew from 1.263 to 1.336"
+    )
+    print(
+        f"   S1-A2 (t=160-200s): St = {mean_st_5:.4f}, Cl' stabilized at {mean_cl_amp_5:.4f}, <Cd> stabilized at {mean_cd_5:.4f}"
+    )
+    print("   [CONCLUSION] The wake has clearly reached limit-cycle saturation beyond t = 140s!")
 
     # 9. Four-Grade Acceptance Check
     print("\n8. Four-Level Acceptance Determination:")
     print("   (1) 观察到周期性脱涡 (Periodic vortex shedding observed):         [CONFIRMED]")
     print("   (2) 观察到周期趋稳 (Period & amplitude stabilizing observed):      [CONFIRMED]")
-    print(f"   (3) 达到建议稳定性阈值 (Reached recommended stability thresholds): [{'CONFIRMED' if all_criteria_met else 'NOT YET REACHED'}]")
-    print("   (4) 网格与时间步独立性验证 (Mesh & time-step convergence):         [PENDING STAGE S1-B]")
+    print(
+        f"   (3) 达到建议稳定性阈值 (Reached recommended stability thresholds): [{'CONFIRMED' if all_criteria_met else 'NOT YET REACHED'}]"
+    )
+    print(
+        "   (4) 网格与时间步独立性验证 (Mesh & time-step convergence):         [PENDING STAGE S1-B]"
+    )
 
     # 10. Generate High-Quality Diagnostic Plots
     print("\n9. Generating Diagnostic Plots (Matplotlib):")
@@ -285,7 +340,9 @@ def main() -> int:
     ax1.axvspan(160.0, 200.0, color="green", alpha=0.1, label=r"Window 2 [160, 200]s")
     ax1.set_xlabel(r"Time $t$ (s)")
     ax1.set_ylabel("Force Coefficient")
-    ax1.set_title(r"Stage S1-A2: Continuous Aerodynamic Coefficients History ($t \in [0, 200]\,$s, Re=100)")
+    ax1.set_title(
+        r"Stage S1-A2: Continuous Aerodynamic Coefficients History ($t \in [0, 200]\,$s, Re=100)"
+    )
     ax1.grid(True, linestyle=":", alpha=0.6)
     ax1.legend(loc="upper right", framealpha=0.9)
 
@@ -294,7 +351,9 @@ def main() -> int:
     ax2.axhline(mean_cd_5, color="red", linestyle=":", label=f"Mean $C_D = {mean_cd_5:.4f}$")
     ax2.set_xlabel(r"Time $t$ (s)")
     ax2.set_ylabel("Force Coefficient")
-    ax2.set_title(rf"Zoom-in on Saturated Limit Cycle ($t \in [160, 200]\,$s, $C_L' = {mean_cl_amp_5:.4f}, \langle C_D \rangle = {mean_cd_5:.4f}, St = {mean_st_5:.4f}$)")
+    ax2.set_title(
+        rf"Zoom-in on Saturated Limit Cycle ($t \in [160, 200]\,$s, $C_L' = {mean_cl_amp_5:.4f}, \langle C_D \rangle = {mean_cd_5:.4f}, St = {mean_st_5:.4f}$)"
+    )
     ax2.grid(True, linestyle=":", alpha=0.6)
     ax2.legend(loc="upper right", framealpha=0.9)
     plt.tight_layout()
@@ -328,7 +387,12 @@ def main() -> int:
 
     # FFT Spectrum of CL
     ax4.plot(freqs, fft_mag, "blue", linewidth=1.2)
-    ax4.axvline(f_fft, color="red", linestyle="--", label=f"Peak $f = {f_fft:.4f}\,$Hz ($St = {st_fft:.4f}$)")
+    ax4.axvline(
+        f_fft,
+        color="red",
+        linestyle="--",
+        label=rf"Peak $f = {f_fft:.4f}\,$Hz ($St = {st_fft:.4f}$)",
+    )
     ax4.set_xlim(0, 0.5)
     ax4.set_xlabel("Frequency (Hz)")
     ax4.set_ylabel("Magnitude")
@@ -352,19 +416,31 @@ def main() -> int:
     ax1.axhline(mean_st_5, color="blue", linestyle=":", label=f"Last 5 mean St = {mean_st_5:.4f}")
     ax1.axhline(0.164, color="gray", linestyle="--", label="Williamson 1989 (0.164)")
     ax1.set_ylabel("Strouhal Number $St$")
-    ax1.set_title(rf"Cycle-by-Cycle Convergence ($t \in [100, 200]\,$s) - St Drift: {drift_st_5:.3f}% (< 1%)")
+    ax1.set_title(
+        rf"Cycle-by-Cycle Convergence ($t \in [100, 200]\,$s) - St Drift: {drift_st_5:.3f}% (< 1%)"
+    )
     ax1.grid(True, linestyle=":", alpha=0.6)
     ax1.legend(loc="lower right")
 
     ax2.plot(cycles_num, cl_amp_arr, "go-", label="Cycle Lift Amplitude")
-    ax2.axhline(mean_cl_amp_5, color="green", linestyle=":", label=f"Last 5 mean $C_L' = {mean_cl_amp_5:.4f}$")
+    ax2.axhline(
+        mean_cl_amp_5,
+        color="green",
+        linestyle=":",
+        label=f"Last 5 mean $C_L' = {mean_cl_amp_5:.4f}$",
+    )
     ax2.set_ylabel(r"Lift Amplitude $C_L'$")
     ax2.set_title(rf"Cycle Lift Amplitude - Drift: {drift_cl_amp_5:.3f}% (< 2%)")
     ax2.grid(True, linestyle=":", alpha=0.6)
     ax2.legend(loc="lower right")
 
     ax3.plot(cycles_num, cd_mean_arr, "ro-", label="Cycle Mean Drag")
-    ax3.axhline(mean_cd_5, color="red", linestyle=":", label=f"Last 5 mean $\\langle C_D \\rangle = {mean_cd_5:.4f}$")
+    ax3.axhline(
+        mean_cd_5,
+        color="red",
+        linestyle=":",
+        label=f"Last 5 mean $\\langle C_D \\rangle = {mean_cd_5:.4f}$",
+    )
     ax3.set_xlabel("Cycle Index (in [100, 200]s)")
     ax3.set_ylabel(r"Mean Drag $\langle C_D \rangle$")
     ax3.set_title(rf"Cycle Mean Drag - Drift: {drift_cd_5:.3f}% (< 1%)")
@@ -398,8 +474,50 @@ def main() -> int:
     plt.close(fig)
     print(f"   Saved {fig4_path.name}")
 
+    # Figure 5: Comparison of t=195s Old vs Upgraded Visualization
+    old_img_path = S1A2_DIR / "vorticity_t195s_old_comsol.png"
+    if not old_img_path.exists():
+        version_dirs = list((S1A2_DIR / "versions").glob("run_*"))
+        if version_dirs:
+            candidate = version_dirs[0] / "vorticity_t195s_comsol.png"
+            if candidate.exists():
+                old_img_path = candidate
+
+    new_img_path = S1A2_DIR / "vorticity_t195s_comsol.png"
+
+    if old_img_path.exists() and new_img_path.exists():
+        fig, (ax_old, ax_new) = plt.subplots(2, 1, figsize=(12, 10), dpi=160)
+        im_old = Image.open(old_img_path)
+        im_new = Image.open(new_img_path)
+
+        ax_old.imshow(im_old)
+        ax_old.set_title(
+            r"(A) Previous Baseline: Full Domain ($0.50 \times 0.24\,$m), Default Rainbow, No Colorbar, Weak Contrast",
+            fontsize=11,
+            fontweight="bold",
+            pad=8,
+        )
+        ax_old.axis("off")
+
+        ax_new.imshow(im_new)
+        ax_new.set_title(
+            r"(B) Upgraded Wake Zoom: $x \in [0.08, 0.30]\,$m, $y \in [0.07, 0.17]\,$m, Wave Diverging Colormap ($\pm 2.0\,\mathrm{s}^{-1}$), Native Colorbar & Axes",
+            fontsize=11,
+            fontweight="bold",
+            pad=8,
+        )
+        ax_new.axis("off")
+
+        plt.tight_layout()
+        fig5_path = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
+        fig.savefig(fig5_path)
+        plt.close(fig)
+        print(f"   Saved {fig5_path.name}")
+
     print("\n=================================================================")
-    print(f"Stage S1-A2 Wake Stability Verification Complete: {'PASS' if all_criteria_met else 'STABILIZING'}")
+    print(
+        f"Stage S1-A2 Wake Stability Verification Complete: {'PASS' if all_criteria_met else 'STABILIZING'}"
+    )
     print("=================================================================")
     return 0
 

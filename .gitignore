@@ -26,5 +26,5 @@ runs/
 *.class
 *.status
 .comsol/
-scratch/
+scratch*
 

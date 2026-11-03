@@ -42,11 +42,13 @@ public class ComsolBridge {
                 handleUpdateParam(args[1], args[2], args[3], args[4], descr);
             } else if ("run-study".equals(command)) {
                 if (args.length < 4) {
-                    outputError("INVALID_PARAMETER", "Usage: run-study <modelPath> <outputPath> <studyTag> [tlistOverride]", "");
+                    outputError("INVALID_PARAMETER", "Usage: run-study <modelPath> <outputPath> <studyTag> [tlistOverride] [rtolOverride] [maxstepOverride]", "");
                     return;
                 }
                 String tlist = (args.length >= 5) ? args[4] : "";
-                handleRunStudy(args[1], args[2], args[3], tlist);
+                String rtol = (args.length >= 6) ? args[5] : "";
+                String maxstep = (args.length >= 7) ? args[6] : "";
+                handleRunStudy(args[1], args[2], args[3], tlist, rtol, maxstep);
             } else if ("build-re100-case".equals(command)) {
                 if (args.length < 3) {
                     outputError("INVALID_PARAMETER", "Usage: build-re100-case <modelPath> <outputPath>", "");
@@ -265,7 +267,21 @@ public class ComsolBridge {
                 sb.append("        {\n");
                 sb.append("          \"tag\": ").append(quote(ftag)).append(",\n");
                 sb.append("          \"label\": ").append(quote(sfeat.label())).append(",\n");
-                sb.append("          \"type\": ").append(quote(sfeat.getType())).append("\n");
+                sb.append("          \"type\": ").append(quote(sfeat.getType())).append(",\n");
+                sb.append("          \"properties\": {\n");
+                try {
+                    String[] props = sfeat.properties();
+                    for (int p = 0; p < props.length; p++) {
+                        String prop = props[p];
+                        String val = "";
+                        try { val = sfeat.getString(prop); } catch (Throwable t1) {
+                            try { val = Arrays.toString(sfeat.getStringArray(prop)); } catch (Throwable t2) {}
+                        }
+                        sb.append("            ").append(quote(prop)).append(": ").append(quote(val != null ? val : ""))
+                          .append(p < props.length - 1 ? "," : "").append("\n");
+                    }
+                } catch (Throwable ignored) {}
+                sb.append("          }\n");
                 sb.append("        }").append(j < ftags.length - 1 ? "," : "").append("\n");
             }
             sb.append("      ]\n");
@@ -282,7 +298,33 @@ public class ComsolBridge {
             sb.append("    {\n");
             sb.append("      \"tag\": ").append(quote(solTag)).append(",\n");
             sb.append("      \"label\": ").append(quote(sol.label())).append(",\n");
-            sb.append("      \"features\": ").append(stringArrayToJson(sol.feature().tags())).append("\n");
+            sb.append("      \"feature_tags\": ").append(stringArrayToJson(sol.feature().tags())).append(",\n");
+            sb.append("      \"features\": [\n");
+            String[] sftags = sol.feature().tags();
+            for (int k = 0; k < sftags.length; k++) {
+                String sftag = sftags[k];
+                SolverFeature sfeat = sol.feature(sftag);
+                sb.append("        {\n");
+                sb.append("          \"tag\": ").append(quote(sftag)).append(",\n");
+                sb.append("          \"type\": ").append(quote(sfeat.getType())).append(",\n");
+                sb.append("          \"label\": ").append(quote(sfeat.label())).append(",\n");
+                sb.append("          \"properties\": {\n");
+                try {
+                    String[] props = sfeat.properties();
+                    for (int p = 0; p < props.length; p++) {
+                        String prop = props[p];
+                        String val = "";
+                        try { val = sfeat.getString(prop); } catch (Throwable t1) {
+                            try { val = Arrays.toString(sfeat.getStringArray(prop)); } catch (Throwable t2) {}
+                        }
+                        sb.append("            ").append(quote(prop)).append(": ").append(quote(val != null ? val : ""))
+                          .append(p < props.length - 1 ? "," : "").append("\n");
+                    }
+                } catch (Throwable ignored) {}
+                sb.append("          }\n");
+                sb.append("        }").append(k < sftags.length - 1 ? "," : "").append("\n");
+            }
+            sb.append("      ]\n");
             sb.append("    }").append(i < solTags.length - 1 ? "," : "").append("\n");
         }
         sb.append("  ]\n");
@@ -388,7 +430,7 @@ public class ComsolBridge {
         emitResult(sb.toString());
     }
 
-    private static void handleRunStudy(String modelPath, String outputPath, String studyTag, String tlistOverride) {
+    private static void handleRunStudy(String modelPath, String outputPath, String studyTag, String tlistOverride, String rtolOverride, String maxstepOverride) {
         if (modelPath.equalsIgnoreCase(outputPath)) {
             outputError("MODEL_VALIDATION_FAILED", "Refusing to overwrite baseline model: source and output path are identical", "");
             return;
@@ -429,12 +471,51 @@ public class ComsolBridge {
             }
         }
 
+        if (rtolOverride != null && !rtolOverride.trim().isEmpty()) {
+            try {
+                study.feature("time").set("rtol", rtolOverride.trim());
+            } catch (Throwable t) {
+                outputError("INVALID_PARAMETER", "Failed to apply rtol override '" + rtolOverride + "': " + t.getMessage(), getStackTrace(t));
+                return;
+            }
+        }
+
+        // Ensure solver sequence exists so we can inspect and configure solver features
+        if (model.sol().tags().length == 0) {
+            try {
+                study.createAutoSequences("sol1");
+            } catch (Throwable ignored) {}
+        }
+
+        // Apply low-level solver feature parameters (e.g. sol1/t1)
+        for (String sTag : model.sol().tags()) {
+            SolverSequence sSeq = model.sol(sTag);
+            for (String fTag : sSeq.feature().tags()) {
+                SolverFeature feat = sSeq.feature(fTag);
+                if ("Time".equalsIgnoreCase(feat.getType())) {
+                    if (rtolOverride != null && !rtolOverride.trim().isEmpty()) {
+                        try { feat.set("rtol", rtolOverride.trim()); } catch (Throwable ignored) {}
+                    }
+                    if (maxstepOverride != null && !maxstepOverride.trim().isEmpty()) {
+                        try {
+                            feat.set("maxstepconstraintbdf", "const");
+                            feat.set("maxstepbdf", maxstepOverride.trim());
+                        } catch (Throwable ignored) {}
+                    }
+                }
+            }
+        }
+
         long tStart = System.currentTimeMillis();
         try {
-            study.run();
+            study.runNoGen();
         } catch (Throwable t) {
-            outputError("SOLVER_FAILED", "COMSOL solver execution failed: " + t.getMessage(), getStackTrace(t));
-            return;
+            try {
+                study.run();
+            } catch (Throwable t2) {
+                outputError("SOLVER_FAILED", "COMSOL solver execution failed: " + t2.getMessage(), getStackTrace(t2));
+                return;
+            }
         }
         long elapsedMs = System.currentTimeMillis() - tStart;
 
@@ -486,6 +567,32 @@ public class ComsolBridge {
             return;
         }
 
+        // Live solver parameters readback directly from solved solSeq
+        String liveRtol = "";
+        String liveTimeMethod = "";
+        String liveTstepsBdf = "";
+        String liveMaxOrder = "";
+        String liveMinOrder = "";
+        String liveMaxStepConstraint = "";
+        String liveMaxStep = "";
+        String liveTlist = "";
+        try {
+            for (String fTag : solSeq.feature().tags()) {
+                SolverFeature feat = solSeq.feature(fTag);
+                if ("Time".equalsIgnoreCase(feat.getType())) {
+                    try { liveRtol = feat.getString("rtol"); } catch (Throwable ignored) {}
+                    try { liveTimeMethod = feat.getString("timemethod"); } catch (Throwable ignored) {}
+                    try { liveTstepsBdf = feat.getString("tstepsbdf"); } catch (Throwable ignored) {}
+                    try { liveMaxOrder = feat.getString("maxorder"); } catch (Throwable ignored) {}
+                    try { liveMinOrder = feat.getString("minorder"); } catch (Throwable ignored) {}
+                    try { liveMaxStepConstraint = feat.getString("maxstepconstraintbdf"); } catch (Throwable ignored) {}
+                    try { liveMaxStep = feat.getString("maxstepbdf"); } catch (Throwable ignored) {}
+                    try { liveTlist = feat.getString("tlist"); } catch (Throwable ignored) {}
+                    break;
+                }
+            }
+        } catch (Throwable ignored) {}
+
         try {
             model.save(outputPath);
         } catch (Throwable t) {
@@ -507,6 +614,17 @@ public class ComsolBridge {
         sb.append("    \"time_max\": ").append(pvals[pvals.length - 1]).append(",\n");
         sb.append("    \"has_nan_or_inf\": false,\n");
         sb.append("    \"has_physical_field\": true\n");
+        sb.append("  },\n");
+        sb.append("  \"solver_readback\": {\n");
+        sb.append("    \"source\": \"LIVE_API_READBACK\",\n");
+        sb.append("    \"timemethod\": ").append(quote(liveTimeMethod)).append(",\n");
+        sb.append("    \"tstepsbdf\": ").append(quote(liveTstepsBdf)).append(",\n");
+        sb.append("    \"maxorder\": ").append(quote(liveMaxOrder)).append(",\n");
+        sb.append("    \"minorder\": ").append(quote(liveMinOrder)).append(",\n");
+        sb.append("    \"rtol\": ").append(quote(liveRtol)).append(",\n");
+        sb.append("    \"maxstepconstraintbdf\": ").append(quote(liveMaxStepConstraint)).append(",\n");
+        sb.append("    \"maxstepbdf\": ").append(quote(liveMaxStep)).append(",\n");
+        sb.append("    \"tlist\": ").append(quote(liveTlist)).append("\n");
         sb.append("  },\n");
         sb.append("  \"source_model\": ").append(quote(modelPath)).append(",\n");
         sb.append("  \"output_model\": ").append(quote(outputPath)).append("\n");
@@ -889,6 +1007,19 @@ public class ComsolBridge {
                 targetTimes = new double[]{10.0, 40.0, 95.0, 100.0};
             }
 
+            // Configure dedicated zoom view for wake visualization (20D downstream, 10D lateral)
+            View viewZoom = null;
+            try {
+                viewZoom = (View) model.view("view_wake_zoom_s1");
+            } catch (Throwable t) {
+                viewZoom = (View) model.view().create("view_wake_zoom_s1", 2);
+            }
+            ViewFeature axisZoom = viewZoom.axis();
+            axisZoom.set("xmin", 0.08);
+            axisZoom.set("xmax", 0.30);
+            axisZoom.set("ymin", 0.07);
+            axisZoom.set("ymax", 0.17);
+
             for (double tTarget : targetTimes) {
                 int solnum = 1;
                 if (pvals != null && pvals.length > 0) {
@@ -910,12 +1041,25 @@ public class ComsolBridge {
                     ResultFeature pgVort = model.result().create(pgTag, "PlotGroup2D");
                     pgVort.set("data", "dset1");
                     pgVort.set("solnum", String.valueOf(solnum));
+                    pgVort.set("view", "view_wake_zoom_s1");
                     pgVort.set("titletype", "custom");
-                    pgVort.set("title", "Re=100 Vorticity omega_z at t = " + tSec + "s");
+                    pgVort.set("title", "Re=100 Vorticity \\omega_z at t = " + tSec + " s (Zoom: x \\in [0.08, 0.30] m, y \\in [0.07, 0.17] m)");
+                    pgVort.set("showlegends", "on");
+                    pgVort.set("showlegendstitle", "on");
+                    pgVort.set("showlegendsunit", "on");
+                    pgVort.set("legendpos", "right");
 
                     ResultFeature surf = pgVort.feature().create("surf1", "Surface");
                     surf.set("expr", "vx-uy");
                     surf.set("unit", "1/s");
+                    surf.set("colortable", "Wave"); // Red-White-Blue diverging colormap
+                    surf.set("rangecoloractive", true);
+                    double omegaLim = 2.0; // Symmetrical zero-centered limits [-2.0, +2.0] s^-1
+                    surf.set("rangecolormin", -omegaLim);
+                    surf.set("rangecolormax", omegaLim);
+                    surf.set("colorlegend", true);
+                    surf.set("showlegendtitle", true);
+                    surf.set("legendtitle", "Vorticity \\omega_z [s^{-1}]");
 
                     String imgName = "vorticity_t" + tSec + "s_comsol.png";
                     String imgPath = base + imgName;
@@ -926,8 +1070,14 @@ public class ComsolBridge {
                     expImg.set("pngfilename", imgPath);
                     expImg.set("size", "manualweb");
                     expImg.set("unit", "px");
-                    expImg.set("webwidth", "1200");
-                    expImg.set("webheight", "600");
+                    expImg.set("webwidth", "1400");
+                    expImg.set("webheight", "650");
+                    expImg.set("options2d", "on");
+                    expImg.set("title2d", "on");
+                    expImg.set("legend2d", "on");
+                    expImg.set("axes2d", "on");
+                    expImg.set("logo2d", "off");
+                    expImg.set("fontsize", 10);
                     expImg.run();
                     exportedFiles.add(imgName);
                 } catch (Throwable imgErr) {
