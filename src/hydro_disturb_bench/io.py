@@ -209,12 +209,14 @@ def _read_and_validate_comsol_export(
     col_max: list[float] = []
     nonfinite_cols: set[int] = set()
 
+    _isfinite = math.isfinite
     with path.open("r", encoding="utf-8", errors="replace") as f:
         for lineno, raw in enumerate(f, start=1):
-            line = raw.strip()
-            if not line:
+            parts = raw.split()
+            if not parts:
                 continue
-            if line.startswith("%"):
+            if parts[0].startswith("%"):
+                line = raw.strip()
                 if tokens is not None:
                     raise ComsolExportValidationError(
                         f"Unexpected '%' line {lineno} after the data header (multiple data blocks are not allowed)"
@@ -237,7 +239,6 @@ def _read_and_validate_comsol_export(
                 raise ComsolExportValidationError(
                     f"Numerical data at line {lineno} precedes the COMSOL '% x y ...' header"
                 )
-            parts = line.split()
             if len(parts) != ncols:
                 raise ComsolExportValidationError(
                     f"Column count mismatch at line {lineno}: header declares {ncols} columns, row has {len(parts)}"
@@ -249,7 +250,7 @@ def _read_and_validate_comsol_export(
                     f"Non-numeric value at line {lineno}: {err}"
                 ) from err
             for i, v in enumerate(vals):
-                if not math.isfinite(v):
+                if not _isfinite(v):
                     nonfinite_cols.add(i)
                 else:
                     if v < col_min[i]:
