@@ -82,18 +82,19 @@ In addition to staging isolation, `export_solution_data()` enforces strict data-
 - **Strict Finiteness**: Every single numerical field value is scanned; any NaN or Inf immediately causes rejection.
 - **Fail-Closed Gate & Isolation**: Any failure raises `ModelValidationError` (wrapping `ComsolExportValidationError`), quarantines the corrupted staging artifact as `quarantine/invalid_data_*`, and guarantees the destination file (and any pre-existing file there) is **never touched or overwritten**.
 
-### 3.2.2 S1 Multi-File Diagnostic Export Transaction Protocol
-For complex multi-file diagnostics (7 time series + 4 vorticity snapshot images), `export_s1_diagnostics()` enforces complete atomic transaction semantics:
+### 3.2.2 S1/S1-A2 Multi-File Diagnostic Export Transaction Protocol
+For complex multi-file diagnostics (7 time series + dynamic vorticity snapshot images), `export_s1_diagnostics()` enforces complete atomic transaction semantics:
 - **Dedicated Lock File Guarantee**: `file_publish_lock()` validates the lock target path. When the publication target is a directory `output_dir`, it derives a dedicated lock file (`.publish_{output_dir.name}.lock`) in the parent directory, strictly preventing `open()` calls with write mode on directories.
-- **Two-Phase Staging & Verification**: All 11 files are generated inside an isolated staging directory (`output_dir / ".staging" / f"stage_{stage_id}"`). Before any file is published, all 7 time-series files and 4 PNG snapshots undergo full validation (step count, header tokens, finiteness, non-empty image size).
+- **Dynamic Snapshot Time Discovery**: In `ComsolBridge.java`, snapshot generation no longer relies on hardcoded solution frame indices. It queries `model.sol("sol1").getPVals()` to dynamically match target timestamps (e.g. $t \in \{10, 40, 100, 195, 200\}$ s) to the nearest available solver solution index (`solnum`), ensuring seamless support for arbitrary simulation lengths and output schedules.
+- **Two-Phase Staging & Verification**: All diagnostic files are generated inside an isolated staging directory (`output_dir / ".staging" / f"stage_{stage_id}"`). Before any file is published, all 7 time-series files and PNG snapshots undergo full validation (step count, header tokens, physical units, finiteness, non-empty image size).
 - **Cryptographic Commit Token (`manifest.json`)**: Upon successful generation and validation, a `manifest.json` is computed in staging. It records:
   - Source model SHA-256 hash (verified before and after solver execution);
   - Stage ID and ISO 8601 UTC timestamp;
-  - Expected time series steps (501) and time range;
+  - Expected time series steps (e.g., 501 for 100s, 1001 for 200s) and time range;
   - Result status: `"COMPLETED"`;
-  - Complete file catalog mapping each of the 11 diagnostic files to its byte size and SHA-256 hash.
+  - Complete file catalog mapping each diagnostic file to its byte size and SHA-256 hash.
 - **Version Archiving & Zero In-Place Overwrite**: If `allow_overwrite=True` and a valid previous result set already exists in `output_dir`, the entire previous set is archived into `output_dir / "versions" / f"run_{old_timestamp}_{old_stage_id}"` before any new file is promoted. `list_s1_diagnostic_versions()` and `recover_s1_diagnostic_version()` ensure lossless version history and disaster recovery.
-- **Atomic Two-Phase Promotion**: Files are first moved into `output_dir / f".tmp_{stage_id}_{fname}"`. If all 11 files are successfully staged in `output_dir`, they are promoted via atomic `os.replace`, with `manifest.json` promoted **last** as the commit token. Any directory without a valid `manifest.json` matching all file SHA-256 hashes is considered incomplete and uncommitted.
+- **Atomic Two-Phase Promotion**: Files are first moved into `output_dir / f".tmp_{stage_id}_{fname}"`. If all files are successfully staged in `output_dir`, they are promoted via atomic `os.replace`, with `manifest.json` promoted **last** as the commit token. Any directory without a valid `manifest.json` matching all file SHA-256 hashes is considered incomplete and uncommitted.
 - **Failure Quarantine & Staging Preservation**: If an error occurs at any point (e.g. COMSOL crash, data validation rejection, or failure promoting file 1, 5, or 11), temporary `.tmp_` files are cleaned up, pre-existing results remain completely untouched, and the full staging directory is safely moved to `quarantine/` via `quarantine_staging_dir` with a detailed `quarantine_reason.txt`. Staging files are never silently deleted with `ignore_errors=True`.
 
 ### 3.3 Dynamic Discovery & Live Geometric Evidence (Zero Guessing)

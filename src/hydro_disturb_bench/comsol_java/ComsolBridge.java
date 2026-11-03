@@ -61,10 +61,11 @@ public class ComsolBridge {
                 handleExportSolutionData(args[1], args[2]);
             } else if ("export-s1-diagnostics".equals(command)) {
                 if (args.length < 3) {
-                    outputError("INVALID_PARAMETER", "Usage: export-s1-diagnostics <modelPath> <outputDir>", "");
+                    outputError("INVALID_PARAMETER", "Usage: export-s1-diagnostics <modelPath> <outputDir> [snapshotTimes]", "");
                     return;
                 }
-                handleExportS1Diagnostics(args[1], args[2]);
+                String snapTimes = (args.length >= 4) ? args[3] : "";
+                handleExportS1Diagnostics(args[1], args[2], snapTimes);
             } else {
                 outputError("API_UNSUPPORTED", "Unknown command: " + command, "");
             }
@@ -743,7 +744,7 @@ public class ComsolBridge {
         } catch (Throwable ignored) {}
     }
 
-    private static void handleExportS1Diagnostics(String modelPath, String outputDir) {
+    private static void handleExportS1Diagnostics(String modelPath, String outputDir, String snapshotTimesStr) {
         Model model;
         try {
             model = ModelUtil.loadCopy("Model", modelPath);
@@ -868,17 +869,41 @@ public class ComsolBridge {
             expStagP.run();
             exportedFiles.add("stag_p.txt");
 
-            // 6. Vorticity snapshot images at t = 10, 40, 95, 100 s
-            int[][] targets = new int[][]{
-                {10, 51},
-                {40, 201},
-                {95, 476},
-                {100, 501}
-            };
+            // 6. Vorticity snapshot images (dynamic solnum & arbitrary snapshot time schedules)
+            double[] pvals = null;
+            try {
+                pvals = model.sol("sol1").getPVals();
+            } catch (Throwable ignored) {}
 
-            for (int[] tgt : targets) {
-                int tSec = tgt[0];
-                int solnum = tgt[1];
+            double tMax = (pvals != null && pvals.length > 0) ? pvals[pvals.length - 1] : 100.0;
+            double[] targetTimes;
+            if (snapshotTimesStr != null && !snapshotTimesStr.trim().isEmpty()) {
+                String[] parts = snapshotTimesStr.split(",");
+                targetTimes = new double[parts.length];
+                for (int i = 0; i < parts.length; i++) {
+                    targetTimes[i] = Double.parseDouble(parts[i].trim());
+                }
+            } else if (tMax > 105.0) {
+                targetTimes = new double[]{10.0, 40.0, 100.0, 195.0, 200.0};
+            } else {
+                targetTimes = new double[]{10.0, 40.0, 95.0, 100.0};
+            }
+
+            for (double tTarget : targetTimes) {
+                int solnum = 1;
+                if (pvals != null && pvals.length > 0) {
+                    int bestIdx = 0;
+                    double bestDiff = Math.abs(pvals[0] - tTarget);
+                    for (int i = 1; i < pvals.length; i++) {
+                        double diff = Math.abs(pvals[i] - tTarget);
+                        if (diff < bestDiff) {
+                            bestDiff = diff;
+                            bestIdx = i;
+                        }
+                    }
+                    solnum = bestIdx + 1; // 1-based in COMSOL
+                }
+                int tSec = (int) Math.round(tTarget);
                 try {
                     String pgTag = "pg_vort_snap_" + tSec + "_s1";
                     safeRemoveResult(model, pgTag);

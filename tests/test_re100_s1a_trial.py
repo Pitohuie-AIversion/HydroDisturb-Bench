@@ -422,19 +422,26 @@ def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path):
 
     # Populate target_dir with existing files
     for fname in S1_REQUIRED_SERIES:
-        (target_dir / fname).write_text(f"% Original {fname}\n0.0 1.0\n100.0 2.0\n", encoding="utf-8")
+        (target_dir / fname).write_text(
+            f"% Original {fname}\n0.0 1.0\n100.0 2.0\n", encoding="utf-8"
+        )
     for iname in S1_REQUIRED_SNAPSHOTS:
         (target_dir / iname).write_bytes(b"ORIGINAL_IMAGE_BYTES" * 10)
-    (target_dir / "manifest.json").write_text('{"status": "COMPLETED", "files": {}}', encoding="utf-8")
+    (target_dir / "manifest.json").write_text(
+        '{"status": "COMPLETED", "files": {}}', encoding="utf-8"
+    )
 
     orig_lift_bytes = (target_dir / "lift_coeff.txt").read_bytes()
 
     # Call export_s1_diagnostics with allow_overwrite=False (mocking bridge to produce valid staging)
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
         def side_effect(args, root=None):
             staging = Path(args[2])
             for f in S1_REQUIRED_SERIES:
-                lines = ["% Header", "% 时间 (s) Value"] + [f"{t * 0.2:.4f} 0.5" for t in range(501)]
+                lines = ["% Header", "% 时间 (s) Value"] + [
+                    f"{t * 0.2:.4f} 0.5" for t in range(501)
+                ]
                 (staging / f).write_text("\n".join(lines), encoding="utf-8")
             for f in S1_REQUIRED_SNAPSHOTS:
                 (staging / f).write_bytes(b"NEW_SNAPSHOT_BYTES" * 10)
@@ -442,7 +449,9 @@ def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path):
 
         mock_bridge.side_effect = side_effect
 
-        with pytest.raises(FileExistsError, match="Refusing to overwrite existing diagnostic result set"):
+        with pytest.raises(
+            FileExistsError, match="Refusing to overwrite existing diagnostic result set"
+        ):
             export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
 
     # Destination files are strictly untouched!
@@ -461,14 +470,18 @@ def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
 
     # Step 1: Create Version 1
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
         def side_effect_v1(args, root=None):
             staging = Path(args[2])
             for f in S1_REQUIRED_SERIES:
-                lines = ["% Header V1", "% 时间 (s) Value"] + [f"{t * 0.2:.4f} 1.1" for t in range(501)]
+                lines = ["% Header V1", "% 时间 (s) Value"] + [
+                    f"{t * 0.2:.4f} 1.1" for t in range(501)
+                ]
                 (staging / f).write_text("\n".join(lines), encoding="utf-8")
             for f in S1_REQUIRED_SNAPSHOTS:
                 (staging / f).write_bytes(b"V1_SNAPSHOT" * 20)
             return {"status": "SUCCESS"}
+
         mock_bridge.side_effect = side_effect_v1
         res1 = export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
 
@@ -477,14 +490,18 @@ def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
 
     # Step 2: Overwrite with Version 2
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
         def side_effect_v2(args, root=None):
             staging = Path(args[2])
             for f in S1_REQUIRED_SERIES:
-                lines = ["% Header V2", "% 时间 (s) Value"] + [f"{t * 0.2:.4f} 2.2" for t in range(501)]
+                lines = ["% Header V2", "% 时间 (s) Value"] + [
+                    f"{t * 0.2:.4f} 2.2" for t in range(501)
+                ]
                 (staging / f).write_text("\n".join(lines), encoding="utf-8")
             for f in S1_REQUIRED_SNAPSHOTS:
                 (staging / f).write_bytes(b"V2_SNAPSHOT" * 20)
             return {"status": "SUCCESS"}
+
         mock_bridge.side_effect = side_effect_v2
         res2 = export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
 
@@ -510,7 +527,9 @@ def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
 
 
 @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
-def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(tmp_path: Path, fail_file_idx: int):
+def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
+    tmp_path: Path, fail_file_idx: int
+):
     """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
     target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
     target_dir.mkdir()
@@ -526,18 +545,24 @@ def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(tmp_pat
         nonlocal call_count
         call_count += 1
         if call_count == fail_file_idx:
-            raise OSError(f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})")
+            raise OSError(
+                f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})"
+            )
         return real_copy2(src, dst, *args, **kwargs)
 
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
         def side_effect(args, root=None):
             staging = Path(args[2])
             for f in S1_REQUIRED_SERIES:
-                lines = ["% Header", "% 时间 (s) Value"] + [f"{t * 0.2:.4f} 0.5" for t in range(501)]
+                lines = ["% Header", "% 时间 (s) Value"] + [
+                    f"{t * 0.2:.4f} 0.5" for t in range(501)
+                ]
                 (staging / f).write_text("\n".join(lines), encoding="utf-8")
             for f in S1_REQUIRED_SNAPSHOTS:
                 (staging / f).write_bytes(b"IMAGE_BYTES" * 20)
             return {"status": "SUCCESS"}
+
         mock_bridge.side_effect = side_effect
 
         with patch("shutil.copy2", side_effect=faulty_copy2):
@@ -545,7 +570,9 @@ def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(tmp_pat
                 export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
 
     # 1. manifest.json must NOT exist in target_dir!
-    assert not (target_dir / "manifest.json").exists(), "manifest.json was written despite publish failure!"
+    assert not (target_dir / "manifest.json").exists(), (
+        "manifest.json was written despite publish failure!"
+    )
 
     # 2. No partial .tmp_ files left behind
     tmp_files = list(target_dir.glob(".tmp_*"))
@@ -569,11 +596,13 @@ def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path)
     target_dir = tmp_path / "abort_target"
 
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
         def side_effect_abort(args, root=None):
             staging = Path(args[2])
             # Partial export left behind before crashing
             (staging / "lift_coeff.txt").write_text("% Partial lift\n0.0 0.1\n", encoding="utf-8")
             raise ComsolConnectionError("COMSOL batch process terminated unexpectedly")
+
         mock_bridge.side_effect = side_effect_abort
 
         with pytest.raises(ComsolConnectionError, match="COMSOL batch process terminated"):
@@ -589,6 +618,7 @@ def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path)
 def test_multiprocess_concurrent_publish_race_no_corruption_or_loss(tmp_path: Path):
     """Two concurrent processes racing to export/publish to the same output_dir serialize via lock without data loss."""
     import subprocess
+
     target_dir = tmp_path / "race_diag"
 
     worker_code = """
@@ -619,8 +649,18 @@ with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=moc
         print("CONFLICT")
 """
     sub_env = {**os.environ, "PYTHONPATH": "src"}
-    p1 = subprocess.Popen([sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P1"], env=sub_env, stdout=subprocess.PIPE, text=True)
-    p2 = subprocess.Popen([sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P2"], env=sub_env, stdout=subprocess.PIPE, text=True)
+    p1 = subprocess.Popen(
+        [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P1"],
+        env=sub_env,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    p2 = subprocess.Popen(
+        [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P2"],
+        env=sub_env,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
 
     out1, _ = p1.communicate(timeout=30)
     out2, _ = p2.communicate(timeout=30)
@@ -666,5 +706,7 @@ def test_s1a_manifest_tamper_detection(tmp_path: Path):
     manifest["status"] = "COMPLETED"
     (diag_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     (diag_dir / "lift_coeff.txt").write_text("% Tampered line\n0.0 999.0\n", encoding="utf-8")
-    with pytest.raises(ComsolExportValidationError, match="deviates from manifest|does not match manifest"):
+    with pytest.raises(
+        ComsolExportValidationError, match="deviates from manifest|does not match manifest"
+    ):
         validate_s1_diagnostics(diag_dir, require_manifest=True)

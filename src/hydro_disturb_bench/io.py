@@ -452,6 +452,15 @@ S1_REQUIRED_SNAPSHOTS: tuple[str, ...] = (
     "vorticity_t100s_comsol.png",
 )
 
+#: Required S1-A2 vorticity snapshot files for 200s trial run.
+S1_A2_REQUIRED_SNAPSHOTS: tuple[str, ...] = (
+    "vorticity_t10s_comsol.png",
+    "vorticity_t40s_comsol.png",
+    "vorticity_t100s_comsol.png",
+    "vorticity_t195s_comsol.png",
+    "vorticity_t200s_comsol.png",
+)
+
 
 def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
     """Parse a single 1D COMSOL text export (time, value) and validate structure.
@@ -539,6 +548,8 @@ def build_s1_manifest(
     stage_id: str,
     validation_summary: dict[str, Any],
     superseded_version: str | None = None,
+    required_series: tuple[str, ...] | list[str] = S1_REQUIRED_SERIES,
+    required_snapshots: tuple[str, ...] | list[str] | None = None,
 ) -> dict[str, Any]:
     """Build a comprehensive, cryptographically verifiable completion manifest for S1 diagnostics."""
     import datetime
@@ -546,8 +557,16 @@ def build_s1_manifest(
     diag_dir = Path(staging_dir)
     source_path = Path(source_model_path)
 
+    if required_snapshots is None:
+        if "snapshots" in validation_summary:
+            required_snapshots = [s["filename"] for s in validation_summary["snapshots"]]
+        elif validation_summary.get("time_range", [0, 100])[1] > 105.0:
+            required_snapshots = S1_A2_REQUIRED_SNAPSHOTS
+        else:
+            required_snapshots = S1_REQUIRED_SNAPSHOTS
+
     files_record: dict[str, dict[str, Any]] = {}
-    for fname in S1_REQUIRED_SERIES:
+    for fname in required_series:
         fp = diag_dir / fname
         if not fp.is_file():
             raise ComsolExportValidationError(
@@ -559,7 +578,7 @@ def build_s1_manifest(
             "sha256": compute_sha256(fp),
         }
 
-    for iname in S1_REQUIRED_SNAPSHOTS:
+    for iname in required_snapshots:
         ip = diag_dir / iname
         if not ip.is_file():
             raise ComsolExportValidationError(
@@ -589,8 +608,8 @@ def build_s1_manifest(
         "files": files_record,
         "validation_summary": {
             "valid": validation_summary.get("valid", True),
-            "num_series": len(S1_REQUIRED_SERIES),
-            "num_snapshots": len(S1_REQUIRED_SNAPSHOTS),
+            "num_series": len(required_series),
+            "num_snapshots": len(required_snapshots),
         },
         "superseded_version": superseded_version,
     }
@@ -605,6 +624,8 @@ def validate_s1_diagnostics(
     time_tol: float = 1e-4,
     require_manifest: bool = False,
     expected_source_hash: str | None = None,
+    required_series: tuple[str, ...] | list[str] = S1_REQUIRED_SERIES,
+    required_snapshots: tuple[str, ...] | list[str] | None = None,
 ) -> dict[str, Any]:
     """Validate completeness, alignment, units, and finite values for S1 diagnostics.
 
@@ -622,6 +643,12 @@ def validate_s1_diagnostics(
     diag_dir = Path(diagnostics_dir)
     if not diag_dir.is_dir():
         raise ComsolExportValidationError(f"Diagnostics directory does not exist: {diag_dir}")
+
+    if required_snapshots is None:
+        if expected_t_final > 105.0:
+            required_snapshots = S1_A2_REQUIRED_SNAPSHOTS
+        else:
+            required_snapshots = S1_REQUIRED_SNAPSHOTS
 
     # Check 0: Completion manifest validation (if present or required)
     manifest_record: dict[str, Any] | None = None
@@ -661,7 +688,7 @@ def validate_s1_diagnostics(
             raise ComsolExportValidationError("manifest.json missing 'files' dictionary")
 
         # Verify all required files are cataloged in manifest
-        for req in list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS):
+        for req in list(required_series) + list(required_snapshots):
             if req not in rec_files:
                 raise ComsolExportValidationError(
                     f"manifest.json missing required artifact entry: '{req}'"
@@ -687,7 +714,7 @@ def validate_s1_diagnostics(
 
     # Check 1: Image snapshots presence & non-zero size
     img_records: list[dict[str, Any]] = []
-    for img_name in S1_REQUIRED_SNAPSHOTS:
+    for img_name in required_snapshots:
         img_path = diag_dir / img_name
         if not img_path.is_file():
             raise ComsolExportValidationError(f"Required S1 vorticity snapshot missing: {img_name}")
@@ -698,11 +725,11 @@ def validate_s1_diagnostics(
             )
         img_records.append({"filename": img_name, "size_bytes": size})
 
-    # Check 2: Parse and validate all 7 time series
+    # Check 2: Parse and validate all required time series
     series_data: dict[str, dict[str, Any]] = {}
     ref_times: np.ndarray | None = None
 
-    for fname in S1_REQUIRED_SERIES:
+    for fname in required_series:
         fpath = diag_dir / fname
         if not fpath.is_file():
             raise ComsolExportValidationError(f"Required S1 time series file missing: {fname}")

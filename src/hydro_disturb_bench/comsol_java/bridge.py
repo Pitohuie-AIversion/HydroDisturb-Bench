@@ -1402,17 +1402,19 @@ def export_s1_diagnostics(
     output_dir: Path | str,
     allow_overwrite: bool = False,
     root: Path | None = None,
-    expected_steps: int = 501,
+    expected_steps: int | None = None,
     expected_dt: float = 0.20,
     expected_t_final: float = 100.0,
     versioned: bool = True,
+    snapshot_times: list[float] | None = None,
+    required_snapshots: tuple[str, ...] | list[str] | None = None,
 ) -> dict[str, Any]:
     """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
 
     Publication gate (atomic, fail closed):
     1. COMSOL bridge reports SUCCESS into staging directory.
     2. Source model SHA-256 unchanged.
-    3. Staging directory passes validate_s1_diagnostics (501 aligned steps, no NaN/Inf, snapshots valid).
+    3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
     4. Completion manifest.json generated in staging directory.
     5. Under cross-process file_publish_lock:
        - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
@@ -1421,6 +1423,7 @@ def export_s1_diagnostics(
        - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
     """
     from ..io import (
+        S1_A2_REQUIRED_SNAPSHOTS,
         S1_REQUIRED_SERIES,
         S1_REQUIRED_SNAPSHOTS,
         ComsolExportValidationError,
@@ -1433,6 +1436,17 @@ def export_s1_diagnostics(
 
     if not model_path.is_file():
         raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+
+    if expected_steps is None:
+        expected_steps = int(round(expected_t_final / expected_dt)) + 1
+
+    if required_snapshots is None:
+        if snapshot_times is not None:
+            required_snapshots = tuple(f"vorticity_t{int(round(t))}s_comsol.png" for t in snapshot_times)
+        elif expected_t_final > 105.0:
+            required_snapshots = S1_A2_REQUIRED_SNAPSHOTS
+        else:
+            required_snapshots = S1_REQUIRED_SNAPSHOTS
 
     output_dir.mkdir(parents=True, exist_ok=True)
     hash_before = compute_file_hash(model_path)
@@ -1450,6 +1464,8 @@ def export_s1_diagnostics(
             str(model_path.resolve()),
             str(staging_dir.resolve()),
         ]
+        if snapshot_times is not None:
+            args.append(",".join(str(t) for t in snapshot_times))
 
         try:
             res = _run_bridge(args, root=root)
@@ -1474,6 +1490,7 @@ def export_s1_diagnostics(
                 expected_dt=expected_dt,
                 expected_t_final=expected_t_final,
                 require_manifest=False,
+                required_snapshots=required_snapshots,
             )
         except ComsolExportValidationError as err:
             quarantine_staging_dir(staging_dir, output_dir, stage_id, reason="invalid_data")
@@ -1488,6 +1505,7 @@ def export_s1_diagnostics(
             source_sha256=hash_before,
             stage_id=stage_id,
             validation_summary=val_summary,
+            required_snapshots=required_snapshots,
         )
         manifest_file = staging_dir / "manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2), encoding="utf-8")
@@ -1496,7 +1514,7 @@ def export_s1_diagnostics(
         lock_file = output_dir.parent / f".publish_{output_dir.name}.lock"
         with file_publish_lock(lock_file):
             all_files_to_check = (
-                list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS) + ["manifest.json"]
+                list(S1_REQUIRED_SERIES) + list(required_snapshots) + ["manifest.json"]
             )
             existing_present = [f for f in all_files_to_check if (output_dir / f).is_file()]
 
@@ -1515,7 +1533,7 @@ def export_s1_diagnostics(
 
             # Transactional staged transfer: stage files as .tmp_<stage_id>_<fname> in output_dir
             all_publish_items = (
-                list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS) + ["manifest.json"]
+                list(S1_REQUIRED_SERIES) + list(required_snapshots) + ["manifest.json"]
             )
             transferred_tmp_files: list[Path] = []
             try:
@@ -1540,8 +1558,8 @@ def export_s1_diagnostics(
             # Promote .tmp_ files to final names atomically
             promoted_files: list[str] = []
             try:
-                # 11 diagnostic artifacts first
-                for fname in list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS):
+                # Diagnostic artifacts first
+                for fname in list(S1_REQUIRED_SERIES) + list(required_snapshots):
                     tmp_dest = output_dir / f".tmp_{stage_id}_{fname}"
                     final_dest = output_dir / fname
                     os.replace(str(tmp_dest), str(final_dest))
