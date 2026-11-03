@@ -20,6 +20,7 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+from hydro_disturb_bench.io import parse_comsol_txt
 from hydro_disturb_bench.comsol_java import (
     compute_file_hash,
     export_solution_data,
@@ -31,53 +32,8 @@ WORKSPACE_DIR = Path(__file__).resolve().parent.parent
 BASELINE_MODEL = WORKSPACE_DIR / "case" / "cylinder_flow.mph"
 BENCHMARK_MODEL = WORKSPACE_DIR / "models" / "cylinder_2d" / "re100_benchmark.mph"
 OUTPUT_DIR = WORKSPACE_DIR / "runs" / "re100_s0_verification"
-ARTIFACT_DIR = Path("C:/Users/Administrator/.gemini/antigravity-ide/brain/78e0afb2-6233-4e38-b94c-b25dc49b4926")
 
 BASELINE_SHA256 = "CE72D06EB181ACA2D152505A138F472B7EF424FE7A2CC20C900C670002F00A7A"
-
-
-def parse_comsol_txt(file_path: Path) -> dict[str, np.ndarray]:
-    """Parse COMSOL exported field text file into numpy arrays."""
-    with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-        lines = f.readlines()
-
-    header_line = None
-    data_start = 0
-    for idx, line in enumerate(lines):
-        if line.startswith("% x"):
-            header_line = line
-            data_start = idx + 1
-            break
-
-    if header_line is None:
-        raise ValueError(f"Could not locate header line starting with '% x' in {file_path}")
-
-    # Extract headers
-    raw_headers = [h.strip() for h in header_line.replace("%", "").split("  ") if h.strip()]
-    
-    # Load numerical data
-    data = np.loadtxt(lines[data_start:])
-    x = data[:, 0]
-    y = data[:, 1]
-    
-    # The columns correspond to variables at t=0, t=0.05, ..., t=0.5
-    # The last block of columns corresponds to the final timestep t=0.5s:
-    # u, v, p, vx-uy (vorticity), spf.U (velocity magnitude)
-    u_final = data[:, -5]
-    v_final = data[:, -4]
-    p_final = data[:, -3]
-    vort_final = data[:, -2]
-    U_mag_final = data[:, -1]
-
-    return {
-        "x": x,
-        "y": y,
-        "u": u_final,
-        "v": v_final,
-        "p": p_final,
-        "vorticity": vort_final,
-        "U": U_mag_final,
-    }
 
 
 def main():
@@ -261,11 +217,14 @@ def main():
     plt.close(fig3)
     print(f"   Saved {vort_fig_path.name}")
 
-    # Copy to artifacts directory
-    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
-    for p in [vel_fig_path, pres_fig_path, vort_fig_path]:
-        shutil.copy2(p, ARTIFACT_DIR / p.name)
-        print(f"   Copied {p.name} to artifacts directory.")
+    # Optional copy to artifacts directory if environment variable is set
+    artifact_env = os.environ.get("ANTIGRAVITY_ARTIFACTS_DIR")
+    if artifact_env:
+        artifact_dir = Path(artifact_env)
+        if artifact_dir.is_dir():
+            for p in [vel_fig_path, pres_fig_path, vort_fig_path]:
+                shutil.copy2(p, artifact_dir / p.name)
+                print(f"   Copied {p.name} to artifacts directory: {artifact_dir}")
 
     print("\n=================================================================")
     print("Stage S0 Verification Completed Successfully: PASS")

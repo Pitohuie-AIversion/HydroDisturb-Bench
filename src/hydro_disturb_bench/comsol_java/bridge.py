@@ -1069,7 +1069,7 @@ def export_solution_data(
     allow_overwrite: bool = False,
     root: Path | None = None,
 ) -> dict[str, Any]:
-    """Export solution field data (u, v, p, vx-uy, spf.U) to text file."""
+    """Export solution field data (u, v, p, vx-uy, spf.U) to text file with staging transaction protocol."""
     model_path = Path(model_path)
     output_txt_path = Path(output_txt_path)
 
@@ -1079,17 +1079,54 @@ def export_solution_data(
     if output_txt_path.is_symlink():
         raise ModelValidationError(f"Refusing to write to symbolic link: {output_txt_path}")
 
-    if not allow_overwrite and output_txt_path.is_file():
-        raise ModelValidationError(f"Destination text file already exists: {output_txt_path}")
+    # Compute source model hash before execution
+    hash_before = compute_file_hash(model_path)
 
     output_txt_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_txt_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_txt_path.name}"
 
     args = [
         "export-solution-data",
         str(model_path.resolve()),
-        str(output_txt_path.resolve()),
+        str(staging_path.resolve()),
     ]
 
-    res = _run_bridge(args, root=root)
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_txt_path, stage_id, reason="failed")
+            raise
+
+        # Verify source model hash integrity before publishing
+        hash_after = compute_file_hash(model_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_txt_path, stage_id, reason="source_mutated")
+            raise ModelValidationError(
+                f"Safety violation: source model file was modified during data export! "
+                f"Source SHA-256 changed from {hash_before} to {hash_after}. "
+                f"Staging artifact quarantined; output file was NOT published."
+            )
+
+        # Pre-publish validation: staging file must exist, be non-empty, and contain valid text data
+        if not staging_path.is_file() or staging_path.stat().st_size == 0:
+            if staging_path.is_file():
+                quarantine_staging_file(staging_path, output_txt_path, stage_id, reason="empty")
+            raise ModelValidationError(
+                f"Staging export file is missing or empty before publish: {staging_path}"
+            )
+
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_txt_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
+        )
+
+    res["source_sha256"] = hash_before
     res["output_txt"] = str(output_txt_path.resolve())
+    res["output_sha256"] = compute_file_hash(output_txt_path)
     return res

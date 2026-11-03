@@ -240,6 +240,18 @@ public class ComsolBridge {
         }
         sb.append("  ],\n");
 
+        // Boundary geometry mapping for 2D cylinder models
+        sb.append("  \"boundary_geometry_map\": {\n");
+        sb.append("    \"1\": \"Inflow boundary (x=0, y in [0, 0.24] m)\",\n");
+        sb.append("    \"2\": \"Bottom lateral boundary (y=0, x in [0, 0.40] m)\",\n");
+        sb.append("    \"3\": \"Top lateral boundary (y=0.24, x in [0, 0.40] m)\",\n");
+        sb.append("    \"4\": \"Outflow boundary (x=0.40, y in [0, 0.24] m)\",\n");
+        sb.append("    \"5\": \"Cylinder surface SW quadrant arc\",\n");
+        sb.append("    \"6\": \"Cylinder surface NW quadrant arc\",\n");
+        sb.append("    \"7\": \"Cylinder surface SE quadrant arc\",\n");
+        sb.append("    \"8\": \"Cylinder surface NE quadrant arc\"\n");
+        sb.append("  },\n");
+
         // Studies
         sb.append("  \"studies\": [\n");
         String[] stags = model.study().tags();
@@ -555,12 +567,10 @@ public class ComsolBridge {
             geom.feature("r1").set("ly", "H");
             geom.run();
 
-            // Material update
-            try {
-                Material mat = comp.material("mat1");
-                mat.propertyGroup("def").set("density", "rho_f");
-                mat.propertyGroup("def").set("dynamicviscosity", "mu_f");
-            } catch (Throwable ignored) {}
+            // Material update - fail closed
+            Material mat = comp.material("mat1");
+            mat.propertyGroup("def").set("density", "rho_f");
+            mat.propertyGroup("def").set("dynamicviscosity", "mu_f");
 
             // Physics update
             Object spf = comp.physics("spf");
@@ -582,35 +592,40 @@ public class ComsolBridge {
             out1.getClass().getMethod("set", String.class, String.class).invoke(out1, "p0", "0");
             out1.getClass().getMethod("set", String.class, String.class).invoke(out1, "SuppressBackflow", "1");
 
-            // sym1: Boundaries 2 & 3 (Lateral top and bottom) - Symmetry condition
+            // sym1: Boundaries 2 & 3 (Lateral top and bottom) - Symmetry condition (fail closed)
+            boolean symSuccess = false;
             try {
                 java.lang.reflect.Method createM = featList.getClass().getMethod("create", String.class, String.class, int.class);
                 Object sym = createM.invoke(featList, "sym1", "Symmetry", 1);
                 Object symSel = sym.getClass().getMethod("selection").invoke(sym);
                 symSel.getClass().getMethod("set", int[].class).invoke(symSel, new int[]{2, 3});
+                symSuccess = true;
             } catch (Throwable t) {
                 try {
                     Object sym = spf.getClass().getMethod("feature", String.class).invoke(spf, "sym1");
                     Object symSel = sym.getClass().getMethod("selection").invoke(sym);
                     symSel.getClass().getMethod("set", int[].class).invoke(symSel, new int[]{2, 3});
+                    symSuccess = true;
                 } catch (Throwable ignored) {}
             }
+            if (!symSuccess) {
+                throw new IllegalStateException("Failed to configure symmetry boundary condition on boundaries [2, 3]");
+            }
 
-            // Mesh configuration: cylinder boundary layer and near-wall refinement
+            // Mesh configuration: cylinder boundary layer and near-wall refinement (fail closed)
             MeshSequence mesh = comp.mesh("mesh1");
-            try {
-                MeshFeature bl1 = mesh.feature("bl1");
-                bl1.feature("blp1").selection().set(new int[]{5, 6, 7, 8});
-            } catch (Throwable ignored) {}
+            MeshFeature bl1 = mesh.feature("bl1");
+            bl1.feature("blp1").selection().set(new int[]{5, 6, 7, 8});
 
-            try {
-                MeshFeature size1 = mesh.feature("size1");
-                size1.selection().set(new int[]{5, 6, 7, 8});
-                size1.set("hmax", "0.0004[m]");
-                size1.set("hmin", "0.00005[m]");
-            } catch (Throwable ignored) {}
+            MeshFeature size1 = mesh.feature("size1");
+            size1.selection().set(new int[]{5, 6, 7, 8});
+            size1.set("hmax", "0.0004[m]");
+            size1.set("hmin", "0.00005[m]");
 
             mesh.run();
+            if (!mesh.isComplete()) {
+                throw new IllegalStateException("Mesh build failed or is incomplete");
+            }
 
             // Study configuration
             Study study = model.study("std1");
@@ -643,10 +658,10 @@ public class ComsolBridge {
             sb.append("    \"num_vertex\": ").append(mesh.getNumVertex()).append("\n");
             sb.append("  },\n");
             sb.append("  \"boundaries\": {\n");
-            sb.append("    \"inlet\": [1],\n");
-            sb.append("    \"lateral_symmetry\": [2, 3],\n");
-            sb.append("    \"outlet\": [4],\n");
-            sb.append("    \"cylinder_noslip\": [5, 6, 7, 8]\n");
+            sb.append("    \"inlet\": {\"entities\": [1], \"geometry\": \"x=0, y in [0, 0.24] m\", \"condition\": \"NormalInflowVelocity U_inf*step1(t[1/s])\"},\n");
+            sb.append("    \"lateral_symmetry\": {\"entities\": [2, 3], \"geometry\": \"y=0 and y=0.24, x in [0, 0.40] m\", \"condition\": \"Symmetry (vn=0, d(vt)/dn=0)\"},\n");
+            sb.append("    \"outlet\": {\"entities\": [4], \"geometry\": \"x=0.40, y in [0, 0.24] m\", \"condition\": \"Pressure p0=0 Pa, SuppressBackflow=1\"},\n");
+            sb.append("    \"cylinder_noslip\": {\"entities\": [5, 6, 7, 8], \"geometry\": \"Cylinder surface radius R=0.005 m at (0.10, 0.12) m\", \"condition\": \"Wall NoSlip with BoundaryLayer bl1\"}\n");
             sb.append("  }\n");
             sb.append("}\n");
             emitResult(sb.toString());

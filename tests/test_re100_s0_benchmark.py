@@ -13,14 +13,20 @@ Validates:
 """
 from __future__ import annotations
 
+import concurrent.futures
 import math
+import os
 from pathlib import Path
+import time
+from unittest.mock import MagicMock, patch
 import pytest
 
+from hydro_disturb_bench.io import parse_comsol_txt
 from hydro_disturb_bench.comsol_java import (
     ComsolConnectionError,
     ModelValidationError,
     NodeNotFoundError,
+    SolverFailedError,
     build_re100_benchmark,
     compute_file_hash,
     export_solution_data,
@@ -219,3 +225,143 @@ def test_re100_abnormal_study_failure_does_not_publish(tmp_path: Path):
             study_tag="nonexistent_study_tag",
         )
     assert not bad_output.exists(), "Corrupted output was published after failed solve!"
+
+
+def test_export_solution_data_refuses_to_overwrite_existing(tmp_path: Path):
+    """export_solution_data must refuse to overwrite existing target file by default and quarantine conflict."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "target_existing.txt"
+    out_txt.write_text("prior valuable content that must not be overwritten", encoding="utf-8")
+    prior_content = out_txt.read_text(encoding="utf-8")
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        staging_file.write_text("% x  y  u @ t=0\n0 0 1\n", encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(FileExistsError, match="overwrite is forbidden"):
+            export_solution_data(dummy_model, out_txt, allow_overwrite=False)
+
+    assert out_txt.read_text(encoding="utf-8") == prior_content
+    conflicts = list((tmp_path / "quarantine").glob("conflict_*target_existing.txt"))
+    assert len(conflicts) == 1, f"Expected 1 conflict file in quarantine, found: {conflicts}"
+    assert "u @ t=0" in conflicts[0].read_text(encoding="utf-8")
+
+
+def test_export_solution_data_abort_does_not_publish_and_quarantines(tmp_path: Path):
+    """When export fails mid-run, incomplete staging file is quarantined as failed and destination is not published."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "aborted_flow.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        staging_file.write_text("% partial incomplete export\n", encoding="utf-8")
+        raise SolverFailedError("COMSOL export crashed mid-run")
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(SolverFailedError):
+            export_solution_data(dummy_model, out_txt)
+
+    assert not out_txt.exists(), "Target file was published despite export crash!"
+    failed_quarantine = list((tmp_path / "quarantine").glob("failed_*aborted_flow.txt"))
+    assert len(failed_quarantine) == 1
+    assert "partial incomplete export" in failed_quarantine[0].read_text(encoding="utf-8")
+
+
+def test_export_solution_data_concurrent_race_only_one_succeeds(tmp_path: Path):
+    """Two concurrent processes trying to export to the same target: one succeeds, one raises FileExistsError."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "concurrent_flow.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        staging_file.write_text(f"% x y u @ t=0\n0 0 {time.time()}\n", encoding="utf-8")
+        time.sleep(0.05)
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    def run_worker(worker_id):
+        try:
+            with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+                export_solution_data(dummy_model, out_txt, allow_overwrite=False)
+            return ("SUCCESS", worker_id)
+        except FileExistsError:
+            return ("CONFLICT", worker_id)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        f1 = executor.submit(run_worker, 1)
+        f2 = executor.submit(run_worker, 2)
+        results = [f1.result(), f2.result()]
+
+    statuses = [r[0] for r in results]
+    assert "SUCCESS" in statuses
+    assert "CONFLICT" in statuses
+    assert out_txt.is_file()
+
+
+def test_parse_comsol_txt_shuffled_column_order(tmp_path: Path):
+    """Verify parse_comsol_txt dynamically matches columns by expression and unit even if shuffled."""
+    test_txt = tmp_path / "shuffled.txt"
+    header = "% x                       y                        spf.U (m/s) @ t=0.5        p (Pa) @ t=0.5             vx-uy (1/s) @ t=0.5        v (m/s) @ t=0.5            u (m/s) @ t=0.5\n"
+    data_row = "0.1000                    0.1200                   0.0150                     0.0450                     12.5000                    0.0050                     0.0141\n"
+    test_txt.write_text(header + data_row, encoding="utf-8")
+
+    res = parse_comsol_txt(test_txt, target_time=0.5)
+    assert math.isclose(res["U"][0], 0.0150, rel_tol=1e-4)
+    assert math.isclose(res["p"][0], 0.0450, rel_tol=1e-4)
+    assert math.isclose(res["vorticity"][0], 12.5000, rel_tol=1e-4)
+    assert math.isclose(res["v"][0], 0.0050, rel_tol=1e-4)
+    assert math.isclose(res["u"][0], 0.0141, rel_tol=1e-4)
+
+
+def test_parse_comsol_txt_mismatched_columns_rejected(tmp_path: Path):
+    """Verify parse_comsol_txt rejects files with missing expressions or mismatched row columns."""
+    test_txt = tmp_path / "mismatched.txt"
+    # Header missing vx-uy
+    header = "% x                       y                        u (m/s) @ t=0.5            v (m/s) @ t=0.5            p (Pa) @ t=0.5             spf.U (m/s) @ t=0.5\n"
+    data_row = "0.10 0.12 0.01 0.00 0.05 0.01\n"
+    test_txt.write_text(header + data_row, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="missing required expressions"):
+        parse_comsol_txt(test_txt, target_time=0.5)
+
+
+def test_parse_comsol_txt_nan_inf_rejected(tmp_path: Path):
+    """Verify parse_comsol_txt rejects data corrupted by NaN or Inf."""
+    test_txt = tmp_path / "corrupted_nan.txt"
+    header = "% x                       y                        u (m/s) @ t=0.5            v (m/s) @ t=0.5            p (Pa) @ t=0.5             vx-uy (1/s) @ t=0.5        spf.U (m/s) @ t=0.5\n"
+    data_row = "0.10 0.12 NaN 0.00 0.05 1.0 0.01\n"
+    test_txt.write_text(header + data_row, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="NaN or Inf found"):
+        parse_comsol_txt(test_txt, target_time=0.5)
+
+
+def test_build_re100_case_fails_closed_on_invalid_setup(tmp_path: Path):
+    """Verify build_re100_benchmark fails closed with ModelValidationError when input is invalid."""
+    invalid_mph = tmp_path / "invalid.mph"
+    invalid_mph.write_bytes(b"not a valid comsol mph file")
+    out_mph = tmp_path / "out.mph"
+
+    with pytest.raises((ModelValidationError, ComsolConnectionError)):
+        build_re100_benchmark(invalid_mph, out_mph)
+    assert not out_mph.exists()
+
+
+def test_parse_comsol_txt_real_verification_file():
+    """Verify parse_comsol_txt on the real solved CFD flow data file."""
+    data_file = WORKSPACE_DIR / "runs" / "re100_s0_verification" / "flow_solution_data.txt"
+    if not data_file.is_file():
+        pytest.skip(f"Real verification file not found: {data_file}")
+
+    res = parse_comsol_txt(data_file, target_time=0.5)
+    assert len(res["timesteps"]) == 11
+    assert math.isclose(res["time"], 0.5)
+    assert len(res["x"]) == 3944
+    assert res["U"].min() >= 0.0
+    assert not math.isnan(res["u"].mean())
+    assert not math.isnan(res["p"].mean())
+    assert not math.isnan(res["vorticity"].mean())

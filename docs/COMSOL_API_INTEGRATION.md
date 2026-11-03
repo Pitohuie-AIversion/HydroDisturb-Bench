@@ -55,7 +55,7 @@ The baseline CFD model (e.g., `case/cylinder_flow.mph`) represents a trusted, be
 
 ### 3.2 Task-Isolated Staging, Task Leases, and Cross-Process Atomic Publication Protocol
 Direct in-place modification or uncoordinated file generation is strictly prohibited:
-- Parameter updates and solver runs require an `output_path` distinct from the baseline model.
+- Parameter updates, solver runs, case building, and solution field data exports (TXT) require an `output_path` distinct from the baseline model and adhere to the unified staging transaction protocol.
 - Symbolic links are strictly rejected (`output_path.is_symlink()`).
 - **Task Isolation & Active Leases**: COMSOL executes against an isolated task-specific staging path:
   `output_path.parent / ".staging" / f"stage_{task_id}_{output_path.name}"`.
