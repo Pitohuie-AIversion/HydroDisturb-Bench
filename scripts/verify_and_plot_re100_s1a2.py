@@ -15,13 +15,14 @@ if sys.platform == "win32":
         pass
 
 import json
+
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.colors as mcolors
-from matplotlib.patches import Circle, Rectangle
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Circle
 from PIL import Image
 
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans", "Arial"]
@@ -494,7 +495,7 @@ def main() -> int:
         if not grid_file.exists():
             print(f"       [WARN] Grid file missing: {grid_file.name}")
             continue
-        with open(grid_file, "r", encoding="utf-8") as f:
+        with open(grid_file, encoding="utf-8") as f:
             data_lines = [line for line in f if not line.startswith("%")]
         V = np.empty((ny_grid, nx_grid), dtype=np.float64)
         for i, line in enumerate(data_lines):
