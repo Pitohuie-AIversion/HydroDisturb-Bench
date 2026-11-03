@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Inspect COMSOL Multiphysics version, tools, and verified Java API methods."""
+
 from __future__ import annotations
 
 import json

@@ -2,7 +2,8 @@
 
 **项目仓库**: `https://github.com/Pitohuie-AIversion/HydroDisturb-Bench`  
 **基准平台**: Windows 11 / Windows Server + COMSOL Multiphysics 6.4 (Build 429)  
-**基线提交**: `7f7cb4eb1dff0803577141a1e7e9192b6201bb7b`  
+**基线提交**: `1799ff7a0943a9b87fc6cbf98c02c92e999f7345`<br>
+**事务修复**: 已完成多文件两阶段安全提交流程、专属文件锁、版本归档与 Manifest 校验<br>
 **验收状态**: **PASS**  
 
 ---
@@ -207,26 +208,35 @@ $$\Delta p_{\rm inertial\_est} = 998.2 \times 0.40 \times 0.188589 \approx 75.30
 
 ---
 
-## 八、完整测试回归结果
+## 八、完整测试回归结果与事务安全验证
 
-执行了 5 项核心测试指令，全部通过：
+执行了 4 项核心测试指令，全部通过（无任何降级、Mock 或跳过）：
 
 ```powershell
-# 1. 定向 S1-A 物理与复现性测试
+# 1. 定向 S1-A 物理、真实 COMSOL 导出与事务安全测试 (19项测试)
 python -m pytest -v tests/test_re100_s1a_trial.py
-# 结果: 9 passed in 1.93s
+# 结果: 19 passed in 26.36s
+# 覆盖项:
+#   - 真实 COMSOL 6.4 导出端到端执行 (7 时序 + 4 图片 + Manifest)
+#   - 专属锁文件生命周期与目录目标自动转锁测试 (.publish_{dir}.lock)
+#   - 默认禁止覆盖已有结果集并保证原数据不变
+#   - 允许覆盖时旧版本自动归档至 versions/ 且新旧版本均可 100% 恢复
+#   - 故障注入测试：模拟第 1、5、11 个文件发布失败，严格防止混合结果集产生
+#   - 导出失败时 staging 诊断证据安全保留并迁移至 quarantine/
+#   - 独立进程并发发布竞争，保证互斥无覆盖或损坏
+#   - Manifest 篡改与损坏严格拒绝校验
 
-# 2. S0 物理基准回归测试
+# 2. S0 物理基准回归测试 (25项测试)
 python -m pytest -v tests/test_re100_s0_benchmark.py
-# 结果: 16 passed in 23.41s
+# 结果: 25 passed in 134.94s
 
-# 3. COMSOL 真实多进程/API 集成回归
+# 3. COMSOL 真实多进程/API 集成回归 (4项测试)
 python -m pytest -v tests/test_comsol_integration.py
-# 结果: 4 passed in 78.50s
+# 结果: 4 passed in 71.14s
 
-# 4. 全量回归测试
+# 4. 全量回归测试 (86项测试)
 python -m pytest -q
-# 结果: 77 passed in 218.15s
+# 结果: 86 passed in 243.77s
 ```
 
 ---

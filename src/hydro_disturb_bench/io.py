@@ -1,4 +1,5 @@
 """Durable local JSON writes; never silently overwrite a case manifest."""
+
 from __future__ import annotations
 
 import json
@@ -11,31 +12,34 @@ from typing import Any
 
 
 def atomic_json(path: str | Path, data: Any) -> None:
-    target=Path(path)
+    target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.exists():
         raise FileExistsError(f"Refusing to overwrite existing file: {target}")
-    fd,tmp=tempfile.mkstemp(prefix=f".{target.name}.",suffix=".tmp",dir=str(target.parent))
+    fd, tmp = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=str(target.parent))
     try:
-        with os.fdopen(fd,"w",encoding="utf-8") as f:
-            json.dump(data,f,ensure_ascii=False,indent=2,allow_nan=False)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2, allow_nan=False)
             f.write("\n")
             f.flush()
             os.fsync(f.fileno())
         # Exclusive creation at final path. Avoid replacing a concurrently created output.
-        os.link(tmp,target)
+        os.link(tmp, target)
         if os.name != "nt":
-            dir_fd=os.open(str(target.parent),os.O_RDONLY)
-            try: os.fsync(dir_fd)
-            finally: os.close(dir_fd)
+            dir_fd = os.open(str(target.parent), os.O_RDONLY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
     finally:
-        if os.path.exists(tmp): os.unlink(tmp)
-
+        if os.path.exists(tmp):
+            os.unlink(tmp)
 
 
 # ---------------------------------------------------------------------------
 # COMSOL "Data" export contract (Stage S0 field data admission)
 # ---------------------------------------------------------------------------
+
 
 class ComsolExportValidationError(ValueError):
     """Raised when a COMSOL Data export violates the field data contract."""
@@ -99,9 +103,13 @@ def _parse_header_columns(
         try:
             t_val = float(t_str)
         except ValueError as err:
-            raise ComsolExportValidationError(f"Column {col_idx} has invalid time value {t_str!r}") from err
+            raise ComsolExportValidationError(
+                f"Column {col_idx} has invalid time value {t_str!r}"
+            ) from err
         if not math.isfinite(t_val):
-            raise ComsolExportValidationError(f"Column {col_idx} has non-finite time value {t_str!r}")
+            raise ComsolExportValidationError(
+                f"Column {col_idx} has non-finite time value {t_str!r}"
+            )
 
         for prev in col_meta:
             if prev["expr"] == expr and _same_time(prev["time"], t_val, time_tol):
@@ -122,7 +130,16 @@ def _parse_header_columns(
                 f"{units_map[expr]!r}, COMSOL header reports {unit!r}"
             )
 
-        col_meta.append({"col_idx": col_idx, "expr": expr, "unit": unit, "time": t_val, "t_str": t_str, "token": tok})
+        col_meta.append(
+            {
+                "col_idx": col_idx,
+                "expr": expr,
+                "unit": unit,
+                "time": t_val,
+                "t_str": t_str,
+                "token": tok,
+            }
+        )
 
     # Cluster distinct output times (in header order of first appearance, then sorted).
     times: list[float] = []
@@ -149,7 +166,9 @@ def _parse_header_columns(
 
     if expected_times is not None:
         exp = sorted(float(t) for t in expected_times)
-        if len(exp) != len(times) or not all(_same_time(a, b, time_tol) for a, b in zip(exp, times)):
+        if len(exp) != len(times) or not all(
+            _same_time(a, b, time_tol) for a, b in zip(exp, times)
+        ):
             raise ComsolExportValidationError(
                 f"Exported time points {times} do not match expected time points {exp}"
             )
@@ -175,7 +194,9 @@ def _read_and_validate_comsol_export(
     units_map = dict(S0_EXPECTED_UNITS if expected_units is None else expected_units)
     undeclared = [e for e in required_exprs if e not in units_map]
     if undeclared:
-        raise ComsolExportValidationError(f"No expected unit declared for required expressions: {undeclared}")
+        raise ComsolExportValidationError(
+            f"No expected unit declared for required expressions: {undeclared}"
+        )
 
     meta: dict[str, str] = {}
     tokens: list[str] | None = None
@@ -224,7 +245,9 @@ def _read_and_validate_comsol_export(
             try:
                 vals = [float(p) for p in parts]
             except ValueError as err:
-                raise ComsolExportValidationError(f"Non-numeric value at line {lineno}: {err}") from err
+                raise ComsolExportValidationError(
+                    f"Non-numeric value at line {lineno}: {err}"
+                ) from err
             for i, v in enumerate(vals):
                 if not math.isfinite(v):
                     nonfinite_cols.add(i)
@@ -238,11 +261,15 @@ def _read_and_validate_comsol_export(
                 rows.append(vals)
 
     if tokens is None:
-        raise ComsolExportValidationError(f"Could not locate header line starting with '% x' in {path}")
+        raise ComsolExportValidationError(
+            f"Could not locate header line starting with '% x' in {path}"
+        )
 
     dim = meta.get("Dimension")
     if dim is not None and dim != "2":
-        raise ComsolExportValidationError(f"Expected a 2D export with x/y coordinates, metadata reports Dimension={dim!r}")
+        raise ComsolExportValidationError(
+            f"Expected a 2D export with x/y coordinates, metadata reports Dimension={dim!r}"
+        )
 
     length_unit = meta.get("Length unit")
     if expected_length_unit is not None:
@@ -329,8 +356,13 @@ def validate_comsol_export(
     Returns a summary dict (row/column counts, times, units, value ranges).
     """
     summary, _ = _read_and_validate_comsol_export(
-        file_path, tuple(required_exprs), expected_units, expected_times,
-        expected_length_unit, time_tol, keep_rows=False,
+        file_path,
+        tuple(required_exprs),
+        expected_units,
+        expected_times,
+        expected_length_unit,
+        time_tol,
+        keep_rows=False,
     )
     return summary
 
@@ -351,8 +383,13 @@ def parse_comsol_txt(
     import numpy as np
 
     summary, rows = _read_and_validate_comsol_export(
-        file_path, tuple(required_exprs), expected_units, None,
-        expected_length_unit, 1e-9, keep_rows=True,
+        file_path,
+        tuple(required_exprs),
+        expected_units,
+        None,
+        expected_length_unit,
+        1e-9,
+        keep_rows=True,
     )
     data = np.atleast_2d(np.asarray(rows, dtype=float))
     col_meta = summary["column_meta"]
@@ -368,7 +405,9 @@ def parse_comsol_txt(
         if not matching_times:
             raise KeyError(f"Target time t={target_time} not found in exported timesteps: {times}")
         matched_t = matching_times[0]
-        t_cols = {c["expr"]: c["col_idx"] for c in col_meta if _same_time(c["time"], matched_t, 1e-9)}
+        t_cols = {
+            c["expr"]: c["col_idx"] for c in col_meta if _same_time(c["time"], matched_t, 1e-9)
+        }
 
         return {
             "x": data[:, 0],
@@ -475,9 +514,87 @@ def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str
     v_arr = np.asarray(values, dtype=float)
 
     if np.any(np.diff(t_arr) <= 0):
-        raise ComsolExportValidationError(f"{path.name}: timestamps are not strictly monotonically increasing")
+        raise ComsolExportValidationError(
+            f"{path.name}: timestamps are not strictly monotonically increasing"
+        )
 
     return t_arr, v_arr, meta
+
+
+def compute_sha256(path: str | Path) -> str:
+    """Compute uppercase hex SHA-256 hash of a file."""
+    import hashlib
+
+    hasher = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            hasher.update(chunk)
+    return hasher.hexdigest().upper()
+
+
+def build_s1_manifest(
+    staging_dir: str | Path,
+    source_model_path: str | Path,
+    source_sha256: str,
+    stage_id: str,
+    validation_summary: dict[str, Any],
+    superseded_version: str | None = None,
+) -> dict[str, Any]:
+    """Build a comprehensive, cryptographically verifiable completion manifest for S1 diagnostics."""
+    import datetime
+
+    diag_dir = Path(staging_dir)
+    source_path = Path(source_model_path)
+
+    files_record: dict[str, dict[str, Any]] = {}
+    for fname in S1_REQUIRED_SERIES:
+        fp = diag_dir / fname
+        if not fp.is_file():
+            raise ComsolExportValidationError(
+                f"Cannot build manifest: missing required series {fname}"
+            )
+        files_record[fname] = {
+            "kind": "time_series",
+            "size_bytes": fp.stat().st_size,
+            "sha256": compute_sha256(fp),
+        }
+
+    for iname in S1_REQUIRED_SNAPSHOTS:
+        ip = diag_dir / iname
+        if not ip.is_file():
+            raise ComsolExportValidationError(
+                f"Cannot build manifest: missing required snapshot {iname}"
+            )
+        files_record[iname] = {
+            "kind": "snapshot",
+            "size_bytes": ip.stat().st_size,
+            "sha256": compute_sha256(ip),
+        }
+
+    manifest: dict[str, Any] = {
+        "schema_version": "1.0.0",
+        "status": "COMPLETED",
+        "stage_id": stage_id,
+        "source_model": {
+            "path": str(source_path.resolve()),
+            "name": source_path.name,
+            "sha256": source_sha256,
+        },
+        "exported_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "time_series_config": {
+            "num_steps": validation_summary.get("num_steps", 501),
+            "dt": validation_summary.get("dt", 0.20),
+            "time_range": validation_summary.get("time_range", [0.0, 100.0]),
+        },
+        "files": files_record,
+        "validation_summary": {
+            "valid": validation_summary.get("valid", True),
+            "num_series": len(S1_REQUIRED_SERIES),
+            "num_snapshots": len(S1_REQUIRED_SNAPSHOTS),
+        },
+        "superseded_version": superseded_version,
+    }
+    return manifest
 
 
 def validate_s1_diagnostics(
@@ -486,10 +603,14 @@ def validate_s1_diagnostics(
     expected_dt: float = 0.20,
     expected_t_final: float = 100.0,
     time_tol: float = 1e-4,
+    require_manifest: bool = False,
+    expected_source_hash: str | None = None,
 ) -> dict[str, Any]:
     """Validate completeness, alignment, units, and finite values for S1 diagnostics.
 
     Fail closed:
+    - If require_manifest=True and manifest.json missing -> raises ComsolExportValidationError
+    - If manifest.json exists, verifies all recorded files, sizes, and SHA-256 hashes match on disk
     - If any required file is missing -> raises ComsolExportValidationError
     - If sample count != expected_steps -> raises ComsolExportValidationError
     - If timestamps are misaligned across series -> raises ComsolExportValidationError
@@ -502,6 +623,68 @@ def validate_s1_diagnostics(
     if not diag_dir.is_dir():
         raise ComsolExportValidationError(f"Diagnostics directory does not exist: {diag_dir}")
 
+    # Check 0: Completion manifest validation (if present or required)
+    manifest_record: dict[str, Any] | None = None
+    manifest_file = diag_dir / "manifest.json"
+    if require_manifest and not manifest_file.is_file():
+        raise ComsolExportValidationError(
+            f"Missing required completion manifest 'manifest.json' in: {diag_dir}"
+        )
+
+    if manifest_file.is_file():
+        try:
+            with open(manifest_file, encoding="utf-8") as mf:
+                manifest_record = json.load(mf)
+        except Exception as err:
+            raise ComsolExportValidationError(
+                f"Invalid or corrupt manifest.json in {diag_dir}: {err}"
+            ) from err
+
+        if not isinstance(manifest_record, dict):
+            raise ComsolExportValidationError(
+                f"manifest.json must be a JSON object, got {type(manifest_record).__name__}"
+            )
+        if manifest_record.get("status") != "COMPLETED":
+            raise ComsolExportValidationError(
+                f"manifest.json status is '{manifest_record.get('status')}', expected 'COMPLETED'"
+            )
+        if expected_source_hash is not None:
+            source_info = manifest_record.get("source_model")
+            recorded_hash = source_info.get("sha256") if isinstance(source_info, dict) else None
+            if recorded_hash != expected_source_hash:
+                raise ComsolExportValidationError(
+                    f"manifest.json source model hash mismatch: recorded {recorded_hash} != expected {expected_source_hash}"
+                )
+
+        rec_files = manifest_record.get("files")
+        if not isinstance(rec_files, dict):
+            raise ComsolExportValidationError("manifest.json missing 'files' dictionary")
+
+        # Verify all required files are cataloged in manifest
+        for req in list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS):
+            if req not in rec_files:
+                raise ComsolExportValidationError(
+                    f"manifest.json missing required artifact entry: '{req}'"
+                )
+
+        # Check all files recorded in manifest match disk file sizes and SHA-256 hashes
+        for fname, fmeta in rec_files.items():
+            fpath = diag_dir / fname
+            if not fpath.is_file():
+                raise ComsolExportValidationError(
+                    f"manifest.json records file '{fname}' but it is missing on disk"
+                )
+            if "size_bytes" in fmeta and fpath.stat().st_size != fmeta["size_bytes"]:
+                raise ComsolExportValidationError(
+                    f"{fname}: size on disk ({fpath.stat().st_size} B) deviates from manifest ({fmeta['size_bytes']} B)"
+                )
+            if "sha256" in fmeta:
+                disk_hash = compute_sha256(fpath)
+                if disk_hash != fmeta["sha256"]:
+                    raise ComsolExportValidationError(
+                        f"{fname}: SHA-256 on disk ({disk_hash}) does not match manifest ({fmeta['sha256']})"
+                    )
+
     # Check 1: Image snapshots presence & non-zero size
     img_records: list[dict[str, Any]] = []
     for img_name in S1_REQUIRED_SNAPSHOTS:
@@ -510,7 +693,9 @@ def validate_s1_diagnostics(
             raise ComsolExportValidationError(f"Required S1 vorticity snapshot missing: {img_name}")
         size = img_path.stat().st_size
         if size < 100:
-            raise ComsolExportValidationError(f"S1 vorticity snapshot is empty or corrupt ({size} bytes): {img_name}")
+            raise ComsolExportValidationError(
+                f"S1 vorticity snapshot is empty or corrupt ({size} bytes): {img_name}"
+            )
         img_records.append({"filename": img_name, "size_bytes": size})
 
     # Check 2: Parse and validate all 7 time series
@@ -559,7 +744,7 @@ def validate_s1_diagnostics(
         }
 
     assert ref_times is not None
-    return {
+    out: dict[str, Any] = {
         "valid": True,
         "diagnostics_dir": str(diag_dir.resolve()),
         "num_steps": expected_steps,
@@ -568,3 +753,6 @@ def validate_s1_diagnostics(
         "series": series_data,
         "snapshots": img_records,
     }
+    if manifest_record is not None:
+        out["manifest"] = manifest_record
+    return out

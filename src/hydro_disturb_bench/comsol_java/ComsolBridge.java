@@ -753,15 +753,15 @@ public class ComsolBridge {
         }
 
         try {
-            java.io.File outDir = new java.io.File(outputDir);
-            if (!outDir.exists()) {
-                outDir.mkdirs();
+            String base = outputDir.replace('\\', '/');
+            if (!base.endsWith("/")) {
+                base = base + "/";
             }
 
             java.util.List<String> exportedFiles = new java.util.ArrayList<>();
 
             // 1. Lift coefficient (pg3)
-            String liftPath = new java.io.File(outDir, "lift_coeff.txt").getAbsolutePath().replace('\\', '/');
+            String liftPath = base + "lift_coeff.txt";
             safeRemoveExport(model, "exp_lift_s1");
             ExportFeature expLift = model.result().export().create("exp_lift_s1", "Plot");
             expLift.set("plotgroup", "pg3");
@@ -770,7 +770,7 @@ public class ComsolBridge {
             exportedFiles.add("lift_coeff.txt");
 
             // 2. Drag coefficient (pg4)
-            String dragPath = new java.io.File(outDir, "drag_coeff.txt").getAbsolutePath().replace('\\', '/');
+            String dragPath = base + "drag_coeff.txt";
             safeRemoveExport(model, "exp_drag_s1");
             ExportFeature expDrag = model.result().export().create("exp_drag_s1", "Plot");
             expDrag.set("plotgroup", "pg4");
@@ -791,7 +791,7 @@ public class ComsolBridge {
             pgWakeU.set("data", "cpt_wake_s1");
             ResultFeature ptWakeU = pgWakeU.feature().create("ptU", "PointGraph");
             ptWakeU.set("expr", "u");
-            String wuPath = new java.io.File(outDir, "wake_u.txt").getAbsolutePath().replace('\\', '/');
+            String wuPath = base + "wake_u.txt";
             safeRemoveExport(model, "exp_wake_u_s1");
             ExportFeature expWakeU = model.result().export().create("exp_wake_u_s1", "Plot");
             expWakeU.set("plotgroup", "pg_wake_u_s1");
@@ -805,7 +805,7 @@ public class ComsolBridge {
             pgWakeV.set("data", "cpt_wake_s1");
             ResultFeature ptWakeV = pgWakeV.feature().create("ptV", "PointGraph");
             ptWakeV.set("expr", "v");
-            String wvPath = new java.io.File(outDir, "wake_v.txt").getAbsolutePath().replace('\\', '/');
+            String wvPath = base + "wake_v.txt";
             safeRemoveExport(model, "exp_wake_v_s1");
             ExportFeature expWakeV = model.result().export().create("exp_wake_v_s1", "Plot");
             expWakeV.set("plotgroup", "pg_wake_v_s1");
@@ -826,7 +826,7 @@ public class ComsolBridge {
             pgInletU.set("data", "cpt_inlet_s1");
             ResultFeature ptInletU = pgInletU.feature().create("ptU", "PointGraph");
             ptInletU.set("expr", "u");
-            String iuPath = new java.io.File(outDir, "inlet_u.txt").getAbsolutePath().replace('\\', '/');
+            String iuPath = base + "inlet_u.txt";
             safeRemoveExport(model, "exp_inlet_u_s1");
             ExportFeature expInletU = model.result().export().create("exp_inlet_u_s1", "Plot");
             expInletU.set("plotgroup", "pg_inlet_u_s1");
@@ -840,7 +840,7 @@ public class ComsolBridge {
             pgInletP.set("data", "cpt_inlet_s1");
             ResultFeature ptInletP = pgInletP.feature().create("ptP", "PointGraph");
             ptInletP.set("expr", "p");
-            String ipPath = new java.io.File(outDir, "inlet_p.txt").getAbsolutePath().replace('\\', '/');
+            String ipPath = base + "inlet_p.txt";
             safeRemoveExport(model, "exp_inlet_p_s1");
             ExportFeature expInletP = model.result().export().create("exp_inlet_p_s1", "Plot");
             expInletP.set("plotgroup", "pg_inlet_p_s1");
@@ -860,7 +860,7 @@ public class ComsolBridge {
             pgStagP.set("data", "cpt_stag_s1");
             ResultFeature ptStagP = pgStagP.feature().create("ptP", "PointGraph");
             ptStagP.set("expr", "p");
-            String spPath = new java.io.File(outDir, "stag_p.txt").getAbsolutePath().replace('\\', '/');
+            String spPath = base + "stag_p.txt";
             safeRemoveExport(model, "exp_stag_p_s1");
             ExportFeature expStagP = model.result().export().create("exp_stag_p_s1", "Plot");
             expStagP.set("plotgroup", "pg_stag_p_s1");
@@ -893,7 +893,7 @@ public class ComsolBridge {
                     surf.set("unit", "1/s");
 
                     String imgName = "vorticity_t" + tSec + "s_comsol.png";
-                    String imgPath = new java.io.File(outDir, imgName).getAbsolutePath().replace('\\', '/');
+                    String imgPath = base + imgName;
                     String expTag = "exp_img_" + tSec + "_s1";
                     safeRemoveExport(model, expTag);
                     ExportFeature expImg = model.result().export().create(expTag, "Image");
@@ -906,7 +906,8 @@ public class ComsolBridge {
                     expImg.run();
                     exportedFiles.add(imgName);
                 } catch (Throwable imgErr) {
-                    System.err.println("Warning: snapshot at t=" + tSec + "s failed: " + imgErr.getMessage());
+                    outputError("SOLVER_FAILED", "Failed to export snapshot at t=" + tSec + "s: " + imgErr.getMessage(), getStackTrace(imgErr));
+                    return;
                 }
             }
 

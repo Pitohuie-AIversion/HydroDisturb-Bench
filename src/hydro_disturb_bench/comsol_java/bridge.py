@@ -4,19 +4,21 @@ Provides programmatic access to COMSOL Multiphysics using the official
 Java API and comsolbatch/comsolcompile tools, guaranteeing baseline
 model immutability, parameter validation, and detailed execution logging.
 """
+
 from __future__ import annotations
 
 import contextlib
+import errno
 import hashlib
 import json
-import errno
 import os
-from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
 import time
 import uuid
+from pathlib import Path
 from typing import Any
 
 if sys.platform == "win32":
@@ -131,9 +133,7 @@ def find_comsol_root() -> Path:
     # Windows registry check
     if sys.platform == "win32":
         try:
-            with winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\COMSOL\COMSOL64"
-            ) as key:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\COMSOL\COMSOL64") as key:
                 val, _ = winreg.QueryValueEx(key, "COMSOLROOT")
                 if val and Path(val).is_dir():
                     return Path(val)
@@ -190,7 +190,15 @@ def ensure_bridge_compiled(root: Path | None = None) -> Path:
 
     if needs_compile:
         cmd = [str(comsolcompile), str(java_src)]
-        proc = subprocess.run(cmd, cwd=str(java_dir), capture_output=True, text=True, check=False)
+        proc = subprocess.run(
+            cmd,
+            cwd=str(java_dir),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
         if proc.returncode != 0:
             raise ComsolConnectionError(
                 f"Failed to compile ComsolBridge.java (exit code {proc.returncode}):\n{proc.stderr}\n{proc.stdout}"
@@ -217,10 +225,17 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
         text=True,
         encoding="utf-8",
         errors="replace",
-        check=False,
     )
 
-    stdout = proc.stdout
+    # Clean up comsolbatch status file if created in the directory
+    status_file = class_file.with_name(f"{class_file.name}.status")
+    if status_file.is_file():
+        try:
+            status_file.unlink()
+        except OSError:
+            pass
+
+    stdout = proc.stdout or ""
     start_tag = "<<<JSON_START>>>"
     end_tag = "<<<JSON_END>>>"
 
@@ -267,20 +282,35 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     # Strict schema validation
     op = data.get("operation")
     if not isinstance(op, str):
-        raise ComsolConnectionError("ComsolBridge JSON response missing valid string field 'operation'")
+        raise ComsolConnectionError(
+            "ComsolBridge JSON response missing valid string field 'operation'"
+        )
 
     if op == "inspect_api":
         if "comsol_version" not in data or "api_specification" not in data:
-            raise ComsolConnectionError("Schema violation in inspect_api response: missing version or specification")
+            raise ComsolConnectionError(
+                "Schema violation in inspect_api response: missing version or specification"
+            )
     elif op == "inspect_model":
         if "model_tag" not in data or "parameters" not in data or "components" not in data:
-            raise ComsolConnectionError("Schema violation in inspect_model response: missing model_tag, parameters, or components")
+            raise ComsolConnectionError(
+                "Schema violation in inspect_model response: missing model_tag, parameters, or components"
+            )
     elif op == "update_parameter":
         if "param_name" not in data or "new_expr" not in data or "readback_value" not in data:
-            raise ComsolConnectionError("Schema violation in update_parameter response: missing param_name, new_expr, or readback_value")
+            raise ComsolConnectionError(
+                "Schema violation in update_parameter response: missing param_name, new_expr, or readback_value"
+            )
     elif op == "run_study":
-        if "study_tag" not in data or "elapsed_ms" not in data or "sol_tags" not in data or "solution_stats" not in data:
-            raise ComsolConnectionError("Schema violation in run_study response: missing study_tag, elapsed_ms, sol_tags, or solution_stats")
+        if (
+            "study_tag" not in data
+            or "elapsed_ms" not in data
+            or "sol_tags" not in data
+            or "solution_stats" not in data
+        ):
+            raise ComsolConnectionError(
+                "Schema violation in run_study response: missing study_tag, elapsed_ms, sol_tags, or solution_stats"
+            )
 
     data.setdefault("log", stdout)
     return data
@@ -321,6 +351,7 @@ def is_pid_alive(pid: int) -> bool:
     if sys.platform == "win32":
         try:
             import ctypes
+
             kernel32 = ctypes.windll.kernel32
             PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
             handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
@@ -356,10 +387,12 @@ def is_task_active(lease_file: Path | str) -> bool:
         f.seek(0)
         if sys.platform == "win32":
             import msvcrt
+
             msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
             msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
         else:
             import fcntl
+
             fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             fcntl.flock(f.fileno(), fcntl.LOCK_UN)
         # Lock was acquirable without blocking; now check PID from metadata as second defense
@@ -408,9 +441,11 @@ def task_staging_session(staging_path: Path | str, stage_id: str):
         f.seek(0)
         if sys.platform == "win32":
             import msvcrt
+
             msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
         else:
             import fcntl
+
             fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         locked = True
         yield
@@ -420,9 +455,11 @@ def task_staging_session(staging_path: Path | str, stage_id: str):
                 f.seek(0)
                 if sys.platform == "win32":
                     import msvcrt
+
                     msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
                 else:
                     import fcntl
+
                     fcntl.flock(f.fileno(), fcntl.LOCK_UN)
             except OSError:
                 pass
@@ -445,6 +482,7 @@ def _is_file_locked(file_path: Path) -> bool:
         try:
             with open(file_path, "r+b") as test_f:
                 import msvcrt
+
                 try:
                     msvcrt.locking(test_f.fileno(), msvcrt.LK_NBLCK, 1)
                     msvcrt.locking(test_f.fileno(), msvcrt.LK_UNLCK, 1)
@@ -457,6 +495,7 @@ def _is_file_locked(file_path: Path) -> bool:
         try:
             with open(file_path, "r+b") as test_f:
                 import fcntl
+
                 try:
                     fcntl.flock(test_f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                     fcntl.flock(test_f.fileno(), fcntl.LOCK_UN)
@@ -551,6 +590,71 @@ def quarantine_staging_file(
         return None
 
 
+def _safe_quarantine_move_dir(staging_dir: Path, quarantine_dir: Path, base_dirname: str) -> Path:
+    """Move staging_dir into quarantine_dir under a unique directory name, strictly forbidding overwrite.
+
+    Safety Guarantees:
+    - Never overwrites an existing diagnostic directory or artifact.
+    - If base_dirname already exists, appends timestamp and monotonic counter.
+    - Preserves staging_dir completely in place if moving fails.
+    """
+    quarantine_dir = Path(quarantine_dir)
+    quarantine_dir.mkdir(parents=True, exist_ok=True)
+    staging_dir = Path(staging_dir)
+
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    counter = 0
+    while True:
+        if counter == 0:
+            target = quarantine_dir / base_dirname
+        else:
+            target = quarantine_dir / f"{base_dirname}_{timestamp}_{counter}"
+
+        if target.exists():
+            counter += 1
+            continue
+
+        try:
+            shutil.move(str(staging_dir), str(target))
+            return target
+        except OSError as err:
+            if target.exists():
+                counter += 1
+                continue
+            sys.stderr.write(
+                f"[QUARANTINE_WARNING] Failed to move staging dir {staging_dir} to {target}: {err}. "
+                f"Directory retained in place.\n"
+            )
+            return staging_dir
+
+
+def quarantine_staging_dir(
+    staging_dir: Path | str,
+    output_dir: Path | str,
+    stage_id: str,
+    reason: str = "failed",
+) -> Path | None:
+    """Safely move a multi-file staging directory to quarantine upon failure, conflict, or corruption.
+
+    Guarantees:
+    - Staging files are NEVER deleted with ignore_errors=True.
+    - If moving fails, the staging directory is preserved in place.
+    """
+    staging_dir = Path(staging_dir)
+    if not staging_dir.is_dir():
+        return None
+    quarantine_dir = Path(output_dir).parent / "quarantine"
+    base_name = f"{reason}_{stage_id}_{Path(output_dir).name}"
+    try:
+        return _safe_quarantine_move_dir(staging_dir, quarantine_dir, base_name)
+    except OSError as err:
+        sys.stderr.write(
+            f"[QUARANTINE_WARNING] Failed to quarantine staging dir {staging_dir}: {err}. "
+            f"Directory retained in place.\n"
+        )
+        return None
+
+
 @contextlib.contextmanager
 def file_publish_lock(
     lock_path: Path | str,
@@ -563,8 +667,12 @@ def file_publish_lock(
     Prevents concurrent processes from overwriting or corrupting the destination.
     """
     lock_path = Path(lock_path)
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    f = open(lock_path, "a+b")
+    if lock_path.is_dir() or (not lock_path.suffix and lock_path.exists()):
+        lock_file = lock_path.parent / f".publish_{lock_path.name}.lock"
+    else:
+        lock_file = lock_path
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+    f = open(lock_file, "a+b")
     start_time = time.monotonic()
     locked = False
     try:
@@ -573,9 +681,11 @@ def file_publish_lock(
                 f.seek(0)
                 if sys.platform == "win32":
                     import msvcrt
+
                     msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
                 else:
                     import fcntl
+
                     fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 locked = True
                 break
@@ -592,9 +702,11 @@ def file_publish_lock(
                 f.seek(0)
                 if sys.platform == "win32":
                     import msvcrt
+
                     msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
                 else:
                     import fcntl
+
                     fcntl.flock(f.fileno(), fcntl.LOCK_UN)
             except OSError:
                 pass
@@ -618,11 +730,15 @@ def _atomic_publish_new_file(staging_path: Path, output_path: Path, stage_id: st
             raise
         except OSError as err:
             if err.errno == errno.EEXIST or output_path.exists():
-                raise FileExistsError(f"Destination output file already exists: {output_path}") from err
+                raise FileExistsError(
+                    f"Destination output file already exists: {output_path}"
+                ) from err
             _posix_rename_noreplace(staging_path, output_path, err)
 
 
-def _posix_rename_noreplace(staging_path: Path, output_path: Path, original_err: Exception | None = None) -> None:
+def _posix_rename_noreplace(
+    staging_path: Path, output_path: Path, original_err: Exception | None = None
+) -> None:
     """Linux kernel SYS_renameat2 with RENAME_NOREPLACE (flag 1).
 
     Fails closed if atomic no-overwrite cannot be guaranteed, strictly avoiding
@@ -635,6 +751,7 @@ def _posix_rename_noreplace(staging_path: Path, output_path: Path, original_err:
         if sys.platform == "win32":
             raise OSError("SYS_renameat2 is not supported on Windows")
         import ctypes
+
         libc = ctypes.CDLL(None, use_errno=True)
         SYS_renameat2 = 316 if sys.maxsize > 2**32 else 353
         if hasattr(os, "uname") and os.uname().machine.startswith("aarch64"):
@@ -656,9 +773,9 @@ def _posix_rename_noreplace(staging_path: Path, output_path: Path, original_err:
             raise OSError(errno_val, f"SYS_renameat2 failed: {os.strerror(errno_val)}")
     except (AttributeError, OSError) as err:
         if output_path.exists():
-            raise FileExistsError(
-                f"Destination output file already exists: {output_path}"
-            ) from (original_err or err)
+            raise FileExistsError(f"Destination output file already exists: {output_path}") from (
+                original_err or err
+            )
         # Fail closed: never call staging_path.replace(output_path), which introduces TOCTOU overwrite race.
         raise FileExistsError(
             f"Atomic no-overwrite publish failed or is unsupported on destination: {output_path} ({err})"
@@ -739,14 +856,20 @@ def list_quarantine_records(directory: Path | str) -> list[dict[str, Any]]:
     records = []
     for f in sorted(q_dir.iterdir()):
         if f.is_file():
-            kind = "conflict" if f.name.startswith("conflict_") else ("orphan" if f.name.startswith("orphan_") else "failed")
-            records.append({
-                "path": str(f.resolve()),
-                "name": f.name,
-                "kind": kind,
-                "size_bytes": f.stat().st_size,
-                "mtime": f.stat().st_mtime,
-            })
+            kind = (
+                "conflict"
+                if f.name.startswith("conflict_")
+                else ("orphan" if f.name.startswith("orphan_") else "failed")
+            )
+            records.append(
+                {
+                    "path": str(f.resolve()),
+                    "name": f.name,
+                    "kind": kind,
+                    "size_bytes": f.stat().st_size,
+                    "mtime": f.stat().st_mtime,
+                }
+            )
     return records
 
 
@@ -782,15 +905,17 @@ def recover_unclaimed_staging(
         parts = f.name.split("_")
         stage_id = parts[1] if len(parts) >= 2 else ""
         lease_file = staging_dir / f".lease_{stage_id}.lock" if stage_id else None
-        has_lease = (lease_file is not None and lease_file.is_file())
+        has_lease = lease_file is not None and lease_file.is_file()
 
         # Check if task is actively running via lease file
         if has_lease and is_task_active(lease_file):
-            skipped_active.append({
-                "path": str(f.resolve()),
-                "stage_id": stage_id,
-                "reason": "active_task_lease_held",
-            })
+            skipped_active.append(
+                {
+                    "path": str(f.resolve()),
+                    "stage_id": stage_id,
+                    "reason": "active_task_lease_held",
+                }
+            )
             continue
 
         try:
@@ -798,38 +923,46 @@ def recover_unclaimed_staging(
             file_age = now - stat_res.st_mtime
         except OSError as stat_err:
             # Status cannot be confirmed: retain staging file
-            skipped_active.append({
-                "path": str(f.resolve()),
-                "stage_id": stage_id,
-                "reason": f"unconfirmed_stat_error: {stat_err}",
-            })
+            skipped_active.append(
+                {
+                    "path": str(f.resolve()),
+                    "stage_id": stage_id,
+                    "reason": f"unconfirmed_stat_error: {stat_err}",
+                }
+            )
             continue
 
         # If lease exists but inactive, check min_age_sec
         if has_lease and file_age < min_age_sec:
-            skipped_active.append({
-                "path": str(f.resolve()),
-                "stage_id": stage_id,
-                "reason": f"recent_terminated_task (age {file_age:.1f}s < {min_age_sec}s)",
-            })
+            skipped_active.append(
+                {
+                    "path": str(f.resolve()),
+                    "stage_id": stage_id,
+                    "reason": f"recent_terminated_task (age {file_age:.1f}s < {min_age_sec}s)",
+                }
+            )
             continue
 
         # If file has NO lease file on disk, check min_age_sec
         if not has_lease and file_age < min_age_sec:
-            skipped_active.append({
-                "path": str(f.resolve()),
-                "stage_id": stage_id,
-                "reason": f"fresh_unleased_file (age {file_age:.1f}s < {min_age_sec}s)",
-            })
+            skipped_active.append(
+                {
+                    "path": str(f.resolve()),
+                    "stage_id": stage_id,
+                    "reason": f"fresh_unleased_file (age {file_age:.1f}s < {min_age_sec}s)",
+                }
+            )
             continue
 
         # Check if file is currently open or locked by any process
         if _is_file_locked(f):
-            skipped_active.append({
-                "path": str(f.resolve()),
-                "stage_id": stage_id,
-                "reason": "file_currently_locked_or_in_use",
-            })
+            skipped_active.append(
+                {
+                    "path": str(f.resolve()),
+                    "stage_id": stage_id,
+                    "reason": "file_currently_locked_or_in_use",
+                }
+            )
             continue
 
         # Confirmed orphan: move into quarantine without overwriting any existing artifact
@@ -840,7 +973,9 @@ def recover_unclaimed_staging(
             if has_lease and lease_file.is_file():
                 lease_file.unlink(missing_ok=True)
         except OSError as err:
-            sys.stderr.write(f"[RECOVER_WARNING] Failed to quarantine orphan staging file {f}: {err}\n")
+            sys.stderr.write(
+                f"[RECOVER_WARNING] Failed to quarantine orphan staging file {f}: {err}\n"
+            )
 
     if return_skipped:
         return recovered, skipped_active
@@ -1120,7 +1255,9 @@ def export_solution_data(
         # Verify source model hash integrity before publishing
         hash_after = compute_file_hash(model_path)
         if hash_before != hash_after:
-            quarantine_staging_file(staging_path, output_txt_path, stage_id, reason="source_mutated")
+            quarantine_staging_file(
+                staging_path, output_txt_path, stage_id, reason="source_mutated"
+            )
             raise ModelValidationError(
                 f"Safety violation: source model file was modified during data export! "
                 f"Source SHA-256 changed from {hash_before} to {hash_after}. "
@@ -1159,22 +1296,137 @@ def export_solution_data(
     return res
 
 
+def _archive_existing_diagnostic_set(output_dir: Path) -> str | None:
+    """If output_dir contains an existing complete diagnostic result set, copy it into versions/ archive.
+
+    Returns the version tag string (e.g. 'run_20261103_142832_7f7cb4'), or None if no prior results exist.
+    """
+    from ..io import S1_REQUIRED_SERIES, S1_REQUIRED_SNAPSHOTS
+
+    all_keys = list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS) + ["manifest.json"]
+    existing_files = [f for f in all_keys if (output_dir / f).is_file()]
+    if not existing_files:
+        return None
+
+    # Determine old version tag from old manifest.json or timestamp
+    old_manifest_file = output_dir / "manifest.json"
+    old_stage_id = "legacy"
+    old_timestamp = time.strftime("%Y%m%d_%H%M%S")
+    if old_manifest_file.is_file():
+        try:
+            with open(old_manifest_file, encoding="utf-8") as mf:
+                data = json.load(mf)
+                old_stage_id = str(data.get("stage_id", "legacy"))[:8]
+                exp_at = data.get("exported_at", "")
+                if exp_at:
+                    digits = re.sub(r"[^0-9]", "", exp_at)
+                    if len(digits) >= 14:
+                        old_timestamp = digits[:14]
+        except Exception:
+            pass
+
+    versions_parent = output_dir / "versions"
+    versions_parent.mkdir(parents=True, exist_ok=True)
+    version_tag = f"run_{old_timestamp}_{old_stage_id}"
+    version_dir = versions_parent / version_tag
+
+    counter = 0
+    while version_dir.exists():
+        counter += 1
+        version_dir = versions_parent / f"{version_tag}_{counter}"
+
+    version_dir.mkdir(parents=True, exist_ok=True)
+    for fname in existing_files:
+        src = output_dir / fname
+        dst = version_dir / fname
+        shutil.copy2(str(src), str(dst))
+
+    return version_dir.name
+
+
+def list_s1_diagnostic_versions(output_dir: Path | str) -> list[dict[str, Any]]:
+    """List all archived diagnostic versions under output_dir/versions."""
+    out_dir = Path(output_dir)
+    versions_dir = out_dir / "versions"
+    if not versions_dir.is_dir():
+        return []
+
+    records = []
+    for d in sorted(versions_dir.iterdir()):
+        if d.is_dir() and d.name.startswith("run_"):
+            manifest_file = d / "manifest.json"
+            meta: dict[str, Any] = {}
+            if manifest_file.is_file():
+                try:
+                    with open(manifest_file, encoding="utf-8") as f:
+                        meta = json.load(f)
+                except Exception:
+                    pass
+            source_info = meta.get("source_model", {})
+            src_sha = source_info.get("sha256", "") if isinstance(source_info, dict) else ""
+            records.append(
+                {
+                    "version_tag": d.name,
+                    "path": str(d.resolve()),
+                    "has_manifest": manifest_file.is_file(),
+                    "status": meta.get("status", "UNKNOWN"),
+                    "exported_at": meta.get("exported_at", ""),
+                    "source_sha256": src_sha,
+                }
+            )
+    return records
+
+
+def recover_s1_diagnostic_version(
+    output_dir: Path | str,
+    version_tag: str,
+    target_dir: Path | str | None = None,
+) -> Path:
+    """Recover an archived diagnostic version to target_dir (or restore it to output_dir)."""
+    out_dir = Path(output_dir)
+    version_dir = out_dir / "versions" / version_tag
+    if not version_dir.is_dir():
+        raise FileNotFoundError(f"Version {version_tag} not found in {out_dir / 'versions'}")
+
+    dest = Path(target_dir) if target_dir is not None else out_dir
+    dest.mkdir(parents=True, exist_ok=True)
+
+    for item in version_dir.iterdir():
+        if item.is_file():
+            shutil.copy2(str(item), str(dest / item.name))
+    return dest
+
+
 def export_s1_diagnostics(
     model_path: Path | str,
     output_dir: Path | str,
     allow_overwrite: bool = False,
     root: Path | None = None,
     expected_steps: int = 501,
+    expected_dt: float = 0.20,
+    expected_t_final: float = 100.0,
+    versioned: bool = True,
 ) -> dict[str, Any]:
     """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
 
     Publication gate (atomic, fail closed):
-    1. COMSOL bridge reports SUCCESS.
+    1. COMSOL bridge reports SUCCESS into staging directory.
     2. Source model SHA-256 unchanged.
     3. Staging directory passes validate_s1_diagnostics (501 aligned steps, no NaN/Inf, snapshots valid).
-    4. Atomic no-overwrite publish (unless allow_overwrite=True).
+    4. Completion manifest.json generated in staging directory.
+    5. Under cross-process file_publish_lock:
+       - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+       - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+       - Stage each file as .tmp_<stage_id>_<fname> in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+       - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
     """
-    from ..io import ComsolExportValidationError, validate_s1_diagnostics, S1_REQUIRED_SERIES, S1_REQUIRED_SNAPSHOTS
+    from ..io import (
+        S1_REQUIRED_SERIES,
+        S1_REQUIRED_SNAPSHOTS,
+        ComsolExportValidationError,
+        build_s1_manifest,
+        validate_s1_diagnostics,
+    )
 
     model_path = Path(model_path)
     output_dir = Path(output_dir)
@@ -1185,65 +1437,140 @@ def export_s1_diagnostics(
     output_dir.mkdir(parents=True, exist_ok=True)
     hash_before = compute_file_hash(model_path)
 
-    staging_parent = output_dir / ".staging"
+    staging_parent = output_dir.parent / ".staging"
     staging_parent.mkdir(parents=True, exist_ok=True)
     stage_id = uuid.uuid4().hex[:12]
     staging_dir = staging_parent / f"stage_{stage_id}"
     staging_dir.mkdir(parents=True, exist_ok=True)
+    lease_file = staging_parent / f".lease_{stage_id}.lock"
 
-    args = [
-        "export-s1-diagnostics",
-        str(model_path.resolve()),
-        str(staging_dir.resolve()),
-    ]
+    with task_staging_session(lease_file, stage_id):
+        args = [
+            "export-s1-diagnostics",
+            str(model_path.resolve()),
+            str(staging_dir.resolve()),
+        ]
 
-    try:
-        res = _run_bridge(args, root=root)
-    except Exception:
-        shutil.rmtree(staging_dir, ignore_errors=True)
-        raise
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_dir(staging_dir, output_dir, stage_id, reason="failed")
+            raise
 
-    hash_after = compute_file_hash(model_path)
-    if hash_before != hash_after:
-        shutil.rmtree(staging_dir, ignore_errors=True)
-        raise ModelValidationError(
-            f"Safety violation: source model file was modified during diagnostic export! "
-            f"Source SHA-256 changed from {hash_before} to {hash_after}. "
-            f"Staging artifacts deleted; outputs were NOT published."
+        hash_after = compute_file_hash(model_path)
+        if hash_before != hash_after:
+            quarantine_staging_dir(staging_dir, output_dir, stage_id, reason="source_mutated")
+            raise ModelValidationError(
+                f"Safety violation: source model file was modified during diagnostic export! "
+                f"Source SHA-256 changed from {hash_before} to {hash_after}. "
+                f"Staging artifacts quarantined; outputs were NOT published."
+            )
+
+        # Validate all staging files before publishing
+        try:
+            val_summary = validate_s1_diagnostics(
+                staging_dir,
+                expected_steps=expected_steps,
+                expected_dt=expected_dt,
+                expected_t_final=expected_t_final,
+                require_manifest=False,
+            )
+        except ComsolExportValidationError as err:
+            quarantine_staging_dir(staging_dir, output_dir, stage_id, reason="invalid_data")
+            raise ModelValidationError(
+                f"Staging diagnostics failed data contract validation; outputs were NOT published: {err}"
+            ) from err
+
+        # Build completion manifest inside staging directory
+        manifest_data = build_s1_manifest(
+            staging_dir=staging_dir,
+            source_model_path=model_path,
+            source_sha256=hash_before,
+            stage_id=stage_id,
+            validation_summary=val_summary,
         )
+        manifest_file = staging_dir / "manifest.json"
+        manifest_file.write_text(json.dumps(manifest_data, indent=2), encoding="utf-8")
 
-    # Validate all staging files before publishing
-    try:
-        val_summary = validate_s1_diagnostics(staging_dir, expected_steps=expected_steps)
-    except ComsolExportValidationError as err:
-        shutil.rmtree(staging_dir, ignore_errors=True)
-        raise ModelValidationError(
-            f"Staging diagnostics failed data contract validation; outputs were NOT published: {err}"
-        ) from err
+        # Acquire cross-process publish lock
+        lock_file = output_dir.parent / f".publish_{output_dir.name}.lock"
+        with file_publish_lock(lock_file):
+            all_files_to_check = (
+                list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS) + ["manifest.json"]
+            )
+            existing_present = [f for f in all_files_to_check if (output_dir / f).is_file()]
 
-    # Publish each file with file_publish_lock
-    published_files: list[str] = []
-    all_files = list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS)
-    with file_publish_lock(output_dir):
-        for fname in all_files:
-            src_file = staging_dir / fname
-            dst_file = output_dir / fname
-            if not src_file.is_file():
-                continue
-            if dst_file.exists() and not allow_overwrite:
-                shutil.rmtree(staging_dir, ignore_errors=True)
+            if existing_present and not allow_overwrite:
+                quarantine_staging_dir(staging_dir, output_dir, stage_id, reason="conflict")
                 raise FileExistsError(
-                    f"Refusing to overwrite existing diagnostic file without allow_overwrite=True: {dst_file}"
+                    f"Refusing to overwrite existing diagnostic result set without allow_overwrite=True in: {output_dir}"
                 )
-            if dst_file.exists():
-                dst_file.unlink()
-            shutil.move(str(src_file), str(dst_file))
-            published_files.append(fname)
 
-    shutil.rmtree(staging_dir, ignore_errors=True)
+            superseded_version = None
+            if existing_present and allow_overwrite and versioned:
+                superseded_version = _archive_existing_diagnostic_set(output_dir)
+                if superseded_version:
+                    manifest_data["superseded_version"] = superseded_version
+                    manifest_file.write_text(json.dumps(manifest_data, indent=2), encoding="utf-8")
 
+            # Transactional staged transfer: stage files as .tmp_<stage_id>_<fname> in output_dir
+            all_publish_items = (
+                list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS) + ["manifest.json"]
+            )
+            transferred_tmp_files: list[Path] = []
+            try:
+                for fname in all_publish_items:
+                    src_f = staging_dir / fname
+                    if not src_f.is_file():
+                        raise ComsolExportValidationError(
+                            f"Missing staging artifact for publish: {fname}"
+                        )
+                    tmp_dest = output_dir / f".tmp_{stage_id}_{fname}"
+                    shutil.copy2(str(src_f), str(tmp_dest))
+                    transferred_tmp_files.append(tmp_dest)
+            except Exception:
+                for tf in transferred_tmp_files:
+                    try:
+                        tf.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+                quarantine_staging_dir(staging_dir, output_dir, stage_id, reason="failed_publish")
+                raise
+
+            # Promote .tmp_ files to final names atomically
+            promoted_files: list[str] = []
+            try:
+                # 11 diagnostic artifacts first
+                for fname in list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS):
+                    tmp_dest = output_dir / f".tmp_{stage_id}_{fname}"
+                    final_dest = output_dir / fname
+                    os.replace(str(tmp_dest), str(final_dest))
+                    promoted_files.append(fname)
+
+                # manifest.json LAST as commit token
+                tmp_manifest = output_dir / f".tmp_{stage_id}_manifest.json"
+                final_manifest = output_dir / "manifest.json"
+                os.replace(str(tmp_manifest), str(final_manifest))
+                promoted_files.append("manifest.json")
+            except Exception:
+                for tf in transferred_tmp_files:
+                    try:
+                        tf.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+                quarantine_staging_dir(staging_dir, output_dir, stage_id, reason="failed_promote")
+                raise
+
+        # Clean up empty staging dir
+        shutil.rmtree(staging_dir, ignore_errors=True)
+
+    res["status"] = "SUCCESS"
+    res["stage_id"] = stage_id
     res["validation"] = val_summary
     res["source_sha256"] = hash_before
     res["output_dir"] = str(output_dir.resolve())
-    res["published_files"] = published_files
+    res["manifest_file"] = str((output_dir / "manifest.json").resolve())
+    res["published_files"] = promoted_files
+    if superseded_version:
+        res["superseded_version"] = superseded_version
     return res

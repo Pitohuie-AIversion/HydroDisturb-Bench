@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Execute a study on a validated COMSOL model working copy and save solved output."""
+
 from __future__ import annotations
 
 import argparse
@@ -19,7 +20,9 @@ def main():
     parser.add_argument("model_path", help="Path to source COMSOL .mph file (read-only baseline)")
     parser.add_argument("output_path", help="Path to destination solved .mph file")
     parser.add_argument("--study", "-s", default="std1", help="Study tag to solve (default: std1)")
-    parser.add_argument("--tlist", "-t", default="", help="Optional transient time range, e.g., 'range(0,0.05,0.1)'")
+    parser.add_argument(
+        "--tlist", "-t", default="", help="Optional transient time range, e.g., 'range(0,0.05,0.1)'"
+    )
     parser.add_argument("--log-out", "-l", help="Optional path to write raw solver execution log")
     args = parser.parse_args()
 

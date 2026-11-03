@@ -11,17 +11,17 @@ Validates:
 8. Real transient short solve readability (DOF count, timesteps, finite fields, no NaN/Inf).
 9. Failure safety (solver error does not publish corrupted files).
 """
+
 from __future__ import annotations
 
 import concurrent.futures
 import math
-import os
-from pathlib import Path
 import time
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 
-from hydro_disturb_bench.io import parse_comsol_txt
 from hydro_disturb_bench.comsol_java import (
     ComsolConnectionError,
     ModelValidationError,
@@ -34,6 +34,7 @@ from hydro_disturb_bench.comsol_java import (
     inspect_model,
     run_study,
 )
+from hydro_disturb_bench.io import parse_comsol_txt
 
 WORKSPACE_DIR = Path(__file__).resolve().parent.parent
 BASELINE_MODEL = WORKSPACE_DIR / "case" / "cylinder_flow.mph"
@@ -50,6 +51,7 @@ def comsol_available() -> bool:
 
 
 pytestmark = [
+    pytest.mark.integration,
     pytest.mark.skipif(
         not comsol_available(),
         reason="Real COMSOL installation not found on this machine",
@@ -74,7 +76,9 @@ def test_re100_parameter_definitions_and_re_consistency():
     rho = params["rho_f"]["value"]
     mu = params["mu_f"]["value"]
     assert math.isclose(rho, 998.2, rel_tol=1e-5), f"Density mismatch: expected 998.2, got {rho}"
-    assert math.isclose(mu, 1.004e-3, rel_tol=1e-5), f"Viscosity mismatch: expected 1.004e-3, got {mu}"
+    assert math.isclose(mu, 1.004e-3, rel_tol=1e-5), (
+        f"Viscosity mismatch: expected 1.004e-3, got {mu}"
+    )
 
     # 2. Geometry dimensions
     D = params["D"]["value"]
@@ -88,8 +92,12 @@ def test_re100_parameter_definitions_and_re_consistency():
     assert math.isclose(R, 0.005, rel_tol=1e-5), f"Radius mismatch: expected 0.005m, got {R}"
     assert math.isclose(L, 0.40, rel_tol=1e-5), f"Length mismatch: expected 0.40m (40D), got {L}"
     assert math.isclose(H, 0.24, rel_tol=1e-5), f"Height mismatch: expected 0.24m (24D), got {H}"
-    assert math.isclose(x_c, 0.10, rel_tol=1e-5), f"Cylinder X mismatch: expected 0.10m (10D upstream), got {x_c}"
-    assert math.isclose(y_c, 0.12, rel_tol=1e-5), f"Cylinder Y mismatch: expected 0.12m (12D lateral), got {y_c}"
+    assert math.isclose(x_c, 0.10, rel_tol=1e-5), (
+        f"Cylinder X mismatch: expected 0.10m (10D upstream), got {x_c}"
+    )
+    assert math.isclose(y_c, 0.12, rel_tol=1e-5), (
+        f"Cylinder Y mismatch: expected 0.12m (12D lateral), got {y_c}"
+    )
 
     # 3. Blockage ratio strictly below 5%
     blockage = D / H
@@ -206,7 +214,7 @@ def test_re100_short_solve_and_data_export(tmp_path: Path):
     assert test_data_txt.stat().st_size > 1000
 
     # 3. Read first rows and verify non-empty fields
-    with open(test_data_txt, "r", encoding="utf-8", errors="replace") as f:
+    with open(test_data_txt, encoding="utf-8", errors="replace") as f:
         content = f.read(4096)
     assert "% x" in content
     assert "spf.U" in content
@@ -293,7 +301,9 @@ def test_export_solution_data_single_variable_staging_rejected_and_quarantined(t
     def mock_run_bridge(args, root=None):
         staging_file = Path(args[2])
         # Only 'u' exported, missing v, p, vx-uy, spf.U
-        staging_file.write_text("% Length unit: m\n% x y u (m/s) @ t=0.0\n0.1 0.2 0.05\n", encoding="utf-8")
+        staging_file.write_text(
+            "% Length unit: m\n% x y u (m/s) @ t=0.0\n0.1 0.2 0.05\n", encoding="utf-8"
+        )
         return {"status": "SUCCESS", "operation": "export_solution_data"}
 
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
@@ -445,7 +455,9 @@ def test_export_solution_data_valid_contract_publishes_successfully(tmp_path: Pa
         return {"status": "SUCCESS", "operation": "export_solution_data"}
 
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
-        res = export_solution_data(dummy_model, out_txt, allow_overwrite=False, expected_times=[0.0])
+        res = export_solution_data(
+            dummy_model, out_txt, allow_overwrite=False, expected_times=[0.0]
+        )
 
     assert out_txt.is_file()
     assert res["status"] == "SUCCESS"
@@ -489,7 +501,9 @@ def test_export_solution_data_concurrent_race_only_one_succeeds(tmp_path: Path):
     def mock_run_bridge(args, root=None):
         if len(args) >= 3 and args[0] == "export-solution-data":
             staging_file = Path(args[2])
-            staging_file.write_text(_make_valid_staging_content(t=0.0, u_val=time.time()), encoding="utf-8")
+            staging_file.write_text(
+                _make_valid_staging_content(t=0.0, u_val=time.time()), encoding="utf-8"
+            )
             time.sleep(0.05)
             return {"status": "SUCCESS", "operation": "export_solution_data"}
         raise ValueError(f"Unexpected mock_run_bridge invocation: {args}")
@@ -575,7 +589,9 @@ def test_re100_boundary_geometry_matches_physical_spec():
         bc = b_by_id[cid]
         for p in bc["samples"]:
             dist = math.hypot(p[0] - 0.10, p[1] - 0.12)
-            assert math.isclose(dist, 0.005, rel_tol=1e-4), f"Cylinder node off-radius: {dist} != 0.005"
+            assert math.isclose(dist, 0.005, rel_tol=1e-4), (
+                f"Cylinder node off-radius: {dist} != 0.005"
+            )
 
 
 def test_parse_comsol_txt_shuffled_column_order(tmp_path: Path):

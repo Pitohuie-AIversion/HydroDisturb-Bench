@@ -105,5 +105,7 @@ model_tree = inspect_model("case/cylinder_flow.mph")
 res_param = update_parameter("case/cylinder_flow.mph", "runs/copy.mph", "U_mean", "1.2[m/s]")
 
 # 4. Run Study
-res_solve = run_study("runs/copy.mph", "runs/solved.mph", study_tag="std1", tlist_override="range(0,0.05,0.1)")
+res_solve = run_study(
+    "runs/copy.mph", "runs/solved.mph", study_tag="std1", tlist_override="range(0,0.05,0.1)"
+)
 ```

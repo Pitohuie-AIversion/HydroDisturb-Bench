@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Inspect real COMSOL Multiphysics model structure in a strictly read-only manner."""
+
 from __future__ import annotations
 
 import argparse

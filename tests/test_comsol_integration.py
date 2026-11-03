@@ -7,10 +7,11 @@ They are marked with @pytest.mark.integration so they can be isolated
 from offline unit and contract tests:
     python -m pytest -q -m integration tests/test_comsol_integration.py
 """
+
 from __future__ import annotations
 
-import os
 from pathlib import Path
+
 import pytest
 
 from hydro_disturb_bench.comsol_java.bridge import (
@@ -22,7 +23,6 @@ from hydro_disturb_bench.comsol_java.bridge import (
     run_study,
     update_parameter,
 )
-
 
 WORKSPACE_DIR = Path(__file__).resolve().parent.parent
 BASELINE_MODEL_PATH = WORKSPACE_DIR / "case" / "cylinder_flow.mph"

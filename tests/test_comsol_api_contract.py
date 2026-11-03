@@ -3,15 +3,17 @@
 These offline tests verify error mapping, argument validation, baseline immutability,
 and output schema contracts using controlled mocks without requiring a live COMSOL solver.
 """
+
 from __future__ import annotations
 
-import os
-import sys
-import subprocess
-import json
-from pathlib import Path
 import concurrent.futures
-from unittest.mock import patch, MagicMock
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from hydro_disturb_bench.comsol_java.bridge import (
@@ -32,20 +34,19 @@ from hydro_disturb_bench.comsol_java.bridge import (
     ModelValidationError,
     NodeNotFoundError,
     SolverFailedError,
+    _posix_rename_noreplace,
+    _run_bridge,
     compute_file_hash,
     find_comsol_root,
     inspect_model,
+    list_quarantine_records,
     map_error,
-    run_study,
-    update_parameter,
-    _run_bridge,
-    _posix_rename_noreplace,
     publish_staging_file,
     quarantine_staging_file,
-    list_quarantine_records,
     recover_unclaimed_staging,
+    run_study,
     task_staging_session,
-    is_task_active,
+    update_parameter,
 )
 
 
@@ -77,7 +78,9 @@ def test_comsol_not_found_raises_connection_error(monkeypatch):
     monkeypatch.setenv("COMSOL_DIR", "")
     with patch("sys.platform", "linux"):
         with patch.object(Path, "is_dir", return_value=False):
-            with pytest.raises(ComsolConnectionError, match="COMSOL installation root could not be located"):
+            with pytest.raises(
+                ComsolConnectionError, match="COMSOL installation root could not be located"
+            ):
                 find_comsol_root()
 
 
@@ -127,21 +130,30 @@ def test_bridge_error_propagation(tmp_path):
     base.write_bytes(b"content")
     fake_exe = _make_fake_comsolbatch(tmp_path)
 
-    err_json = json.dumps({
-        "status": "ERROR",
-        "error_code": ERR_INVALID_UNIT,
-        "message": "Unknown unit: m/s99",
-        "details": "Unit parser error trace"
-    })
+    err_json = json.dumps(
+        {
+            "status": "ERROR",
+            "error_code": ERR_INVALID_UNIT,
+            "message": "Unknown unit: m/s99",
+            "details": "Unit parser error trace",
+        }
+    )
     mock_proc = MagicMock()
     mock_proc.returncode = 1
     mock_proc.stdout = f"<<<JSON_START>>>\n{err_json}\n<<<JSON_END>>>"
     mock_proc.stderr = ""
 
     with patch("subprocess.run", return_value=mock_proc):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(InvalidUnitError, match="Unknown unit"):
                         _run_bridge(["test"])
 
@@ -152,21 +164,30 @@ def test_bridge_node_not_found_propagation(tmp_path):
     base.write_bytes(b"content")
     fake_exe = _make_fake_comsolbatch(tmp_path)
 
-    err_json = json.dumps({
-        "status": "ERROR",
-        "error_code": ERR_NODE_NOT_FOUND,
-        "message": "Parameter non_existent not found",
-        "details": "Available: [H, L]"
-    })
+    err_json = json.dumps(
+        {
+            "status": "ERROR",
+            "error_code": ERR_NODE_NOT_FOUND,
+            "message": "Parameter non_existent not found",
+            "details": "Available: [H, L]",
+        }
+    )
     mock_proc = MagicMock()
     mock_proc.returncode = 1
     mock_proc.stdout = f"<<<JSON_START>>>\n{err_json}\n<<<JSON_END>>>"
     mock_proc.stderr = ""
 
     with patch("subprocess.run", return_value=mock_proc):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(NodeNotFoundError, match="Parameter non_existent not found"):
                         _run_bridge(["test"])
 
@@ -184,37 +205,37 @@ def test_inspection_schema_contract(tmp_path):
         "model_tag": "Model",
         "comsol_version": "COMSOL Multiphysics 6.4",
         "parameters": {
-            "U_mean": {
-                "expr": "1[m/s]",
-                "value": 1.0,
-                "unit": "m/s",
-                "description": "Inflow speed"
-            }
+            "U_mean": {"expr": "1[m/s]", "value": 1.0, "unit": "m/s", "description": "Inflow speed"}
         },
         "components": [
             {
                 "tag": "comp1",
                 "label": "Component 1",
                 "geometries": [{"tag": "geom1", "sdim": 2, "features": ["r1"]}],
-                "meshes": [{"tag": "mesh1", "sdim": 2, "is_complete": True, "num_elem": 100, "num_vertex": 50, "features": ["size"]}],
-                "physics": [{"tag": "spf", "label": "Laminar Flow", "type": "LaminarFlow", "features": []}],
-                "materials": [{"tag": "mat1", "label": "Water"}]
+                "meshes": [
+                    {
+                        "tag": "mesh1",
+                        "sdim": 2,
+                        "is_complete": True,
+                        "num_elem": 100,
+                        "num_vertex": 50,
+                        "features": ["size"],
+                    }
+                ],
+                "physics": [
+                    {"tag": "spf", "label": "Laminar Flow", "type": "LaminarFlow", "features": []}
+                ],
+                "materials": [{"tag": "mat1", "label": "Water"}],
             }
         ],
         "studies": [
             {
                 "tag": "std1",
                 "label": "Study 1",
-                "features": [{"tag": "time", "label": "Time Dependent", "type": "Transient"}]
+                "features": [{"tag": "time", "label": "Time Dependent", "type": "Transient"}],
             }
         ],
-        "solvers": [
-            {
-                "tag": "sol1",
-                "label": "Solution 1",
-                "features": ["t1"]
-            }
-        ]
+        "solvers": [{"tag": "sol1", "label": "Solution 1", "features": ["t1"]}],
     }
 
     mock_proc = MagicMock()
@@ -223,9 +244,16 @@ def test_inspection_schema_contract(tmp_path):
     mock_proc.stderr = ""
 
     with patch("subprocess.run", return_value=mock_proc):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     res = inspect_model(base)
                     assert res["status"] == "SUCCESS"
                     assert res["model_tag"] == "Model"
@@ -254,27 +282,39 @@ def test_baseline_integrity_check_failure(tmp_path):
         staging_file.write_bytes(b"valid non-empty staging output")
         res = MagicMock()
         res.returncode = 0
-        payload = json.dumps({
-            "status": "SUCCESS",
-            "operation": "update_parameter",
-            "param_name": "U_mean",
-            "old_expr": "1",
-            "old_value": 1.0,
-            "old_unit": "",
-            "new_expr": "2",
-            "readback_value": 2.0,
-            "readback_unit": "",
-            "source_model": str(base),
-            "output_model": str(out)
-        })
+        payload = json.dumps(
+            {
+                "status": "SUCCESS",
+                "operation": "update_parameter",
+                "param_name": "U_mean",
+                "old_expr": "1",
+                "old_value": 1.0,
+                "old_unit": "",
+                "new_expr": "2",
+                "readback_value": 2.0,
+                "readback_unit": "",
+                "source_model": str(base),
+                "output_model": str(out),
+            }
+        )
         res.stdout = f"<<<JSON_START>>>\n{payload}\n<<<JSON_END>>>"
         return res
 
     with patch("subprocess.run", side_effect=side_effect_modify):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
-                    with pytest.raises(ModelValidationError, match="Safety violation: original model file was modified"):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
+                    with pytest.raises(
+                        ModelValidationError,
+                        match="Safety violation: original model file was modified",
+                    ):
                         update_parameter(base, out, "U_mean", "2.0")
 
 
@@ -287,9 +327,16 @@ def test_subprocess_nonzero_exit_code_fails_closed(tmp_path):
     mock_proc.stderr = "OutOfMemoryError"
 
     with patch("subprocess.run", return_value=mock_proc):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(ComsolConnectionError, match="exit code 1"):
                         _run_bridge(["inspect-api"], root=tmp_path)
 
@@ -303,9 +350,16 @@ def test_invalid_json_fails_closed(tmp_path):
     mock_proc.stderr = ""
 
     with patch("subprocess.run", return_value=mock_proc):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(ComsolConnectionError, match="Failed to decode JSON"):
                         _run_bridge(["inspect-api"], root=tmp_path)
 
@@ -323,13 +377,20 @@ def test_preexisting_output_file_strictly_preserved_on_failure(tmp_path):
         # Even if the subprocess wrote something to staging or crashed
         mock_proc = MagicMock()
         mock_proc.returncode = 0
-        mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"ERROR\", \"error_code\": \"SOLVER_FAILED\", \"message\": \"divergence\"}\n<<<JSON_END>>>"
+        mock_proc.stdout = '<<<JSON_START>>>\n{"status": "ERROR", "error_code": "SOLVER_FAILED", "message": "divergence"}\n<<<JSON_END>>>'
         return mock_proc
 
     with patch("subprocess.run", side_effect=side_effect_fail):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(SolverFailedError):
                         update_parameter(base, out, "U_mean", "2.0")
 
@@ -356,9 +417,16 @@ def test_comsol_midrun_abort_quarantines_and_does_not_publish(tmp_path):
         return mock_proc
 
     with patch("subprocess.run", side_effect=side_effect_abort_during_write):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=base
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(ComsolConnectionError):
                         update_parameter(base, out, "U_mean", "2.0")
 
@@ -392,10 +460,19 @@ def test_non_dict_json_fails_closed(tmp_path):
     mock_proc.stderr = ""
 
     with patch("subprocess.run", return_value=mock_proc):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
-                    with pytest.raises(ComsolConnectionError, match="expected JSON object, got list"):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
+                    with pytest.raises(
+                        ComsolConnectionError, match="expected JSON object, got list"
+                    ):
                         _run_bridge(["inspect-api"], root=tmp_path)
 
 
@@ -405,13 +482,22 @@ def test_schema_missing_fields_fails_closed(tmp_path):
     mock_proc = MagicMock()
     mock_proc.returncode = 0
     # Missing api_specification
-    mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"SUCCESS\", \"operation\": \"inspect_api\"}\n<<<JSON_END>>>"
+    mock_proc.stdout = (
+        '<<<JSON_START>>>\n{"status": "SUCCESS", "operation": "inspect_api"}\n<<<JSON_END>>>'
+    )
     mock_proc.stderr = ""
 
     with patch("subprocess.run", return_value=mock_proc):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(ComsolConnectionError, match="Schema violation"):
                         _run_bridge(["inspect-api"], root=tmp_path)
 
@@ -432,15 +518,22 @@ def test_preexisting_final_file_blocks_successful_run_when_overwrite_forbidden(t
         staging_file.write_bytes(b"newly computed successful result")
         mock_proc = MagicMock()
         mock_proc.returncode = 0
-        mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"SUCCESS\", \"operation\": \"update_parameter\", \"param_name\": \"U_mean\", \"new_expr\": \"2.0\", \"readback_value\": 2.0}\n<<<JSON_END>>>"
+        mock_proc.stdout = '<<<JSON_START>>>\n{"status": "SUCCESS", "operation": "update_parameter", "param_name": "U_mean", "new_expr": "2.0", "readback_value": 2.0}\n<<<JSON_END>>>'
         mock_proc.stderr = ""
         return mock_proc
 
     # 1. Default allow_overwrite=False must raise FileExistsError
     with patch("subprocess.run", side_effect=side_effect_success):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     with pytest.raises(FileExistsError, match="overwrite is forbidden"):
                         update_parameter(base, out, "U_mean", "2.0")
 
@@ -459,9 +552,16 @@ def test_preexisting_final_file_blocks_successful_run_when_overwrite_forbidden(t
 
     # 2. When allow_overwrite=True is explicitly passed, it should replace
     with patch("subprocess.run", side_effect=side_effect_success):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
                     res = update_parameter(base, out, "U_mean", "2.0", allow_overwrite=True)
 
     assert res.get("status") == "SUCCESS"
@@ -512,14 +612,18 @@ def test_concurrent_publish_race_same_target_only_one_succeeds(tmp_path):
     # Destination file exists and contains full uncorrupted content of winner
     assert out.is_file()
     winner_id = successes[0][0]
-    expected_bytes = b"Task A completed model bytes" if winner_id == "taskA" else b"Task B completed model bytes"
+    expected_bytes = (
+        b"Task A completed model bytes" if winner_id == "taskA" else b"Task B completed model bytes"
+    )
     assert out.read_bytes() == expected_bytes
 
     # Loser's staging file was safely moved to quarantine as conflict_*
     loser_id = failures[0][0]
     quarantine_files = list((tmp_path / "quarantine").glob(f"conflict_{loser_id}_*"))
     assert len(quarantine_files) == 1
-    loser_bytes = b"Task B completed model bytes" if winner_id == "taskA" else b"Task A completed model bytes"
+    loser_bytes = (
+        b"Task B completed model bytes" if winner_id == "taskA" else b"Task A completed model bytes"
+    )
     assert quarantine_files[0].read_bytes() == loser_bytes
 
     # Staging directory is clean
@@ -556,7 +660,10 @@ def test_quarantine_failure_preserves_staging_file_in_place(tmp_path):
     out = tmp_path / "final.mph"
 
     # Simulate quarantine filesystem failure (e.g. permission denied)
-    with patch("hydro_disturb_bench.comsol_java.bridge._safe_quarantine_move", side_effect=OSError("Quarantine storage unavailable")):
+    with patch(
+        "hydro_disturb_bench.comsol_java.bridge._safe_quarantine_move",
+        side_effect=OSError("Quarantine storage unavailable"),
+    ):
         res = quarantine_staging_file(staging_file, out, "test_id", reason="failed")
 
     # Return value is None indicating transfer failure
@@ -581,7 +688,9 @@ def test_active_task_not_quarantined_by_recovery(tmp_path):
     # Active task holds a task lease session
     with task_staging_session(active_stage, "active1"):
         # Another process runs recover_unclaimed_staging
-        recovered, skipped = recover_unclaimed_staging(tmp_path, min_age_sec=0.0, return_skipped=True)
+        recovered, skipped = recover_unclaimed_staging(
+            tmp_path, min_age_sec=0.0, return_skipped=True
+        )
 
         # Only the abandoned orphan was recovered
         assert len(recovered) == 1
@@ -620,15 +729,24 @@ def test_source_model_mutation_fails_before_publish_and_quarantines(tmp_path):
         base.write_bytes(b"corrupted or modified baseline content")
         mock_proc = MagicMock()
         mock_proc.returncode = 0
-        mock_proc.stdout = "<<<JSON_START>>>\n{\"status\": \"SUCCESS\", \"operation\": \"update_parameter\", \"param_name\": \"U_mean\", \"new_expr\": \"2.0\", \"readback_value\": 2.0}\n<<<JSON_END>>>"
+        mock_proc.stdout = '<<<JSON_START>>>\n{"status": "SUCCESS", "operation": "update_parameter", "param_name": "U_mean", "new_expr": "2.0", "readback_value": 2.0}\n<<<JSON_END>>>'
         mock_proc.stderr = ""
         return mock_proc
 
     with patch("subprocess.run", side_effect=side_effect_corrupt_source):
-        with patch("hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe):
-            with patch("hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path):
-                with patch("hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir", return_value=tmp_path):
-                    with pytest.raises(ModelValidationError, match="original model file was modified"):
+        with patch(
+            "hydro_disturb_bench.comsol_java.bridge.ensure_bridge_compiled", return_value=fake_exe
+        ):
+            with patch(
+                "hydro_disturb_bench.comsol_java.bridge.find_comsol_root", return_value=tmp_path
+            ):
+                with patch(
+                    "hydro_disturb_bench.comsol_java.bridge.get_comsol_bin_dir",
+                    return_value=tmp_path,
+                ):
+                    with pytest.raises(
+                        ModelValidationError, match="original model file was modified"
+                    ):
                         update_parameter(base, out, "U_mean", "2.0")
 
     # Destination MUST NOT have been published!
@@ -667,8 +785,12 @@ except FileExistsError:
 """
 
     sub_env = {**os.environ, "PYTHONPATH": "src"}
-    p1 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_a), str(out), "procA"], env=sub_env)
-    p2 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_b), str(out), "procB"], env=sub_env)
+    p1 = subprocess.Popen(
+        [sys.executable, "-c", worker_code, str(stage_a), str(out), "procA"], env=sub_env
+    )
+    p2 = subprocess.Popen(
+        [sys.executable, "-c", worker_code, str(stage_b), str(out), "procB"], env=sub_env
+    )
 
     rc1 = p1.wait()
     rc2 = p2.wait()
@@ -804,8 +926,12 @@ else:
 """
 
     sub_env = {**os.environ, "PYTHONPATH": "src"}
-    p1 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_a), str(out), "race_task"], env=sub_env)
-    p2 = subprocess.Popen([sys.executable, "-c", worker_code, str(stage_b), str(out), "race_task"], env=sub_env)
+    p1 = subprocess.Popen(
+        [sys.executable, "-c", worker_code, str(stage_a), str(out), "race_task"], env=sub_env
+    )
+    p2 = subprocess.Popen(
+        [sys.executable, "-c", worker_code, str(stage_b), str(out), "race_task"], env=sub_env
+    )
 
     rc1 = p1.wait()
     rc2 = p2.wait()
@@ -829,7 +955,10 @@ def test_publish_failure_preserves_staging_file(tmp_path):
     stage.write_bytes(b"precious numerical model")
     out = tmp_path / "final_model.mph"
 
-    with patch("hydro_disturb_bench.comsol_java.bridge._atomic_publish_new_file", side_effect=OSError("Disk write error")):
+    with patch(
+        "hydro_disturb_bench.comsol_java.bridge._atomic_publish_new_file",
+        side_effect=OSError("Disk write error"),
+    ):
         with pytest.raises(OSError, match="Disk write error"):
             publish_staging_file(stage, out, "valuable_task", allow_overwrite=False)
 
@@ -861,7 +990,9 @@ def test_posix_atomic_no_overwrite_fails_closed(tmp_path):
         mock_libc.syscall.return_value = -1
         mock_cdll.return_value = mock_libc
         with patch("ctypes.get_errno", return_value=38):  # ENOSYS (38)
-            with pytest.raises(FileExistsError, match="Atomic no-overwrite publish failed or is unsupported"):
+            with pytest.raises(
+                FileExistsError, match="Atomic no-overwrite publish failed or is unsupported"
+            ):
                 _posix_rename_noreplace(stage, dest_nonexistent, None)
 
     # Must NOT have created or replaced dest_nonexistent!
