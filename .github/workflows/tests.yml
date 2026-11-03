@@ -23,7 +23,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Code style & static lint check (Ruff)
-        run: uv run ruff check .
+        run: uv run --extra dev ruff check .
 
       - name: Offline unit & contract tests (NO COMSOL required)
         run: uv run --python ${{ matrix.python-version }} --extra dev pytest -q -m "not integration"
