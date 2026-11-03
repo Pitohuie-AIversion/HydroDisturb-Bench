@@ -1080,6 +1080,75 @@ public class ComsolBridge {
                     expImg.set("fontsize", 10);
                     expImg.run();
                     exportedFiles.add(imgName);
+
+                    // Export regular 2D grid data of exact vorticity (vx-uy) in the wake region
+                    try {
+                        String gridName = "vorticity_grid_t" + tSec + "s.txt";
+                        String gridPath = base + gridName;
+                        String expGridTag = "exp_grid_" + tSec + "_s1";
+                        safeRemoveExport(model, expGridTag);
+                        ExportFeature expGrid = model.result().export().create(expGridTag, "Data");
+                        expGrid.set("data", "dset1");
+                        expGrid.set("solnum", String.valueOf(solnum));
+                        expGrid.set("expr", new String[]{"vx-uy"});
+                        expGrid.set("unit", new String[]{"1/s"});
+                        expGrid.set("descr", new String[]{"vorticity"});
+                        expGrid.set("filename", gridPath);
+                        expGrid.set("location", "grid");
+                        expGrid.set("gridstruct", "spreadsheet");
+                        expGrid.set("gridx2", "range(0.08, 0.0005, 0.30)");
+                        expGrid.set("gridy2", "range(0.07, 0.0005, 0.17)");
+                        expGrid.run();
+                        exportedFiles.add(gridName);
+                    } catch (Throwable gridErr) {
+                        // Non-fatal fallback: continue if grid export unsupported
+                    }
+
+                    // Export full domain reference overview at final checkpoint
+                    if (tSec == 200 || (tSec == 100 && tMax <= 105.0)) {
+                        try {
+                            String pgOvTag = "pg_vort_overview_" + tSec + "_s1";
+                            safeRemoveResult(model, pgOvTag);
+                            ResultFeature pgOv = model.result().create(pgOvTag, "PlotGroup2D");
+                            pgOv.set("data", "dset1");
+                            pgOv.set("solnum", String.valueOf(solnum));
+                            pgOv.set("titletype", "custom");
+                            pgOv.set("title", "Re=100 Vorticity \\omega_z (Full Domain 40D x 24D) at t = " + tSec + " s");
+
+                            ResultFeature surfOv = pgOv.feature().create("surf_ov", "Surface");
+                            surfOv.set("expr", "vx-uy");
+                            surfOv.set("unit", "1/s");
+                            surfOv.set("colortable", "Wave");
+                            surfOv.set("rangecoloractive", true);
+                            surfOv.set("rangecolormin", -omegaLim);
+                            surfOv.set("rangecolormax", omegaLim);
+                            surfOv.set("colorlegend", true);
+                            surfOv.set("showlegendtitle", true);
+                            surfOv.set("legendtitle", "Vorticity \\omega_z [s^{-1}]");
+
+                            String ovImgName = "vorticity_overview_t" + tSec + "s_comsol.png";
+                            String ovImgPath = base + ovImgName;
+                            String expOvTag = "exp_img_ov_" + tSec + "_s1";
+                            safeRemoveExport(model, expOvTag);
+                            ExportFeature expOv = model.result().export().create(expOvTag, "Image");
+                            expOv.set("plotgroup", pgOvTag);
+                            expOv.set("pngfilename", ovImgPath);
+                            expOv.set("size", "manualweb");
+                            expOv.set("unit", "px");
+                            expOv.set("webwidth", "1600");
+                            expOv.set("webheight", "800");
+                            expOv.set("options2d", "on");
+                            expOv.set("title2d", "on");
+                            expOv.set("legend2d", "on");
+                            expOv.set("axes2d", "on");
+                            expOv.set("logo2d", "off");
+                            expOv.set("fontsize", 10);
+                            expOv.run();
+                            exportedFiles.add(ovImgName);
+                        } catch (Throwable ovErr) {
+                            // Non-fatal
+                        }
+                    }
                 } catch (Throwable imgErr) {
                     outputError("SOLVER_FAILED", "Failed to export snapshot at t=" + tSec + "s: " + imgErr.getMessage(), getStackTrace(imgErr));
                     return;

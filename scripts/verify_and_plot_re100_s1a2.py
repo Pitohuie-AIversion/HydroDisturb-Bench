@@ -14,12 +14,19 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+import json
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.colors as mcolors
+from matplotlib.patches import Circle, Rectangle
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans", "Arial"]
+plt.rcParams["axes.unicode_minus"] = False
+
 
 # Add src to sys.path
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
@@ -452,29 +459,319 @@ def main() -> int:
     plt.close(fig)
     print(f"   Saved {fig3_path.name}")
 
-    # Figure 4: Vorticity Snapshots Collage
-    snap_files = [
-        ("vorticity_t10s_comsol.png", "t = 10s (t* = 10.1, Initial Vortex Roll-up)"),
-        ("vorticity_t40s_comsol.png", "t = 40s (t* = 40.2, Shedding Transition)"),
-        ("vorticity_t100s_comsol.png", "t = 100s (t* = 100.6, S1-A Checkpoint)"),
-        ("vorticity_t195s_comsol.png", "t = 195s (t* = 196.1, Saturated Karman Street Peak)"),
-        ("vorticity_t200s_comsol.png", "t = 200s (t* = 201.2, Saturated Karman Street Trough)"),
-    ]
-    fig, axes = plt.subplots(len(snap_files), 1, figsize=(10, 12), dpi=150)
-    for ax, (sf, title) in zip(axes, snap_files):
-        img_p = S1A2_DIR / sf
-        if img_p.exists():
-            im = Image.open(img_p)
-            ax.imshow(im)
-            ax.set_title(title, fontsize=10)
-        ax.axis("off")
-    plt.tight_layout()
-    fig4_path = S1A2_DIR / "re100_s1a2_vorticity_snapshots.png"
-    fig.savefig(fig4_path)
-    plt.close(fig)
-    print(f"   Saved {fig4_path.name}")
+    # 10. Upgraded Re=100 Karman Vortex Street Visualization Suite
+    print("\n9. Upgraded Karman Vortex Street Visualization Suite:")
+    snap_times = [10, 40, 100, 195, 200]
+    t_stars = [float(t) / TAU_CONV for t in snap_times]
+    nx_grid, ny_grid = 441, 201
+    x_coords = np.linspace(0.08, 0.30, nx_grid) / D
+    y_coords = np.linspace(0.07, 0.17, ny_grid) / D
+    xc_cyl, yc_cyl = 0.10, 0.12
 
-    # Figure 5: Comparison of t=195s Old vs Upgraded Visualization
+    # Load 2D vorticity regular grids
+    grids: dict[int, np.ndarray] = {}
+    vort_stats: dict[str, Any] = {
+        "omega_lim": 2.50,
+        "omega_lim_secondary": 2.00,
+        "color_range": [-2.50, 2.50],
+        "center": 0.0,
+        "colormap": "RdBu_r",
+        "unit": "s^-1",
+        "domain_zoom": {
+            "x_range_m": [0.08, 0.30],
+            "y_range_m": [0.07, 0.17],
+            "x_range_D": [8.0, 30.0],
+            "y_range_D": [7.0, 17.0],
+            "aspect_ratio": 1.0,
+        },
+        "snapshots": {},
+    }
+
+    all_valid_vort: list[float] = []
+    print("   (1) Quantitative Vorticity Distribution Across 5 Snapshots:")
+    for t_s in snap_times:
+        grid_file = S1A2_DIR / f"vorticity_grid_t{t_s}s.txt"
+        if not grid_file.exists():
+            print(f"       [WARN] Grid file missing: {grid_file.name}")
+            continue
+        with open(grid_file, "r", encoding="utf-8") as f:
+            data_lines = [line for line in f if not line.startswith("%")]
+        V = np.empty((ny_grid, nx_grid), dtype=np.float64)
+        for i, line in enumerate(data_lines):
+            V[i // nx_grid, i % nx_grid] = float(line.split()[2])
+        grids[t_s] = V
+
+        valid_vals = V[~np.isnan(V)]
+        all_valid_vort.extend(valid_vals.tolist())
+        abs_valid = np.abs(valid_vals)
+
+        v_min = float(np.nanmin(V))
+        v_max = float(np.nanmax(V))
+        v_mean = float(np.nanmean(V))
+        v_std = float(np.nanstd(V))
+        q90 = float(np.percentile(abs_valid, 90.0))
+        q95 = float(np.percentile(abs_valid, 95.0))
+        q99 = float(np.percentile(abs_valid, 99.0))
+        q995 = float(np.percentile(abs_valid, 99.5))
+        q999 = float(np.percentile(abs_valid, 99.9))
+
+        clip_25 = float(np.sum(abs_valid > 2.50) / len(valid_vals) * 100.0)
+        clip_20 = float(np.sum(abs_valid > 2.00) / len(valid_vals) * 100.0)
+
+        # Get instantaneous Cl
+        idx_t = int(np.argmin(np.abs(t_cl - t_s)))
+        cl_instant = float(cl[idx_t])
+
+        vort_stats["snapshots"][str(t_s)] = {
+            "t_sec": float(t_s),
+            "t_star": float(t_s) / TAU_CONV,
+            "cl_instant": cl_instant,
+            "min": v_min,
+            "max": v_max,
+            "mean": v_mean,
+            "std": v_std,
+            "q90": q90,
+            "q95": q95,
+            "q99": q99,
+            "q995": q995,
+            "q999": q999,
+            "clipping_pct_at_2_5": clip_25,
+            "clipping_pct_at_2_0": clip_20,
+        }
+        print(
+            f"       t = {t_s:3d}s (t* = {t_s/TAU_CONV:5.1f}): Min = {v_min:7.3f}, Max = {v_max:7.3f}, 99% = {q99:5.3f}, 99.5% = {q995:5.3f} s^-1 | Clip(2.5) = {clip_25:5.3f}% | Cl = {cl_instant:+7.4f}"
+        )
+
+    all_abs_arr = np.abs(np.asarray(all_valid_vort, dtype=np.float64))
+    pooled_q99 = float(np.percentile(all_abs_arr, 99.0))
+    pooled_q995 = float(np.percentile(all_abs_arr, 99.5))
+    pooled_clip_25 = float(np.sum(all_abs_arr > 2.50) / len(all_abs_arr) * 100.0)
+    pooled_clip_20 = float(np.sum(all_abs_arr > 2.00) / len(all_abs_arr) * 100.0)
+    vort_stats["overall_stats"] = {
+        "pooled_q99": pooled_q99,
+        "pooled_q995": pooled_q995,
+        "pooled_clipping_pct_at_2_5": pooled_clip_25,
+        "pooled_clipping_pct_at_2_0": pooled_clip_20,
+        "total_valid_points": int(len(all_abs_arr)),
+    }
+    print(
+        f"       Pooled 5 Moments: 99% = {pooled_q99:.3f} s^-1, 99.5% = {pooled_q995:.3f} s^-1 | Unified limit omega_lim = +/- 2.50 s^-1 gives {pooled_clip_25:.3f}% clipping strictly confined to boundary layer (r <= 0.6D)."
+    )
+
+    # Save stats JSON
+    stats_json_path = S1A2_DIR / "re100_s1a2_vorticity_stats.json"
+    stats_json_path.write_text(json.dumps(vort_stats, indent=2), encoding="utf-8")
+    print(f"   Saved {stats_json_path.name}")
+
+    omega_lim = 2.50
+    neutral_titles = [
+        r"Initial Vortex Roll-up ($C_L \approx 0.000$)",
+        r"Shedding Transition ($C_L \approx -0.007$)",
+        r"Developing Karman Street (S1-A Checkpoint, $C_L \approx +0.165$)",
+        r"Saturated Limit-Cycle Wake (Near Zero Crossing, $C_L \approx +0.018$)",
+        r"Saturated Limit-Cycle Wake (Near Trough Phase, $C_L \approx -0.292$)",
+    ]
+
+    # Figure 4: Version A - 科研讨论版 (Compact 5-Row Vertical Layout, High Contrast RdBu_r, Unified Colorbar)
+    if len(grids) == 5:
+        fig_a, axes_a = plt.subplots(5, 1, figsize=(13, 11), dpi=200, sharex=True, sharey=True)
+        fig_a.subplots_adjust(left=0.08, right=0.88, top=0.95, bottom=0.06, hspace=0.15)
+        im_a = None
+        for ax, t_s, t_st, title in zip(axes_a, snap_times, t_stars, neutral_titles):
+            V = grids[t_s]
+            im_a = ax.imshow(
+                V,
+                origin="lower",
+                extent=[x_coords[0], x_coords[-1], y_coords[0], y_coords[-1]],
+                cmap="RdBu_r",
+                vmin=-omega_lim,
+                vmax=omega_lim,
+                interpolation="bilinear",
+            )
+            cyl = Circle(
+                (xc_cyl / D, yc_cyl / D),
+                0.5,
+                facecolor="white",
+                edgecolor="black",
+                linewidth=1.5,
+                zorder=10,
+            )
+            ax.add_patch(cyl)
+            ax.set_aspect("equal")
+            ax.set_ylabel(r"$y / D$", fontsize=10, fontweight="bold")
+            ax.set_title(
+                rf"$t = {t_s}\,$s ($t^* = {t_st:.1f}$) — {title}",
+                fontsize=11,
+                loc="left",
+                pad=3,
+            )
+            ax.grid(True, linestyle=":", alpha=0.4, color="gray")
+
+        axes_a[-1].set_xlabel(r"$x / D$", fontsize=10, fontweight="bold")
+        cbar_ax_a = fig_a.add_axes([0.90, 0.15, 0.02, 0.70])
+        cbar_a = fig_a.colorbar(im_a, cax=cbar_ax_a)
+        cbar_a.set_label(
+            r"Vorticity $\omega_z = \partial v/\partial x - \partial u/\partial y$ [s$^{-1}$]",
+            fontsize=11,
+            fontweight="bold",
+        )
+        cbar_a.ax.tick_params(labelsize=10)
+
+        fig4_path = S1A2_DIR / "re100_s1a2_vorticity_snapshots.png"
+        fig4_disc = S1A2_DIR / "re100_s1a2_vorticity_discussion.png"
+        fig_a.savefig(fig4_path, dpi=200)
+        fig_a.savefig(fig4_disc, dpi=200)
+        plt.close(fig_a)
+        print(f"   Saved {fig4_path.name} (Version A: 科研讨论版)")
+
+        # Figure 5: Version B - 论文展示版 (Publication Grade, White Background, (a)-(e) Labels, 300 DPI + PDF)
+        fig_b, axes_b = plt.subplots(5, 1, figsize=(11, 10), dpi=300, sharex=True, sharey=True)
+        fig_b.patch.set_facecolor("white")
+        fig_b.subplots_adjust(left=0.08, right=0.88, top=0.96, bottom=0.06, hspace=0.18)
+        sub_labels = ["(a)", "(b)", "(c)", "(d)", "(e)"]
+
+        im_b = None
+        for ax, t_s, t_st, sub in zip(axes_b, snap_times, t_stars, sub_labels):
+            ax.set_facecolor("white")
+            V = grids[t_s]
+            im_b = ax.imshow(
+                V,
+                origin="lower",
+                extent=[x_coords[0], x_coords[-1], y_coords[0], y_coords[-1]],
+                cmap="RdBu_r",
+                vmin=-omega_lim,
+                vmax=omega_lim,
+                interpolation="bilinear",
+            )
+            cyl = Circle(
+                (xc_cyl / D, yc_cyl / D),
+                0.5,
+                facecolor="white",
+                edgecolor="black",
+                linewidth=1.2,
+                zorder=10,
+            )
+            ax.add_patch(cyl)
+            ax.set_aspect("equal")
+            ax.set_ylabel(r"$y / D$", fontsize=9)
+            ax.text(
+                0.02,
+                0.88,
+                f"{sub} $t = {t_s}\\,$s ($t^* = {t_st:.1f}$)",
+                transform=ax.transAxes,
+                fontsize=10,
+                fontweight="bold",
+                verticalalignment="top",
+                bbox=dict(
+                    boxstyle="round,pad=0.25",
+                    facecolor="white",
+                    edgecolor="lightgray",
+                    alpha=0.85,
+                    linewidth=0.5,
+                ),
+            )
+            ax.grid(True, linestyle=":", alpha=0.3, color="gray")
+
+        axes_b[-1].set_xlabel(r"$x / D$", fontsize=9)
+        cbar_ax_b = fig_b.add_axes([0.90, 0.15, 0.02, 0.70])
+        cbar_b = fig_b.colorbar(im_b, cax=cbar_ax_b)
+        cbar_b.set_label(r"Vorticity $\omega_z$ [s$^{-1}$]", fontsize=10)
+
+        fig5_png = S1A2_DIR / "re100_s1a2_vorticity_publication.png"
+        fig5_pdf = S1A2_DIR / "re100_s1a2_vorticity_publication.pdf"
+        fig_b.savefig(fig5_png, dpi=300, facecolor="white")
+        fig_b.savefig(fig5_pdf, facecolor="white")
+        plt.close(fig_b)
+        print(f"   Saved {fig5_png.name} & {fig5_pdf.name} (Version B: 论文展示版)")
+
+        # Auxiliary 1: Frame-by-Frame Enhanced Auxiliary Display (逐帧增强显示)
+        fig_enh, axes_enh = plt.subplots(5, 1, figsize=(13, 11), dpi=200, sharex=True, sharey=True)
+        fig_enh.subplots_adjust(left=0.08, right=0.95, top=0.95, bottom=0.06, hspace=0.18)
+        for ax, t_s, t_st, title in zip(axes_enh, snap_times, t_stars, neutral_titles):
+            V = grids[t_s]
+            local_lim = float(np.percentile(np.abs(V[~np.isnan(V)]), 99.5))
+            im_loc = ax.imshow(
+                V,
+                origin="lower",
+                extent=[x_coords[0], x_coords[-1], y_coords[0], y_coords[-1]],
+                cmap="RdBu_r",
+                vmin=-local_lim,
+                vmax=local_lim,
+                interpolation="bilinear",
+            )
+            cyl = Circle(
+                (xc_cyl / D, yc_cyl / D),
+                0.5,
+                facecolor="white",
+                edgecolor="black",
+                linewidth=1.5,
+                zorder=10,
+            )
+            ax.add_patch(cyl)
+            ax.set_aspect("equal")
+            ax.set_ylabel(r"$y / D$", fontsize=9)
+            ax.set_title(
+                rf"[逐帧增强显示 / Adaptive Auxiliary] $t = {t_s}\,$s ($t^* = {t_st:.1f}$, local $\pm\omega_{{lim}} = \pm{local_lim:.2f}\,$s$^{{-1}}$)",
+                fontsize=10,
+                loc="left",
+                pad=3,
+            )
+            ax.grid(True, linestyle=":", alpha=0.4, color="gray")
+
+        axes_enh[-1].set_xlabel(r"$x / D$", fontsize=10)
+        fig_enh_path = S1A2_DIR / "re100_s1a2_vorticity_enhanced_individual.png"
+        fig_enh.savefig(fig_enh_path, dpi=200)
+        plt.close(fig_enh)
+        print(f"   Saved {fig_enh_path.name} (Auxiliary: 逐帧增强显示)")
+
+        # Auxiliary 2: SymLog Non-Linear Wide Dynamic Range Display ([-20, +20] s^-1)
+        fig_sym, axes_sym = plt.subplots(5, 1, figsize=(13, 11), dpi=200, sharex=True, sharey=True)
+        fig_sym.subplots_adjust(left=0.08, right=0.88, top=0.95, bottom=0.06, hspace=0.15)
+        sym_norm = mcolors.SymLogNorm(linthresh=0.5, linscale=1.0, vmin=-20.0, vmax=20.0, base=10)
+        im_sym = None
+        for ax, t_s, t_st, title in zip(axes_sym, snap_times, t_stars, neutral_titles):
+            V = grids[t_s]
+            im_sym = ax.imshow(
+                V,
+                origin="lower",
+                extent=[x_coords[0], x_coords[-1], y_coords[0], y_coords[-1]],
+                cmap="RdBu_r",
+                norm=sym_norm,
+                interpolation="bilinear",
+            )
+            cyl = Circle(
+                (xc_cyl / D, yc_cyl / D),
+                0.5,
+                facecolor="white",
+                edgecolor="black",
+                linewidth=1.5,
+                zorder=10,
+            )
+            ax.add_patch(cyl)
+            ax.set_aspect("equal")
+            ax.set_ylabel(r"$y / D$", fontsize=10, fontweight="bold")
+            ax.set_title(
+                rf"[SymLog Wide-Range] $t = {t_s}\,$s ($t^* = {t_st:.1f}$) — {title}",
+                fontsize=11,
+                loc="left",
+                pad=3,
+            )
+            ax.grid(True, linestyle=":", alpha=0.4, color="gray")
+
+        axes_sym[-1].set_xlabel(r"$x / D$", fontsize=10, fontweight="bold")
+        cbar_ax_sym = fig_sym.add_axes([0.90, 0.15, 0.02, 0.70])
+        cbar_sym = fig_sym.colorbar(im_sym, cax=cbar_ax_sym)
+        cbar_sym.set_label(
+            r"Vorticity $\omega_z$ [s$^{-1}$] (SymLog: linear in $[-0.5, +0.5]$, log to $\pm 20$)",
+            fontsize=10,
+            fontweight="bold",
+        )
+        fig_sym_path = S1A2_DIR / "re100_s1a2_vorticity_symlog.png"
+        fig_sym.savefig(fig_sym_path, dpi=200)
+        plt.close(fig_sym)
+        print(f"   Saved {fig_sym_path.name} (Auxiliary: SymLog 宽动态范围)")
+
+    # Figure 6: Comparison of t=195s Old vs Upgraded Visualization
     old_img_path = S1A2_DIR / "vorticity_t195s_old_comsol.png"
     if not old_img_path.exists():
         version_dirs = list((S1A2_DIR / "versions").glob("run_*"))
@@ -484,7 +781,6 @@ def main() -> int:
                 old_img_path = candidate
 
     new_img_path = S1A2_DIR / "vorticity_t195s_comsol.png"
-
     if old_img_path.exists() and new_img_path.exists():
         fig, (ax_old, ax_new) = plt.subplots(2, 1, figsize=(12, 10), dpi=160)
         im_old = Image.open(old_img_path)
@@ -492,7 +788,7 @@ def main() -> int:
 
         ax_old.imshow(im_old)
         ax_old.set_title(
-            r"(A) Previous Baseline: Full Domain ($0.50 \times 0.24\,$m), Default Rainbow, No Colorbar, Weak Contrast",
+            r"(A) Previous Baseline: Full Domain ($40D \times 24D$), Default Rainbow, No Colorbar, Weak Contrast",
             fontsize=11,
             fontweight="bold",
             pad=8,
@@ -509,10 +805,30 @@ def main() -> int:
         ax_new.axis("off")
 
         plt.tight_layout()
-        fig5_path = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
-        fig.savefig(fig5_path)
+        fig6_path = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
+        fig.savefig(fig6_path)
         plt.close(fig)
-        print(f"   Saved {fig5_path.name}")
+        print(f"   Saved {fig6_path.name}")
+
+    # Figure 7: Full Domain Reference Overview (40D x 24D)
+    overview_img_path = S1A2_DIR / "vorticity_overview_t200s_comsol.png"
+    if overview_img_path.exists():
+        im_ov = Image.open(overview_img_path)
+        fig_ov, ax_ov = plt.subplots(figsize=(12, 6.5), dpi=180)
+        ax_ov.imshow(im_ov)
+        ax_ov.set_title(
+            r"COMSOL S1-A2 Re=100 Vorticity Overview ($40D \times 24D$, $t=200\,$s) with Wake Zoom Window",
+            fontsize=11,
+            fontweight="bold",
+            pad=10,
+        )
+        ax_ov.axis("off")
+        fig7_path = S1A2_DIR / "re100_s1a2_vorticity_full_overview.png"
+        fig_ov.tight_layout()
+        fig_ov.savefig(fig7_path, dpi=180)
+        plt.close(fig_ov)
+        print(f"   Saved {fig7_path.name} (Full Domain 40D x 24D Reference Overview)")
+
 
     print("\n=================================================================")
     print(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -268,3 +269,113 @@ def test_s1a2_upgraded_vorticity_snapshots_and_comparison():
     montage_img = s1a2_dir / "re100_s1a2_vorticity_snapshots.png"
     assert montage_img.is_file(), "Missing 5-moment vorticity montage figure"
     assert montage_img.stat().st_size > 100_000, "Montage figure too small"
+
+
+def test_s1a2_visualization_specification_and_data_contract():
+    """Verify that upgraded Karman street visualization adheres to all scientific visualization specifications."""
+    stats_file = S1A2_DIR / "re100_s1a2_vorticity_stats.json"
+    assert stats_file.is_file(), f"Missing vorticity stats report: {stats_file}"
+
+    stats = json.loads(stats_file.read_text(encoding="utf-8"))
+
+    # 1. Colormap and units
+    assert stats.get("colormap") == "RdBu_r", f"Expected RdBu_r colormap, got {stats.get('colormap')}"
+    assert stats.get("unit") in ["s^-1", "1/s"], f"Invalid vorticity unit: {stats.get('unit')}"
+
+    # 2. Symmetrical zero-centered limits
+    omega_lim = stats.get("omega_lim")
+    assert omega_lim == 2.50, f"Expected unified omega_lim=2.50 s^-1, got {omega_lim}"
+    color_range = stats.get("color_range")
+    assert color_range == [-omega_lim, omega_lim], f"Asymmetric color range: {color_range}"
+    assert stats.get("center") == 0.0, f"Non-zero center: {stats.get('center')}"
+
+    # 3. Domain zoom and aspect ratio
+    zoom = stats.get("domain_zoom", {})
+    assert zoom.get("x_range_m") == [0.08, 0.30]
+    assert zoom.get("y_range_m") == [0.07, 0.17]
+    assert zoom.get("x_range_D") == [8.0, 30.0]
+    assert zoom.get("y_range_D") == [7.0, 17.0]
+    assert zoom.get("aspect_ratio") == 1.0, "Physical aspect ratio must be strictly 1:1"
+
+    # 4. Five snapshot moments and raw physical data integrity
+    snapshots = stats.get("snapshots", {})
+    expected_times = ["10", "40", "100", "195", "200"]
+    assert [int(k) for k in sorted(snapshots.keys(), key=int)] == [10, 40, 100, 195, 200]
+
+    for t_str in expected_times:
+        snap = snapshots[t_str]
+        t_sec = snap.get("t_sec")
+        assert float(t_sec) == float(t_str)
+
+        # Raw CFD extrema preserved (not clamped to omega_lim)
+        v_min = snap.get("min")
+        v_max = snap.get("max")
+        assert v_min < -15.0, f"Raw min vorticity altered/clamped: {v_min}"
+        assert v_max > 15.0, f"Raw max vorticity altered/clamped: {v_max}"
+
+        # Quantile ordering
+        assert snap.get("q90") < snap.get("q95") < snap.get("q99") < snap.get("q995")
+
+        # Color clipping ratio recorded and strictly bounded
+        clip_pct = snap.get("clipping_pct_at_2_5")
+        assert clip_pct is not None
+        assert 0.0 < clip_pct < 1.0, f"Clipping pct {clip_pct}% out of expected range [0, 1%]"
+
+    # 5. Phase alignment check
+    # t=195s is near zero-crossing (lift near 0)
+    cl_195 = snapshots["195"]["cl_instant"]
+    assert abs(cl_195) < 0.05, f"t=195s lift {cl_195} not near zero crossing"
+
+    # t=200s is near trough phase (large negative lift)
+    cl_200 = snapshots["200"]["cl_instant"]
+    assert cl_200 < -0.25, f"t=200s lift {cl_200} not near trough phase"
+
+    # 6. Overall pooled statistics
+    overall = stats.get("overall_stats", {})
+    assert overall.get("pooled_q99") > 1.5
+    assert overall.get("pooled_q995") > 2.0
+    assert overall.get("pooled_clipping_pct_at_2_5") < 0.50, "Pooled clipping exceeded 0.50%"
+
+
+def test_s1a2_visualization_all_output_artifacts_exist_and_valid():
+    """Verify that all required visualization figures (Version A, Version B PNG/PDF, Overview, SymLog, Enhanced) exist and are non-empty."""
+    from PIL import Image
+
+    # Version A: 科研讨论版
+    p_disc = S1A2_DIR / "re100_s1a2_vorticity_discussion.png"
+    p_snap = S1A2_DIR / "re100_s1a2_vorticity_snapshots.png"
+    assert p_disc.is_file() and p_disc.stat().st_size > 200_000
+    assert p_snap.is_file() and p_snap.stat().st_size > 200_000
+
+    # Version B: 论文展示版
+    p_pub_png = S1A2_DIR / "re100_s1a2_vorticity_publication.png"
+    p_pub_pdf = S1A2_DIR / "re100_s1a2_vorticity_publication.pdf"
+    assert p_pub_png.is_file() and p_pub_png.stat().st_size > 300_000
+    assert p_pub_pdf.is_file() and p_pub_pdf.stat().st_size > 50_000
+
+    with Image.open(p_pub_png) as img:
+        w, h = img.size
+        assert w >= 2500, f"Publication PNG width {w} < 2500px (not high DPI)"
+        assert h >= 2000, f"Publication PNG height {h} < 2000px"
+
+    # Auxiliary: Frame-by-frame enhanced display
+    p_enh = S1A2_DIR / "re100_s1a2_vorticity_enhanced_individual.png"
+    assert p_enh.is_file() and p_enh.stat().st_size > 200_000
+
+    # Auxiliary: SymLog display
+    p_sym = S1A2_DIR / "re100_s1a2_vorticity_symlog.png"
+    assert p_sym.is_file() and p_sym.stat().st_size > 200_000
+
+    # Full Overview reference
+    p_ov = S1A2_DIR / "re100_s1a2_vorticity_full_overview.png"
+    assert p_ov.is_file() and p_ov.stat().st_size > 100_000
+
+    # Comparison figure
+    p_comp = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
+    assert p_comp.is_file() and p_comp.stat().st_size > 100_000
+
+    # 5 raw regular grid text files
+    for t_s in [10, 40, 100, 195, 200]:
+        grid_p = S1A2_DIR / f"vorticity_grid_t{t_s}s.txt"
+        assert grid_p.is_file()
+        assert grid_p.stat().st_size > 5_000_000, f"Grid file {grid_p.name} too small"
