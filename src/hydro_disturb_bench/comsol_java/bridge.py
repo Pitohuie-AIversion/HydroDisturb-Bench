@@ -12,6 +12,7 @@ import json
 import errno
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import time
@@ -1155,4 +1156,94 @@ def export_solution_data(
     res["source_sha256"] = hash_before
     res["output_txt"] = str(output_txt_path.resolve())
     res["output_sha256"] = compute_file_hash(output_txt_path)
+    return res
+
+
+def export_s1_diagnostics(
+    model_path: Path | str,
+    output_dir: Path | str,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+    expected_steps: int = 501,
+) -> dict[str, Any]:
+    """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+    Publication gate (atomic, fail closed):
+    1. COMSOL bridge reports SUCCESS.
+    2. Source model SHA-256 unchanged.
+    3. Staging directory passes validate_s1_diagnostics (501 aligned steps, no NaN/Inf, snapshots valid).
+    4. Atomic no-overwrite publish (unless allow_overwrite=True).
+    """
+    from ..io import ComsolExportValidationError, validate_s1_diagnostics, S1_REQUIRED_SERIES, S1_REQUIRED_SNAPSHOTS
+
+    model_path = Path(model_path)
+    output_dir = Path(output_dir)
+
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    hash_before = compute_file_hash(model_path)
+
+    staging_parent = output_dir / ".staging"
+    staging_parent.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_dir = staging_parent / f"stage_{stage_id}"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    args = [
+        "export-s1-diagnostics",
+        str(model_path.resolve()),
+        str(staging_dir.resolve()),
+    ]
+
+    try:
+        res = _run_bridge(args, root=root)
+    except Exception:
+        shutil.rmtree(staging_dir, ignore_errors=True)
+        raise
+
+    hash_after = compute_file_hash(model_path)
+    if hash_before != hash_after:
+        shutil.rmtree(staging_dir, ignore_errors=True)
+        raise ModelValidationError(
+            f"Safety violation: source model file was modified during diagnostic export! "
+            f"Source SHA-256 changed from {hash_before} to {hash_after}. "
+            f"Staging artifacts deleted; outputs were NOT published."
+        )
+
+    # Validate all staging files before publishing
+    try:
+        val_summary = validate_s1_diagnostics(staging_dir, expected_steps=expected_steps)
+    except ComsolExportValidationError as err:
+        shutil.rmtree(staging_dir, ignore_errors=True)
+        raise ModelValidationError(
+            f"Staging diagnostics failed data contract validation; outputs were NOT published: {err}"
+        ) from err
+
+    # Publish each file with file_publish_lock
+    published_files: list[str] = []
+    all_files = list(S1_REQUIRED_SERIES) + list(S1_REQUIRED_SNAPSHOTS)
+    with file_publish_lock(output_dir):
+        for fname in all_files:
+            src_file = staging_dir / fname
+            dst_file = output_dir / fname
+            if not src_file.is_file():
+                continue
+            if dst_file.exists() and not allow_overwrite:
+                shutil.rmtree(staging_dir, ignore_errors=True)
+                raise FileExistsError(
+                    f"Refusing to overwrite existing diagnostic file without allow_overwrite=True: {dst_file}"
+                )
+            if dst_file.exists():
+                dst_file.unlink()
+            shutil.move(str(src_file), str(dst_file))
+            published_files.append(fname)
+
+    shutil.rmtree(staging_dir, ignore_errors=True)
+
+    res["validation"] = val_summary
+    res["source_sha256"] = hash_before
+    res["output_dir"] = str(output_dir.resolve())
+    res["published_files"] = published_files
     return res

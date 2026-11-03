@@ -59,6 +59,12 @@ public class ComsolBridge {
                     return;
                 }
                 handleExportSolutionData(args[1], args[2]);
+            } else if ("export-s1-diagnostics".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: export-s1-diagnostics <modelPath> <outputDir>", "");
+                    return;
+                }
+                handleExportS1Diagnostics(args[1], args[2]);
             } else {
                 outputError("API_UNSUPPORTED", "Unknown command: " + command, "");
             }
@@ -701,6 +707,220 @@ public class ComsolBridge {
             emitResult(sb.toString());
         } catch (Throwable t) {
             outputError("SOLVER_FAILED", "Failed to export solution data: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void safeRemoveExport(Model model, String tag) {
+        try {
+            for (String t : model.result().export().tags()) {
+                if (tag.equals(t)) {
+                    model.result().export().remove(tag);
+                    break;
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static void safeRemoveDataset(Model model, String tag) {
+        try {
+            for (String t : model.result().dataset().tags()) {
+                if (tag.equals(t)) {
+                    model.result().dataset().remove(tag);
+                    break;
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static void safeRemoveResult(Model model, String tag) {
+        try {
+            for (String t : model.result().tags()) {
+                if (tag.equals(t)) {
+                    model.result().remove(tag);
+                    break;
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static void handleExportS1Diagnostics(String modelPath, String outputDir) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for diagnostic export: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            java.io.File outDir = new java.io.File(outputDir);
+            if (!outDir.exists()) {
+                outDir.mkdirs();
+            }
+
+            java.util.List<String> exportedFiles = new java.util.ArrayList<>();
+
+            // 1. Lift coefficient (pg3)
+            String liftPath = new java.io.File(outDir, "lift_coeff.txt").getAbsolutePath().replace('\\', '/');
+            safeRemoveExport(model, "exp_lift_s1");
+            ExportFeature expLift = model.result().export().create("exp_lift_s1", "Plot");
+            expLift.set("plotgroup", "pg3");
+            expLift.set("filename", liftPath);
+            expLift.run();
+            exportedFiles.add("lift_coeff.txt");
+
+            // 2. Drag coefficient (pg4)
+            String dragPath = new java.io.File(outDir, "drag_coeff.txt").getAbsolutePath().replace('\\', '/');
+            safeRemoveExport(model, "exp_drag_s1");
+            ExportFeature expDrag = model.result().export().create("exp_drag_s1", "Plot");
+            expDrag.set("plotgroup", "pg4");
+            expDrag.set("filename", dragPath);
+            expDrag.run();
+            exportedFiles.add("drag_coeff.txt");
+
+            // 3. Wake probe at CutPoint2D (0.15, 0.12)
+            safeRemoveDataset(model, "cpt_wake_s1");
+            DatasetFeature cptWake = model.result().dataset().create("cpt_wake_s1", "CutPoint2D");
+            cptWake.set("data", "dset1");
+            cptWake.set("pointx", "0.15");
+            cptWake.set("pointy", "0.12");
+
+            // Wake U
+            safeRemoveResult(model, "pg_wake_u_s1");
+            ResultFeature pgWakeU = model.result().create("pg_wake_u_s1", "PlotGroup1D");
+            pgWakeU.set("data", "cpt_wake_s1");
+            ResultFeature ptWakeU = pgWakeU.feature().create("ptU", "PointGraph");
+            ptWakeU.set("expr", "u");
+            String wuPath = new java.io.File(outDir, "wake_u.txt").getAbsolutePath().replace('\\', '/');
+            safeRemoveExport(model, "exp_wake_u_s1");
+            ExportFeature expWakeU = model.result().export().create("exp_wake_u_s1", "Plot");
+            expWakeU.set("plotgroup", "pg_wake_u_s1");
+            expWakeU.set("filename", wuPath);
+            expWakeU.run();
+            exportedFiles.add("wake_u.txt");
+
+            // Wake V
+            safeRemoveResult(model, "pg_wake_v_s1");
+            ResultFeature pgWakeV = model.result().create("pg_wake_v_s1", "PlotGroup1D");
+            pgWakeV.set("data", "cpt_wake_s1");
+            ResultFeature ptWakeV = pgWakeV.feature().create("ptV", "PointGraph");
+            ptWakeV.set("expr", "v");
+            String wvPath = new java.io.File(outDir, "wake_v.txt").getAbsolutePath().replace('\\', '/');
+            safeRemoveExport(model, "exp_wake_v_s1");
+            ExportFeature expWakeV = model.result().export().create("exp_wake_v_s1", "Plot");
+            expWakeV.set("plotgroup", "pg_wake_v_s1");
+            expWakeV.set("filename", wvPath);
+            expWakeV.run();
+            exportedFiles.add("wake_v.txt");
+
+            // 4. Inlet probe at CutPoint2D (0.0, 0.12)
+            safeRemoveDataset(model, "cpt_inlet_s1");
+            DatasetFeature cptInlet = model.result().dataset().create("cpt_inlet_s1", "CutPoint2D");
+            cptInlet.set("data", "dset1");
+            cptInlet.set("pointx", "0.0");
+            cptInlet.set("pointy", "0.12");
+
+            // Inlet U
+            safeRemoveResult(model, "pg_inlet_u_s1");
+            ResultFeature pgInletU = model.result().create("pg_inlet_u_s1", "PlotGroup1D");
+            pgInletU.set("data", "cpt_inlet_s1");
+            ResultFeature ptInletU = pgInletU.feature().create("ptU", "PointGraph");
+            ptInletU.set("expr", "u");
+            String iuPath = new java.io.File(outDir, "inlet_u.txt").getAbsolutePath().replace('\\', '/');
+            safeRemoveExport(model, "exp_inlet_u_s1");
+            ExportFeature expInletU = model.result().export().create("exp_inlet_u_s1", "Plot");
+            expInletU.set("plotgroup", "pg_inlet_u_s1");
+            expInletU.set("filename", iuPath);
+            expInletU.run();
+            exportedFiles.add("inlet_u.txt");
+
+            // Inlet P
+            safeRemoveResult(model, "pg_inlet_p_s1");
+            ResultFeature pgInletP = model.result().create("pg_inlet_p_s1", "PlotGroup1D");
+            pgInletP.set("data", "cpt_inlet_s1");
+            ResultFeature ptInletP = pgInletP.feature().create("ptP", "PointGraph");
+            ptInletP.set("expr", "p");
+            String ipPath = new java.io.File(outDir, "inlet_p.txt").getAbsolutePath().replace('\\', '/');
+            safeRemoveExport(model, "exp_inlet_p_s1");
+            ExportFeature expInletP = model.result().export().create("exp_inlet_p_s1", "Plot");
+            expInletP.set("plotgroup", "pg_inlet_p_s1");
+            expInletP.set("filename", ipPath);
+            expInletP.run();
+            exportedFiles.add("inlet_p.txt");
+
+            // 5. Stagnation Point probe at CutPoint2D (0.095, 0.12)
+            safeRemoveDataset(model, "cpt_stag_s1");
+            DatasetFeature cptStag = model.result().dataset().create("cpt_stag_s1", "CutPoint2D");
+            cptStag.set("data", "dset1");
+            cptStag.set("pointx", "0.095");
+            cptStag.set("pointy", "0.12");
+
+            safeRemoveResult(model, "pg_stag_p_s1");
+            ResultFeature pgStagP = model.result().create("pg_stag_p_s1", "PlotGroup1D");
+            pgStagP.set("data", "cpt_stag_s1");
+            ResultFeature ptStagP = pgStagP.feature().create("ptP", "PointGraph");
+            ptStagP.set("expr", "p");
+            String spPath = new java.io.File(outDir, "stag_p.txt").getAbsolutePath().replace('\\', '/');
+            safeRemoveExport(model, "exp_stag_p_s1");
+            ExportFeature expStagP = model.result().export().create("exp_stag_p_s1", "Plot");
+            expStagP.set("plotgroup", "pg_stag_p_s1");
+            expStagP.set("filename", spPath);
+            expStagP.run();
+            exportedFiles.add("stag_p.txt");
+
+            // 6. Vorticity snapshot images at t = 10, 40, 95, 100 s
+            int[][] targets = new int[][]{
+                {10, 51},
+                {40, 201},
+                {95, 476},
+                {100, 501}
+            };
+
+            for (int[] tgt : targets) {
+                int tSec = tgt[0];
+                int solnum = tgt[1];
+                try {
+                    String pgTag = "pg_vort_snap_" + tSec + "_s1";
+                    safeRemoveResult(model, pgTag);
+                    ResultFeature pgVort = model.result().create(pgTag, "PlotGroup2D");
+                    pgVort.set("data", "dset1");
+                    pgVort.set("solnum", String.valueOf(solnum));
+                    pgVort.set("titletype", "custom");
+                    pgVort.set("title", "Re=100 Vorticity omega_z at t = " + tSec + "s");
+
+                    ResultFeature surf = pgVort.feature().create("surf1", "Surface");
+                    surf.set("expr", "vx-uy");
+                    surf.set("unit", "1/s");
+
+                    String imgName = "vorticity_t" + tSec + "s_comsol.png";
+                    String imgPath = new java.io.File(outDir, imgName).getAbsolutePath().replace('\\', '/');
+                    String expTag = "exp_img_" + tSec + "_s1";
+                    safeRemoveExport(model, expTag);
+                    ExportFeature expImg = model.result().export().create(expTag, "Image");
+                    expImg.set("plotgroup", pgTag);
+                    expImg.set("pngfilename", imgPath);
+                    expImg.set("size", "manualweb");
+                    expImg.set("unit", "px");
+                    expImg.set("webwidth", "1200");
+                    expImg.set("webheight", "600");
+                    expImg.run();
+                    exportedFiles.add(imgName);
+                } catch (Throwable imgErr) {
+                    System.err.println("Warning: snapshot at t=" + tSec + "s failed: " + imgErr.getMessage());
+                }
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"export_s1_diagnostics\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_dir\": ").append(quote(outputDir)).append(",\n");
+            sb.append("  \"exported_files\": ").append(stringArrayToJson(exportedFiles.toArray(new String[0]))).append("\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("SOLVER_FAILED", "Failed to export S1 diagnostics: " + t.getMessage(), getStackTrace(t));
         }
     }
 

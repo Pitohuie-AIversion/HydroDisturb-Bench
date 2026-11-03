@@ -64,6 +64,11 @@ def main(argv: list[str] | None = None) -> int:
     j_exp.add_argument("--output", required=True, help="Output text file path")
     j_exp.add_argument("--allow-overwrite", action="store_true", default=False, help="Allow overwriting destination if it already exists")
 
+    j_diag = sub.add_parser("java-export-s1-diagnostics", help="Export S1 lift, drag, wake, inlet, and stagnation diagnostics via COMSOL Java API")
+    j_diag.add_argument("--model", required=True, help="Solved S1 model path")
+    j_diag.add_argument("--output-dir", required=True, help="Output directory for diagnostic text and image files")
+    j_diag.add_argument("--allow-overwrite", action="store_true", default=False, help="Allow overwriting destination if it already exists")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -138,6 +143,14 @@ def main(argv: list[str] | None = None) -> int:
         res = export_solution_data(
             model_path=Path(args.model),
             output_txt_path=Path(args.output),
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-export-s1-diagnostics":
+        from .comsol_java import export_s1_diagnostics
+        res = export_s1_diagnostics(
+            model_path=Path(args.model),
+            output_dir=Path(args.output_dir),
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))

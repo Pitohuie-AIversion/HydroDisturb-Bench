@@ -390,3 +390,181 @@ def parse_comsol_txt(
         "timesteps": times,
         "metadata": metadata,
     }
+
+
+# ---------------------------------------------------------------------------
+# Stage S1-A 1D diagnostic time-series & snapshot admission contract
+# ---------------------------------------------------------------------------
+
+S1_REQUIRED_SERIES: tuple[str, ...] = (
+    "lift_coeff.txt",
+    "drag_coeff.txt",
+    "wake_u.txt",
+    "wake_v.txt",
+    "inlet_u.txt",
+    "inlet_p.txt",
+    "stag_p.txt",
+)
+
+S1_REQUIRED_SNAPSHOTS: tuple[str, ...] = (
+    "vorticity_t10s_comsol.png",
+    "vorticity_t40s_comsol.png",
+    "vorticity_t95s_comsol.png",
+    "vorticity_t100s_comsol.png",
+)
+
+
+def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
+    """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+    Returns (times, values, metadata_dict).
+    Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+    """
+    import numpy as np
+
+    path = Path(file_path)
+    if not path.is_file():
+        raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+
+    times: list[float] = []
+    values: list[float] = []
+    meta: dict[str, str] = {}
+
+    with path.open("r", encoding="utf-8", errors="replace") as f:
+        for lineno, raw in enumerate(f, start=1):
+            line = raw.strip()
+            if not line:
+                continue
+            if line.startswith("%"):
+                m = _META_RE.match(line)
+                if m:
+                    meta[m.group("key")] = m.group("val").strip()
+                elif "s" in line or "时间" in line or "Time" in line:
+                    meta["column_header"] = line
+                continue
+
+            parts = line.split()
+            if len(parts) < 2:
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: corrupted row with fewer than 2 columns: {raw!r}"
+                )
+            try:
+                t = float(parts[0])
+                v = float(parts[1])
+            except ValueError as e:
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: invalid floating point number: {raw!r}"
+                ) from e
+
+            if not math.isfinite(t):
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: non-finite timestamp {t} encountered"
+                )
+            if not math.isfinite(v):
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: non-finite value {v} encountered at t={t}"
+                )
+
+            times.append(t)
+            values.append(v)
+
+    if not times:
+        raise ComsolExportValidationError(f"{path.name}: file contains zero data rows")
+
+    t_arr = np.asarray(times, dtype=float)
+    v_arr = np.asarray(values, dtype=float)
+
+    if np.any(np.diff(t_arr) <= 0):
+        raise ComsolExportValidationError(f"{path.name}: timestamps are not strictly monotonically increasing")
+
+    return t_arr, v_arr, meta
+
+
+def validate_s1_diagnostics(
+    diagnostics_dir: str | Path,
+    expected_steps: int = 501,
+    expected_dt: float = 0.20,
+    expected_t_final: float = 100.0,
+    time_tol: float = 1e-4,
+) -> dict[str, Any]:
+    """Validate completeness, alignment, units, and finite values for S1 diagnostics.
+
+    Fail closed:
+    - If any required file is missing -> raises ComsolExportValidationError
+    - If sample count != expected_steps -> raises ComsolExportValidationError
+    - If timestamps are misaligned across series -> raises ComsolExportValidationError
+    - If NaN/Inf exists -> raises ComsolExportValidationError
+    - If any snapshot image is missing or empty (< 100 bytes) -> raises ComsolExportValidationError
+    """
+    import numpy as np
+
+    diag_dir = Path(diagnostics_dir)
+    if not diag_dir.is_dir():
+        raise ComsolExportValidationError(f"Diagnostics directory does not exist: {diag_dir}")
+
+    # Check 1: Image snapshots presence & non-zero size
+    img_records: list[dict[str, Any]] = []
+    for img_name in S1_REQUIRED_SNAPSHOTS:
+        img_path = diag_dir / img_name
+        if not img_path.is_file():
+            raise ComsolExportValidationError(f"Required S1 vorticity snapshot missing: {img_name}")
+        size = img_path.stat().st_size
+        if size < 100:
+            raise ComsolExportValidationError(f"S1 vorticity snapshot is empty or corrupt ({size} bytes): {img_name}")
+        img_records.append({"filename": img_name, "size_bytes": size})
+
+    # Check 2: Parse and validate all 7 time series
+    series_data: dict[str, dict[str, Any]] = {}
+    ref_times: np.ndarray | None = None
+
+    for fname in S1_REQUIRED_SERIES:
+        fpath = diag_dir / fname
+        if not fpath.is_file():
+            raise ComsolExportValidationError(f"Required S1 time series file missing: {fname}")
+
+        t, v, meta = load_comsol_1d_timeseries(fpath)
+
+        if len(t) != expected_steps:
+            raise ComsolExportValidationError(
+                f"{fname}: row count mismatch: found {len(t)} rows, expected {expected_steps}"
+            )
+
+        if abs(t[0] - 0.0) > time_tol or abs(t[-1] - expected_t_final) > time_tol:
+            raise ComsolExportValidationError(
+                f"{fname}: time range mismatch: found [{t[0]:.4f}, {t[-1]:.4f}], expected [0.0, {expected_t_final:.4f}]"
+            )
+
+        mean_dt = float(np.mean(np.diff(t)))
+        if abs(mean_dt - expected_dt) > time_tol:
+            raise ComsolExportValidationError(
+                f"{fname}: mean dt {mean_dt:.6f} deviates from expected {expected_dt:.6f}"
+            )
+
+        if ref_times is None:
+            ref_times = t
+        else:
+            diff = float(np.max(np.abs(t - ref_times)))
+            if diff > time_tol:
+                raise ComsolExportValidationError(
+                    f"{fname}: timestamp misalignment against reference: max diff = {diff:.6e} > tol {time_tol}"
+                )
+
+        series_data[fname] = {
+            "num_samples": len(v),
+            "min": float(np.min(v)),
+            "max": float(np.max(v)),
+            "mean": float(np.mean(v)),
+            "std": float(np.std(v)),
+            "header": meta.get("column_header", ""),
+        }
+
+    assert ref_times is not None
+    return {
+        "valid": True,
+        "diagnostics_dir": str(diag_dir.resolve()),
+        "num_steps": expected_steps,
+        "dt": expected_dt,
+        "time_range": [float(ref_times[0]), float(ref_times[-1])],
+        "series": series_data,
+        "snapshots": img_records,
+    }

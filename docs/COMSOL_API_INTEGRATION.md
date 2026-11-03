@@ -149,3 +149,4 @@ The CLI exposed via `hydrobench` supports both the legacy MPh adapter and the of
 - `hydrobench java-solve <model.mph> <output.mph> [--study <tag>] [--tlist <range>] [--log-out <file>]`: Run study on working copy and capture logs.
 - `hydrobench java-build-re100 <baseline.mph> <output.mph>`: Programmatically construct the low-blockage Re=100 benchmark model.
 - `hydrobench java-export-data <model.mph> <output.txt>`: Export node-level solution fields ($u, v, p, \omega$).
+- `hydrobench java-export-s1-diagnostics <model.mph> <output-dir>`: Export 1D time-series ($C_L, C_D, u_{\rm wake}, v_{\rm wake}, u_{\rm inlet}, p_{\rm inlet}, p_{\rm stag}$) and 2D vorticity snapshot images.
