@@ -227,6 +227,19 @@ def test_re100_abnormal_study_failure_does_not_publish(tmp_path: Path):
     assert not bad_output.exists(), "Corrupted output was published after failed solve!"
 
 
+def _make_valid_staging_content(t: float = 0.0, u_val: float = 0.01) -> str:
+    """Generate minimal valid COMSOL Data export text with all required expressions and units."""
+    return (
+        "% Model: test.mph\n"
+        "% Dimension: 2\n"
+        "% Nodes: 1\n"
+        "% Expressions: 5\n"
+        "% Length unit: m\n"
+        f"% x y u (m/s) @ t={t} v (m/s) @ t={t} p (Pa) @ t={t} vx-uy (1/s) @ t={t} spf.U (m/s) @ t={t}\n"
+        f"0.1 0.2 {u_val} 0.0 0.5 1.0 {u_val}\n"
+    )
+
+
 def test_export_solution_data_refuses_to_overwrite_existing(tmp_path: Path):
     """export_solution_data must refuse to overwrite existing target file by default and quarantine conflict."""
     dummy_model = tmp_path / "model.mph"
@@ -237,7 +250,7 @@ def test_export_solution_data_refuses_to_overwrite_existing(tmp_path: Path):
 
     def mock_run_bridge(args, root=None):
         staging_file = Path(args[2])
-        staging_file.write_text("% x  y  u @ t=0\n0 0 1\n", encoding="utf-8")
+        staging_file.write_text(_make_valid_staging_content(), encoding="utf-8")
         return {"status": "SUCCESS", "operation": "export_solution_data"}
 
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
@@ -247,7 +260,7 @@ def test_export_solution_data_refuses_to_overwrite_existing(tmp_path: Path):
     assert out_txt.read_text(encoding="utf-8") == prior_content
     conflicts = list((tmp_path / "quarantine").glob("conflict_*target_existing.txt"))
     assert len(conflicts) == 1, f"Expected 1 conflict file in quarantine, found: {conflicts}"
-    assert "u @ t=0" in conflicts[0].read_text(encoding="utf-8")
+    assert "u (m/s) @ t=0.0" in conflicts[0].read_text(encoding="utf-8")
 
 
 def test_export_solution_data_abort_does_not_publish_and_quarantines(tmp_path: Path):
@@ -271,6 +284,151 @@ def test_export_solution_data_abort_does_not_publish_and_quarantines(tmp_path: P
     assert "partial incomplete export" in failed_quarantine[0].read_text(encoding="utf-8")
 
 
+def test_export_solution_data_single_variable_staging_rejected_and_quarantined(tmp_path: Path):
+    """export_solution_data must refuse to publish when staging file only contains a single variable."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "single_var_flow.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        # Only 'u' exported, missing v, p, vx-uy, spf.U
+        staging_file.write_text("% x y u (m/s) @ t=0.0\n0.1 0.2 0.05\n", encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(ModelValidationError, match="missing required expressions"):
+            export_solution_data(dummy_model, out_txt)
+
+    assert not out_txt.exists(), "File was published despite missing required variables!"
+    quarantined = list((tmp_path / "quarantine").glob("invalid_data_*single_var_flow.txt"))
+    assert len(quarantined) == 1
+    assert "u (m/s) @ t=0.0" in quarantined[0].read_text(encoding="utf-8")
+
+
+def test_export_solution_data_incomplete_times_rejected_and_quarantined(tmp_path: Path):
+    """export_solution_data rejects exports where a time step is missing required expressions."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "incomplete_times.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        # t=0.0 complete, but t=0.1 only has u
+        header = (
+            "% x y "
+            "u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0 "
+            "u (m/s) @ t=0.1\n"
+        )
+        data = "0.1 0.2 0.01 0.0 0.5 1.0 0.01 0.02\n"
+        staging_file.write_text(header + data, encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(ModelValidationError, match="missing required expressions"):
+            export_solution_data(dummy_model, out_txt)
+
+    assert not out_txt.exists()
+    quarantined = list((tmp_path / "quarantine").glob("invalid_data_*incomplete_times.txt"))
+    assert len(quarantined) == 1
+
+
+def test_export_solution_data_duplicate_column_rejected_and_quarantined(tmp_path: Path):
+    """export_solution_data rejects exports containing duplicate expression-time columns."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "duplicate_cols.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        # Duplicate u (m/s) @ t=0.0
+        header = (
+            "% x y "
+            "u (m/s) @ t=0.0 u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
+        )
+        data = "0.1 0.2 0.01 0.01 0.0 0.5 1.0 0.01\n"
+        staging_file.write_text(header + data, encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(ModelValidationError, match="Duplicate expression-time column"):
+            export_solution_data(dummy_model, out_txt)
+
+    assert not out_txt.exists()
+    quarantined = list((tmp_path / "quarantine").glob("invalid_data_*duplicate_cols.txt"))
+    assert len(quarantined) == 1
+
+
+def test_export_solution_data_wrong_unit_rejected_and_quarantined(tmp_path: Path):
+    """export_solution_data rejects exports with incorrect physical units (e.g., bar instead of Pa)."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "wrong_unit.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        # Wrong unit: p has bar instead of Pa
+        header = "% x y u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (bar) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
+        data = "0.1 0.2 0.01 0.0 0.5 1.0 0.01\n"
+        staging_file.write_text(header + data, encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(ModelValidationError, match="Unit mismatch for expression 'p'"):
+            export_solution_data(dummy_model, out_txt)
+
+    assert not out_txt.exists()
+    quarantined = list((tmp_path / "quarantine").glob("invalid_data_*wrong_unit.txt"))
+    assert len(quarantined) == 1
+
+
+def test_export_solution_data_valid_contract_publishes_successfully(tmp_path: Path):
+    """export_solution_data successfully publishes and returns validation summary when contract is satisfied."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "valid_flow.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        staging_file.write_text(_make_valid_staging_content(t=0.0, u_val=0.015), encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        res = export_solution_data(dummy_model, out_txt, allow_overwrite=False)
+
+    assert out_txt.is_file()
+    assert res["status"] == "SUCCESS"
+    assert "validation" in res
+    assert res["validation"]["num_rows"] == 1
+    assert res["validation"]["num_columns"] == 7
+    assert res["validation"]["num_times"] == 1
+    assert res["validation"]["field_ranges"]["u"] == [0.015, 0.015]
+
+
+def test_export_solution_data_invalid_export_leaves_preexisting_final_untouched(tmp_path: Path):
+    """Pre-existing final file remains strictly unaltered when a subsequent export attempt has invalid data."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    final_txt = tmp_path / "existing_valuable.txt"
+    final_txt.write_text("prior golden data: MUST NOT BE TOUCHED", encoding="utf-8")
+    prior_content = final_txt.read_text(encoding="utf-8")
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        # Invalid data: NaN inside field column
+        header = "% x y u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
+        data = "0.1 0.2 NaN 0.0 0.5 1.0 0.01\n"
+        staging_file.write_text(header + data, encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(ModelValidationError, match="NaN or Inf"):
+            export_solution_data(dummy_model, final_txt, allow_overwrite=True)
+
+    # Destination was NOT overwritten even with allow_overwrite=True
+    assert final_txt.read_text(encoding="utf-8") == prior_content
+
+
 def test_export_solution_data_concurrent_race_only_one_succeeds(tmp_path: Path):
     """Two concurrent processes trying to export to the same target: one succeeds, one raises FileExistsError."""
     dummy_model = tmp_path / "model.mph"
@@ -278,28 +436,95 @@ def test_export_solution_data_concurrent_race_only_one_succeeds(tmp_path: Path):
     out_txt = tmp_path / "concurrent_flow.txt"
 
     def mock_run_bridge(args, root=None):
-        staging_file = Path(args[2])
-        staging_file.write_text(f"% x y u @ t=0\n0 0 {time.time()}\n", encoding="utf-8")
-        time.sleep(0.05)
-        return {"status": "SUCCESS", "operation": "export_solution_data"}
+        if len(args) >= 3 and args[0] == "export-solution-data":
+            staging_file = Path(args[2])
+            staging_file.write_text(_make_valid_staging_content(t=0.0, u_val=time.time()), encoding="utf-8")
+            time.sleep(0.05)
+            return {"status": "SUCCESS", "operation": "export_solution_data"}
+        raise ValueError(f"Unexpected mock_run_bridge invocation: {args}")
 
     def run_worker(worker_id):
         try:
-            with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
-                export_solution_data(dummy_model, out_txt, allow_overwrite=False)
+            export_solution_data(dummy_model, out_txt, allow_overwrite=False)
             return ("SUCCESS", worker_id)
         except FileExistsError:
             return ("CONFLICT", worker_id)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        f1 = executor.submit(run_worker, 1)
-        f2 = executor.submit(run_worker, 2)
-        results = [f1.result(), f2.result()]
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            f1 = executor.submit(run_worker, 1)
+            f2 = executor.submit(run_worker, 2)
+            results = [f1.result(), f2.result()]
 
     statuses = [r[0] for r in results]
     assert "SUCCESS" in statuses
     assert "CONFLICT" in statuses
     assert out_txt.is_file()
+
+
+def test_inspect_model_reports_live_geometry_distinct_for_different_models():
+    """inspect_model must dynamically query live COMSOL geometry and not emit a hardcoded coordinate map."""
+    base_insp = inspect_model(BASELINE_MODEL)
+    re100_insp = inspect_model(BENCHMARK_MODEL)
+
+    # No hardcoded boundary_geometry_map
+    assert "boundary_geometry_map" not in base_insp
+    assert "boundary_geometry_map" not in re100_insp
+
+    base_geom = base_insp["components"][0]["geometries"][0]["boundary_geometry"]
+    re100_geom = re100_insp["components"][0]["geometries"][0]["boundary_geometry"]
+
+    assert base_geom["available"] is True
+    assert re100_geom["available"] is True
+
+    # Real geometry bounding boxes must strictly differ (baseline is 2.2m x 0.41m, Re100 is 0.40m x 0.24m)
+    assert base_geom["bounding_box"] != re100_geom["bounding_box"]
+    assert math.isclose(base_geom["bounding_box"][1], 2.2, rel_tol=1e-4)
+    assert math.isclose(re100_geom["bounding_box"][1], 0.40, rel_tol=1e-4)
+
+
+def test_re100_boundary_geometry_matches_physical_spec():
+    """Verify live boundary geometry evidence in Re=100 model exactly matches physics spec."""
+    insp = inspect_model(BENCHMARK_MODEL)
+    bg = insp["components"][0]["geometries"][0]["boundary_geometry"]
+    assert bg["available"] is True
+    assert bg["n_boundaries"] == 8
+
+    # Bounding box: [0, 0.40, 0, 0.24]
+    bb = bg["bounding_box"]
+    assert math.isclose(bb[0], 0.0, abs_tol=1e-6)
+    assert math.isclose(bb[1], 0.40, rel_tol=1e-5)
+    assert math.isclose(bb[2], 0.0, abs_tol=1e-6)
+    assert math.isclose(bb[3], 0.24, rel_tol=1e-5)
+
+    b_by_id = {b["id"]: b for b in bg["boundaries"]}
+
+    # Inlet: Boundary 1 is at x=0, y in [0, 0.24]
+    b1 = b_by_id[1]
+    assert math.isclose(b1["x_range"][0], 0.0, abs_tol=1e-6)
+    assert math.isclose(b1["x_range"][1], 0.0, abs_tol=1e-6)
+    assert math.isclose(b1["length_polyline"], 0.24, rel_tol=1e-4)
+
+    # Lateral symmetry: Boundary 2 (bottom y=0) and 3 (top y=0.24)
+    b2 = b_by_id[2]
+    assert math.isclose(b2["y_range"][0], 0.0, abs_tol=1e-6)
+    assert math.isclose(b2["length_polyline"], 0.40, rel_tol=1e-4)
+
+    b3 = b_by_id[3]
+    assert math.isclose(b3["y_range"][0], 0.24, rel_tol=1e-4)
+    assert math.isclose(b3["length_polyline"], 0.40, rel_tol=1e-4)
+
+    # Outlet: Boundary 4 is at x=0.40, y in [0, 0.24]
+    b4 = b_by_id[4]
+    assert math.isclose(b4["x_range"][0], 0.40, rel_tol=1e-4)
+    assert math.isclose(b4["length_polyline"], 0.24, rel_tol=1e-4)
+
+    # Cylinder: Boundaries 5, 6, 7, 8 are circular arcs of radius R=0.005 at (0.10, 0.12)
+    for cid in [5, 6, 7, 8]:
+        bc = b_by_id[cid]
+        for p in bc["samples"]:
+            dist = math.hypot(p[0] - 0.10, p[1] - 0.12)
+            assert math.isclose(dist, 0.005, rel_tol=1e-4), f"Cylinder node off-radius: {dist} != 0.005"
 
 
 def test_parse_comsol_txt_shuffled_column_order(tmp_path: Path):

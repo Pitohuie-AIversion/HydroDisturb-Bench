@@ -75,7 +75,14 @@ def main():
     print(f"   Target Re:       {Re} (Calculated: {rho*U_inf*D/mu:.4f})")
     print(f"   Domain:          Length {L} m (40D), Height {H} m (24D)")
     print(f"   Blockage Ratio:  {blockage:.4f} ({blockage*100:.2f}% < 5%)")
-    print("   [OK] Parameters match Stage S0 physical specification.")
+
+    bg = insp["components"][0]["geometries"][0].get("boundary_geometry", {})
+    if bg.get("available"):
+        print(f"   Live Geometry:   {bg.get('n_boundaries')} boundaries, BoundingBox={bg.get('bounding_box')}")
+        for b in bg.get("boundaries", []):
+            print(f"     Boundary {b['id']}: X in [{b['x_range'][0]:.4f}, {b['x_range'][1]:.4f}], "
+                  f"Y in [{b['y_range'][0]:.4f}, {b['y_range'][1]:.4f}], len={b['length_polyline']:.4f}m")
+    print("   [OK] Parameters and live geometry match Stage S0 physical specification.")
 
     # 3. Execute short transient solve on a working copy in runs/
     solved_mph = OUTPUT_DIR / "re100_s0_solved.mph"

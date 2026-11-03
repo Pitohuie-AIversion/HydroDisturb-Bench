@@ -157,7 +157,8 @@ public class ComsolBridge {
                 sb.append("        {\n");
                 sb.append("          \"tag\": ").append(quote(gtag)).append(",\n");
                 sb.append("          \"sdim\": ").append(geom.getSDim()).append(",\n");
-                sb.append("          \"features\": ").append(stringArrayToJson(geom.feature().tags())).append("\n");
+                sb.append("          \"features\": ").append(stringArrayToJson(geom.feature().tags())).append(",\n");
+                sb.append("          \"boundary_geometry\": ").append(boundaryGeometryJson(geom, gtag, "          ")).append("\n");
                 sb.append("        }").append(j < gtags.length - 1 ? "," : "").append("\n");
             }
             sb.append("      ],\n");
@@ -239,18 +240,6 @@ public class ComsolBridge {
             sb.append("    }").append(i < ctags.length - 1 ? "," : "").append("\n");
         }
         sb.append("  ],\n");
-
-        // Boundary geometry mapping for 2D cylinder models
-        sb.append("  \"boundary_geometry_map\": {\n");
-        sb.append("    \"1\": \"Inflow boundary (x=0, y in [0, 0.24] m)\",\n");
-        sb.append("    \"2\": \"Bottom lateral boundary (y=0, x in [0, 0.40] m)\",\n");
-        sb.append("    \"3\": \"Top lateral boundary (y=0.24, x in [0, 0.40] m)\",\n");
-        sb.append("    \"4\": \"Outflow boundary (x=0.40, y in [0, 0.24] m)\",\n");
-        sb.append("    \"5\": \"Cylinder surface SW quadrant arc\",\n");
-        sb.append("    \"6\": \"Cylinder surface NW quadrant arc\",\n");
-        sb.append("    \"7\": \"Cylinder surface SE quadrant arc\",\n");
-        sb.append("    \"8\": \"Cylinder surface NE quadrant arc\"\n");
-        sb.append("  },\n");
 
         // Studies
         sb.append("  \"studies\": [\n");
@@ -592,35 +581,41 @@ public class ComsolBridge {
             out1.getClass().getMethod("set", String.class, String.class).invoke(out1, "p0", "0");
             out1.getClass().getMethod("set", String.class, String.class).invoke(out1, "SuppressBackflow", "1");
 
-            // sym1: Boundaries 2 & 3 (Lateral top and bottom) - Symmetry condition (fail closed)
-            boolean symSuccess = false;
+            // Boundary identification from the LIVE geometry (no assumed IDs).
+            // Classifies every boundary edge sampled via GeomSequence.edgeX against the
+            // geometry bounding box and the evaluated cylinder parameters.
+            int[][] cls = classifyCylinderChannelBoundaries(geom, param.evaluate("x_c"), param.evaluate("y_c"), param.evaluate("R"));
+            int[] inletIds = cls[0], outletIds = cls[1], lateralIds = cls[2], cylinderIds = cls[3];
+
+            // sym1: lateral (y = ymin / y = ymax) boundaries - Symmetry condition (fail closed)
+            Object sym = null;
             try {
                 java.lang.reflect.Method createM = featList.getClass().getMethod("create", String.class, String.class, int.class);
-                Object sym = createM.invoke(featList, "sym1", "Symmetry", 1);
-                Object symSel = sym.getClass().getMethod("selection").invoke(sym);
-                symSel.getClass().getMethod("set", int[].class).invoke(symSel, new int[]{2, 3});
-                symSuccess = true;
+                sym = createM.invoke(featList, "sym1", "Symmetry", 1);
             } catch (Throwable t) {
-                try {
-                    Object sym = spf.getClass().getMethod("feature", String.class).invoke(spf, "sym1");
-                    Object symSel = sym.getClass().getMethod("selection").invoke(sym);
-                    symSel.getClass().getMethod("set", int[].class).invoke(symSel, new int[]{2, 3});
-                    symSuccess = true;
-                } catch (Throwable ignored) {}
+                sym = spf.getClass().getMethod("feature", String.class).invoke(spf, "sym1");
             }
-            if (!symSuccess) {
-                throw new IllegalStateException("Failed to configure symmetry boundary condition on boundaries [2, 3]");
-            }
+            Object symSel = sym.getClass().getMethod("selection").invoke(sym);
+            symSel.getClass().getMethod("set", int[].class).invoke(symSel, lateralIds);
+
+            // Read back every key feature selection and require exact agreement with geometry
+            Object wall = spf.getClass().getMethod("feature", String.class).invoke(spf, "wallbc1");
+            requireSameEntities("inl1 (inlet, x = xmin)", featureEntities(inl1), inletIds);
+            requireSameEntities("out1 (outlet, x = xmax)", featureEntities(out1), outletIds);
+            requireSameEntities("sym1 (lateral, y = ymin/ymax)", featureEntities(sym), lateralIds);
+            requireSameEntities("wallbc1 (cylinder no-slip, |r - r_c| = R)", featureEntities(wall), cylinderIds);
 
             // Mesh configuration: cylinder boundary layer and near-wall refinement (fail closed)
             MeshSequence mesh = comp.mesh("mesh1");
             MeshFeature bl1 = mesh.feature("bl1");
-            bl1.feature("blp1").selection().set(new int[]{5, 6, 7, 8});
+            bl1.feature("blp1").selection().set(cylinderIds);
 
             MeshFeature size1 = mesh.feature("size1");
-            size1.selection().set(new int[]{5, 6, 7, 8});
+            size1.selection().set(cylinderIds);
             size1.set("hmax", "0.0004[m]");
             size1.set("hmin", "0.00005[m]");
+            requireSameEntities("mesh bl1/blp1", featureEntities(bl1.feature("blp1")), cylinderIds);
+            requireSameEntities("mesh size1", featureEntities(size1), cylinderIds);
 
             mesh.run();
             if (!mesh.isComplete()) {
@@ -642,27 +637,37 @@ public class ComsolBridge {
             sb.append("  \"source_model\": ").append(quote(modelPath)).append(",\n");
             sb.append("  \"output_model\": ").append(quote(outputPath)).append(",\n");
             sb.append("  \"parameters\": {\n");
-            sb.append("    \"Re\": 100.0,\n");
-            sb.append("    \"rho\": 998.2,\n");
-            sb.append("    \"mu\": 1.004e-3,\n");
-            sb.append("    \"D\": 0.01,\n");
+            sb.append("    \"Re\": ").append(param.evaluate("Re")).append(",\n");
+            sb.append("    \"rho\": ").append(param.evaluate("rho_f")).append(",\n");
+            sb.append("    \"mu\": ").append(param.evaluate("mu_f")).append(",\n");
+            sb.append("    \"D\": ").append(param.evaluate("D")).append(",\n");
             sb.append("    \"U_inf\": ").append(param.evaluate("U_inf")).append(",\n");
-            sb.append("    \"L\": 0.40,\n");
-            sb.append("    \"H\": 0.24,\n");
-            sb.append("    \"x_c\": 0.10,\n");
-            sb.append("    \"y_c\": 0.12,\n");
+            sb.append("    \"L\": ").append(param.evaluate("L")).append(",\n");
+            sb.append("    \"H\": ").append(param.evaluate("H")).append(",\n");
+            sb.append("    \"x_c\": ").append(param.evaluate("x_c")).append(",\n");
+            sb.append("    \"y_c\": ").append(param.evaluate("y_c")).append(",\n");
             sb.append("    \"blockage_ratio\": ").append(param.evaluate("D") / param.evaluate("H")).append("\n");
             sb.append("  },\n");
             sb.append("  \"mesh_stats\": {\n");
             sb.append("    \"num_elem\": ").append(mesh.getNumElem()).append(",\n");
             sb.append("    \"num_vertex\": ").append(mesh.getNumVertex()).append("\n");
             sb.append("  },\n");
-            sb.append("  \"boundaries\": {\n");
-            sb.append("    \"inlet\": {\"entities\": [1], \"geometry\": \"x=0, y in [0, 0.24] m\", \"condition\": \"NormalInflowVelocity U_inf*step1(t[1/s])\"},\n");
-            sb.append("    \"lateral_symmetry\": {\"entities\": [2, 3], \"geometry\": \"y=0 and y=0.24, x in [0, 0.40] m\", \"condition\": \"Symmetry (vn=0, d(vt)/dn=0)\"},\n");
-            sb.append("    \"outlet\": {\"entities\": [4], \"geometry\": \"x=0.40, y in [0, 0.24] m\", \"condition\": \"Pressure p0=0 Pa, SuppressBackflow=1\"},\n");
-            sb.append("    \"cylinder_noslip\": {\"entities\": [5, 6, 7, 8], \"geometry\": \"Cylinder surface radius R=0.005 m at (0.10, 0.12) m\", \"condition\": \"Wall NoSlip with BoundaryLayer bl1\"}\n");
-            sb.append("  }\n");
+            sb.append("  \"boundary_classification\": {\n");
+            sb.append("    \"method\": \"geometric classification of live GeomSequence.edgeX samples against bounding box and evaluated x_c, y_c, R\",\n");
+            sb.append("    \"inlet\": ").append(intArrayToJson(inletIds)).append(",\n");
+            sb.append("    \"outlet\": ").append(intArrayToJson(outletIds)).append(",\n");
+            sb.append("    \"lateral\": ").append(intArrayToJson(lateralIds)).append(",\n");
+            sb.append("    \"cylinder\": ").append(intArrayToJson(cylinderIds)).append("\n");
+            sb.append("  },\n");
+            sb.append("  \"feature_selections_readback\": {\n");
+            sb.append("    \"inl1\": ").append(intArrayToJson(featureEntities(inl1))).append(",\n");
+            sb.append("    \"out1\": ").append(intArrayToJson(featureEntities(out1))).append(",\n");
+            sb.append("    \"sym1\": ").append(intArrayToJson(featureEntities(sym))).append(",\n");
+            sb.append("    \"wallbc1\": ").append(intArrayToJson(featureEntities(wall))).append(",\n");
+            sb.append("    \"bl1/blp1\": ").append(intArrayToJson(featureEntities(bl1.feature("blp1")))).append(",\n");
+            sb.append("    \"size1\": ").append(intArrayToJson(featureEntities(size1))).append("\n");
+            sb.append("  },\n");
+            sb.append("  \"boundary_geometry\": ").append(boundaryGeometryJson(geom, "geom1", "  ")).append("\n");
             sb.append("}\n");
             emitResult(sb.toString());
 
@@ -708,6 +713,169 @@ public class ComsolBridge {
         sb.append("  \"details\": ").append(quote(details != null ? details : "")).append("\n");
         sb.append("}\n");
         emitResult(sb.toString());
+    }
+
+    private static final int BOUNDARY_SAMPLES = 17;
+
+    /** Sample one 2D boundary edge (1-based id) at BOUNDARY_SAMPLES parameter values via GeomSequence.edgeX. */
+    private static double[][] sampleEdge(GeomSequence geom, int b) {
+        double[] pr = geom.edgeParamRange(b);
+        double[] s = new double[BOUNDARY_SAMPLES];
+        for (int i = 0; i < BOUNDARY_SAMPLES; i++) {
+            s[i] = pr[0] + (pr[1] - pr[0]) * i / (BOUNDARY_SAMPLES - 1);
+        }
+        double[][] x = geom.edgeX(b, s);
+        if (x == null || x.length != BOUNDARY_SAMPLES || x[0].length != 2) {
+            throw new IllegalStateException("edgeX returned unexpected shape for boundary " + b);
+        }
+        return x;
+    }
+
+    /**
+     * Live boundary geometry evidence queried from the COMSOL geometry kernel
+     * (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX).
+     * Nothing here is assumed: if the query fails, "available": false is reported.
+     */
+    private static String boundaryGeometryJson(GeomSequence geom, String gtag, String ind) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            int sdim = geom.getSDim();
+            if (sdim != 2) {
+                return "{\"available\": false, \"geometry_tag\": " + quote(gtag) + ", \"sdim\": " + sdim
+                    + ", \"reason\": \"edge sampling implemented for 2D geometries only\"}";
+            }
+            boolean rebuilt = false;
+            int nb = geom.getNBoundaries();
+            if (nb == 0) {
+                geom.run();
+                rebuilt = true;
+                nb = geom.getNBoundaries();
+            }
+            double[] bb = geom.getBoundingBox();
+            int[][] ud = geom.getUpDown();
+            sb.append("{\n");
+            sb.append(ind).append("  \"available\": true,\n");
+            sb.append(ind).append("  \"source\": \"COMSOL GeomSequence live query (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX)\",\n");
+            sb.append(ind).append("  \"geometry_tag\": ").append(quote(gtag)).append(",\n");
+            sb.append(ind).append("  \"geometry_rebuilt_in_memory\": ").append(rebuilt).append(",\n");
+            sb.append(ind).append("  \"n_boundaries\": ").append(nb).append(",\n");
+            sb.append(ind).append("  \"n_domains\": ").append(geom.getNDomains()).append(",\n");
+            sb.append(ind).append("  \"bounding_box\": ").append(doubleArrayToJson(bb)).append(",\n");
+            sb.append(ind).append("  \"samples_per_boundary\": ").append(BOUNDARY_SAMPLES).append(",\n");
+            sb.append(ind).append("  \"boundaries\": [\n");
+            for (int b = 1; b <= nb; b++) {
+                double[][] x = sampleEdge(geom, b);
+                double xmin = Double.POSITIVE_INFINITY, xmax = Double.NEGATIVE_INFINITY;
+                double ymin = Double.POSITIVE_INFINITY, ymax = Double.NEGATIVE_INFINITY;
+                double len = 0.0;
+                StringBuilder pts = new StringBuilder("[");
+                for (int i = 0; i < x.length; i++) {
+                    xmin = Math.min(xmin, x[i][0]); xmax = Math.max(xmax, x[i][0]);
+                    ymin = Math.min(ymin, x[i][1]); ymax = Math.max(ymax, x[i][1]);
+                    if (i > 0) len += Math.hypot(x[i][0] - x[i - 1][0], x[i][1] - x[i - 1][1]);
+                    pts.append("[").append(x[i][0]).append(", ").append(x[i][1]).append("]");
+                    if (i < x.length - 1) pts.append(", ");
+                }
+                pts.append("]");
+                sb.append(ind).append("    {\"id\": ").append(b)
+                  .append(", \"x_range\": [").append(xmin).append(", ").append(xmax).append("]")
+                  .append(", \"y_range\": [").append(ymin).append(", ").append(ymax).append("]")
+                  .append(", \"length_polyline\": ").append(len)
+                  .append(", \"up_domain\": ").append(ud[0][b - 1])
+                  .append(", \"down_domain\": ").append(ud[1][b - 1])
+                  .append(", \"samples\": ").append(pts)
+                  .append("}").append(b < nb ? "," : "").append("\n");
+            }
+            sb.append(ind).append("  ]\n");
+            sb.append(ind).append("}");
+            return sb.toString();
+        } catch (Throwable t) {
+            return "{\"available\": false, \"geometry_tag\": " + quote(gtag)
+                + ", \"error\": " + quote(t.getClass().getSimpleName() + ": " + t.getMessage()) + "}";
+        }
+    }
+
+    /**
+     * Classify every boundary of a rectangular channel with an embedded circle using
+     * live edge samples. Returns {inlet(x=xmin), outlet(x=xmax), lateral(y=ymin|ymax), cylinder(|r-rc|=R)}.
+     * Fails closed if any boundary is unclassified/ambiguous or any class is empty.
+     */
+    private static int[][] classifyCylinderChannelBoundaries(GeomSequence geom, double xc, double yc, double r) {
+        if (geom.getSDim() != 2) throw new IllegalStateException("Boundary classification requires a 2D geometry");
+        int nb = geom.getNBoundaries();
+        double[] bb = geom.getBoundingBox();
+        double tol = 1e-6 * Math.max(bb[1] - bb[0], bb[3] - bb[2]);
+        java.util.List<Integer> inlet = new java.util.ArrayList<>(), outlet = new java.util.ArrayList<>();
+        java.util.List<Integer> lateral = new java.util.ArrayList<>(), cyl = new java.util.ArrayList<>();
+        boolean hasBottom = false, hasTop = false;
+        for (int b = 1; b <= nb; b++) {
+            double[][] x = sampleEdge(geom, b);
+            boolean atXmin = true, atXmax = true, atYmin = true, atYmax = true, onCircle = true;
+            for (double[] p : x) {
+                atXmin &= Math.abs(p[0] - bb[0]) < tol;
+                atXmax &= Math.abs(p[0] - bb[1]) < tol;
+                atYmin &= Math.abs(p[1] - bb[2]) < tol;
+                atYmax &= Math.abs(p[1] - bb[3]) < tol;
+                onCircle &= Math.abs(Math.hypot(p[0] - xc, p[1] - yc) - r) < tol;
+            }
+            int matches = (atXmin ? 1 : 0) + (atXmax ? 1 : 0) + (atYmin ? 1 : 0) + (atYmax ? 1 : 0) + (onCircle ? 1 : 0);
+            if (matches != 1) {
+                throw new IllegalStateException("Boundary " + b + " is unclassified or ambiguous (matches=" + matches
+                    + "); geometry does not match a channel with an embedded cylinder at (" + xc + ", " + yc + "), R=" + r);
+            }
+            if (atXmin) inlet.add(b);
+            if (atXmax) outlet.add(b);
+            if (atYmin) { lateral.add(b); hasBottom = true; }
+            if (atYmax) { lateral.add(b); hasTop = true; }
+            if (onCircle) cyl.add(b);
+        }
+        if (inlet.isEmpty() || outlet.isEmpty() || !hasBottom || !hasTop || cyl.isEmpty()) {
+            throw new IllegalStateException("Incomplete boundary classification: inlet=" + inlet + ", outlet=" + outlet
+                + ", lateral=" + lateral + ", cylinder=" + cyl);
+        }
+        return new int[][]{toSortedArray(inlet), toSortedArray(outlet), toSortedArray(lateral), toSortedArray(cyl)};
+    }
+
+    private static int[] toSortedArray(java.util.List<Integer> list) {
+        int[] a = new int[list.size()];
+        for (int i = 0; i < a.length; i++) a[i] = list.get(i);
+        Arrays.sort(a);
+        return a;
+    }
+
+    /** Read back selection().entities() of a physics or mesh feature (fail closed). */
+    private static int[] featureEntities(Object feat) throws Exception {
+        Object sel = feat.getClass().getMethod("selection").invoke(feat);
+        Object ents;
+        try {
+            ents = sel.getClass().getMethod("entities").invoke(sel);
+        } catch (NoSuchMethodException e) {
+            ents = sel.getClass().getMethod("entities", int.class).invoke(sel, 1);
+        }
+        int[] a = ((int[]) ents).clone();
+        Arrays.sort(a);
+        return a;
+    }
+
+    private static void requireSameEntities(String what, int[] actual, int[] expected) {
+        int[] a = actual.clone(), e = expected.clone();
+        Arrays.sort(a);
+        Arrays.sort(e);
+        if (!Arrays.equals(a, e)) {
+            throw new IllegalStateException("Selection readback mismatch for " + what + ": model has "
+                + Arrays.toString(a) + ", geometry requires " + Arrays.toString(e));
+        }
+    }
+
+    private static String doubleArrayToJson(double[] arr) {
+        if (arr == null) return "[]";
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < arr.length; i++) {
+            sb.append(arr[i]);
+            if (i < arr.length - 1) sb.append(", ");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     private static void emitResult(String json) {

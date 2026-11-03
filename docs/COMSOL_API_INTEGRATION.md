@@ -72,9 +72,21 @@ Direct in-place modification or uncoordinated file generation is strictly prohib
 - **Failure Quarantine**: If COMSOL crashes or leaves a corrupt staging file, it is moved to `quarantine/failed_{task_id}_{output_path.name}` without overwriting existing failure dumps.
 - **Crash / Orphan Recovery**: Orphaned staging files from interrupted or aborted runs can be audited and recovered using `recover_unclaimed_staging(directory)` and `list_quarantine_records(directory)`. Recovery is idempotent and safe against repeated executions.
 
-### 3.3 Dynamic Discovery (Zero Guessing)
+### 3.2.1 Field Data Export Pre-Publish Admission Contract
+In addition to staging isolation, `export_solution_data()` enforces strict data-contract validation on the staging text file before any attempt to publish to the target path:
+- **Header Structure**: Dynamically parses `% x y ...` coordinates and all field column tokens `<expr> [(<unit>)] @ t=<time>`.
+- **Per-Time Completeness**: Every exported time step must contain all required expressions (`u, v, p, vx-uy, spf.U`).
+- **Uniqueness**: Expression and time combinations must be strictly unique (rejects duplicated columns).
+- **Physical Unit Consistency**: Reported units must match expected physical quantities (`u: m/s`, `v: m/s`, `p: Pa`, `vx-uy: 1/s`, `spf.U: m/s`).
+- **Column & Row Sanity**: Numerical row column counts must strictly equal header token count; row count must be non-zero and match `% Nodes:` metadata when present.
+- **Strict Finiteness**: Every single numerical field value is scanned; any NaN or Inf immediately causes rejection.
+- **Fail-Closed Gate & Isolation**: Any failure raises `ModelValidationError` (wrapping `ComsolExportValidationError`), quarantines the corrupted staging artifact as `quarantine/invalid_data_*`, and guarantees the destination file (and any pre-existing file there) is **never touched or overwritten**.
+
+### 3.3 Dynamic Discovery & Live Geometric Evidence (Zero Guessing)
 - Node tags (`comp1`, `geom1`, `mesh1`, `spf`, `std1`, `sol1`) are dynamically extracted from the actual model object.
 - Parameters (`U_mean`, `H`, `L`, `W`, `R`) are verified for existence and units prior to applying changes.
+- **Live Geometric Boundary Query**: Geometry boundaries are dynamically queried using official COMSOL methods (`geom.getNBoundaries()`, `geom.getBoundingBox()`, `geom.getUpDown()`, `geom.edgeParamRange()`, and `geom.edgeX()`). No hardcoded boundary coordinate maps are emitted. Every boundary's bounding box, length, up/down domain references, and spatial sample coordinates are dynamically computed from the live geometry kernel in memory.
+- **Geometric Selection Verification**: In `build_re100_case`, boundary entities for inlet, outlet, lateral symmetry, and cylinder wall are classified directly from live `edgeX` spatial samples against the domain bounding box and cylinder center/radius. Physics feature selections (`inl1`, `out1`, `sym1`, `wallbc1`) and mesh features (`bl1`, `size1`) are read back and required to match geometric classification with zero tolerance.
 
 ### 3.4 Two-Grade Verification Architecture
 To maintain clear separation of concerns, the system defines two independent acceptance grades:
@@ -111,6 +123,11 @@ The following official COMSOL Java API methods are compiled and verified in `Com
 | `ModelUtil.getComsolVersion()` | Programming Reference Manual Ch. 2 | Queries runtime COMSOL build and version |
 | `model.component().tags()` | Programming Reference Manual Ch. 2 | Enumerates model components dynamically |
 | `model.geom(tag).getSDim()` | Programming Reference Manual Ch. 2 | Queries geometry spatial dimension |
+| `geom.getNBoundaries()` | Programming Reference Manual Ch. 2 (GeomSequence) | Queries total boundary edge count in geometry |
+| `geom.getBoundingBox()` | Programming Reference Manual Ch. 2 (GeomSequence) | Retrieves `[xmin, xmax, ymin, ymax]` of geometry domain |
+| `geom.getUpDown()` | Programming Reference Manual Ch. 2 (GeomSequence) | Retrieves domain adjacency for all boundary entities |
+| `geom.edgeParamRange(b)` | Programming Reference Manual Ch. 2 (GeomSequence) | Retrieves parameter interval `[smin, smax]` for boundary `b` |
+| `geom.edgeX(b, s)` | Programming Reference Manual Ch. 2 (GeomSequence) | Computes exact coordinates `(x, y)` along boundary `b` |
 | `model.physics().tags()` | Programming Reference Manual Ch. 2 | Enumerates active physics interfaces |
 | `model.param().varnames()` | Programming Reference Manual Ch. 2 | Queries all parameter identifiers |
 | `model.param().get(name)` | Programming Reference Manual Ch. 2 | Gets parameter raw expression string |

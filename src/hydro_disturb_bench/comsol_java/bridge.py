@@ -1068,8 +1068,23 @@ def export_solution_data(
     output_txt_path: Path | str,
     allow_overwrite: bool = False,
     root: Path | None = None,
+    expected_times: Any = None,
 ) -> dict[str, Any]:
-    """Export solution field data (u, v, p, vx-uy, spf.U) to text file with staging transaction protocol."""
+    """Export solution field data (u, v, p, vx-uy, spf.U) to text file with staging transaction protocol.
+
+    Publication gate (all must hold, otherwise the staging artifact is
+    quarantined and the final path is left untouched):
+    1. COMSOL bridge reports SUCCESS.
+    2. Source model SHA-256 unchanged.
+    3. Staging file passes :func:`hydro_disturb_bench.io.validate_comsol_export`
+       (header, x/y, per-time completeness, unique expr-time columns, units,
+       column counts, non-zero rows, finite samples; optional ``expected_times``).
+    4. Atomic no-overwrite publish (unless ``allow_overwrite``).
+
+    The returned dict additionally carries ``validation`` (contract summary).
+    """
+    from ..io import ComsolExportValidationError, validate_comsol_export
+
     model_path = Path(model_path)
     output_txt_path = Path(output_txt_path)
 
@@ -1119,6 +1134,15 @@ def export_solution_data(
                 f"Staging export file is missing or empty before publish: {staging_path}"
             )
 
+        # Full data-contract admission check on the staging artifact (never on final)
+        try:
+            validation = validate_comsol_export(staging_path, expected_times=expected_times)
+        except ComsolExportValidationError as err:
+            quarantine_staging_file(staging_path, output_txt_path, stage_id, reason="invalid_data")
+            raise ModelValidationError(
+                f"Staging export failed data contract validation; output file was NOT published: {err}"
+            ) from err
+
         publish_staging_file(
             staging_path=staging_path,
             output_path=output_txt_path,
@@ -1126,6 +1150,8 @@ def export_solution_data(
             allow_overwrite=allow_overwrite,
         )
 
+    validation["path"] = str(output_txt_path.resolve())
+    res["validation"] = validation
     res["source_sha256"] = hash_before
     res["output_txt"] = str(output_txt_path.resolve())
     res["output_sha256"] = compute_file_hash(output_txt_path)
