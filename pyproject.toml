@@ -13,6 +13,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+analysis = ["matplotlib>=3.7", "numpy>=1.24", "scipy>=1.10"]
 comsol = ["MPh>=1.2"]
 
 [project.scripts]
