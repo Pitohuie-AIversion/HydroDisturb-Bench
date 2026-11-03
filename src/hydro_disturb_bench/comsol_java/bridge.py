@@ -994,3 +994,102 @@ def run_study(
     res["output_model"] = str(output_path.resolve())
     res["output_sha256"] = compute_file_hash(output_path)
     return res
+
+
+def build_re100_benchmark(
+    baseline_path: Path | str,
+    output_path: Path | str,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Build independent low-blockage Re=100 cylinder benchmark case from baseline template.
+
+    Enforces baseline model immutability, atomic staging, and isolation.
+    """
+    baseline_path = Path(baseline_path)
+    output_path = Path(output_path)
+
+    if not baseline_path.is_file():
+        raise ModelNotFoundError(f"Source baseline model file does not exist: {baseline_path}")
+
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
+    if baseline_path.resolve() == output_path.resolve():
+        raise ModelValidationError(
+            "Refusing to overwrite baseline model: source and output path are identical"
+        )
+
+    hash_before = compute_file_hash(baseline_path)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
+
+    args = [
+        "build-re100-case",
+        str(baseline_path.resolve()),
+        str(staging_path.resolve()),
+    ]
+
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
+
+        hash_after = compute_file_hash(baseline_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise ModelValidationError(
+                f"Safety violation: original model file was modified during benchmark building! "
+                f"Original SHA-256 changed from {hash_before} to {hash_after}. "
+                f"Staging artifact quarantined; output file was NOT published."
+            )
+
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
+        )
+
+    res["source_sha256"] = hash_before
+    res["output_model"] = str(output_path.resolve())
+    res["output_sha256"] = compute_file_hash(output_path)
+    return res
+
+
+def export_solution_data(
+    model_path: Path | str,
+    output_txt_path: Path | str,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Export solution field data (u, v, p, vx-uy, spf.U) to text file."""
+    model_path = Path(model_path)
+    output_txt_path = Path(output_txt_path)
+
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+
+    if output_txt_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_txt_path}")
+
+    if not allow_overwrite and output_txt_path.is_file():
+        raise ModelValidationError(f"Destination text file already exists: {output_txt_path}")
+
+    output_txt_path.parent.mkdir(parents=True, exist_ok=True)
+
+    args = [
+        "export-solution-data",
+        str(model_path.resolve()),
+        str(output_txt_path.resolve()),
+    ]
+
+    res = _run_bridge(args, root=root)
+    res["output_txt"] = str(output_txt_path.resolve())
+    return res

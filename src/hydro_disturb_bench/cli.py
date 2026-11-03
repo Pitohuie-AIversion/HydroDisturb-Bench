@@ -54,6 +54,16 @@ def main(argv: list[str] | None = None) -> int:
     j_solve.add_argument("--tlist", default="", help="Optional override for time list (e.g. 'range(0, 0.05, 0.1)')")
     j_solve.add_argument("--allow-overwrite", action="store_true", default=False, help="Allow overwriting destination if it already exists")
 
+    j_build = sub.add_parser("java-build-re100", help="Build independent Re=100 low-blockage benchmark model from baseline template")
+    j_build.add_argument("--model", required=True, help="Baseline model path (e.g. case/cylinder_flow.mph)")
+    j_build.add_argument("--output", required=True, help="Output benchmark model path (e.g. models/cylinder_2d/re100_benchmark.mph)")
+    j_build.add_argument("--allow-overwrite", action="store_true", default=False, help="Allow overwriting destination if it already exists")
+
+    j_exp = sub.add_parser("java-export-data", help="Export solution field data (u, v, p, vx-uy, spf.U) to text file")
+    j_exp.add_argument("--model", required=True, help="Solved model path")
+    j_exp.add_argument("--output", required=True, help="Output text file path")
+    j_exp.add_argument("--allow-overwrite", action="store_true", default=False, help="Allow overwriting destination if it already exists")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -112,6 +122,22 @@ def main(argv: list[str] | None = None) -> int:
             output_path=Path(args.output),
             study_tag=args.study,
             tlist_override=args.tlist,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-build-re100":
+        from .comsol_java import build_re100_benchmark
+        res = build_re100_benchmark(
+            baseline_path=Path(args.model),
+            output_path=Path(args.output),
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-export-data":
+        from .comsol_java import export_solution_data
+        res = export_solution_data(
+            model_path=Path(args.model),
+            output_txt_path=Path(args.output),
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))

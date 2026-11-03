@@ -22,6 +22,7 @@ hydrobench = "hydro_disturb_bench.cli:main"
 where = ["src"]
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 testpaths = ["tests"]
 markers = [
     "integration: marks tests as requiring real COMSOL installation (deselect with '-m \"not integration\"')",

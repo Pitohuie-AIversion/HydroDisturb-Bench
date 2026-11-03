@@ -130,3 +130,5 @@ The CLI exposed via `hydrobench` supports both the legacy MPh adapter and the of
 - `hydrobench java-inspect <model.mph> [--out <report.json>]`: Structured model tree inspection.
 - `hydrobench java-update-param <model.mph> <output.mph> <param> <expr> [--descr <text>]`: Safe parameter mutation with readback.
 - `hydrobench java-solve <model.mph> <output.mph> [--study <tag>] [--tlist <range>] [--log-out <file>]`: Run study on working copy and capture logs.
+- `hydrobench java-build-re100 <baseline.mph> <output.mph>`: Programmatically construct the low-blockage Re=100 benchmark model.
+- `hydrobench java-export-data <model.mph> <output.txt>`: Export node-level solution fields ($u, v, p, \omega$).

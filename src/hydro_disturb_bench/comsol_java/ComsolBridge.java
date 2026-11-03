@@ -47,6 +47,18 @@ public class ComsolBridge {
                 }
                 String tlist = (args.length >= 5) ? args[4] : "";
                 handleRunStudy(args[1], args[2], args[3], tlist);
+            } else if ("build-re100-case".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: build-re100-case <modelPath> <outputPath>", "");
+                    return;
+                }
+                handleBuildRe100Case(args[1], args[2]);
+            } else if ("export-solution-data".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: export-solution-data <modelPath> <outputTxtPath>", "");
+                    return;
+                }
+                handleExportSolutionData(args[1], args[2]);
             } else {
                 outputError("API_UNSUPPORTED", "Unknown command: " + command, "");
             }
@@ -493,6 +505,183 @@ public class ComsolBridge {
         sb.append("}\n");
 
         emitResult(sb.toString());
+    }
+
+    private static void handleBuildRe100Case(String modelPath, String outputPath) {
+        if (modelPath.equalsIgnoreCase(outputPath)) {
+            outputError("MODEL_VALIDATION_FAILED", "Refusing to overwrite baseline model: source and output path are identical", "");
+            return;
+        }
+
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            String msg = t.getMessage() != null ? t.getMessage() : "";
+            if (msg.toLowerCase().contains("not found") || msg.toLowerCase().contains("no such file") || msg.toLowerCase().contains("cannot find")) {
+                outputError("MODEL_NOT_FOUND", "Source model file not found: " + modelPath, getStackTrace(t));
+            } else {
+                outputError("COMSOL_CONNECTION_FAILED", "Failed to load model: " + msg, getStackTrace(t));
+            }
+            return;
+        }
+
+        try {
+            ModelParam param = model.param();
+            // Physical & geometric parameters:
+            // 20 degC freshwater: rho = 998.2 kg/m^3, mu = 1.004e-3 Pa*s
+            // Cylinder D = 0.01 m, R = 0.005 m
+            // Reynolds number Re = 100
+            // Inflow U_inf = Re*mu/(rho*D) = 0.010058104588 m/s
+            // Domain: L = 40D = 0.40 m, H = 24D = 0.24 m (blockage = 4.167% < 5%)
+            // Upstream = 10D (x_c = 0.10 m), Downstream = 30D, Lateral half-width = 12D (y_c = 0.12 m)
+            param.set("D", "0.01[m]", "Cylinder diameter");
+            param.set("R", "D/2", "Cylinder radius");
+            param.set("L", "0.40[m]", "Domain length (40D)");
+            param.set("H", "0.24[m]", "Domain height (24D)");
+            param.set("x_c", "0.10[m]", "Cylinder center X (10D upstream distance)");
+            param.set("y_c", "0.12[m]", "Cylinder center Y (12D lateral half-width)");
+            param.set("rho_f", "998.2[kg/m^3]", "Water density at 20 degC");
+            param.set("mu_f", "1.004e-3[Pa*s]", "Water dynamic viscosity at 20 degC");
+            param.set("Re", "100", "Target Reynolds number");
+            param.set("U_inf", "Re*mu_f/(rho_f*D)", "Inflow free-stream velocity");
+            param.set("U_mean", "U_inf", "Mean inflow velocity alias");
+
+            ModelNode comp = model.component("comp1");
+            GeomSequence geom = comp.geom("geom1");
+            geom.feature("c1").set("pos", new String[]{"x_c", "y_c"});
+            geom.feature("c1").set("r", "R");
+            geom.feature("r1").set("lx", "L");
+            geom.feature("r1").set("ly", "H");
+            geom.run();
+
+            // Material update
+            try {
+                Material mat = comp.material("mat1");
+                mat.propertyGroup("def").set("density", "rho_f");
+                mat.propertyGroup("def").set("dynamicviscosity", "mu_f");
+            } catch (Throwable ignored) {}
+
+            // Physics update
+            Object spf = comp.physics("spf");
+            Object featList = spf.getClass().getMethod("feature").invoke(spf);
+
+            // fp1: Fluid properties
+            Object fp1 = spf.getClass().getMethod("feature", String.class).invoke(spf, "fp1");
+            fp1.getClass().getMethod("set", String.class, String.class).invoke(fp1, "rho", "rho_f");
+            fp1.getClass().getMethod("set", String.class, String.class).invoke(fp1, "mu", "mu_f");
+
+            // inl1: Boundary 1 (Inlet) - uniform normal inflow with smooth start step1
+            Object inl1 = spf.getClass().getMethod("feature", String.class).invoke(spf, "inl1");
+            inl1.getClass().getMethod("set", String.class, String.class).invoke(inl1, "BoundaryCondition", "Velocity");
+            inl1.getClass().getMethod("set", String.class, String.class).invoke(inl1, "ComponentWise", "NormalInflowVelocity");
+            inl1.getClass().getMethod("set", String.class, String.class).invoke(inl1, "U0in", "U_inf*step1(t[1/s])");
+
+            // out1: Boundary 4 (Outlet) - pressure outlet p=0 with suppress backflow
+            Object out1 = spf.getClass().getMethod("feature", String.class).invoke(spf, "out1");
+            out1.getClass().getMethod("set", String.class, String.class).invoke(out1, "p0", "0");
+            out1.getClass().getMethod("set", String.class, String.class).invoke(out1, "SuppressBackflow", "1");
+
+            // sym1: Boundaries 2 & 3 (Lateral top and bottom) - Symmetry condition
+            try {
+                java.lang.reflect.Method createM = featList.getClass().getMethod("create", String.class, String.class, int.class);
+                Object sym = createM.invoke(featList, "sym1", "Symmetry", 1);
+                Object symSel = sym.getClass().getMethod("selection").invoke(sym);
+                symSel.getClass().getMethod("set", int[].class).invoke(symSel, new int[]{2, 3});
+            } catch (Throwable t) {
+                try {
+                    Object sym = spf.getClass().getMethod("feature", String.class).invoke(spf, "sym1");
+                    Object symSel = sym.getClass().getMethod("selection").invoke(sym);
+                    symSel.getClass().getMethod("set", int[].class).invoke(symSel, new int[]{2, 3});
+                } catch (Throwable ignored) {}
+            }
+
+            // Mesh configuration: cylinder boundary layer and near-wall refinement
+            MeshSequence mesh = comp.mesh("mesh1");
+            try {
+                MeshFeature bl1 = mesh.feature("bl1");
+                bl1.feature("blp1").selection().set(new int[]{5, 6, 7, 8});
+            } catch (Throwable ignored) {}
+
+            try {
+                MeshFeature size1 = mesh.feature("size1");
+                size1.selection().set(new int[]{5, 6, 7, 8});
+                size1.set("hmax", "0.0004[m]");
+                size1.set("hmin", "0.00005[m]");
+            } catch (Throwable ignored) {}
+
+            mesh.run();
+
+            // Study configuration
+            Study study = model.study("std1");
+            StudyFeature timeFeat = study.feature("time");
+            timeFeat.set("tlist", "range(0, 0.05, 0.5)");
+            timeFeat.set("rtol", "0.001");
+
+            model.save(outputPath);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"build_re100_case\",\n");
+            sb.append("  \"source_model\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_model\": ").append(quote(outputPath)).append(",\n");
+            sb.append("  \"parameters\": {\n");
+            sb.append("    \"Re\": 100.0,\n");
+            sb.append("    \"rho\": 998.2,\n");
+            sb.append("    \"mu\": 1.004e-3,\n");
+            sb.append("    \"D\": 0.01,\n");
+            sb.append("    \"U_inf\": ").append(param.evaluate("U_inf")).append(",\n");
+            sb.append("    \"L\": 0.40,\n");
+            sb.append("    \"H\": 0.24,\n");
+            sb.append("    \"x_c\": 0.10,\n");
+            sb.append("    \"y_c\": 0.12,\n");
+            sb.append("    \"blockage_ratio\": ").append(param.evaluate("D") / param.evaluate("H")).append("\n");
+            sb.append("  },\n");
+            sb.append("  \"mesh_stats\": {\n");
+            sb.append("    \"num_elem\": ").append(mesh.getNumElem()).append(",\n");
+            sb.append("    \"num_vertex\": ").append(mesh.getNumVertex()).append("\n");
+            sb.append("  },\n");
+            sb.append("  \"boundaries\": {\n");
+            sb.append("    \"inlet\": [1],\n");
+            sb.append("    \"lateral_symmetry\": [2, 3],\n");
+            sb.append("    \"outlet\": [4],\n");
+            sb.append("    \"cylinder_noslip\": [5, 6, 7, 8]\n");
+            sb.append("  }\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+
+        } catch (Throwable t) {
+            outputError("MODEL_VALIDATION_FAILED", "Failed to build Re=100 benchmark model: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleExportSolutionData(String modelPath, String outputTxtPath) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for export: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            Object dataExp = model.result().export().create("data_export_s0", "Data");
+            dataExp.getClass().getMethod("set", String.class, String[].class).invoke(dataExp, "expr", new String[]{"u", "v", "p", "vx-uy", "spf.U"});
+            dataExp.getClass().getMethod("set", String.class, String.class).invoke(dataExp, "filename", outputTxtPath);
+            dataExp.getClass().getMethod("run").invoke(dataExp);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"export_solution_data\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_txt\": ").append(quote(outputTxtPath)).append("\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("SOLVER_FAILED", "Failed to export solution data: " + t.getMessage(), getStackTrace(t));
+        }
     }
 
     private static void outputError(String errorCode, String message, String details) {
