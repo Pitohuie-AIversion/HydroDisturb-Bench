@@ -293,7 +293,7 @@ def test_export_solution_data_single_variable_staging_rejected_and_quarantined(t
     def mock_run_bridge(args, root=None):
         staging_file = Path(args[2])
         # Only 'u' exported, missing v, p, vx-uy, spf.U
-        staging_file.write_text("% x y u (m/s) @ t=0.0\n0.1 0.2 0.05\n", encoding="utf-8")
+        staging_file.write_text("% Length unit: m\n% x y u (m/s) @ t=0.0\n0.1 0.2 0.05\n", encoding="utf-8")
         return {"status": "SUCCESS", "operation": "export_solution_data"}
 
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
@@ -316,6 +316,7 @@ def test_export_solution_data_incomplete_times_rejected_and_quarantined(tmp_path
         staging_file = Path(args[2])
         # t=0.0 complete, but t=0.1 only has u
         header = (
+            "% Length unit: m\n"
             "% x y "
             "u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0 "
             "u (m/s) @ t=0.1\n"
@@ -343,6 +344,7 @@ def test_export_solution_data_duplicate_column_rejected_and_quarantined(tmp_path
         staging_file = Path(args[2])
         # Duplicate u (m/s) @ t=0.0
         header = (
+            "% Length unit: m\n"
             "% x y "
             "u (m/s) @ t=0.0 u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
         )
@@ -368,7 +370,7 @@ def test_export_solution_data_wrong_unit_rejected_and_quarantined(tmp_path: Path
     def mock_run_bridge(args, root=None):
         staging_file = Path(args[2])
         # Wrong unit: p has bar instead of Pa
-        header = "% x y u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (bar) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
+        header = "% Length unit: m\n% x y u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (bar) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
         data = "0.1 0.2 0.01 0.0 0.5 1.0 0.01\n"
         staging_file.write_text(header + data, encoding="utf-8")
         return {"status": "SUCCESS", "operation": "export_solution_data"}
@@ -379,6 +381,55 @@ def test_export_solution_data_wrong_unit_rejected_and_quarantined(tmp_path: Path
 
     assert not out_txt.exists()
     quarantined = list((tmp_path / "quarantine").glob("invalid_data_*wrong_unit.txt"))
+    assert len(quarantined) == 1
+
+
+def test_export_solution_data_missing_length_unit_metadata_rejected_and_quarantined(tmp_path: Path):
+    """export_solution_data strictly rejects exports missing coordinate unit metadata (% Length unit: m)."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "missing_unit.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        # Omit % Length unit: line entirely
+        header = (
+            "% Model: test.mph\n"
+            "% Dimension: 2\n"
+            "% x y u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
+        )
+        data = "0.1 0.2 0.01 0.0 0.5 1.0 0.01\n"
+        staging_file.write_text(header + data, encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(ModelValidationError, match="Missing coordinate unit metadata"):
+            export_solution_data(dummy_model, out_txt)
+
+    assert not out_txt.exists()
+    quarantined = list((tmp_path / "quarantine").glob("invalid_data_*missing_unit.txt"))
+    assert len(quarantined) == 1
+    assert "Missing coordinate unit metadata" in quarantined[0].name or quarantined[0].is_file()
+
+
+def test_export_solution_data_mismatched_expected_times_rejected_and_quarantined(tmp_path: Path):
+    """export_solution_data strictly rejects exports when time points do not match expected_times."""
+    dummy_model = tmp_path / "model.mph"
+    dummy_model.write_bytes(b"dummy model data")
+    out_txt = tmp_path / "mismatched_times.txt"
+
+    def mock_run_bridge(args, root=None):
+        staging_file = Path(args[2])
+        # Only has t=0.0, but caller will expect [0.0, 0.5, 1.0]
+        staging_file.write_text(_make_valid_staging_content(t=0.0, u_val=0.01), encoding="utf-8")
+        return {"status": "SUCCESS", "operation": "export_solution_data"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
+        with pytest.raises(ModelValidationError, match="do not match expected time points"):
+            export_solution_data(dummy_model, out_txt, expected_times=[0.0, 0.5, 1.0])
+
+    assert not out_txt.exists()
+    quarantined = list((tmp_path / "quarantine").glob("invalid_data_*mismatched_times.txt"))
     assert len(quarantined) == 1
 
 
@@ -394,7 +445,7 @@ def test_export_solution_data_valid_contract_publishes_successfully(tmp_path: Pa
         return {"status": "SUCCESS", "operation": "export_solution_data"}
 
     with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run_bridge):
-        res = export_solution_data(dummy_model, out_txt, allow_overwrite=False)
+        res = export_solution_data(dummy_model, out_txt, allow_overwrite=False, expected_times=[0.0])
 
     assert out_txt.is_file()
     assert res["status"] == "SUCCESS"
@@ -416,7 +467,7 @@ def test_export_solution_data_invalid_export_leaves_preexisting_final_untouched(
     def mock_run_bridge(args, root=None):
         staging_file = Path(args[2])
         # Invalid data: NaN inside field column
-        header = "% x y u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
+        header = "% Length unit: m\n% x y u (m/s) @ t=0.0 v (m/s) @ t=0.0 p (Pa) @ t=0.0 vx-uy (1/s) @ t=0.0 spf.U (m/s) @ t=0.0\n"
         data = "0.1 0.2 NaN 0.0 0.5 1.0 0.01\n"
         staging_file.write_text(header + data, encoding="utf-8")
         return {"status": "SUCCESS", "operation": "export_solution_data"}
@@ -530,7 +581,7 @@ def test_re100_boundary_geometry_matches_physical_spec():
 def test_parse_comsol_txt_shuffled_column_order(tmp_path: Path):
     """Verify parse_comsol_txt dynamically matches columns by expression and unit even if shuffled."""
     test_txt = tmp_path / "shuffled.txt"
-    header = "% x                       y                        spf.U (m/s) @ t=0.5        p (Pa) @ t=0.5             vx-uy (1/s) @ t=0.5        v (m/s) @ t=0.5            u (m/s) @ t=0.5\n"
+    header = "% Length unit: m\n% x                       y                        spf.U (m/s) @ t=0.5        p (Pa) @ t=0.5             vx-uy (1/s) @ t=0.5        v (m/s) @ t=0.5            u (m/s) @ t=0.5\n"
     data_row = "0.1000                    0.1200                   0.0150                     0.0450                     12.5000                    0.0050                     0.0141\n"
     test_txt.write_text(header + data_row, encoding="utf-8")
 
@@ -546,7 +597,7 @@ def test_parse_comsol_txt_mismatched_columns_rejected(tmp_path: Path):
     """Verify parse_comsol_txt rejects files with missing expressions or mismatched row columns."""
     test_txt = tmp_path / "mismatched.txt"
     # Header missing vx-uy
-    header = "% x                       y                        u (m/s) @ t=0.5            v (m/s) @ t=0.5            p (Pa) @ t=0.5             spf.U (m/s) @ t=0.5\n"
+    header = "% Length unit: m\n% x                       y                        u (m/s) @ t=0.5            v (m/s) @ t=0.5            p (Pa) @ t=0.5             spf.U (m/s) @ t=0.5\n"
     data_row = "0.10 0.12 0.01 0.00 0.05 0.01\n"
     test_txt.write_text(header + data_row, encoding="utf-8")
 
@@ -557,7 +608,7 @@ def test_parse_comsol_txt_mismatched_columns_rejected(tmp_path: Path):
 def test_parse_comsol_txt_nan_inf_rejected(tmp_path: Path):
     """Verify parse_comsol_txt rejects data corrupted by NaN or Inf."""
     test_txt = tmp_path / "corrupted_nan.txt"
-    header = "% x                       y                        u (m/s) @ t=0.5            v (m/s) @ t=0.5            p (Pa) @ t=0.5             vx-uy (1/s) @ t=0.5        spf.U (m/s) @ t=0.5\n"
+    header = "% Length unit: m\n% x                       y                        u (m/s) @ t=0.5            v (m/s) @ t=0.5            p (Pa) @ t=0.5             vx-uy (1/s) @ t=0.5        spf.U (m/s) @ t=0.5\n"
     data_row = "0.10 0.12 NaN 0.00 0.05 1.0 0.01\n"
     test_txt.write_text(header + data_row, encoding="utf-8")
 

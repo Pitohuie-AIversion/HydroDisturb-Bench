@@ -245,10 +245,15 @@ def _read_and_validate_comsol_export(
         raise ComsolExportValidationError(f"Expected a 2D export with x/y coordinates, metadata reports Dimension={dim!r}")
 
     length_unit = meta.get("Length unit")
-    if expected_length_unit is not None and length_unit is not None and length_unit != expected_length_unit:
-        raise ComsolExportValidationError(
-            f"Coordinate unit mismatch: expected '% Length unit: {expected_length_unit}', got {length_unit!r}"
-        )
+    if expected_length_unit is not None:
+        if length_unit is None:
+            raise ComsolExportValidationError(
+                f"Missing coordinate unit metadata: expected '% Length unit: {expected_length_unit}'"
+            )
+        if length_unit != expected_length_unit:
+            raise ComsolExportValidationError(
+                f"Coordinate unit mismatch: expected '% Length unit: {expected_length_unit}', got {length_unit!r}"
+            )
 
     n_expr_meta = meta.get("Expressions")
     if n_expr_meta is not None and n_expr_meta.isdigit() and int(n_expr_meta) != len(col_meta):
