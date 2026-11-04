@@ -68,6 +68,14 @@ public class ComsolBridge {
                 }
                 String snapTimes = (args.length >= 4) ? args[3] : "";
                 handleExportS1Diagnostics(args[1], args[2], snapTimes);
+            } else if ("inspect-probe-and-solver".equals(command)) {
+                if (args.length < 2) {
+                    outputError("INVALID_PARAMETER", "Usage: inspect-probe-and-solver <modelPath> [probeX] [probeY]", "");
+                    return;
+                }
+                String px = (args.length >= 3) ? args[2] : "0.15";
+                String py = (args.length >= 4) ? args[3] : "0.12";
+                handleInspectProbeAndSolver(args[1], px, py);
             } else {
                 outputError("API_UNSUPPORTED", "Unknown command: " + command, "");
             }
@@ -860,6 +868,253 @@ public class ComsolBridge {
                 }
             }
         } catch (Throwable ignored) {}
+    }
+
+    private static void safeRemoveNumerical(Model model, String tag) {
+        try {
+            for (String t : model.result().numerical().tags()) {
+                if (tag.equals(t)) {
+                    model.result().numerical().remove(tag);
+                    break;
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static String safeGetSolverProperty(SolverFeature feat, String prop) {
+        try {
+            String v = feat.getString(prop);
+            if (v != null) return v;
+        } catch (Throwable ignored) {}
+        try {
+            double d = feat.getDouble(prop);
+            return Double.toString(d);
+        } catch (Throwable ignored) {}
+        try {
+            String[] arr = feat.getStringArray(prop);
+            if (arr != null) return Arrays.toString(arr);
+        } catch (Throwable ignored) {}
+        return "UNOBTAINED";
+    }
+
+    private static void handleInspectProbeAndSolver(String modelPath, String probeX, String probeY) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for probe and solver inspection: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"inspect_probe_and_solver\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"probe_coords\": {\"x\": ").append(quote(probeX)).append(", \"y\": ").append(quote(probeY)).append("},\n");
+
+            // 1. Datasets inspection
+            sb.append("  \"datasets\": [\n");
+            String[] dtags = model.result().dataset().tags();
+            for (int i = 0; i < dtags.length; i++) {
+                String dtag = dtags[i];
+                DatasetFeature dset = model.result().dataset(dtag);
+                String dtype = dset.getType();
+                String dataSrc = "";
+                try { dataSrc = dset.getString("data"); } catch (Throwable ignored) {}
+                String px = "", py = "";
+                try { px = dset.getString("pointx"); } catch (Throwable ignored) {}
+                try { py = dset.getString("pointy"); } catch (Throwable ignored) {}
+
+                sb.append("    {\n");
+                sb.append("      \"tag\": ").append(quote(dtag)).append(",\n");
+                sb.append("      \"type\": ").append(quote(dtype)).append(",\n");
+                sb.append("      \"data_source\": ").append(quote(dataSrc)).append(",\n");
+                sb.append("      \"pointx\": ").append(quote(px)).append(",\n");
+                sb.append("      \"pointy\": ").append(quote(py)).append("\n");
+                sb.append("    }").append(i < dtags.length - 1 ? "," : "").append("\n");
+            }
+            sb.append("  ],\n");
+
+            // 2. Plotgroups inspection
+            sb.append("  \"plotgroups\": [\n");
+            String[] pgtags = model.result().tags();
+            java.util.List<String> plotGroupList = new java.util.ArrayList<>();
+            for (String pt : pgtags) {
+                if (model.result(pt).getType().contains("PlotGroup")) {
+                    plotGroupList.add(pt);
+                }
+            }
+            for (int i = 0; i < plotGroupList.size(); i++) {
+                String pgtag = plotGroupList.get(i);
+                ResultFeature rfeat = model.result(pgtag);
+                String rtype = rfeat.getType();
+                String dset = "";
+                try { dset = rfeat.getString("data"); } catch (Throwable ignored) {}
+
+                sb.append("    {\n");
+                sb.append("      \"tag\": ").append(quote(pgtag)).append(",\n");
+                sb.append("      \"type\": ").append(quote(rtype)).append(",\n");
+                sb.append("      \"data\": ").append(quote(dset)).append(",\n");
+                sb.append("      \"features\": [\n");
+                String[] ftags = rfeat.feature().tags();
+                for (int j = 0; j < ftags.length; j++) {
+                    String ftag = ftags[j];
+                    ResultFeature feat = rfeat.feature(ftag);
+                    String expr = "", unit = "", descr = "";
+                    try { expr = feat.getString("expr"); } catch (Throwable ignored) {}
+                    try { unit = feat.getString("unit"); } catch (Throwable ignored) {}
+                    try { descr = feat.getString("descr"); } catch (Throwable ignored) {}
+                    sb.append("        {\n");
+                    sb.append("          \"tag\": ").append(quote(ftag)).append(",\n");
+                    sb.append("          \"type\": ").append(quote(feat.getType())).append(",\n");
+                    sb.append("          \"expr\": ").append(quote(expr)).append(",\n");
+                    sb.append("          \"unit\": ").append(quote(unit)).append(",\n");
+                    sb.append("          \"descr\": ").append(quote(descr)).append("\n");
+                    sb.append("        }").append(j < ftags.length - 1 ? "," : "").append("\n");
+                }
+                sb.append("      ]\n");
+                sb.append("    }").append(i < plotGroupList.size() - 1 ? "," : "").append("\n");
+            }
+            sb.append("  ],\n");
+
+            // 3. Direct independent COMSOL point numerical evaluation
+            sb.append("  \"direct_evaluations\": [\n");
+            safeRemoveDataset(model, "cpt_s1b1_eval");
+            DatasetFeature evalCpt = model.result().dataset().create("cpt_s1b1_eval", "CutPoint2D");
+            evalCpt.set("data", "dset1");
+            evalCpt.set("pointx", probeX);
+            evalCpt.set("pointy", probeY);
+
+            safeRemoveNumerical(model, "num_s1b1_eval");
+            NumericalFeature numEval = model.result().numerical().create("num_s1b1_eval", "EvalPoint");
+            numEval.set("data", "cpt_s1b1_eval");
+            numEval.set("expr", new String[]{"u", "v"});
+
+            double[] pvals = model.sol("sol1").getPVals();
+            double[][] realMatrix = null;
+            try {
+                try {
+                    numEval.getClass().getMethod("setResult").invoke(numEval);
+                } catch (Throwable ignored) {}
+                realMatrix = numEval.getReal();
+            } catch (Throwable t) {
+                try {
+                    Object dataObj = numEval.getClass().getMethod("getData").invoke(numEval);
+                    if (dataObj instanceof double[][]) {
+                        realMatrix = (double[][]) dataObj;
+                    }
+                } catch (Throwable ignored) {}
+            }
+
+            double[] targetTimes = new double[]{180.0, 185.0, 190.0, 195.0, 200.0};
+            for (int tIdx = 0; tIdx < targetTimes.length; tIdx++) {
+                double tt = targetTimes[tIdx];
+                int bestIdx = -1;
+                double bestDiff = 1e9;
+                if (pvals != null) {
+                    for (int p = 0; p < pvals.length; p++) {
+                        double diff = Math.abs(pvals[p] - tt);
+                        if (diff < bestDiff) {
+                            bestDiff = diff;
+                            bestIdx = p;
+                        }
+                    }
+                }
+
+                double evalU = Double.NaN;
+                double evalV = Double.NaN;
+                double actualT = (bestIdx >= 0) ? pvals[bestIdx] : tt;
+
+                if (realMatrix != null && bestIdx >= 0) {
+                    if (realMatrix.length == pvals.length && realMatrix[0].length >= 2) {
+                        evalU = realMatrix[bestIdx][0];
+                        evalV = realMatrix[bestIdx][1];
+                    } else if (realMatrix.length >= 2 && realMatrix[0].length == pvals.length) {
+                        evalU = realMatrix[0][bestIdx];
+                        evalV = realMatrix[1][bestIdx];
+                    }
+                }
+
+                sb.append("    {\n");
+                sb.append("      \"target_t\": ").append(tt).append(",\n");
+                sb.append("      \"actual_t\": ").append(actualT).append(",\n");
+                sb.append("      \"point_x\": ").append(quote(probeX)).append(",\n");
+                sb.append("      \"point_y\": ").append(quote(probeY)).append(",\n");
+                sb.append("      \"u_direct\": ").append(Double.isNaN(evalU) ? "null" : Double.toString(evalU)).append(",\n");
+                sb.append("      \"v_direct\": ").append(Double.isNaN(evalV) ? "null" : Double.toString(evalV)).append("\n");
+                sb.append("    }").append(tIdx < targetTimes.length - 1 ? "," : "").append("\n");
+            }
+            sb.append("  ],\n");
+
+            // 4. Mesh statistics & properties
+            sb.append("  \"mesh_details\": {\n");
+            MeshSequence mesh = model.component("comp1").mesh("mesh1");
+            sb.append("    \"num_elem\": ").append(mesh.getNumElem()).append(",\n");
+            sb.append("    \"num_vertex\": ").append(mesh.getNumVertex()).append(",\n");
+            sb.append("    \"sdim\": ").append(mesh.getSDim()).append(",\n");
+            sb.append("    \"is_complete\": ").append(mesh.isComplete()).append(",\n");
+            sb.append("    \"features\": ").append(stringArrayToJson(mesh.feature().tags())).append("\n");
+            sb.append("  },\n");
+
+            // 5. Physics discretization & initial conditions
+            sb.append("  \"physics_details\": {\n");
+            String shapeOrder = "UNOBTAINED";
+            String initU = "UNOBTAINED", initV = "UNOBTAINED", initP = "UNOBTAINED";
+            try {
+                Object spf = model.component("comp1").physics("spf");
+                try {
+                    Object shapeProp = spf.getClass().getMethod("prop", String.class).invoke(spf, "ShapeProperty");
+                    shapeOrder = (String) shapeProp.getClass().getMethod("getString", String.class).invoke(shapeProp, "order");
+                } catch (Throwable ignored) {}
+
+                try {
+                    Object initFeat = spf.getClass().getMethod("feature", String.class).invoke(spf, "init1");
+                    initU = (String) initFeat.getClass().getMethod("getString", String.class).invoke(initFeat, "u");
+                    initV = (String) initFeat.getClass().getMethod("getString", String.class).invoke(initFeat, "v");
+                    initP = (String) initFeat.getClass().getMethod("getString", String.class).invoke(initFeat, "p");
+                } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {}
+
+            sb.append("    \"shape_order\": ").append(quote(shapeOrder)).append(",\n");
+            sb.append("    \"initial_conditions\": {\n");
+            sb.append("      \"u\": ").append(quote(initU)).append(",\n");
+            sb.append("      \"v\": ").append(quote(initV)).append(",\n");
+            sb.append("      \"p\": ").append(quote(initP)).append("\n");
+            sb.append("    }\n");
+            sb.append("  },\n");
+
+            // 6. Detailed live solver configuration
+            sb.append("  \"solver_details\": {\n");
+            SolverSequence sol = model.sol("sol1");
+            for (String fTag : sol.feature().tags()) {
+                SolverFeature feat = sol.feature(fTag);
+                if ("Time".equalsIgnoreCase(feat.getType())) {
+                    sb.append("    \"timemethod\": ").append(quote(safeGetSolverProperty(feat, "timemethod"))).append(",\n");
+                    sb.append("    \"tstepsbdf\": ").append(quote(safeGetSolverProperty(feat, "tstepsbdf"))).append(",\n");
+                    sb.append("    \"maxorder\": ").append(quote(safeGetSolverProperty(feat, "maxorder"))).append(",\n");
+                    sb.append("    \"minorder\": ").append(quote(safeGetSolverProperty(feat, "minorder"))).append(",\n");
+                    sb.append("    \"rtol\": ").append(quote(safeGetSolverProperty(feat, "rtol"))).append(",\n");
+                    sb.append("    \"atolmethod\": ").append(quote(safeGetSolverProperty(feat, "atolmethod"))).append(",\n");
+                    sb.append("    \"atolfactor\": ").append(quote(safeGetSolverProperty(feat, "atolfactor"))).append(",\n");
+                    sb.append("    \"atol\": ").append(quote(safeGetSolverProperty(feat, "atol"))).append(",\n");
+                    sb.append("    \"maxstepconstraintbdf\": ").append(quote(safeGetSolverProperty(feat, "maxstepconstraintbdf"))).append(",\n");
+                    sb.append("    \"maxstepbdf\": ").append(quote(safeGetSolverProperty(feat, "maxstepbdf"))).append(",\n");
+                    sb.append("    \"initstepconstraintbdf\": ").append(quote(safeGetSolverProperty(feat, "initstepconstraintbdf"))).append(",\n");
+                    sb.append("    \"initstepbdf\": ").append(quote(safeGetSolverProperty(feat, "initstepbdf"))).append(",\n");
+                    sb.append("    \"tlist\": ").append(quote(safeGetSolverProperty(feat, "tlist"))).append("\n");
+                    break;
+                }
+            }
+            sb.append("  }\n");
+            sb.append("}\n");
+
+            emitResult(sb.toString());
+
+        } catch (Throwable t) {
+            outputError("SOLVER_FAILED", "Failed to inspect probe and solver: " + t.getMessage(), getStackTrace(t));
+        }
     }
 
     private static void handleExportS1Diagnostics(String modelPath, String outputDir, String snapshotTimesStr) {

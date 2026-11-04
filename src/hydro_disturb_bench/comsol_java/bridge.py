@@ -315,6 +315,11 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
             raise ComsolConnectionError(
                 "Schema violation in run_study response: missing study_tag, elapsed_ms, sol_tags, or solution_stats"
             )
+    elif op == "inspect_probe_and_solver":
+        if "datasets" not in data or "plotgroups" not in data or "solver_details" not in data:
+            raise ComsolConnectionError(
+                "Schema violation in inspect_probe_and_solver response: missing datasets, plotgroups, or solver_details"
+            )
 
     data.setdefault("log", stdout)
     return data
@@ -346,6 +351,36 @@ def inspect_model(model_path: Path | str, root: Path | None = None) -> dict[str,
 
     res["sha256"] = hash_after
     return res
+
+
+def inspect_probe_and_solver(
+    model_path: Path | str,
+    probe_x: str = "0.15",
+    probe_y: str = "0.12",
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Inspect model probe datasets, plotgroups, live solver parameters, and evaluate point velocity directly."""
+    model_path = Path(model_path)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+
+    hash_before = compute_file_hash(model_path)
+
+    res = _run_bridge(
+        ["inspect-probe-and-solver", str(model_path.resolve()), str(probe_x), str(probe_y)],
+        root=root,
+    )
+
+    hash_after = compute_file_hash(model_path)
+    if hash_before != hash_after:
+        raise ModelValidationError(
+            f"Integrity check failed: source model was modified during probe and solver inspection! "
+            f"Before: {hash_before}, After: {hash_after}"
+        )
+
+    res["sha256"] = hash_after
+    return res
+
 
 
 def is_pid_alive(pid: int) -> bool:
