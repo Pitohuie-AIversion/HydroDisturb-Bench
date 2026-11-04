@@ -1,0 +1,11 @@
+{
+  "operation": "temporary_additive_dependency_probe",
+  "source": "D:\\Program Files\\COMSOL64\\Multiphysics\\lib\\win64\\tbbmalloc.dll",
+  "destination": "D:\\Program Files\\COMSOL64\\Multiphysics\\bin\\win64\\tbbmalloc.dll",
+  "destination_existed_before": false,
+  "source_sha256": "27D20387E4A21FD1208E8B3F587FB42AED5DD35E2B1D3419C0F7A05CA6B4F5BF",
+  "copied_sha256": "27D20387E4A21FD1208E8B3F587FB42AED5DD35E2B1D3419C0F7A05CA6B4F5BF",
+  "result": "csutil.dll startup succeeded; subsequent csjni.dll dependency loading failed",
+  "installed_file_overwrites": false,
+  "restored": true
+}

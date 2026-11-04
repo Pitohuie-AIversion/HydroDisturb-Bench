@@ -45,6 +45,42 @@ The project standardizes both the local development workstation and future remot
 | **Tier 1: Officially Supported & Formally Accepted** | **Windows + COMSOL Multiphysics 6.4 (Win64)** | Production target for development workstations and remote computational servers. Formal acceptance completed across all contracts: OpenJDK 21 toolchain (`comsolbatch.exe`), model tree inspection, parameter mutation, live CFD solving, baseline SHA-256 immutability, atomic publication (`os.rename`), process-exclusive leases (`msvcrt.locking`), and collision-free quarantine. |
 | **Tier 2: Unverified / Unaccepted (Phase 1)** | **Linux / POSIX Systems** | Cross-platform stubs (e.g. `fcntl`, `SYS_renameat2`) exist in the repository, but **Linux compatibility is NOT formally accepted for Phase 1 production use**. The project explicitly does not claim full cross-platform verification at this stage. Linux-specific production certification is deferred to future work. |
 
+### 2.2 Windows Native Startup Recovery
+
+The Python bridge first uses `comsolbatch`. On Windows, if batch output contains both
+`Failed to start COMSOL` and `FlNativeException`, and contains no `<<<JSON_START>>>`
+marker, it invokes the same bridge command through the standalone COMSOL Java API.
+This addresses the observed `csutil.dll` dependent-library lookup failure before the
+bridge command begins. Unknown startup failures, partial JSON output, and structured
+model or solver errors do not trigger this launcher retry.
+
+The fallback uses the installed `java/win64/jre/bin/java.exe` and `javac.exe`, with the
+installed `plugins/*` classpath (including COMSOL APIs and bundled JNA). It compiles
+[ComsolStandalone.java](../src/hydro_disturb_bench/comsol_java/ComsolStandalone.java)
+in a fresh temporary directory, then calls `ModelUtil.initStandalone` and the existing
+`ComsolBridge.main`. Plotting support is enabled for diagnostic image exports. No
+additional Java packages, COMSOL installation edits, or global environment changes are
+required.
+
+Before initializing COMSOL, the standalone JVM calls Windows `AddDllDirectory` for
+`bin/win64`, `lib/win64`, and `java/win64/jre/bin`, then enables default DLL search
+directories with `SetDefaultDllDirectories`. These settings are limited to that JVM;
+they do not change other processes or the installed DLL files.
+
+The temporary class directory and installation path must be ASCII. Model paths,
+export paths, and other command arguments can contain Chinese text or emoji: Python
+encodes them as UTF-8/base64, and Java decodes them before invoking the bridge. The
+original model paths remain in use; models are not copied to ASCII aliases. The
+temporary launcher directory is removed after the JVM exits.
+
+Successful responses record `launch_mode` as `comsolbatch` or `standalone_java_api`.
+When recovery was used, `batch_startup_failure` retains the original batch stdout,
+stderr, and exit code. The normal JSON validation, model hash checks, staging, and
+publication rules still apply. This recovery does not retry a solver command that has
+already returned bridge output. Focused contract tests cover the retry boundary and
+Unicode argument preservation; actual simulation and regression results are recorded
+separately in the corresponding run reports.
+
 ## 3. Strict Safety Contracts
 
 ### 3.1 Baseline Model Immutability & Pre-Publish Verification

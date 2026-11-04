@@ -7,6 +7,7 @@ model immutability, parameter validation, and detailed execution logging.
 
 from __future__ import annotations
 
+import base64
 import contextlib
 import errno
 import hashlib
@@ -16,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -211,6 +213,37 @@ def ensure_bridge_compiled(root: Path | None = None) -> Path:
     return java_class
 
 
+def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess.CompletedProcess:
+    """Use the official single-process Java API after a native batch startup failure.
+
+    DLL search changes affect only this JVM. ASCII temporary class paths and
+    base64 UTF-8 arguments avoid the bundled Java launcher's Windows argv loss.
+    No model is copied and no installed file is changed.
+    """
+    java_bin = root / "java" / "win64" / "jre" / "bin"
+    with tempfile.TemporaryDirectory(prefix="hydrobench_comsol_") as temp:
+        work = Path(temp)
+        if not str(work).isascii() or not str(root).isascii():
+            raise ComsolConnectionError("Standalone Java launcher requires ASCII temp and installation paths")
+        shutil.copy2(class_file, work / "ComsolBridge.class")
+        source = work / "ComsolStandalone.java"
+        shutil.copy2(Path(__file__).with_name("ComsolStandalone.java"), source)
+        classpath = str(root / "plugins" / "*") + os.pathsep + str(work)
+        compiled = subprocess.run(
+            [str(java_bin / "javac.exe"), "-cp", classpath, str(source)],
+            cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        )
+        if compiled.returncode != 0:
+            raise ComsolConnectionError(f"Standalone launcher compilation failed: {compiled.stderr}")
+        encoded = [base64.b64encode(value.encode("utf-8")).decode("ascii")
+                   for value in [str(root.resolve()), *args]]
+        return subprocess.run(
+            [str(java_bin / "java.exe"), "-Xmx2g", "-Xss4m", "-cp", classpath,
+             "ComsolStandalone", *encoded],
+            cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        )
+
+
 def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     """Execute ComsolBridge with given arguments and parse JSON result."""
     root = root or find_comsol_root()
@@ -230,6 +263,17 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
         encoding="utf-8",
         errors="replace",
     )
+
+    # Retry only an identified startup failure, before any bridge command ran.
+    # Never retry solver/model errors or a process that emitted bridge JSON.
+    launch_mode = "comsolbatch"
+    startup_failure = None
+    if (sys.platform == "win32" and "<<<JSON_START>>>" not in (proc.stdout or "")
+            and "Failed to start COMSOL" in (proc.stdout or "")
+            and "FlNativeException" in (proc.stdout or "")):
+        startup_failure = {"stdout": proc.stdout, "stderr": proc.stderr, "returncode": proc.returncode}
+        proc = _run_standalone(root, class_file, args)
+        launch_mode = "standalone_java_api"
 
     # Clean up comsolbatch status file if created in the directory
     status_file = class_file.with_name(f"{class_file.name}.status")
@@ -322,6 +366,9 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
             )
 
     data.setdefault("log", stdout)
+    data["launch_mode"] = launch_mode
+    if startup_failure is not None:
+        data["batch_startup_failure"] = startup_failure
     return data
 
 

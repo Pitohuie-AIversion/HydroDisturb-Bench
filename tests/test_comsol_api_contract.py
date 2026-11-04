@@ -999,3 +999,85 @@ def test_posix_atomic_no_overwrite_fails_closed(tmp_path):
     assert not dest_nonexistent.exists()
     assert stage.is_file()
     assert stage.read_bytes() == b"new stage data"
+
+
+# Native batch startup recovery must never retry an already executing command.
+@pytest.mark.parametrize("failure_kind", ["unknown", "native_name_only", "partial_json", "solver_error"])
+def test_standalone_fallback_does_not_retry_command_failures(tmp_path, monkeypatch, failure_kind):
+    from hydro_disturb_bench.comsol_java import bridge
+
+    _make_fake_comsolbatch(tmp_path)
+    class_file = tmp_path / "ComsolBridge.class"
+    class_file.write_bytes(b"mock compiled class")
+    native = "ERROR: Failed to start COMSOL\ncom/comsol/nativejni/FlNativeException\n"
+    outputs = {
+        "unknown": "Unidentified process failure",
+        "native_name_only": "FlNativeException while executing model operation",
+        "partial_json": native + "<<<JSON_START>>>\n{",
+        "solver_error": native + "<<<JSON_START>>>\n" + json.dumps({
+            "status": "ERROR", "error_code": "SOLVER_FAILED", "message": "Solver diverged"
+        }) + "\n<<<JSON_END>>>",
+    }
+    proc = subprocess.CompletedProcess([], 1, stdout=outputs[failure_kind], stderr="")
+    monkeypatch.setattr(bridge, "get_comsol_bin_dir", lambda root: tmp_path)
+    monkeypatch.setattr(bridge, "ensure_bridge_compiled", lambda root: class_file)
+    monkeypatch.setattr(bridge.subprocess, "run", MagicMock(return_value=proc))
+    fallback = MagicMock(side_effect=AssertionError("A command failure must not be retried"))
+    monkeypatch.setattr(bridge, "_run_standalone", fallback)
+    # Force the Windows decision branch without constructing platform-specific paths.
+    monkeypatch.setattr(bridge.sys, "platform", "win32")
+    expected_error = SolverFailedError if failure_kind == "solver_error" else ComsolConnectionError
+    with pytest.raises(expected_error):
+        bridge._run_bridge(["run-study", "source.mph", "output.mph", "std1"], root=tmp_path)
+    fallback.assert_not_called()
+    bridge.subprocess.run.assert_called_once()
+
+
+def test_standalone_fallback_recovers_only_identified_batch_startup(tmp_path, monkeypatch):
+    from hydro_disturb_bench.comsol_java import bridge
+
+    _make_fake_comsolbatch(tmp_path)
+    class_file = tmp_path / "ComsolBridge.class"
+    class_file.write_bytes(b"mock compiled class")
+    startup = subprocess.CompletedProcess([], 0,
+        stdout="ERROR: Failed to start COMSOL\ncom/comsol/nativejni/FlNativeException\n", stderr="native detail")
+    payload = {"status": "SUCCESS", "operation": "inspect_api", "comsol_version": "6.4", "api_specification": {}}
+    recovered = subprocess.CompletedProcess([], 0,
+        stdout="<<<JSON_START>>>\n" + json.dumps(payload) + "\n<<<JSON_END>>>", stderr="")
+    monkeypatch.setattr(bridge, "get_comsol_bin_dir", lambda root: tmp_path)
+    monkeypatch.setattr(bridge, "ensure_bridge_compiled", lambda root: class_file)
+    monkeypatch.setattr(bridge.subprocess, "run", MagicMock(return_value=startup))
+    fallback = MagicMock(return_value=recovered)
+    monkeypatch.setattr(bridge, "_run_standalone", fallback)
+    monkeypatch.setattr(bridge.sys, "platform", "win32")
+    result = bridge._run_bridge(["inspect-api"], root=tmp_path)
+    assert result["status"] == "SUCCESS"
+    assert result["launch_mode"] == "standalone_java_api"
+    fallback.assert_called_once_with(tmp_path, class_file, ["inspect-api"])
+    assert result["batch_startup_failure"]["stdout"] == startup.stdout
+
+
+def test_standalone_launcher_preserves_unicode_arguments(tmp_path, monkeypatch):
+    import base64
+    from hydro_disturb_bench.comsol_java import bridge
+
+    class_file = tmp_path / "ComsolBridge.class"
+    class_file.write_bytes(b"mock compiled class")
+    installation = tmp_path / "COMSOL"
+    arguments = ["inspect-probe-and-solver", "D:/研究/📁/已有解.mph", "0.15", "0.12", "D:/新证据/尾流"]
+    runner = MagicMock(side_effect=[
+        subprocess.CompletedProcess([], 0, stdout="", stderr=""),
+        subprocess.CompletedProcess([], 0, stdout="real command output", stderr=""),
+    ])
+    monkeypatch.setattr(bridge.subprocess, "run", runner)
+    result = bridge._run_standalone(installation, class_file, arguments)
+    assert result.stdout == "real command output"
+    assert runner.call_count == 2
+    launch_args = runner.call_args_list[1].args[0]
+    encoded = launch_args[launch_args.index("ComsolStandalone") + 1:]
+    decoded = [base64.b64decode(value).decode("utf-8") for value in encoded]
+    assert decoded == [str(installation.resolve()), *arguments]
+    assert all(value.isascii() for value in encoded)
+    assert all(arg.isascii() for arg in launch_args)
+    # A fresh temporary class directory must not outlive the single JVM call.
+    assert not runner.call_args_list[1].kwargs["cwd"].exists()

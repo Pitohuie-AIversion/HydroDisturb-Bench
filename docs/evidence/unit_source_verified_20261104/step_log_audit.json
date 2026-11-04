@@ -1,0 +1,17 @@
+{
+  "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_c_20261104_verified\\solver_run.log",
+  "sequential_unique_step_ids": true,
+  "strictly_increasing_time": true,
+  "count": 4091,
+  "first_record": [
+    1,
+    0.0058385,
+    0.0018385
+  ],
+  "last_record": [
+    4091,
+    200.03,
+    0.05
+  ],
+  "max_dt": 0.05
+}

@@ -10,6 +10,7 @@
 > 和 `comsol_model_export_node`，没有读取对应导出节点。下面历史五点数值比较及 A/B
 > 物理指标仍保留；无单位表头本身不能证明速度单位。本轮真实来源链、测试与
 > Case C 状态见 [本轮修复记录](UNIT_SOURCE_CASE_C_20261104.md)。
+> 后续已完成真实来源核验和 Case C；当前结果见 [成功执行记录](UNIT_SOURCE_CASE_C_VERIFIED_20261104.md)。
 
 ---
 
