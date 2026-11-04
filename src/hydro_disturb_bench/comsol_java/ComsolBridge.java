@@ -1099,10 +1099,15 @@ public class ComsolBridge {
                     sb.append("    \"atolmethod\": ").append(quote(safeGetSolverProperty(feat, "atolmethod"))).append(",\n");
                     sb.append("    \"atolfactor\": ").append(quote(safeGetSolverProperty(feat, "atolfactor"))).append(",\n");
                     sb.append("    \"atol\": ").append(quote(safeGetSolverProperty(feat, "atol"))).append(",\n");
+                    sb.append("    \"atolvaluemethod\": ").append(quote(safeGetSolverProperty(feat, "atolvaluemethod"))).append(",\n");
+                    sb.append("    \"atolglobal\": ").append(quote(safeGetSolverProperty(feat, "atolglobal"))).append(",\n");
+                    sb.append("    \"atolglobalfactor\": ").append(quote(safeGetSolverProperty(feat, "atolglobalfactor"))).append(",\n");
+                    sb.append("    \"atolglobalmethod\": ").append(quote(safeGetSolverProperty(feat, "atolglobalmethod"))).append(",\n");
+                    sb.append("    \"atolglobalvaluemethod\": ").append(quote(safeGetSolverProperty(feat, "atolglobalvaluemethod"))).append(",\n");
                     sb.append("    \"maxstepconstraintbdf\": ").append(quote(safeGetSolverProperty(feat, "maxstepconstraintbdf"))).append(",\n");
                     sb.append("    \"maxstepbdf\": ").append(quote(safeGetSolverProperty(feat, "maxstepbdf"))).append(",\n");
-                    sb.append("    \"initstepconstraintbdf\": ").append(quote(safeGetSolverProperty(feat, "initstepconstraintbdf"))).append(",\n");
-                    sb.append("    \"initstepbdf\": ").append(quote(safeGetSolverProperty(feat, "initstepbdf"))).append(",\n");
+                    sb.append("    \"initialstepbdf\": ").append(quote(safeGetSolverProperty(feat, "initialstepbdf"))).append(",\n");
+                    sb.append("    \"initialstepbdfactive\": ").append(quote(safeGetSolverProperty(feat, "initialstepbdfactive"))).append(",\n");
                     sb.append("    \"tlist\": ").append(quote(safeGetSolverProperty(feat, "tlist"))).append("\n");
                     break;
                 }

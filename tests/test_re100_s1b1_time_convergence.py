@@ -1,14 +1,15 @@
 """Stage S1-B1 Test Suite: Time-Stepping Solver Tolerance Convergence & Pre-checks.
 
 Covers all required S1-B1 verification gates:
-1. Probe dataset, coordinates, units, or expression mismatch rejection.
+1. Probe dataset, coordinates, units, or expression mismatch rejection using production functions.
 2. Solver requested configuration vs live readback consistency.
 3. Case A & B non-target configuration immutability & strict equality.
-4. De-meaned RMS mathematical correctness on synthetic signals with non-zero mean.
-5. Rejection of non-converged/unstable signals from final physical precision comparison.
-6. Baseline and S1-A/S1-A2 model immutability (SHA-256 preservation).
-7. Physical metrics comparison: relative change in St, Cd_mean, Cl_amp, and de-meaned RMS.
-8. Independent result isolation and quarantine protection.
+4. Exact window boundary interpolation on constant, linear, and sinusoidal signals.
+5. De-meaned RMS mathematical correctness on synthetic signals with non-zero mean and non-grid endpoints.
+6. Rejection of non-converged/unstable signals from final physical precision comparison (UNSTABLE gate).
+7. Baseline and S1-A/S1-A2 model immutability (SHA-256 preservation).
+8. Physical metrics comparison using production analyze_case and compare_cases on Case A vs Case B.
+9. Independent result isolation and quarantine protection.
 """
 
 from __future__ import annotations
@@ -21,21 +22,37 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-SRC_DIR = Path(__file__).resolve().parents[1] / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+ROOT_DIR = Path(__file__).resolve().parents[1]
+SRC_DIR = ROOT_DIR / "src"
+SCRIPTS_DIR = ROOT_DIR / "scripts"
+
+for p in (str(SRC_DIR), str(SCRIPTS_DIR)):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 from hydro_disturb_bench.comsol_java import compute_file_hash
 from hydro_disturb_bench.io import (
     load_comsol_1d_timeseries,
     validate_s1_diagnostics,
 )
+from scripts.verify_and_compare_s1b1 import (
+    analyze_case,
+    compare_cases,
+    compute_cycle_half_amplitude,
+    compute_demeaned_rms,
+    evaluate_limit_cycle_stability,
+    integrate_exact_window,
+)
+from scripts.verify_s1b1_prechecks import (
+    validate_probe_config,
+    verify_probe_metadata,
+)
 
-BASELINE_CASE = Path("case/cylinder_flow.mph")
-BENCHMARK_MODEL = Path("models/cylinder_2d/re100_benchmark.mph")
-S1A_SOLVED_MPH = Path("runs/re100_s1a_trial/re100_s1a_solved.mph")
-S1A2_SOLVED_MPH = Path("runs/re100_s1a2_trial/re100_s1a2_solved.mph")
-S1B1_DIR = Path("runs/re100_s1b1_trial")
+BASELINE_CASE = ROOT_DIR / "case" / "cylinder_flow.mph"
+BENCHMARK_MODEL = ROOT_DIR / "models" / "cylinder_2d" / "re100_benchmark.mph"
+S1A_SOLVED_MPH = ROOT_DIR / "runs" / "re100_s1a_trial" / "re100_s1a_solved.mph"
+S1A2_SOLVED_MPH = ROOT_DIR / "runs" / "re100_s1a2_trial" / "re100_s1a2_solved.mph"
+S1B1_DIR = ROOT_DIR / "runs" / "re100_s1b1_trial"
 S1B1_SOLVED_MPH = S1B1_DIR / "re100_s1b1_solved.mph"
 
 EXPECTED_CASE_HASH = "CE72D06EB181ACA2D152505A138F472B7EF424FE7A2CC20C900C670002F00A7A"
@@ -64,29 +81,20 @@ def test_all_baseline_and_prior_models_immutability():
 
 
 # ---------------------------------------------------------------------------
-# 2. Probe Mismatch Rejection
+# 2. Probe Mismatch Rejection (Using Production Functions)
 # ---------------------------------------------------------------------------
 def test_probe_mismatch_rejection_logic():
     """Verify that discrepancies in probe coordinates, expressions, units, or dataset trigger rejection."""
-
-    def validate_probe_config(coords: tuple[float, float], expr: str, unit: str, dataset: str):
-        if abs(coords[0] - 0.15) > 1e-5 or abs(coords[1] - 0.12) > 1e-5:
-            raise ValueError(f"Coordinate mismatch: {coords} != (0.15, 0.12)")
-        if expr not in ("u", "v"):
-            raise ValueError(f"Invalid probe expression: {expr}")
-        if unit != "m/s":
-            raise ValueError(f"Invalid unit (must be SI m/s, not normalized): {unit}")
-        if dataset != "dset1":
-            raise ValueError(f"Invalid solution dataset: {dataset}")
-        return True
-
-    # Valid probe passes
+    # Valid probe passes via production validate_probe_config
     assert validate_probe_config((0.15, 0.12), "u", "m/s", "dset1") is True
-    assert validate_probe_config((0.15, 0.12), "v", "m/s", "dset1") is True
+    assert validate_probe_config((0.15, 0.12), ["u", "v"], "m/s", "dset1") is True
 
     # Coordinate mismatch rejected
     with pytest.raises(ValueError, match="Coordinate mismatch"):
         validate_probe_config((0.10, 0.12), "u", "m/s", "dset1")
+
+    with pytest.raises(ValueError, match="Coordinate mismatch"):
+        validate_probe_config((0.15, 0.10), "u", "m/s", "dset1")
 
     # Expression mismatch rejected
     with pytest.raises(ValueError, match="Invalid probe expression"):
@@ -96,9 +104,44 @@ def test_probe_mismatch_rejection_logic():
     with pytest.raises(ValueError, match="Invalid unit"):
         validate_probe_config((0.15, 0.12), "u", "1", "dset1")
 
+    with pytest.raises(ValueError, match="Invalid unit"):
+        validate_probe_config((0.15, 0.12), "u", "cm/s", "dset1")
+
     # Dataset mismatch rejected
     with pytest.raises(ValueError, match="Invalid solution dataset"):
         validate_probe_config((0.15, 0.12), "u", "m/s", "dset2")
+
+
+def test_verify_probe_metadata_production_validation():
+    """Verify production verify_probe_metadata rejects corrupted readbacks."""
+    t_fake = np.linspace(0.0, 200.0, 1001)
+    u_fake = np.full(1001, 0.0065)
+    v_fake = np.full(1001, 0.0015)
+
+    valid_res = {
+        "probe_coords": {"x": "0.15", "y": "0.12"},
+        "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "direct_evaluations": [
+            {"target_t": 180.0, "actual_t": 180.0, "u_direct": 0.0065, "v_direct": 0.0015},
+            {"target_t": 200.0, "actual_t": 200.0, "u_direct": 0.0065, "v_direct": 0.0015},
+        ],
+    }
+
+    report = verify_probe_metadata(valid_res, {}, {}, t_fake, t_fake, u_fake, v_fake)
+    assert report["is_valid"] is True
+    assert report["status"] == "PASS"
+
+    # Mismatched coordinates in COMSOL readback
+    invalid_coords_res = dict(valid_res, probe_coords={"x": "0.14", "y": "0.12"})
+    bad_report = verify_probe_metadata(invalid_coords_res, {}, {}, t_fake, t_fake, u_fake, v_fake)
+    assert bad_report["is_valid"] is False
+    assert bad_report["status"] == "FAIL"
+
+    # Missing dset1 dataset
+    invalid_dset_res = dict(valid_res, datasets=[{"tag": "dset2", "type": "Solution"}])
+    bad_report2 = verify_probe_metadata(invalid_dset_res, {}, {}, t_fake, t_fake, u_fake, v_fake)
+    assert bad_report2["is_valid"] is False
+    assert bad_report2["status"] == "FAIL"
 
 
 # ---------------------------------------------------------------------------
@@ -164,143 +207,237 @@ def test_case_a_and_b_non_target_settings_strictly_identical():
 
 
 # ---------------------------------------------------------------------------
-# 5. Lift De-meaned RMS Synthetic Signal & Mathematics Correctness
+# 5. Core Mathematical Integrals: Constant, Linear, and Non-Grid Endpoints
 # ---------------------------------------------------------------------------
-def test_lift_demeaned_rms_synthetic_signal_and_windowing_correctness():
-    """Verify that de-meaned RMS calculation:
-    1. Yields exact A / sqrt(2) for pure sinusoid.
-    2. Is completely invariant to non-zero mean offsets C_L0.
-    3. Fails if computed across a partial non-integer cycle without de-meaning.
+def test_exact_window_integration_constant_signal_arbitrary_window():
+    """Verify that integrate_exact_window preserves exact mean for constant signals on arbitrary non-grid windows.
+
+    This directly verifies the fix for the P1 bug where omitting boundary intervals
+    caused a -0.53% error (0.9947 instead of 1.0) on discrete grids.
     """
-    f0 = 0.20  # T = 5.0 s
-    A = 0.35
-    C_L0 = 0.08  # Non-zero mean
-    dt = 0.02
-    t = np.arange(0, 25.0 + dt / 2, dt)  # Exactly 5 cycles (25.0 s)
+    dt = 0.2
+    t = np.arange(0.0, 200.0 + dt / 2, dt)
+    c_val = 3.141592653589793
+    y_const = np.full_like(t, c_val)
 
-    cl_synthetic = C_L0 + A * np.sin(2.0 * np.pi * f0 * t)
+    # Windows with arbitrary non-grid endpoints (e.g. Case A and Case B zero-crossing times)
+    test_windows = [
+        (163.576, 194.942),  # Case A window
+        (163.682, 195.048),  # Case B window
+        (10.12345, 87.65432),  # Arbitrary window
+        (0.05, 199.95),  # Near boundaries
+    ]
 
-    # Calculate cycle-integrated mean
-    t_start = t[0]
-    t_end = t[-1]
-    duration = t_end - t_start
-    mean_cl = np.trapezoid(cl_synthetic, t) / duration
-    assert abs(mean_cl - C_L0) < 1e-4
+    for t_s, t_e in test_windows:
+        duration = t_e - t_s
+        integral_val, mean_calc = integrate_exact_window(t, y_const, t_s, t_e)
+        # Must match constant value to machine precision
+        assert abs(mean_calc - c_val) < 1e-12, f"Constant mean failed on [{t_s}, {t_e}]: {mean_calc} != {c_val}"
+        assert abs(integral_val - c_val * duration) < 1e-12
 
-    # De-meaned RMS
-    demeaned = cl_synthetic - mean_cl
-    rms_calc = float(np.sqrt(np.trapezoid(demeaned ** 2, t) / duration))
+    # Specific check on Case A window verifying user's exact mathematical counter-example (-0.529%)
+    t_s_a, t_e_a = 163.576, 194.942
+    dur_a = t_e_a - t_s_a
+    m_win_a = (t >= t_s_a) & (t <= t_e_a)
+    naive_mean_a = np.trapezoid(y_const[m_win_a], t[m_win_a]) / dur_a
+    naive_error_a = (naive_mean_a - c_val) / c_val
+    # Demonstrates that naive masking yields -0.529% bias on constant signal
+    assert abs(naive_error_a - (-0.005292)) < 1e-5
+
+
+def test_exact_window_integration_linear_signal_arbitrary_endpoints():
+    """Verify that integrate_exact_window yields exact analytical integral for linear signals."""
+    dt = 0.2
+    t = np.arange(0.0, 200.0 + dt / 2, dt)
+    slope = 0.042
+    intercept = -1.25
+    y_linear = slope * t + intercept
+
+    t_s = 163.576
+    t_e = 194.942
+    duration = t_e - t_s
+
+    # Analytical integral of (a*t + b) is a*(t_e^2 - t_s^2)/2 + b*(t_e - t_s)
+    exact_integral = 0.5 * slope * (t_e ** 2 - t_s ** 2) + intercept * (t_e - t_s)
+    exact_mean = exact_integral / duration
+
+    calc_integral, calc_mean = integrate_exact_window(t, y_linear, t_s, t_e)
+
+    assert abs(calc_integral - exact_integral) < 1e-11
+    assert abs(calc_mean - exact_mean) < 1e-11
+
+
+def test_demeaned_rms_synthetic_sine_non_zero_mean_and_arbitrary_phase():
+    """Verify that compute_demeaned_rms:
+    1. Yields exact A / sqrt(2) for a sinusoid spanning integer periods with arbitrary non-grid phase.
+    2. Is invariant to non-zero constant bias C_0.
+    3. Production function behaves correctly on non-grid window endpoints.
+    """
+    f0 = 0.16  # T0 = 6.25 s
+    T0 = 1.0 / f0
+    A = 0.312
+    C0 = 0.145  # Non-zero offset
+    dt = 0.20
+    t = np.arange(0.0, 200.0 + dt / 2, dt)
+
+    phi0 = 1.2345  # Arbitrary non-zero phase
+    y = C0 + A * np.sin(2.0 * np.pi * f0 * t + phi0)
+
+    # Start at arbitrary non-grid time t_start, span exactly 5 full cycles
+    t_start = 123.456
+    t_end = t_start + 5 * T0  # exactly 5 cycles
+
+    mean_val, rms_calc = compute_demeaned_rms(t, y, t_start, t_end)
     rms_exact = A / math.sqrt(2.0)
 
-    # Must match theoretical A / sqrt(2)
-    assert abs(rms_calc - rms_exact) < 1e-4
-    assert abs(rms_calc / rms_exact - 1.0) < 1e-3
+    # Error should be minuscule (within trapezoid discretization error for ~31 points per cycle)
+    rel_err = abs(rms_calc - rms_exact) / rms_exact
+    assert rel_err < 0.001, f"De-meaned RMS rel_err {rel_err:.4e} exceeds 0.1%"
+    assert abs(mean_val - C0) < 1e-3
 
-    # Demonstrate that raw (un-demeaned) RMS has non-zero bias
-    raw_rms = float(np.sqrt(np.trapezoid(cl_synthetic ** 2, t) / duration))
-    assert abs(raw_rms - rms_exact) > 0.005, "Raw RMS did not reflect mean bias!"
-
-
-# ---------------------------------------------------------------------------
-# 6. Unstable Signal Rejection from Convergence Comparison
-# ---------------------------------------------------------------------------
-def test_unstable_signal_rejected_from_convergence_study():
-    """Verify that signals exhibiting transient drift (>2% amplitude or >1% St) are rejected."""
-
-    def evaluate_limit_cycle_stability(periods: list[float], amplitudes: list[float]):
-        st_drift = (max(periods) - min(periods)) / np.mean(periods) * 100.0
-        amp_drift = (max(amplitudes) - min(amplitudes)) / np.mean(amplitudes) * 100.0
-        if st_drift > 1.0 or amp_drift > 2.0:
-            return False, f"Unstable: St_drift={st_drift:.2f}%, amp_drift={amp_drift:.2f}%"
-        return True, "Stable"
-
-    # Stable case passes
-    stable, _ = evaluate_limit_cycle_stability([6.31, 6.312, 6.309, 6.311, 6.310], [0.311, 0.3115, 0.3108, 0.3112, 0.3110])
-    assert stable is True
-
-    # Drifting amplitude rejected
-    unstable_amp, msg = evaluate_limit_cycle_stability([6.31, 6.31, 6.31, 6.31, 6.31], [0.28, 0.29, 0.30, 0.31, 0.32])
-    assert unstable_amp is False
-    assert "amp_drift" in msg
-
-    # Drifting frequency rejected
-    unstable_freq, msg2 = evaluate_limit_cycle_stability([6.10, 6.20, 6.30, 6.40, 6.50], [0.31, 0.31, 0.31, 0.31, 0.31])
-    assert unstable_freq is False
-    assert "St_drift" in msg2
+    # Half amplitude check
+    half_amp = compute_cycle_half_amplitude(t, y, t_start, t_end)
+    assert abs(half_amp - A) / A < 0.005
 
 
 # ---------------------------------------------------------------------------
-# 7. Physical Indicators & Tolerance Insensitivity Comparison (Case A vs B)
+# 6. Unstable Signal Rejection Gate (Production Control Flow)
 # ---------------------------------------------------------------------------
-def test_case_a_and_b_physical_metrics_and_insensitivity():
-    """Verify that Case A and Case B both achieve stable limit cycles and show < 1% difference."""
-    t_cl_a, cl_a = load_comsol_1d_timeseries(Path("runs/re100_s1a2_trial/lift_coeff.txt"))[:2]
-    t_cd_a, cd_a = load_comsol_1d_timeseries(Path("runs/re100_s1a2_trial/drag_coeff.txt"))[:2]
+def test_production_evaluate_limit_cycle_stability():
+    """Verify that production evaluate_limit_cycle_stability rejects drifting periods, amplitudes, or Cd."""
+    # 1. Stable passes
+    periods_stable = [6.310, 6.312, 6.309, 6.311, 6.310]
+    amps_stable = [0.3110, 0.3115, 0.3108, 0.3112, 0.3110]
+    cds_stable = [1.3467, 1.3468, 1.3466, 1.3467, 1.3468]
 
-    t_cl_b, cl_b = load_comsol_1d_timeseries(S1B1_DIR / "lift_coeff.txt")[:2]
-    t_cd_b, cd_b = load_comsol_1d_timeseries(S1B1_DIR / "drag_coeff.txt")[:2]
+    is_stable, drifts, msg = evaluate_limit_cycle_stability(periods_stable, amps_stable, cds_stable)
+    assert is_stable is True
+    assert msg == "Stable"
+    assert drifts["st_drift_pct"] < 1.0
+    assert drifts["amp_drift_pct"] < 2.0
+    assert drifts["cd_drift_pct"] < 1.0
 
-    def extract_last5_stats(t_cl, cl, t_cd, cd):
-        m100 = t_cl >= 100.0
-        t_late = t_cl[m100]
-        cl_late = cl[m100]
+    # 2. Drifting amplitude rejected
+    amps_unstable = [0.28, 0.29, 0.30, 0.31, 0.32]  # ~13% drift
+    is_stable_amp, drifts_amp, msg_amp = evaluate_limit_cycle_stability(periods_stable, amps_unstable, cds_stable)
+    assert is_stable_amp is False
+    assert "amp drift" in msg_amp.lower()
 
-        zc = []
-        for i in range(len(t_late) - 1):
-            if cl_late[i] <= 0.0 < cl_late[i + 1]:
-                tz = t_late[i] - cl_late[i] * (t_late[i + 1] - t_late[i]) / (cl_late[i + 1] - cl_late[i])
-                zc.append(float(tz))
+    # 3. Drifting frequency rejected
+    periods_unstable = [6.10, 6.20, 6.30, 6.40, 6.50]  # ~6.3% drift
+    is_stable_per, drifts_per, msg_per = evaluate_limit_cycle_stability(periods_unstable, amps_stable, cds_stable)
+    assert is_stable_per is False
+    assert "st drift" in msg_per.lower()
 
-        last5_zc = zc[-6:]
-        T_cycles = np.diff(last5_zc)
-        St_vals = (1.0 / T_cycles) * D / U_INF
 
-        t_s, t_e = last5_zc[0], last5_zc[-1]
-        m_win = (t_cl >= t_s) & (t_cl <= t_e)
+def test_analyze_case_and_compare_cases_reject_unstable_signals():
+    """Verify that analyze_case and compare_cases reject unstable signals from precision comparison.
 
-        cd_mean = np.trapezoid(cd[m_win], t_cd[m_win]) / (t_e - t_s)
-        cl_mean = np.trapezoid(cl[m_win], t_cl[m_win]) / (t_e - t_s)
-        cl_rms = np.sqrt(np.trapezoid((cl[m_win] - cl_mean) ** 2, t_cl[m_win]) / (t_e - t_s))
+    Ensures that if either case is UNSTABLE, compare_cases returns conclusion='UNSTABLE'
+    and can_compare=False, preventing false 'INSENSITIVE' claims.
+    """
+    dt = 0.2
+    t = np.arange(0.0, 200.0 + dt / 2, dt)
+    f0 = 0.16  # T0 = 6.25 s
+    omega = 2.0 * np.pi * f0
 
-        amps = []
-        for k in range(5):
-            idx = (t_cl >= last5_zc[k]) & (t_cl <= last5_zc[k + 1])
-            amps.append((np.max(cl[idx]) - np.min(cl[idx])) / 2.0)
+    # Stable Case A
+    cl_stable = 0.311 * np.sin(omega * t)
+    cd_stable = 1.346 + 0.05 * np.cos(2.0 * omega * t)
 
-        return {
-            "St_mean": float(np.mean(St_vals)),
-            "Cd_mean": float(cd_mean),
-            "Cl_amp": float(np.mean(amps)),
-            "Cl_rms": float(cl_rms),
-            "window": (t_s, t_e),
-        }
+    stats_stable_a = analyze_case(
+        name="Case_A_Synthetic",
+        t_cl=t,
+        cl=cl_stable,
+        t_cd=t,
+        cd=cd_stable,
+    )
+    assert stats_stable_a["status"] == "STABLE"
+    assert stats_stable_a["is_stable"] is True
 
-    stats_a = extract_last5_stats(t_cl_a, cl_a, t_cd_a, cd_a)
-    stats_b = extract_last5_stats(t_cl_b, cl_b, t_cd_b, cd_b)
+    # Unstable Case B (growing amplitude: 0.20 -> 0.40 over time)
+    amp_envelope = 0.20 + 0.20 * (t / 200.0)
+    cl_unstable = amp_envelope * np.sin(omega * t)
+    cd_unstable = 1.346 + 0.05 * np.cos(2.0 * omega * t)
 
-    # Check Strouhal values
-    st_a = stats_a["St_mean"]
-    st_b = stats_b["St_mean"]
-    rel_diff_st = abs(st_b - st_a) / st_a * 100.0
-    assert rel_diff_st < 1.0, f"St changed by {rel_diff_st:.3f}% (exceeds 1.0% threshold)"
-    assert 0.157 < st_a < 0.161
+    stats_unstable_b = analyze_case(
+        name="Case_B_Unstable",
+        t_cl=t,
+        cl=cl_unstable,
+        t_cd=t,
+        cd=cd_unstable,
+    )
+    assert stats_unstable_b["status"] == "UNSTABLE"
+    assert stats_unstable_b["is_stable"] is False
+
+    # Comparison MUST reject unstable signal
+    comp_unstable = compare_cases(stats_stable_a, stats_unstable_b)
+    assert comp_unstable["can_compare"] is False
+    assert comp_unstable["conclusion"] == "UNSTABLE"
+    assert any("Case_B_Unstable" in item for item in comp_unstable.get("unstable_details", []))
+
+    # Must NOT conclude insensitive!
+    assert comp_unstable["conclusion"] != "INSENSITIVE_WITHIN_TESTED_RANGE"
+    assert comp_unstable["conclusion"] != "SENSITIVE"
+
+
+# ---------------------------------------------------------------------------
+# 7. Physical Indicators & Tolerance Insensitivity (Case A vs B Production Data)
+# ---------------------------------------------------------------------------
+def test_case_a_and_b_real_cfd_production_analysis():
+    """Verify Case A and Case B real CFD runs using production analyze_case and compare_cases."""
+    case_a_dir = ROOT_DIR / "runs" / "re100_s1a2_trial"
+    case_b_dir = ROOT_DIR / "runs" / "re100_s1b1_trial"
+
+    stats_a = analyze_case(
+        name="Case_A",
+        trial_dir=case_a_dir,
+    )
+
+    stats_b = analyze_case(
+        name="Case_B",
+        trial_dir=case_b_dir,
+    )
+
+    # 1. Both cases must independently pass limit-cycle stability gate
+    assert stats_a["status"] == "STABLE", f"Case A unstable: {stats_a['stability_drifts']}"
+    assert stats_b["status"] == "STABLE", f"Case B unstable: {stats_b['stability_drifts']}"
+    assert stats_a["is_stable"] is True
+    assert stats_b["is_stable"] is True
+
+    # 2. Check exact window boundaries
+    assert stats_a["window"][0] < 163.6 and stats_a["window"][0] > 163.5
+    assert stats_a["window"][1] < 195.0 and stats_a["window"][1] > 194.9
+
+    # 3. Compare cases with production compare_cases
+    comp = compare_cases(stats_a, stats_b)
+    assert comp["can_compare"] is True
+    assert comp["conclusion"] == "INSENSITIVE_WITHIN_TESTED_RANGE"
+
+    # 4. Quantitative verification of corrected metrics
+    diffs = comp["comparisons"]
+
+    # Strouhal number (zero crossing): ~0.1585 vs ~0.1594 (+0.59%)
+    st_a = stats_a["St_zc_mean"]
+    st_b = stats_b["St_zc_mean"]
+    assert 0.157 < st_a < 0.160
     assert 0.158 < st_b < 0.161
+    assert abs(diffs["St_zc"]["rel_diff_pct"] - 0.59) < 0.1
 
-    # Check Mean Drag
-    cd_a_val = stats_a["Cd_mean"]
-    cd_b_val = stats_b["Cd_mean"]
-    rel_diff_cd = abs(cd_b_val - cd_a_val) / cd_a_val * 100.0
-    assert rel_diff_cd < 0.5, f"Cd mean changed by {rel_diff_cd:.3f}% (exceeds 0.5% threshold)"
+    # Mean Drag: Case A ~1.3468, Case B ~1.3470 (+0.0165%)
+    cd_a = stats_a["Cd_mean"]
+    cd_b = stats_b["Cd_mean"]
+    assert 1.346 < cd_a < 1.348
+    assert 1.346 < cd_b < 1.348
+    assert abs(diffs["Cd_mean"]["rel_diff_pct"] - 0.0165) < 0.01
 
-    # Check Lift Amplitude
-    amp_a = stats_a["Cl_amp"]
-    amp_b = stats_b["Cl_amp"]
-    rel_diff_amp = abs(amp_b - amp_a) / amp_a * 100.0
-    assert rel_diff_amp < 1.0, f"Cl amplitude changed by {rel_diff_amp:.3f}% (exceeds 1.0% threshold)"
+    # Lift amplitude & RMS: ~0.55% and ~0.53% change
+    assert abs(diffs["Cl_amp"]["rel_diff_pct"] - 0.56) < 0.15
+    assert abs(diffs["Cl_rms"]["rel_diff_pct"] - 0.53) < 0.15
 
-    # Check De-meaned RMS ratio to theoretical sinusoid
-    assert abs(stats_a["Cl_rms"] / (amp_a / np.sqrt(2)) - 1.0) < 0.01
-    assert abs(stats_b["Cl_rms"] / (amp_b / np.sqrt(2)) - 1.0) < 0.01
+    # Pure limit-cycle sinusoidal ratio check: RMS / (C_L' / sqrt(2)) ~ 1.001
+    assert abs(stats_a["sinusoidal_ratio"] - 1.0) < 0.005
+    assert abs(stats_b["sinusoidal_ratio"] - 1.0) < 0.005
 
 
 # ---------------------------------------------------------------------------

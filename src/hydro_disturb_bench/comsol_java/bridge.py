@@ -972,7 +972,7 @@ def recover_unclaimed_staging(
             continue
 
         # If lease exists but inactive, check min_age_sec
-        if has_lease and file_age < min_age_sec:
+        if has_lease and min_age_sec > 0.0 and file_age < min_age_sec:
             skipped_active.append(
                 {
                     "path": str(f.resolve()),
@@ -983,7 +983,7 @@ def recover_unclaimed_staging(
             continue
 
         # If file has NO lease file on disk, check min_age_sec
-        if not has_lease and file_age < min_age_sec:
+        if not has_lease and min_age_sec > 0.0 and file_age < min_age_sec:
             skipped_active.append(
                 {
                     "path": str(f.resolve()),
