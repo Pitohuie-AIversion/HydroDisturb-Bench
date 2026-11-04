@@ -113,35 +113,103 @@ def test_probe_mismatch_rejection_logic():
 
 
 def test_verify_probe_metadata_production_validation():
-    """Verify production verify_probe_metadata rejects corrupted readbacks."""
+    """Verify production verify_probe_metadata validates authentic metadata and rejects corrupted readbacks."""
     t_fake = np.linspace(0.0, 200.0, 1001)
     u_fake = np.full(1001, 0.0065)
     v_fake = np.full(1001, 0.0015)
+
+    valid_meta_u = {"column_header": "% 时间 (s)                  速度场，x 分量"}
+    valid_meta_v = {"column_header": "% 时间 (s)                  速度场，y 分量"}
 
     valid_res = {
         "probe_coords": {"x": "0.15", "y": "0.12"},
         "datasets": [{"tag": "dset1", "type": "Solution"}],
         "direct_evaluations": [
-            {"target_t": 180.0, "actual_t": 180.0, "u_direct": 0.0065, "v_direct": 0.0015},
-            {"target_t": 200.0, "actual_t": 200.0, "u_direct": 0.0065, "v_direct": 0.0015},
+            {"target_t": 180.0, "actual_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
+            {"target_t": 200.0, "actual_t": 200.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
         ],
     }
 
-    report = verify_probe_metadata(valid_res, {}, {}, t_fake, t_fake, u_fake, v_fake)
+    report = verify_probe_metadata(valid_res, valid_meta_u, valid_meta_v, t_fake, t_fake, u_fake, v_fake)
     assert report["is_valid"] is True
     assert report["status"] == "PASS"
 
     # Mismatched coordinates in COMSOL readback
     invalid_coords_res = dict(valid_res, probe_coords={"x": "0.14", "y": "0.12"})
-    bad_report = verify_probe_metadata(invalid_coords_res, {}, {}, t_fake, t_fake, u_fake, v_fake)
+    bad_report = verify_probe_metadata(invalid_coords_res, valid_meta_u, valid_meta_v, t_fake, t_fake, u_fake, v_fake)
     assert bad_report["is_valid"] is False
     assert bad_report["status"] == "FAIL"
 
     # Missing dset1 dataset
     invalid_dset_res = dict(valid_res, datasets=[{"tag": "dset2", "type": "Solution"}])
-    bad_report2 = verify_probe_metadata(invalid_dset_res, {}, {}, t_fake, t_fake, u_fake, v_fake)
+    bad_report2 = verify_probe_metadata(invalid_dset_res, valid_meta_u, valid_meta_v, t_fake, t_fake, u_fake, v_fake)
     assert bad_report2["is_valid"] is False
     assert bad_report2["status"] == "FAIL"
+
+
+def test_verify_probe_metadata_rejects_actual_metadata_errors():
+    """Verify that verify_probe_metadata inspects and rejects corrupted/missing raw metadata."""
+    t_fake = np.linspace(0.0, 200.0, 1001)
+    u_fake = np.full(1001, 0.0065)
+    v_fake = np.full(1001, 0.0015)
+    valid_res = {
+        "probe_coords": {"x": "0.15", "y": "0.12"},
+        "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "direct_evaluations": [
+            {"target_t": 180.0, "actual_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
+        ],
+    }
+
+    # 1. Missing header in meta_u
+    rep_missing = verify_probe_metadata(valid_res, {}, {"column_header": "% 时间 (s)  y"}, t_fake, t_fake, u_fake, v_fake)
+    assert rep_missing["is_valid"] is False
+    assert any("meta_u" in e for e in rep_missing["errors"])
+
+    # 2. Wrong component expression (e.g. pressure instead of velocity u)
+    bad_meta_u = {"column_header": "% 时间 (s)                  压力 p"}
+    rep_wrong_expr = verify_probe_metadata(valid_res, bad_meta_u, {"column_header": "% 时间 (s)  y"}, t_fake, t_fake, u_fake, v_fake)
+    assert rep_wrong_expr["is_valid"] is False
+    assert any("Invalid probe expression" in e or "unknown_u_expr" in e for e in rep_wrong_expr["errors"])
+
+    # 3. Normalized dimensionless unit instead of SI m/s
+    bad_unit_meta = {"column_header": "% 时间 (s)                  速度场，x 分量 无量纲", "unit": "1"}
+    rep_wrong_unit = verify_probe_metadata(valid_res, bad_unit_meta, {"column_header": "% 时间 (s)  y"}, t_fake, t_fake, u_fake, v_fake)
+    assert rep_wrong_unit["is_valid"] is False
+    assert any("Invalid velocity unit" in e or "Invalid unit" in e for e in rep_wrong_unit["errors"])
+
+
+def test_verify_probe_metadata_rejects_actual_time_mismatches():
+    """Verify that verify_probe_metadata rejects discrepancies between COMSOL actual_t, target_t, and series times."""
+    t_fake = np.linspace(0.0, 200.0, 1001)
+    u_fake = np.full(1001, 0.0065)
+    v_fake = np.full(1001, 0.0015)
+    meta_u = {"column_header": "% 时间 (s)  速度场，x 分量"}
+    meta_v = {"column_header": "% 时间 (s)  速度场，y 分量"}
+
+    # 1. COMSOL actual_t differs from target_t
+    mismatched_actual_t_res = {
+        "probe_coords": {"x": "0.15", "y": "0.12"},
+        "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "direct_evaluations": [
+            {"target_t": 180.0, "actual_t": 182.5, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
+        ],
+    }
+    rep_time_drift = verify_probe_metadata(mismatched_actual_t_res, meta_u, meta_v, t_fake, t_fake, u_fake, v_fake)
+    assert rep_time_drift["is_valid"] is False
+    assert any("COMSOL actual_t mismatch" in e for e in rep_time_drift["errors"])
+
+    # 2. Time series does not align with target_t (e.g. t_u array shifted by 5.0 s)
+    t_shifted = t_fake + 5.0
+    valid_res = {
+        "probe_coords": {"x": "0.15", "y": "0.12"},
+        "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "direct_evaluations": [
+            {"target_t": 180.0, "actual_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
+        ],
+    }
+    rep_txt_shift = verify_probe_metadata(valid_res, meta_u, meta_v, t_shifted, t_shifted, u_fake, v_fake)
+    assert rep_txt_shift["is_valid"] is False
+    assert any("Time range mismatch" in e or "TXT t_u mismatch" in e for e in rep_txt_shift["errors"])
 
 
 # ---------------------------------------------------------------------------
@@ -379,6 +447,56 @@ def test_analyze_case_and_compare_cases_reject_unstable_signals():
     # Must NOT conclude insensitive!
     assert comp_unstable["conclusion"] != "INSENSITIVE_WITHIN_TESTED_RANGE"
     assert comp_unstable["conclusion"] != "SENSITIVE"
+
+
+def test_compare_cases_sensitive_when_lift_amplitude_or_rms_exceeds_threshold():
+    """Verify that compare_cases flags SENSITIVE when St & Cd are identical but lift amplitude / RMS drift exceeds threshold.
+
+    Directly addresses user finding: both cases stable, St & Cd 0% difference,
+    but Case B has 20% higher lift amplitude and RMS. Must return conclusion='SENSITIVE'.
+    """
+    dt = 0.2
+    t = np.arange(0.0, 200.0 + dt / 2, dt)
+    f0 = 0.16  # T0 = 6.25 s
+    omega = 2.0 * np.pi * f0
+
+    # Base Case A: stable amplitude A = 0.30
+    cl_a = 0.30 * np.sin(omega * t)
+    cd_a = 1.346 + 0.05 * np.cos(2.0 * omega * t)
+
+    # Modified Case B: St and Cd are IDENTICAL, but lift amplitude is 20% higher (A = 0.36)
+    cl_b = 0.36 * np.sin(omega * t)
+    cd_b = 1.346 + 0.05 * np.cos(2.0 * omega * t)
+
+    stats_a = analyze_case(name="Case_A_Ref", t_cl=t, cl=cl_a, t_cd=t, cd=cd_a)
+    stats_b = analyze_case(name="Case_B_AmpBoost", t_cl=t, cl=cl_b, t_cd=t, cd=cd_b)
+
+    assert stats_a["is_stable"] is True
+    assert stats_b["is_stable"] is True
+
+    # St and Cd difference should be negligible (~0%)
+    assert abs(stats_a["St_zc_mean"] - stats_b["St_zc_mean"]) < 1e-6
+    assert abs(stats_a["Cd_mean"] - stats_b["Cd_mean"]) < 1e-6
+
+    # Compare with default 1.0% tolerances on all 4 metrics
+    comp = compare_cases(
+        stats_a,
+        stats_b,
+        st_tol_pct=1.0,
+        cd_tol_pct=1.0,
+        amp_tol_pct=1.0,
+        rms_tol_pct=1.0,
+    )
+
+    assert comp["can_compare"] is True
+    assert comp["conclusion"] == "SENSITIVE"
+    assert comp["conclusion"] != "INSENSITIVE_WITHIN_TESTED_RANGE"
+
+    # Verify sensitive reasons capture lift amplitude and RMS
+    reasons_str = " ".join(comp["sensitive_reasons"])
+    assert "Lift amp change" in reasons_str
+    assert "Lift RMS change" in reasons_str
+    assert "+20.000%" in reasons_str or "+20.0" in reasons_str
 
 
 # ---------------------------------------------------------------------------

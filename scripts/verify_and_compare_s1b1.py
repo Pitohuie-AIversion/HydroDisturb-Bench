@@ -327,8 +327,17 @@ def compare_cases(
     res_b: dict[str, Any],
     st_tol_pct: float = 1.0,
     cd_tol_pct: float = 1.0,
+    amp_tol_pct: float = 1.0,
+    rms_tol_pct: float = 1.0,
 ) -> dict[str, Any]:
-    """Compare Case A and Case B results dynamically without hardcoded conclusions."""
+    """Compare Case A and Case B results dynamically without hardcoded conclusions.
+
+    Evaluates limit-cycle stability and checks all 4 physical metrics:
+    - St (zero crossing)
+    - Mean Cd
+    - Lift half-peak-to-peak amplitude Cl'
+    - Lift de-meaned RMS
+    """
     # 1. Gate on stability
     if not res_a.get("is_stable", False) or not res_b.get("is_stable", False):
         unstable_cases = []
@@ -346,7 +355,7 @@ def compare_cases(
             "case_b": res_b,
         }
 
-    # 2. Both stable: calculate exact relative changes
+    # 2. Both stable: calculate exact relative changes across all 4 metrics
     st_a = res_a["St_zc_mean"]
     st_b = res_b["St_zc_mean"]
     rel_diff_st = (st_b - st_a) / st_a * 100.0
@@ -367,8 +376,19 @@ def compare_cases(
     rms_b = res_b["Cl_demeaned_rms"]
     rel_diff_rms = (rms_b - rms_a) / rms_a * 100.0
 
-    # 3. Dynamic conclusion based on thresholds
-    if abs(rel_diff_st) > st_tol_pct or abs(rel_diff_cd) > cd_tol_pct:
+    # 3. Dynamic conclusion based on thresholds across all 4 metrics:
+    # St, Mean Cd, Lift Half-Amplitude Cl', and De-meaned RMS
+    sensitive_reasons = []
+    if abs(rel_diff_st) > st_tol_pct:
+        sensitive_reasons.append(f"St change ({rel_diff_st:+.3f}%) exceeds tolerance ({st_tol_pct}%)")
+    if abs(rel_diff_cd) > cd_tol_pct:
+        sensitive_reasons.append(f"Cd change ({rel_diff_cd:+.3f}%) exceeds tolerance ({cd_tol_pct}%)")
+    if abs(rel_diff_amp) > amp_tol_pct:
+        sensitive_reasons.append(f"Lift amp change ({rel_diff_amp:+.3f}%) exceeds tolerance ({amp_tol_pct}%)")
+    if abs(rel_diff_rms) > rms_tol_pct:
+        sensitive_reasons.append(f"Lift RMS change ({rel_diff_rms:+.3f}%) exceeds tolerance ({rms_tol_pct}%)")
+
+    if sensitive_reasons:
         conclusion = "SENSITIVE"
     else:
         conclusion = "INSENSITIVE_WITHIN_TESTED_RANGE"
@@ -384,12 +404,12 @@ def compare_cases(
     scientific_summary = (
         f"Tightening solver tolerance strategy by 10x (rtol 1e-3 -> 1e-4) resulted in "
         f"{step_ratio_str} internal steps ({steps_b} vs {steps_a}) and {time_ratio_str} compute time ({time_b}s vs {time_a}s). "
-        f"Over the last 5 verified stable cycles, physical indicators changed by: "
-        f"St: {rel_diff_st:+.4f}% ({st_a:.6f} -> {st_b:.6f}), "
-        f"Mean Cd: {rel_diff_cd:+.4f}% ({cd_a:.6f} -> {cd_b:.6f}), "
-        f"Lift Amplitude: {rel_diff_amp:+.4f}% ({amp_a:.6f} -> {amp_b:.6f}), "
-        f"De-meaned RMS: {rel_diff_rms:+.4f}% ({rms_a:.6f} -> {rms_b:.6f}). "
-        f"Conclusion: {conclusion}. "
+        f"Over the last 5 verified stable cycles, all 4 physical indicators changed by: "
+        f"St: {rel_diff_st:+.4f}% (tol {st_tol_pct}%), "
+        f"Mean Cd: {rel_diff_cd:+.4f}% (tol {cd_tol_pct}%), "
+        f"Lift Amplitude: {rel_diff_amp:+.4f}% (tol {amp_tol_pct}%), "
+        f"De-meaned RMS: {rel_diff_rms:+.4f}% (tol {rms_tol_pct}%). "
+        f"Overall Conclusion: {conclusion} (Sensitive reasons: {sensitive_reasons if sensitive_reasons else 'None'}). "
         f"Note: Insensitivity within this tested tolerance range does NOT imply full time-step independence or grid independence; "
         f"subsequent tests must evaluate explicit internal step constraints."
     )
@@ -398,6 +418,14 @@ def compare_cases(
         "can_compare": True,
         "conclusion": conclusion,
         "scientific_summary": scientific_summary,
+        "participating_metrics": ["St_zc", "Cd_mean", "Cl_amp", "Cl_rms"],
+        "thresholds_pct": {
+            "st_tol_pct": st_tol_pct,
+            "cd_tol_pct": cd_tol_pct,
+            "amp_tol_pct": amp_tol_pct,
+            "rms_tol_pct": rms_tol_pct,
+        },
+        "sensitive_reasons": sensitive_reasons,
         "comparisons": {
             "St_zc": {"case_a": st_a, "case_b": st_b, "rel_diff_pct": rel_diff_st},
             "St_peaks": {"case_a": st_p_a, "case_b": st_p_b, "rel_diff_pct": rel_diff_st_p},

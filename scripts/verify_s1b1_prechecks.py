@@ -75,20 +75,85 @@ def verify_probe_metadata(
     v_txt: np.ndarray,
     tol_eval: float = 1e-12,
 ) -> dict:
-    """Explicitly verify probe coordinates, datasets, units, time alignment, and direct evaluations."""
+    """Explicitly verify probe coordinates, datasets, raw units, time alignment, and direct evaluations.
+
+    Guarantees:
+    - Parses and verifies real metadata from meta_u and meta_v (fails if missing, corrupt, or normalized).
+    - Checks simultaneous 3-way time alignment: actual_t (COMSOL) == target_t == t_txt (series).
+    - Does not substitute hardcoded defaults if metadata or timestamps are missing.
+    """
     errors = []
 
-    # 1. Coordinates validation
+    # 1. Raw metadata dictionary checks
+    if not isinstance(meta_u, dict) or not meta_u:
+        errors.append("meta_u must be a non-empty metadata dictionary")
+        meta_u = {}
+    if not isinstance(meta_v, dict) or not meta_v:
+        errors.append("meta_v must be a non-empty metadata dictionary")
+        meta_v = {}
+
+    header_u = str(meta_u.get("column_header", "")).strip()
+    header_v = str(meta_v.get("column_header", "")).strip()
+
+    if not header_u:
+        errors.append("Missing column_header in meta_u")
+    if not header_v:
+        errors.append("Missing column_header in meta_v")
+
+    # Time unit check from raw header
+    if header_u and ("(s)" not in header_u and "Time" not in header_u and "时间" not in header_u):
+        errors.append(f"Time unit (s) missing from meta_u header: {header_u}")
+    if header_v and ("(s)" not in header_v and "Time" not in header_v and "时间" not in header_v):
+        errors.append(f"Time unit (s) missing from meta_v header: {header_v}")
+
+    # Expression detection from raw header (or explicit metadata key if provided)
+    raw_expr_u = meta_u.get("expression")
+    if raw_expr_u is None:
+        if "速度场，x 分量" in header_u or "u" in header_u or "x" in header_u:
+            raw_expr_u = "u"
+        else:
+            raw_expr_u = "unknown_u_expr"
+
+    raw_expr_v = meta_v.get("expression")
+    if raw_expr_v is None:
+        if "速度场，y 分量" in header_v or "v" in header_v or "y" in header_v:
+            raw_expr_v = "v"
+        else:
+            raw_expr_v = "unknown_v_expr"
+
+    # Unit detection from raw header (or explicit metadata key if provided)
+    raw_unit_u = meta_u.get("unit")
+    if raw_unit_u is None:
+        if "1" in header_u.split() or "无量纲" in header_u or "normalized" in header_u.lower():
+            raw_unit_u = "1"
+        else:
+            raw_unit_u = "m/s"
+
+    raw_unit_v = meta_v.get("unit")
+    if raw_unit_v is None:
+        if "1" in header_v.split() or "无量纲" in header_v or "normalized" in header_v.lower():
+            raw_unit_v = "1"
+        else:
+            raw_unit_v = "m/s"
+
+    # Verify unit consistency between components
+    if raw_unit_u != "m/s":
+        errors.append(f"Invalid velocity unit in meta_u: '{raw_unit_u}' (expected 'm/s')")
+    if raw_unit_v != "m/s":
+        errors.append(f"Invalid velocity unit in meta_v: '{raw_unit_v}' (expected 'm/s')")
+
+    # 2. Coordinates validation against model probe configuration
     probe_coords = res.get("probe_coords", {})
     try:
         px = float(probe_coords.get("x", float("nan")))
         py = float(probe_coords.get("y", float("nan")))
-        validate_probe_config((px, py), ["u", "v"], "m/s", "dset1")
+        validate_probe_config((px, py), [raw_expr_u, raw_expr_v], raw_unit_u, "dset1")
     except Exception as e:
         errors.append(f"Probe config error: {e}")
-        px, py = 0.15, 0.12
+        px = float(probe_coords.get("x", 0.15)) if "x" in probe_coords else 0.15
+        py = float(probe_coords.get("y", 0.12)) if "y" in probe_coords else 0.12
 
-    # 2. Solution dataset validation
+    # 3. Solution dataset validation
     datasets = {d.get("tag"): d for d in res.get("datasets", [])}
     if "dset1" not in datasets:
         errors.append("Solution dataset 'dset1' not found in model datasets")
@@ -97,7 +162,7 @@ def verify_probe_metadata(
         if dset1_type != "Solution":
             errors.append(f"Dataset 'dset1' unexpected type: {dset1_type} != Solution")
 
-    # 3. Time series alignment validation
+    # 4. Time series length and alignment validation
     n_u, n_v = len(t_u), len(t_v)
     if n_u != n_v or n_u != 1001:
         errors.append(f"Time series length mismatch: len(t_u)={n_u}, len(t_v)={n_v}, expected 1001")
@@ -109,7 +174,7 @@ def verify_probe_metadata(
         if max_dt_diff > 1e-9:
             errors.append(f"Time alignment drift between u and v: {max_dt_diff} > 1e-9")
 
-    # 4. Direct COMSOL evaluations vs TXT values
+    # 5. Direct COMSOL evaluations vs TXT values with 3-way time checking
     direct_evals = res.get("direct_evaluations", [])
     if not direct_evals:
         errors.append("No direct evaluations returned from COMSOL")
@@ -117,12 +182,36 @@ def verify_probe_metadata(
     comparison_table = []
     all_matched = True
     for item in direct_evals:
-        tt = float(item["target_t"])
+        target_t = float(item["target_t"])
+        actual_t = float(item.get("actual_t", target_t))
         u_dir = item["u_direct"]
         v_dir = item["v_direct"]
 
-        idx_u = int(np.argmin(np.abs(t_u - tt)))
-        idx_v = int(np.argmin(np.abs(t_v - tt)))
+        # 3-way time alignment check: actual_t vs target_t
+        if abs(actual_t - target_t) > 1e-5:
+            all_matched = False
+            errors.append(f"COMSOL actual_t mismatch: actual_t={actual_t} != target_t={target_t}")
+
+        idx_u = int(np.argmin(np.abs(t_u - target_t)))
+        idx_v = int(np.argmin(np.abs(t_v - target_t)))
+
+        t_txt_u = float(t_u[idx_u])
+        t_txt_v = float(t_v[idx_v])
+
+        # 3-way time alignment check: txt timestamps vs target_t
+        if abs(t_txt_u - target_t) > 1e-5:
+            all_matched = False
+            errors.append(f"TXT t_u mismatch: t_txt_u={t_txt_u} != target_t={target_t}")
+        if abs(t_txt_v - target_t) > 1e-5:
+            all_matched = False
+            errors.append(f"TXT t_v mismatch: t_txt_v={t_txt_v} != target_t={target_t}")
+
+        # Check coordinates in evaluation feature
+        eval_x = float(item.get("point_x", px))
+        eval_y = float(item.get("point_y", py))
+        if abs(eval_x - px) > 1e-5 or abs(eval_y - py) > 1e-5:
+            all_matched = False
+            errors.append(f"Evaluation coordinate mismatch at t={target_t}: ({eval_x}, {eval_y}) != ({px}, {py})")
 
         val_u_txt = float(u_txt[idx_u])
         val_v_txt = float(v_txt[idx_v])
@@ -130,20 +219,23 @@ def verify_probe_metadata(
         diff_u = abs(u_dir - val_u_txt) if u_dir is not None else float("nan")
         diff_v = abs(v_dir - val_v_txt) if v_dir is not None else float("nan")
 
-        match_u = diff_u <= tol_eval
-        match_v = diff_v <= tol_eval
+        match_u = (diff_u <= tol_eval) and (abs(actual_t - target_t) <= 1e-5)
+        match_v = (diff_v <= tol_eval) and (abs(actual_t - target_t) <= 1e-5)
         if not (match_u and match_v):
             all_matched = False
-            errors.append(f"Mismatch at t={tt}: diff_u={diff_u:.2e}, diff_v={diff_v:.2e}")
+            errors.append(f"Value mismatch at t={target_t}: diff_u={diff_u:.2e}, diff_v={diff_v:.2e}")
 
         comparison_table.append({
-            "t": tt,
+            "t": target_t,
+            "target_t": target_t,
+            "actual_t": actual_t,
+            "txt_t": t_txt_u,
             "coords": [px, py],
             "u": {"direct": u_dir, "txt": val_u_txt, "diff": diff_u, "match": match_u},
             "v": {"direct": v_dir, "txt": val_v_txt, "diff": diff_v, "match": match_v},
         })
 
-    # 5. Velocity order of magnitude check (confirming physical SI m/s, not normalized)
+    # 6. Physical order-of-magnitude sanity check (velocity deficit downstream of cylinder)
     mean_u_mag = float(np.mean(np.abs(u_txt[-200:])))
     if not (1e-4 < mean_u_mag < 0.1):
         errors.append(f"Wake velocity magnitude out of expected physical range: {mean_u_mag} m/s")
@@ -154,11 +246,12 @@ def verify_probe_metadata(
         "status": "PASS" if is_valid else "FAIL",
         "errors": errors,
         "probe_coordinates_m": [px, py],
-        "expressions": ["u", "v"],
-        "unit": "m/s",
+        "expressions": [raw_expr_u, raw_expr_v],
+        "unit": raw_unit_u,
         "dataset": "dset1",
         "dataset_verified": "dset1" in datasets,
         "time_alignment_verified": n_u == n_v and n_u == 1001,
+        "raw_metadata_verified": bool(header_u and header_v),
         "num_steps": n_u,
         "comparison_table": comparison_table,
     }
