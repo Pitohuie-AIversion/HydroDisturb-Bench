@@ -124,6 +124,8 @@ def test_verify_probe_metadata_production_validation():
     valid_res = {
         "probe_coords": {"x": "0.15", "y": "0.12"},
         "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "probe_units": {"u": "m/s", "v": "m/s"},
+        "probe_unit_source": "comsol_model_export_node",
         "direct_evaluations": [
             {"target_t": 180.0, "actual_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
             {"target_t": 200.0, "actual_t": 200.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
@@ -133,6 +135,10 @@ def test_verify_probe_metadata_production_validation():
     report = verify_probe_metadata(valid_res, valid_meta_u, valid_meta_v, t_fake, t_fake, u_fake, v_fake)
     assert report["is_valid"] is True
     assert report["status"] == "PASS"
+    assert report["unit"] == "m/s"
+    assert report["unit_source"] == "comsol_model_export_node"
+    assert report["raw_metadata_verified"] is True
+    assert report["time_alignment_verified"] is True
 
     # Mismatched coordinates in COMSOL readback
     invalid_coords_res = dict(valid_res, probe_coords={"x": "0.14", "y": "0.12"})
@@ -155,25 +161,27 @@ def test_verify_probe_metadata_rejects_actual_metadata_errors():
     valid_res = {
         "probe_coords": {"x": "0.15", "y": "0.12"},
         "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "probe_units": {"u": "m/s", "v": "m/s"},
+        "probe_unit_source": "comsol_model_export_node",
         "direct_evaluations": [
             {"target_t": 180.0, "actual_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
         ],
     }
 
     # 1. Missing header in meta_u
-    rep_missing = verify_probe_metadata(valid_res, {}, {"column_header": "% 时间 (s)  y"}, t_fake, t_fake, u_fake, v_fake)
+    rep_missing = verify_probe_metadata(valid_res, {}, {"column_header": "% 时间 (s)  速度场，y 分量"}, t_fake, t_fake, u_fake, v_fake)
     assert rep_missing["is_valid"] is False
     assert any("meta_u" in e for e in rep_missing["errors"])
 
     # 2. Wrong component expression (e.g. pressure instead of velocity u)
     bad_meta_u = {"column_header": "% 时间 (s)                  压力 p"}
-    rep_wrong_expr = verify_probe_metadata(valid_res, bad_meta_u, {"column_header": "% 时间 (s)  y"}, t_fake, t_fake, u_fake, v_fake)
+    rep_wrong_expr = verify_probe_metadata(valid_res, bad_meta_u, {"column_header": "% 时间 (s)  速度场，y 分量"}, t_fake, t_fake, u_fake, v_fake)
     assert rep_wrong_expr["is_valid"] is False
-    assert any("Invalid probe expression" in e or "unknown_u_expr" in e for e in rep_wrong_expr["errors"])
+    assert any("Invalid velocity expression" in e or "unknown_u_expr" in e for e in rep_wrong_expr["errors"])
 
     # 3. Normalized dimensionless unit instead of SI m/s
     bad_unit_meta = {"column_header": "% 时间 (s)                  速度场，x 分量 无量纲", "unit": "1"}
-    rep_wrong_unit = verify_probe_metadata(valid_res, bad_unit_meta, {"column_header": "% 时间 (s)  y"}, t_fake, t_fake, u_fake, v_fake)
+    rep_wrong_unit = verify_probe_metadata(valid_res, bad_unit_meta, {"column_header": "% 时间 (s)  速度场，y 分量"}, t_fake, t_fake, u_fake, v_fake)
     assert rep_wrong_unit["is_valid"] is False
     assert any("Invalid velocity unit" in e or "Invalid unit" in e for e in rep_wrong_unit["errors"])
 
@@ -190,6 +198,7 @@ def test_verify_probe_metadata_rejects_actual_time_mismatches():
     mismatched_actual_t_res = {
         "probe_coords": {"x": "0.15", "y": "0.12"},
         "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "probe_units": {"u": "m/s", "v": "m/s"},
         "direct_evaluations": [
             {"target_t": 180.0, "actual_t": 182.5, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
         ],
@@ -203,6 +212,7 @@ def test_verify_probe_metadata_rejects_actual_time_mismatches():
     valid_res = {
         "probe_coords": {"x": "0.15", "y": "0.12"},
         "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "probe_units": {"u": "m/s", "v": "m/s"},
         "direct_evaluations": [
             {"target_t": 180.0, "actual_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
         ],
@@ -210,6 +220,73 @@ def test_verify_probe_metadata_rejects_actual_time_mismatches():
     rep_txt_shift = verify_probe_metadata(valid_res, meta_u, meta_v, t_shifted, t_shifted, u_fake, v_fake)
     assert rep_txt_shift["is_valid"] is False
     assert any("Time range mismatch" in e or "TXT t_u mismatch" in e for e in rep_txt_shift["errors"])
+
+
+def test_verify_probe_metadata_rejects_unspecified_units_and_missing_actual_t():
+    """Verify that verify_probe_metadata strictly rejects missing velocity units, non-SI units, wrong time units, and missing actual_t.
+
+    Directly verifies the offline reviewer counterexample suite:
+    1. Velocity unit not specified: header only '% 时间 (s)  u', no unit field, no res unit -> FAIL
+    2. Non-SI velocity unit: header 'u (cm/s)', 'v (cm/s)' (no unit field) -> FAIL
+    3. Dimensionless unit: header 'u (1)', 'v (1)' (no unit field) -> FAIL
+    4. Time unit mismatch: header 'Time (ms)' -> FAIL
+    5. Omitted actual_t in COMSOL evaluations: item missing 'actual_t' -> FAIL
+    """
+    t_fake = np.linspace(0.0, 200.0, 1001)
+    u_fake = np.full(1001, 0.0065)
+    v_fake = np.full(1001, 0.0015)
+
+    base_res = {
+        "probe_coords": {"x": "0.15", "y": "0.12"},
+        "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "direct_evaluations": [
+            {"target_t": 180.0, "actual_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},
+        ],
+    }
+
+    # 1. Velocity unit not specified (neither in header nor in res)
+    meta_u_nounit = {"column_header": "% 时间 (s)  速度场，x 分量"}
+    meta_v_nounit = {"column_header": "% 时间 (s)  速度场，y 分量"}
+    rep_no_unit = verify_probe_metadata(base_res, meta_u_nounit, meta_v_nounit, t_fake, t_fake, u_fake, v_fake)
+    assert rep_no_unit["is_valid"] is False
+    assert any("Velocity unit evidence missing" in e for e in rep_no_unit["errors"])
+    assert rep_no_unit["unit"] == "unknown"
+
+    # 2. Non-SI velocity unit in header: u (cm/s), v (cm/s) (no unit field)
+    meta_u_cm = {"column_header": "% 时间 (s)  u (cm/s)"}
+    meta_v_cm = {"column_header": "% 时间 (s)  v (cm/s)"}
+    rep_cm = verify_probe_metadata(base_res, meta_u_cm, meta_v_cm, t_fake, t_fake, u_fake, v_fake)
+    assert rep_cm["is_valid"] is False
+    assert any("Invalid velocity unit" in e and "cm/s" in e for e in rep_cm["errors"])
+
+    # 3. Dimensionless unit in header: u (1), v (1) (no unit field)
+    meta_u_one = {"column_header": "% 时间 (s)  u (1)"}
+    meta_v_one = {"column_header": "% 时间 (s)  v (1)"}
+    rep_one = verify_probe_metadata(base_res, meta_u_one, meta_v_one, t_fake, t_fake, u_fake, v_fake)
+    assert rep_one["is_valid"] is False
+    assert any("Invalid velocity unit" in e and "1" in e for e in rep_one["errors"])
+
+    # 4. Time unit mismatch in header: Time (ms)
+    meta_u_ms = {"column_header": "% Time (ms)  u (m/s)"}
+    meta_v_ms = {"column_header": "% Time (ms)  v (m/s)"}
+    rep_ms = verify_probe_metadata(base_res, meta_u_ms, meta_v_ms, t_fake, t_fake, u_fake, v_fake)
+    assert rep_ms["is_valid"] is False
+    assert any("Invalid time unit" in e and "ms" in e for e in rep_ms["errors"])
+
+    # 5. Missing actual_t in COMSOL evaluations: item has target_t but no actual_t
+    res_no_actual_t = {
+        "probe_coords": {"x": "0.15", "y": "0.12"},
+        "datasets": [{"tag": "dset1", "type": "Solution"}],
+        "probe_units": {"u": "m/s", "v": "m/s"},
+        "direct_evaluations": [
+            {"target_t": 180.0, "point_x": 0.15, "point_y": 0.12, "u_direct": 0.0065, "v_direct": 0.0015},  # no actual_t
+        ],
+    }
+    meta_u_ok = {"column_header": "% 时间 (s)  u (m/s)"}
+    meta_v_ok = {"column_header": "% 时间 (s)  v (m/s)"}
+    rep_no_actual_t = verify_probe_metadata(res_no_actual_t, meta_u_ok, meta_v_ok, t_fake, t_fake, u_fake, v_fake)
+    assert rep_no_actual_t["is_valid"] is False
+    assert any("Missing actual_t" in e for e in rep_no_actual_t["errors"])
 
 
 # ---------------------------------------------------------------------------

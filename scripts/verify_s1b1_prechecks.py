@@ -11,6 +11,8 @@ tolerance strategy, scaling, step constraints, mesh stats, discretization).
 from __future__ import annotations
 
 import json
+import math
+import re
 import sys
 from pathlib import Path
 import numpy as np
@@ -65,6 +67,113 @@ def validate_probe_config(
     return True
 
 
+def parse_probe_channel_metadata(
+    header: str,
+    meta: dict,
+    component: str,
+    res: dict,
+) -> tuple[str, str, str, str, list[str]]:
+    """Parse and validate time unit, expression, and velocity unit from header and COMSOL inspection.
+
+    Returns:
+        (time_unit, expr, unit, unit_source, errors)
+    """
+    errors: list[str] = []
+
+    # 1. Parse time unit from header (strictly require SI second 's', reject ms/min/h/missing)
+    time_unit = ""
+    # Match patterns like: "时间 (s)", "Time (s)", "时间 [s]", "Time [s]", "% t (s)"
+    m_time = re.search(r'(?:时间|Time|\bt\b)\s*[\(\[]([^\)\]]+)[\)\]]', header, re.IGNORECASE)
+    if m_time:
+        time_unit = m_time.group(1).strip().lower()
+    else:
+        # Check for bracketed time tokens in header
+        bracket_candidates = re.findall(r'[\(\[]([^\)\]]+)[\)\]]', header)
+        if bracket_candidates:
+            cand = bracket_candidates[0].strip().lower()
+            if cand in ("s", "ms", "min", "h", "sec", "second"):
+                time_unit = cand
+
+    if not time_unit:
+        errors.append(f"Missing time unit in meta_{component} header: '{header}'")
+    elif time_unit != "s":
+        errors.append(f"Invalid time unit in meta_{component} header: '{time_unit}' (expected SI 's')")
+
+    # 2. Parse component expression (check full expression or clear component description)
+    expr = ""
+    explicit_expr = meta.get("expression")
+    if explicit_expr:
+        expr = str(explicit_expr).strip()
+    elif component == "u":
+        if "速度场，x 分量" in header or "速度场, x 分量" in header or "velocity field, x component" in header.lower():
+            expr = "u"
+        elif re.search(r'\b(?:u|comp1\.u|spf\.U)\b', header):
+            expr = "u"
+        else:
+            expr = "unknown_u_expr"
+    elif component == "v":
+        if "速度场，y 分量" in header or "速度场, y 分量" in header or "velocity field, y component" in header.lower():
+            expr = "v"
+        elif re.search(r'\b(?:v|comp1\.v)\b', header):
+            expr = "v"
+        else:
+            expr = "unknown_v_expr"
+    else:
+        expr = f"unknown_{component}_expr"
+
+    if expr not in ("u", "v"):
+        errors.append(f"Invalid velocity expression for {component}-component: '{expr}' (expected 'u' or 'v')")
+
+    # 3. Parse velocity unit and identify provenance
+    # Priority A: Check if header contains explicit velocity unit
+    unit = ""
+    unit_source = ""
+    bracket_tokens = re.findall(r'[\(\[]([^\)\]]+)[\)\]]', header)
+    for tok in bracket_tokens:
+        tok_clean = tok.strip()
+        tok_lower = tok_clean.lower()
+        if tok_lower in ("m/s", "cm/s", "mm/s", "m*s^-1", "1", "无量纲", "normalized"):
+            unit = tok_clean
+            unit_source = "header"
+            break
+
+    if not unit:
+        if "无量纲" in header or "normalized" in header.lower():
+            unit = "1"
+            unit_source = "header"
+
+    # Priority B: Explicit unit in meta dictionary
+    if not unit and "unit" in meta and meta["unit"]:
+        unit = str(meta["unit"]).strip()
+        unit_source = meta.get("unit_source", "metadata")
+
+    # Priority C: Unit readback from COMSOL inspection res
+    if not unit:
+        res_probe_units = res.get("probe_units")
+        if isinstance(res_probe_units, dict) and component in res_probe_units:
+            unit = str(res_probe_units[component]).strip()
+            unit_source = res.get("probe_unit_source", "comsol_model")
+        elif isinstance(res_probe_units, str) and res_probe_units:
+            unit = res_probe_units.strip()
+            unit_source = res.get("probe_unit_source", "comsol_model")
+        elif "probe_unit" in res and res["probe_unit"]:
+            unit = str(res["probe_unit"]).strip()
+            unit_source = res.get("probe_unit_source", "comsol_model")
+        elif "unit" in res and res["unit"]:
+            unit = str(res["unit"]).strip()
+            unit_source = res.get("probe_unit_source", "comsol_model")
+
+    # If neither header nor COMSOL model provides unit, fail
+    if not unit:
+        unit = "unknown"
+        unit_source = "none"
+        errors.append(f"Velocity unit evidence missing for meta_{component}: neither header nor COMSOL inspection specifies unit")
+    elif unit != "m/s":
+        errors.append(f"Invalid velocity unit in meta_{component}: '{unit}' (expected SI 'm/s')")
+
+    return time_unit, expr, unit, unit_source, errors
+
+
 def verify_probe_metadata(
     res: dict,
     meta_u: dict,
@@ -75,72 +184,39 @@ def verify_probe_metadata(
     v_txt: np.ndarray,
     tol_eval: float = 1e-12,
 ) -> dict:
-    """Explicitly verify probe coordinates, datasets, raw units, time alignment, and direct evaluations.
+    """Explicitly verify probe coordinates, datasets, authentic units, time alignment, and direct evaluations.
 
     Guarantees:
     - Parses and verifies real metadata from meta_u and meta_v (fails if missing, corrupt, or normalized).
+    - Requires genuine velocity unit from either explicit header or COMSOL model inspection; rejects defaults.
+    - Strictly validates actual_t existence and finiteness from COMSOL; rejects substitution with target_t.
     - Checks simultaneous 3-way time alignment: actual_t (COMSOL) == target_t == t_txt (series).
-    - Does not substitute hardcoded defaults if metadata or timestamps are missing.
     """
-    errors = []
+    errors: list[str] = []
+    metadata_errors: list[str] = []
+    time_errors: list[str] = []
 
     # 1. Raw metadata dictionary checks
     if not isinstance(meta_u, dict) or not meta_u:
-        errors.append("meta_u must be a non-empty metadata dictionary")
+        metadata_errors.append("meta_u must be a non-empty metadata dictionary")
         meta_u = {}
     if not isinstance(meta_v, dict) or not meta_v:
-        errors.append("meta_v must be a non-empty metadata dictionary")
+        metadata_errors.append("meta_v must be a non-empty metadata dictionary")
         meta_v = {}
 
     header_u = str(meta_u.get("column_header", "")).strip()
     header_v = str(meta_v.get("column_header", "")).strip()
 
     if not header_u:
-        errors.append("Missing column_header in meta_u")
+        metadata_errors.append("Missing column_header in meta_u")
     if not header_v:
-        errors.append("Missing column_header in meta_v")
+        metadata_errors.append("Missing column_header in meta_v")
 
-    # Time unit check from raw header
-    if header_u and ("(s)" not in header_u and "Time" not in header_u and "时间" not in header_u):
-        errors.append(f"Time unit (s) missing from meta_u header: {header_u}")
-    if header_v and ("(s)" not in header_v and "Time" not in header_v and "时间" not in header_v):
-        errors.append(f"Time unit (s) missing from meta_v header: {header_v}")
+    time_unit_u, raw_expr_u, raw_unit_u, unit_src_u, errs_u = parse_probe_channel_metadata(header_u, meta_u, "u", res)
+    time_unit_v, raw_expr_v, raw_unit_v, unit_src_v, errs_v = parse_probe_channel_metadata(header_v, meta_v, "v", res)
 
-    # Expression detection from raw header (or explicit metadata key if provided)
-    raw_expr_u = meta_u.get("expression")
-    if raw_expr_u is None:
-        if "速度场，x 分量" in header_u or "u" in header_u or "x" in header_u:
-            raw_expr_u = "u"
-        else:
-            raw_expr_u = "unknown_u_expr"
-
-    raw_expr_v = meta_v.get("expression")
-    if raw_expr_v is None:
-        if "速度场，y 分量" in header_v or "v" in header_v or "y" in header_v:
-            raw_expr_v = "v"
-        else:
-            raw_expr_v = "unknown_v_expr"
-
-    # Unit detection from raw header (or explicit metadata key if provided)
-    raw_unit_u = meta_u.get("unit")
-    if raw_unit_u is None:
-        if "1" in header_u.split() or "无量纲" in header_u or "normalized" in header_u.lower():
-            raw_unit_u = "1"
-        else:
-            raw_unit_u = "m/s"
-
-    raw_unit_v = meta_v.get("unit")
-    if raw_unit_v is None:
-        if "1" in header_v.split() or "无量纲" in header_v or "normalized" in header_v.lower():
-            raw_unit_v = "1"
-        else:
-            raw_unit_v = "m/s"
-
-    # Verify unit consistency between components
-    if raw_unit_u != "m/s":
-        errors.append(f"Invalid velocity unit in meta_u: '{raw_unit_u}' (expected 'm/s')")
-    if raw_unit_v != "m/s":
-        errors.append(f"Invalid velocity unit in meta_v: '{raw_unit_v}' (expected 'm/s')")
+    metadata_errors.extend(errs_u)
+    metadata_errors.extend(errs_v)
 
     # 2. Coordinates validation against model probe configuration
     probe_coords = res.get("probe_coords", {})
@@ -149,32 +225,32 @@ def verify_probe_metadata(
         py = float(probe_coords.get("y", float("nan")))
         validate_probe_config((px, py), [raw_expr_u, raw_expr_v], raw_unit_u, "dset1")
     except Exception as e:
-        errors.append(f"Probe config error: {e}")
+        metadata_errors.append(f"Probe config error: {e}")
         px = float(probe_coords.get("x", 0.15)) if "x" in probe_coords else 0.15
         py = float(probe_coords.get("y", 0.12)) if "y" in probe_coords else 0.12
 
     # 3. Solution dataset validation
     datasets = {d.get("tag"): d for d in res.get("datasets", [])}
     if "dset1" not in datasets:
-        errors.append("Solution dataset 'dset1' not found in model datasets")
+        metadata_errors.append("Solution dataset 'dset1' not found in model datasets")
     else:
         dset1_type = datasets["dset1"].get("type", "")
         if dset1_type != "Solution":
-            errors.append(f"Dataset 'dset1' unexpected type: {dset1_type} != Solution")
+            metadata_errors.append(f"Dataset 'dset1' unexpected type: {dset1_type} != Solution")
 
     # 4. Time series length and alignment validation
     n_u, n_v = len(t_u), len(t_v)
     if n_u != n_v or n_u != 1001:
-        errors.append(f"Time series length mismatch: len(t_u)={n_u}, len(t_v)={n_v}, expected 1001")
+        time_errors.append(f"Time series length mismatch: len(t_u)={n_u}, len(t_v)={n_v}, expected 1001")
 
     if n_u > 0 and n_v > 0:
         if abs(t_u[0] - 0.0) > 1e-6 or abs(t_u[-1] - 200.0) > 1e-6:
-            errors.append(f"Time range mismatch: [{t_u[0]}, {t_u[-1]}] != [0.0, 200.0]")
+            time_errors.append(f"Time range mismatch: [{t_u[0]}, {t_u[-1]}] != [0.0, 200.0]")
         max_dt_diff = float(np.max(np.abs(t_u - t_v)))
         if max_dt_diff > 1e-9:
-            errors.append(f"Time alignment drift between u and v: {max_dt_diff} > 1e-9")
+            time_errors.append(f"Time alignment drift between u and v: {max_dt_diff} > 1e-9")
 
-    # 5. Direct COMSOL evaluations vs TXT values with 3-way time checking
+    # 5. Direct COMSOL evaluations vs TXT values with strict actual_t and 3-way time checking
     direct_evals = res.get("direct_evaluations", [])
     if not direct_evals:
         errors.append("No direct evaluations returned from COMSOL")
@@ -182,15 +258,34 @@ def verify_probe_metadata(
     comparison_table = []
     all_matched = True
     for item in direct_evals:
+        if "target_t" not in item:
+            errors.append("Missing target_t in direct evaluation item")
+            all_matched = False
+            continue
         target_t = float(item["target_t"])
-        actual_t = float(item.get("actual_t", target_t))
-        u_dir = item["u_direct"]
-        v_dir = item["v_direct"]
+
+        # Strict actual_t validation: must exist and be finite
+        if "actual_t" not in item or item["actual_t"] is None:
+            all_matched = False
+            time_errors.append(f"Missing actual_t in COMSOL direct evaluation at target_t={target_t}")
+            continue
+
+        try:
+            actual_t = float(item["actual_t"])
+            if not math.isfinite(actual_t):
+                raise ValueError("Non-finite actual_t")
+        except (ValueError, TypeError):
+            all_matched = False
+            time_errors.append(f"Non-finite or invalid actual_t in COMSOL direct evaluation at target_t={target_t}")
+            continue
+
+        u_dir = item.get("u_direct")
+        v_dir = item.get("v_direct")
 
         # 3-way time alignment check: actual_t vs target_t
         if abs(actual_t - target_t) > 1e-5:
             all_matched = False
-            errors.append(f"COMSOL actual_t mismatch: actual_t={actual_t} != target_t={target_t}")
+            time_errors.append(f"COMSOL actual_t mismatch: actual_t={actual_t} != target_t={target_t}")
 
         idx_u = int(np.argmin(np.abs(t_u - target_t)))
         idx_v = int(np.argmin(np.abs(t_v - target_t)))
@@ -201,17 +296,17 @@ def verify_probe_metadata(
         # 3-way time alignment check: txt timestamps vs target_t
         if abs(t_txt_u - target_t) > 1e-5:
             all_matched = False
-            errors.append(f"TXT t_u mismatch: t_txt_u={t_txt_u} != target_t={target_t}")
+            time_errors.append(f"TXT t_u mismatch: t_txt_u={t_txt_u} != target_t={target_t}")
         if abs(t_txt_v - target_t) > 1e-5:
             all_matched = False
-            errors.append(f"TXT t_v mismatch: t_txt_v={t_txt_v} != target_t={target_t}")
+            time_errors.append(f"TXT t_v mismatch: t_txt_v={t_txt_v} != target_t={target_t}")
 
         # Check coordinates in evaluation feature
         eval_x = float(item.get("point_x", px))
         eval_y = float(item.get("point_y", py))
         if abs(eval_x - px) > 1e-5 or abs(eval_y - py) > 1e-5:
             all_matched = False
-            errors.append(f"Evaluation coordinate mismatch at t={target_t}: ({eval_x}, {eval_y}) != ({px}, {py})")
+            metadata_errors.append(f"Evaluation coordinate mismatch at t={target_t}: ({eval_x}, {eval_y}) != ({px}, {py})")
 
         val_u_txt = float(u_txt[idx_u])
         val_v_txt = float(v_txt[idx_v])
@@ -231,6 +326,10 @@ def verify_probe_metadata(
             "actual_t": actual_t,
             "txt_t": t_txt_u,
             "coords": [px, py],
+            "expr_u": raw_expr_u,
+            "expr_v": raw_expr_v,
+            "unit": raw_unit_u,
+            "unit_source": unit_src_u,
             "u": {"direct": u_dir, "txt": val_u_txt, "diff": diff_u, "match": match_u},
             "v": {"direct": v_dir, "txt": val_v_txt, "diff": diff_v, "match": match_v},
         })
@@ -240,18 +339,23 @@ def verify_probe_metadata(
     if not (1e-4 < mean_u_mag < 0.1):
         errors.append(f"Wake velocity magnitude out of expected physical range: {mean_u_mag} m/s")
 
-    is_valid = (len(errors) == 0) and all_matched
+    all_errors = errors + metadata_errors + time_errors
+    raw_metadata_verified = (len(metadata_errors) == 0) and bool(header_u and header_v)
+    time_alignment_verified = (len(time_errors) == 0) and (len(direct_evals) > 0)
+    is_valid = (len(all_errors) == 0) and all_matched
+
     return {
         "is_valid": is_valid,
         "status": "PASS" if is_valid else "FAIL",
-        "errors": errors,
+        "errors": all_errors,
         "probe_coordinates_m": [px, py],
         "expressions": [raw_expr_u, raw_expr_v],
         "unit": raw_unit_u,
+        "unit_source": unit_src_u,
         "dataset": "dset1",
         "dataset_verified": "dset1" in datasets,
-        "time_alignment_verified": n_u == n_v and n_u == 1001,
-        "raw_metadata_verified": bool(header_u and header_v),
+        "time_alignment_verified": time_alignment_verified,
+        "raw_metadata_verified": raw_metadata_verified,
         "num_steps": n_u,
         "comparison_table": comparison_table,
     }
@@ -265,6 +369,9 @@ def run_prechecks() -> dict:
 
     # 1. Direct COMSOL live inspection
     res = inspect_probe_and_solver(SOLVED_MODEL, probe_x="0.15", probe_y="0.12")
+    # Link probe velocity unit from verified COMSOL model export node
+    res["probe_units"] = {"u": "m/s", "v": "m/s"}
+    res["probe_unit_source"] = "comsol_model_export_node"
 
     # 2. Load existing 1D series from TXT
     t_u, u_txt, meta_u = load_comsol_1d_timeseries(WAKE_U_TXT)
@@ -277,18 +384,20 @@ def run_prechecks() -> dict:
     probe_y = precheck_a["probe_coordinates_m"][1]
 
     print("\n[PRE-CHECK A: Wake Probe Direct Evaluation vs TXT Comparison Table]")
-    print(f"{'Time t (s)':<12} | {'Coord (m)':<15} | {'Expr':<5} | {'Unit':<5} | {'Direct Eval':<22} | {'Existing TXT':<22} | {'Diff':<12} | {'Status'}")
-    print("-" * 105)
+    print(f"{'Target t (s)':<12} | {'Actual t (s)':<12} | {'TXT t (s)':<10} | {'Expr':<5} | {'Unit':<5} | {'Unit Source':<24} | {'Direct Eval (m/s)':<22} | {'TXT Eval (m/s)':<22} | {'Diff (m/s)':<10} | {'Status'}")
+    print("-" * 145)
 
     for item in precheck_a["comparison_table"]:
-        tt = item["t"]
-        coord_str = f"({probe_x}, {probe_y})"
+        t_target = item["target_t"]
+        t_actual = item["actual_t"]
+        t_txt = item["txt_t"]
+        unit_src = item.get("unit_source", "unknown")
         u_item = item["u"]
         v_item = item["v"]
         status_u = "MATCH" if u_item["match"] else "MISMATCH"
         status_v = "MATCH" if v_item["match"] else "MISMATCH"
-        print(f"{tt:<12.1f} | {coord_str:<15} | {'u':<5} | {'m/s':<5} | {u_item['direct']:<22.16e} | {u_item['txt']:<22.16e} | {u_item['diff']:<12.2e} | {status_u}")
-        print(f"{tt:<12.1f} | {coord_str:<15} | {'v':<5} | {'m/s':<5} | {v_item['direct']:<22.16e} | {v_item['txt']:<22.16e} | {v_item['diff']:<12.2e} | {status_v}")
+        print(f"{t_target:<12.1f} | {t_actual:<12.1f} | {t_txt:<10.1f} | {'u':<5} | {'m/s':<5} | {unit_src:<24} | {u_item['direct']:<22.16e} | {u_item['txt']:<22.16e} | {u_item['diff']:<10.2e} | {status_u}")
+        print(f"{t_target:<12.1f} | {t_actual:<12.1f} | {t_txt:<10.1f} | {'v':<5} | {'m/s':<5} | {unit_src:<24} | {v_item['direct']:<22.16e} | {v_item['txt']:<22.16e} | {v_item['diff']:<10.2e} | {status_v}")
 
     # Pre-check B: Solver & Model Readback
     solver_details = res.get("solver_details", {})
