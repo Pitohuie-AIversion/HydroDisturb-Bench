@@ -15,13 +15,14 @@ if sys.platform == "win32":
         pass
 
 import json
+
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.colors as mcolors
-from matplotlib.patches import Circle, Rectangle
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Circle
 from PIL import Image
 
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans", "Arial"]

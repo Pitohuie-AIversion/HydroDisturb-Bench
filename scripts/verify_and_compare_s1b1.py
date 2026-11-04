@@ -21,6 +21,7 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
+
 import numpy as np
 
 # Force UTF-8 stdout
