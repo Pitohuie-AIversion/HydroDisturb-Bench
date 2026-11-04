@@ -141,14 +141,21 @@
 
 ---
 
-## 8. 流场与物理曲线成果展示（含涡街可视化专项升级）
+## 8. 流场与物理曲线成果展示（含涡街科学可视化与数据一致性验证）
 
-针对前期全域色卡对比度较弱、缺乏局部细节的问题，本轮通过 COMSOL Java API 对涡量场可视化进行专项升级：
-- **红–白–蓝发散色卡**：采用 COMSOL 原生 `Wave` 发散色卡，负涡量为深蓝、正涡量为深红、无涡区为纯白底色；
-- **正负涡量统一零中心色标**：严格对称截断于 $v_{\min} = -2.0\,\text{s}^{-1}$、$v_{\max} = +2.0\,\text{s}^{-1}$，确保微弱扰动不被虚假饱和，同时清晰分辨反向涡核；
-- **圆柱下游 20D 局部视图**：通过 COMSOL `View.axis()` 锁定坐标显示窗口 $x \in [0.08, 0.30]\,\text{m}$（圆柱中心前 $2D$ 至下游 $20D$），$y \in [0.07, 0.17]\,\text{m}$（纵向上下各 $5D$），严格保持 $1:1$ 真实物理空间比例；
-- **原生 Colorbar 与物理坐标轴**：开启 COMSOL 原生 2D 导出选项（`options2d=on`, `legend2d=on`, `axes2d=on`），包含带有物理单位（$\text{s}^{-1}$）的色彩图例与刻度标尺；
-- **全时刻统一色标范围**：五个时刻（$t = 10\text{s}, 40\text{s}, 100\text{s}, 195\text{s}, 200\text{s}$）完全共用相同的色标与视口范围。
+针对流场可视化的科学严谨性与数据一致性，本轮实施了端到端的数据准入验证与多版本科研绘图：
+- **严格规则网格准入 (`load_comsol_vorticity_grid`)**：直接读取 COMSOL 导出的 2D 规则网格文件（$201 \times 441 = 88,641$ 行数据点），逐行校验模型头、长度单位（`m`）、物理量单位（`1/s`）、$x$-快变与 $y$-外块遍历顺序、坐标唯一性、全场有限值与 NaN 分布（NaN 严格限制在实心圆柱内部 $r \le R + \Delta x/2 = 0.00525\,\text{m}$），严禁未校验直接填入 `np.empty()`。
+- **色标正负方向一致性**：确认流场涡量定义 $\omega_z = \partial v/\partial x - \partial u/\partial y$，在 `RdBu_r` 发散色卡下，负涡量（顺时针旋转）对应深蓝、零涡量为纯白、正涡量（逆时针旋转）对应深红，零中心对称。
+- **$\pm 2.5\,\text{s}^{-1}$ 截断比例与空间物理坐标核验**：
+  - 5 个时刻合并统计（441,680 个有效流体网格点）：99% 分位数为 $1.853\,\text{s}^{-1}$，99.5% 分位数为 $2.302\,\text{s}^{-1}$；
+  - 统一对称色标 $\pm 2.50\,\text{s}^{-1}$ 下，全场截断比例仅 $0.395\%$（各时刻介于 $0.31\% \sim 0.45\%$）；
+  - 空间坐标实际反查证据：**$100.0\%$ 的截断网格点均位于圆柱近壁与近流分离剪切层内（$r \le 1.932D \le 2.0D$，$x \le 11.9D$）**，下游卡门涡街区域（$x > 12D$）截断点数为 $0$，完整保留脱落涡核所有精细结构。
+- **$t=195\,\text{s}$ 与 $t=200\,\text{s}$ 真实相位标定**：
+  - 结合瞬时升力曲线 $C_L(t)$ 精准标定：$t=195\,\text{s}$ 处于升力过零点附近的上升相（$C_L = +0.0181$，真实正峰值位于 $t=196.6\,\text{s}, C_L=+0.3096$），避免误标为峰值；$t=200\,\text{s}$ 处于负升力谷底后的回升相（$C_L = -0.2917$，真实极小值谷底位于 $t=199.6\,\text{s}, C_L=-0.3119$），避免误标为极值谷底。
+- **多版本科研规范呈现**：
+  - **科研讨论版 (Version A)**：5 行紧凑纵向排列，统一对称 Colorbar，显示确切物理相位与无量纲时间 $t^*$。
+  - **论文展示版 (Version B)**：符合学术期刊投稿规范，纯白底色，(a)–(e) 子图编号，真实 $1:1$ 物理空间纵横比，提供 300 DPI 高清 PNG 与矢量 PDF。
+  - **真实三图对比 (Three-Way Comparison)**：真实呈现 $t=195\,\text{s}$ 旧版全域 COMSOL、升级版 COMSOL 视口与新版 Matplotlib 科学网格图的三图横向对比。
 
 所有绘图与可视化产物已成功生成并保存在 `runs/re100_s1a2_trial/`：
 
@@ -161,29 +168,45 @@
 3. **逐周期稳定性与振幅收敛分析图**：
    - 包含逐周期 $St$ 漂移、升力振幅饱和曲线及 FFT 功率谱。
    - 文件路径：`runs/re100_s1a2_trial/re100_s1a2_cycle_stability.png`
-4. **多时刻尾流涡量场演化（t=10s, 40s, 100s, 195s, 200s）**：
-   - 全套采用发散色卡与 20D 局部视图的高清拼图。
-   - 文件路径：`runs/re100_s1a2_trial/re100_s1a2_vorticity_snapshots.png`
-5. **t = 195 s 真实 COMSOL 涡量场新旧对比图（专项交付证据）**：
-   - 上图展示此前全域 Rainbow 色卡效果，下图展示升级后红–白–蓝发散色卡、$\pm 2.0\,\text{s}^{-1}$ 零中心对称标尺、带单位 Colorbar 与物理坐标轴的局部高清涡街。
+4. **多时刻尾流涡量场演化（Version A: 科研讨论版）**：
+   - 5 行高清拼图，采用统一发散色卡（$\pm 2.5\,\text{s}^{-1}$）、1:1 物理比例与零过点/谷底准确相位。
+   - 文件路径：`runs/re100_s1a2_trial/re100_s1a2_vorticity_snapshots.png` / `re100_s1a2_vorticity_discussion.png`
+5. **多时刻尾流涡量场演化（Version B: 论文展示版）**：
+   - 期刊标准纯白底色、(a)–(e) 规范编号，输出 300 DPI PNG 与矢量 PDF。
+   - 文件路径：`runs/re100_s1a2_trial/re100_s1a2_vorticity_publication.png` / `re100_s1a2_vorticity_publication.pdf`
+6. **t = 195 s 真实流场三图对比（专项交付证据）**：
+   - 包含：(A) 旧版全域彩虹色卡；(B) 升级版 COMSOL 20D 局部视图；(C) 新版 Matplotlib 科学可视化图。
    - 文件路径：`runs/re100_s1a2_trial/re100_s1a2_vorticity_t195s_comparison.png`
+7. **全域 40D x 24D 宏观参考总览图**：
+   - 文件路径：`runs/re100_s1a2_trial/re100_s1a2_vorticity_full_overview.png`
+8. **辅助多动态范围图**：
+   - 逐帧局部自适应增强图：`re100_s1a2_vorticity_enhanced_individual.png`
+   - 对称对数 SymLog 宽动态图（$\pm 20\,\text{s}^{-1}$）：`re100_s1a2_vorticity_symlog.png`
 
 ---
 
 ## 9. 自动化测试与回归保障
 
 本轮执行定向测试与全库回归：
-- **新增稳定性与可视化定向测试 (`tests/test_re100_s1a2_stability.py`)**: 9/9 全部通过
-  - `test_s1a2_simulation_time_schedule_and_step_count`: 验证 1001 步输出与真实时间戳一致性；
-  - `test_s1a2_diagnostics_units_and_finiteness`: 验证 7 条时间序列数据的单位与有限值；
-  - `test_cycle_detection_on_synthetic_sine`: 验证正弦信号周期探测精确度优于 0.1%；
-  - `test_cycle_detection_rejects_growing_amplitude`: 验证持续增长信号不会被误判为饱和极限环；
-  - `test_s1a2_cycle_statistics_stability_thresholds`: 验证真实 200s 数据的 4 项工程阈值全部达标；
-  - `test_baseline_models_hash_immutability`: 验证原始基准模型与上一轮 100s 模型哈希未被篡改；
-  - `test_backward_compatibility_100s_diagnostics`: 验证旧 100s 诊断验证接口完全向后兼容；
-  - `test_s1a2_upgraded_vorticity_snapshots_and_comparison`: 验证 5 张升级涡量快照、对比图存在性、分辨率与图像完整性。
-- **现有 S1-A 测试 (`tests/test_re100_s1a_trial.py`)**: 19/19 全部通过。
-- **全库完整回归 (`pytest -q`)**: 95/95 全部通过。
+- **新增稳定性与可视化定向测试 (`tests/test_re100_s1a2_stability.py`)**: 17/17 全部通过
+  - `test_baseline_and_s1a_models_immutability`: 验证原始基准模型与上一轮 100s 模型哈希未被篡改；
+  - `test_s1a2_solution_time_table_alignment`: 验证 1001 步输出与真实时间戳一致性；
+  - `test_s1a2_diagnostics_data_contract_and_manifest`: 验证 7 条时间序列数据的单位、有限值与清单；
+  - `test_s1a2_synthetic_sine_cycle_detection_correctness`: 验证正弦信号周期探测精确度优于 0.01%；
+  - `test_growing_amplitude_signal_rejected_as_limit_cycle`: 验证持续增长信号被严格拒绝；
+  - `test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds`: 验证真实 200s 数据的 4 项工程阈值全部达标；
+  - `test_s1a2_multi_window_statistics_consistency`: 验证两段窗口间统计漂移 < 1%；
+  - `test_s1a_legacy_100s_interface_unaffected`: 验证旧 100s 诊断验证接口完全向后兼容；
+  - `test_s1a2_upgraded_vorticity_snapshots_and_comparison`: 验证 5 张升级涡量快照、对比图存在性与分辨率；
+  - `test_s1a2_visualization_specification_and_data_contract`: 验证统计 JSON、对称零中心色标与相位对齐；
+  - `test_s1a2_visualization_all_output_artifacts_exist_and_valid`: 验证产物完整性与文件大小；
+  - `test_vorticity_grid_real_five_snapshots_strict_admission`: 验证真实 5 个时刻网格文件的 88,641 行严格准入；
+  - `test_vorticity_grid_rejection_incomplete_rows`: 拒绝测试——行数不完整时严格报错拦截；
+  - `test_vorticity_grid_rejection_xy_swapped`: 拒绝测试——x/y 坐标列颠倒时严格报错拦截；
+  - `test_vorticity_grid_rejection_disordered_rows`: 拒绝测试——网格行乱序时严格报错拦截；
+  - `test_vorticity_grid_rejection_duplicate_points`: 拒绝测试——空间网格点重复时严格报错拦截；
+  - `test_s1a2_three_panel_comparison_and_clipping_stats`: 验证三图对比与截断点坐标 100% 局限在 $2D$ 范围。
+- **全库完整回归 (`pytest -q`)**: 103/103 全部通过。
 
 ---
 

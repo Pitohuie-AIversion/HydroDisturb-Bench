@@ -462,6 +462,187 @@ S1_A2_REQUIRED_SNAPSHOTS: tuple[str, ...] = (
 )
 
 
+def load_comsol_vorticity_grid(
+    file_path: str | Path,
+    *,
+    expected_time: float | None = None,
+    expected_shape: tuple[int, int] = (201, 441),
+    x_limits: tuple[float, float] = (0.08, 0.30),
+    y_limits: tuple[float, float] = (0.07, 0.17),
+    spacing: float = 0.0005,
+    cylinder_center: tuple[float, float] = (0.10, 0.12),
+    cylinder_radius: float = 0.005,
+    time_tol: float = 1e-9,
+) -> dict[str, Any]:
+    """Read and strictly validate a COMSOL regular-grid ``vx-uy`` export.
+
+    The COMSOL grid exporter writes one row per ``(x, y)`` point, with ``x``
+    varying fastest.  This admission gate validates the complete file before
+    converting the rows into a 2-D array.  In particular, it never allocates
+    an uninitialised ``np.empty`` array and then guesses where rows belong.
+
+    ``NaN`` vorticity values are expected only inside the solid cylinder, where
+    COMSOL has no fluid field.  Coordinates must always be finite and ``Inf``
+    is never accepted.  The returned ``vorticity`` array has shape
+    ``(ny, nx)`` and is safe to plot with ``origin='lower'``.
+    """
+    import numpy as np
+
+    path = Path(file_path)
+    if not path.is_file():
+        raise ComsolExportValidationError(f"Vorticity grid file not found: {path}")
+    ny, nx = expected_shape
+    if ny < 2 or nx < 2:
+        raise ValueError(f"expected_shape must be at least 2x2, got {expected_shape}")
+
+    meta: dict[str, str] = {}
+    header_tokens: list[str] | None = None
+    column_meta: list[dict[str, Any]] = []
+    rows: list[list[float]] = []
+    with path.open("r", encoding="utf-8", errors="replace") as f:
+        for lineno, raw in enumerate(f, start=1):
+            line = raw.strip()
+            if not line:
+                continue
+            if line.startswith("%"):
+                body = line[1:].strip()
+                if body == "x" or body.startswith("x "):
+                    if header_tokens is not None:
+                        raise ComsolExportValidationError(
+                            f"{path.name}:{lineno}: multiple data headers are not allowed"
+                        )
+                    header_tokens, column_meta, times = _parse_header_columns(
+                        body,
+                        lineno,
+                        ("vx-uy",),
+                        {"vx-uy": "1/s"},
+                        [expected_time] if expected_time is not None else None,
+                        time_tol,
+                    )
+                    if len(header_tokens) != 3 or len(column_meta) != 1:
+                        raise ComsolExportValidationError(
+                            f"{path.name}:{lineno}: expected exactly x, y and one vx-uy column"
+                        )
+                    continue
+                m = _META_RE.match(line)
+                if m:
+                    meta[m.group("key").strip()] = m.group("val").strip()
+                continue
+
+            if header_tokens is None:
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: numerical data precedes the COMSOL header"
+                )
+            parts = line.split()
+            if len(parts) != 3:
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: expected 3 columns (x, y, vx-uy), got {len(parts)}"
+                )
+            try:
+                values = [float(part) for part in parts]
+            except ValueError as err:
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: non-numeric grid row {raw!r}"
+                ) from err
+            if not math.isfinite(values[0]) or not math.isfinite(values[1]):
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: x/y coordinates must be finite"
+                )
+            if math.isinf(values[2]):
+                raise ComsolExportValidationError(
+                    f"{path.name}:{lineno}: vx-uy contains Inf"
+                )
+            rows.append(values)
+
+    if header_tokens is None:
+        raise ComsolExportValidationError(f"{path.name}: missing '% x y vx-uy ...' header")
+    if meta.get("Dimension") not in (None, "2"):
+        raise ComsolExportValidationError(
+            f"{path.name}: expected Dimension=2, got {meta.get('Dimension')!r}"
+        )
+    if meta.get("Length unit") != "m":
+        raise ComsolExportValidationError(
+            f"{path.name}: expected COMSOL Length unit 'm', got {meta.get('Length unit')!r}"
+        )
+    if meta.get("Expressions") not in (None, "1"):
+        raise ComsolExportValidationError(
+            f"{path.name}: expected Expressions=1, got {meta.get('Expressions')!r}"
+        )
+    if expected_time is not None:
+        actual_time = float(column_meta[0]["time"])
+        if not _same_time(actual_time, expected_time, time_tol):
+            raise ComsolExportValidationError(
+                f"{path.name}: header time {actual_time} does not match expected {expected_time}"
+            )
+    expected_rows = ny * nx
+    if len(rows) != expected_rows:
+        raise ComsolExportValidationError(
+            f"{path.name}: incomplete grid, expected {expected_rows} rows ({ny}x{nx}), got {len(rows)}"
+        )
+    n_nodes = meta.get("Nodes")
+    if n_nodes is not None and n_nodes.isdigit() and int(n_nodes) != len(rows):
+        raise ComsolExportValidationError(
+            f"{path.name}: row count {len(rows)} does not match COMSOL Nodes={n_nodes}"
+        )
+
+    # Materialise only after row count, columns, units, and finiteness checks.
+    data = np.asarray(rows, dtype=float)
+    x = data[:, 0]
+    y = data[:, 1]
+    omega = data[:, 2]
+    x_axis = x_limits[0] + spacing * np.arange(nx, dtype=float)
+    y_axis = y_limits[0] + spacing * np.arange(ny, dtype=float)
+    if not np.isclose(x_axis[-1], x_limits[1], atol=1e-12, rtol=0.0):
+        raise ValueError("x_limits, spacing and expected_shape are inconsistent")
+    if not np.isclose(y_axis[-1], y_limits[1], atol=1e-12, rtol=0.0):
+        raise ValueError("y_limits, spacing and expected_shape are inconsistent")
+
+    if not np.allclose(x, x_axis[np.arange(expected_rows) % nx], atol=1e-12, rtol=0.0):
+        raise ComsolExportValidationError(
+            f"{path.name}: x coordinates are not the expected x-fastest COMSOL order"
+        )
+    if not np.allclose(y, y_axis[np.arange(expected_rows) // nx], atol=1e-12, rtol=0.0):
+        raise ComsolExportValidationError(
+            f"{path.name}: y coordinates are not the expected y-block COMSOL order"
+        )
+    points = np.column_stack((x, y))
+    if np.unique(points, axis=0).shape[0] != expected_rows:
+        raise ComsolExportValidationError(f"{path.name}: duplicate grid points detected")
+    if not np.allclose(np.unique(x), x_axis, atol=1e-12, rtol=0.0) or not np.allclose(
+        np.unique(y), y_axis, atol=1e-12, rtol=0.0
+    ):
+        raise ComsolExportValidationError(
+            f"{path.name}: coordinate axes do not match the declared regular grid"
+        )
+
+    nan_mask = np.isnan(omega)
+    if np.any(nan_mask):
+        cx, cy = cylinder_center
+        radius = np.sqrt((x[nan_mask] - cx) ** 2 + (y[nan_mask] - cy) ** 2)
+        if np.any(radius > cylinder_radius + spacing / 2.0 + 1e-12):
+            raise ComsolExportValidationError(
+                f"{path.name}: NaN vorticity occurs outside the solid-cylinder mask"
+            )
+    vorticity = omega.reshape(ny, nx)
+    return {
+        "x": x_axis,
+        "y": y_axis,
+        "vorticity": vorticity,
+        "time": float(column_meta[0]["time"]),
+        "num_rows": int(expected_rows),
+        "num_columns": 3,
+        "shape": [int(ny), int(nx)],
+        "num_unique_points": int(np.unique(points, axis=0).shape[0]),
+        "num_nan": int(np.count_nonzero(nan_mask)),
+        "num_inf": 0,
+        "length_unit": meta.get("Length unit"),
+        "vorticity_unit": column_meta[0]["unit"],
+        "x_step": float(spacing),
+        "y_step": float(spacing),
+        "metadata": meta,
+    }
+
+
 def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
     """Parse a single 1D COMSOL text export (time, value) and validate structure.
 

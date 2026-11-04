@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_DIR) not in sys.path:
@@ -16,7 +17,9 @@ from hydro_disturb_bench.comsol_java import (
     compute_file_hash,
 )
 from hydro_disturb_bench.io import (
+    ComsolExportValidationError,
     load_comsol_1d_timeseries,
+    load_comsol_vorticity_grid,
     validate_s1_diagnostics,
 )
 
@@ -379,3 +382,167 @@ def test_s1a2_visualization_all_output_artifacts_exist_and_valid():
         grid_p = S1A2_DIR / f"vorticity_grid_t{t_s}s.txt"
         assert grid_p.is_file()
         assert grid_p.stat().st_size > 5_000_000, f"Grid file {grid_p.name} too small"
+
+
+def test_vorticity_grid_real_five_snapshots_strict_admission():
+    """Verify that all 5 real COMSOL 2D vorticity grid files pass strict admission criteria."""
+    for t_s in [10, 40, 100, 195, 200]:
+        grid_file = S1A2_DIR / f"vorticity_grid_t{t_s}s.txt"
+        assert grid_file.is_file(), f"Missing grid file: {grid_file}"
+        grid = load_comsol_vorticity_grid(
+            grid_file,
+            expected_time=float(t_s),
+            expected_shape=(201, 441),
+        )
+        assert grid["num_rows"] == 88641
+        assert grid["shape"] == [201, 441]
+        assert grid["num_unique_points"] == 88641
+        assert grid["length_unit"] == "m"
+        assert grid["vorticity_unit"] == "1/s"
+        assert grid["num_inf"] == 0
+        assert grid["num_nan"] > 0
+        assert np.isclose(grid["x"][0], 0.08) and np.isclose(grid["x"][-1], 0.30)
+        assert np.isclose(grid["y"][0], 0.07) and np.isclose(grid["y"][-1], 0.17)
+        assert grid["vorticity"].shape == (201, 441)
+
+
+def _make_synthetic_grid_content(
+    rows: list[list[float]],
+    time: float = 10.0,
+    nodes: int | None = None,
+    length_unit: str = "m",
+    expr_unit: str = "1/s",
+) -> str:
+    n = len(rows) if nodes is None else nodes
+    lines = [
+        "% Model: synthetic_test.mph",
+        "% Version: COMSOL 6.4",
+        "% Dimension: 2",
+        f"% Nodes: {n}",
+        "% Expressions: 1",
+        "% Description: Vorticity test grid",
+        f"% Length unit: {length_unit}",
+        f"% x y vx-uy ({expr_unit}) @ t={time}",
+    ]
+    for r in rows:
+        lines.append(f"{r[0]:.6f} {r[1]:.6f} {r[2]:.6f}")
+    return "\n".join(lines) + "\n"
+
+
+def test_vorticity_grid_rejection_incomplete_rows(tmp_path: Path):
+    """Verify rejection when the grid has incomplete row count."""
+    p = tmp_path / "incomplete.txt"
+    rows = [
+        [0.0, 0.0, 1.0],
+        [0.01, 0.0, 2.0],
+        [0.0, 0.01, 3.0],
+    ]
+    p.write_text(_make_synthetic_grid_content(rows, nodes=4), encoding="utf-8")
+    with pytest.raises(ComsolExportValidationError, match="incomplete grid|row count"):
+        load_comsol_vorticity_grid(
+            p,
+            expected_time=10.0,
+            expected_shape=(2, 2),
+            x_limits=(0.0, 0.01),
+            y_limits=(0.0, 0.01),
+            spacing=0.01,
+            cylinder_center=(1.0, 1.0),
+        )
+
+
+def test_vorticity_grid_rejection_xy_swapped(tmp_path: Path):
+    """Verify rejection when x and y columns are swapped."""
+    p = tmp_path / "xy_swapped.txt"
+    rows_swapped = [
+        [0.0, 0.0, 1.0],
+        [0.0, 0.01, 2.0],
+        [0.01, 0.0, 3.0],
+        [0.01, 0.01, 4.0],
+    ]
+    p.write_text(_make_synthetic_grid_content(rows_swapped), encoding="utf-8")
+    with pytest.raises(ComsolExportValidationError, match="x coordinates are not the expected x-fastest COMSOL order"):
+        load_comsol_vorticity_grid(
+            p,
+            expected_time=10.0,
+            expected_shape=(2, 2),
+            x_limits=(0.0, 0.01),
+            y_limits=(0.0, 0.01),
+            spacing=0.01,
+            cylinder_center=(1.0, 1.0),
+        )
+
+
+def test_vorticity_grid_rejection_disordered_rows(tmp_path: Path):
+    """Verify rejection when grid rows are in reverse or disordered order."""
+    p = tmp_path / "disordered.txt"
+    valid_rows = [
+        [0.0, 0.0, 1.0],
+        [0.01, 0.0, 2.0],
+        [0.0, 0.01, 3.0],
+        [0.01, 0.01, 4.0],
+    ]
+    p.write_text(_make_synthetic_grid_content(valid_rows[::-1]), encoding="utf-8")
+    with pytest.raises(ComsolExportValidationError, match="x coordinates are not the expected x-fastest COMSOL order"):
+        load_comsol_vorticity_grid(
+            p,
+            expected_time=10.0,
+            expected_shape=(2, 2),
+            x_limits=(0.0, 0.01),
+            y_limits=(0.0, 0.01),
+            spacing=0.01,
+            cylinder_center=(1.0, 1.0),
+        )
+
+
+def test_vorticity_grid_rejection_duplicate_points(tmp_path: Path):
+    """Verify rejection when grid contains duplicate spatial coordinates."""
+    p = tmp_path / "duplicates.txt"
+    dup_rows = [
+        [0.0, 0.0, 1.0],
+        [0.0, 0.0, 1.0],
+        [0.0, 0.01, 3.0],
+        [0.01, 0.01, 4.0],
+    ]
+    p.write_text(_make_synthetic_grid_content(dup_rows), encoding="utf-8")
+    with pytest.raises(ComsolExportValidationError, match="x coordinates are not the expected x-fastest COMSOL order|duplicate grid points"):
+        load_comsol_vorticity_grid(
+            p,
+            expected_time=10.0,
+            expected_shape=(2, 2),
+            x_limits=(0.0, 0.01),
+            y_limits=(0.0, 0.01),
+            spacing=0.01,
+            cylinder_center=(1.0, 1.0),
+        )
+
+
+def test_s1a2_three_panel_comparison_and_clipping_stats():
+    """Verify the three-way comparison figure and spatial clipping statistics."""
+    from PIL import Image
+
+    # Check 3-panel comparison figure
+    p_comp = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
+    assert p_comp.is_file() and p_comp.stat().st_size > 200_000
+    with Image.open(p_comp) as img:
+        w, h = img.size
+        assert w >= 2000, f"Comparison figure width {w} < 2000"
+        assert h >= 2000, f"Comparison figure height {h} < 2000"
+
+    # Check vorticity stats JSON
+    stats_file = S1A2_DIR / "re100_s1a2_vorticity_stats.json"
+    assert stats_file.is_file()
+    stats = json.loads(stats_file.read_text(encoding="utf-8"))
+
+    # Colormap mapping
+    c_map = stats.get("color_mapping", {})
+    assert c_map.get("negative_values") == "blue side"
+    assert c_map.get("zero_values") == "white center"
+    assert c_map.get("positive_values") == "red side"
+
+    # Clipping locations
+    for t_s in ["10", "40", "100", "195", "200"]:
+        snap = stats["snapshots"][t_s]
+        clip_loc = snap.get("clip_locations_at_2_5", {})
+        assert clip_loc.get("within_2_0D_pct") == 100.0, f"t={t_s}s clipping outside 2D"
+        assert clip_loc.get("wake_vortices_clipped_beyond_12D") == 0, f"t={t_s}s wake clipped"
+        assert clip_loc.get("max_radius_over_D") <= 2.0, f"t={t_s}s max radius > 2D"

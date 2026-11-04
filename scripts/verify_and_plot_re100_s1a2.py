@@ -35,7 +35,9 @@ if str(SRC_DIR) not in sys.path:
 
 from hydro_disturb_bench.comsol_java import compute_file_hash
 from hydro_disturb_bench.io import (
+    ComsolExportValidationError,
     load_comsol_1d_timeseries,
+    load_comsol_vorticity_grid,
     validate_s1_diagnostics,
 )
 
@@ -464,8 +466,8 @@ def main() -> int:
     snap_times = [10, 40, 100, 195, 200]
     t_stars = [float(t) / TAU_CONV for t in snap_times]
     nx_grid, ny_grid = 441, 201
-    x_coords = np.linspace(0.08, 0.30, nx_grid) / D
-    y_coords = np.linspace(0.07, 0.17, ny_grid) / D
+    x_coords = None
+    y_coords = None
     xc_cyl, yc_cyl = 0.10, 0.12
 
     # Load 2D vorticity regular grids
@@ -486,6 +488,17 @@ def main() -> int:
         },
         "snapshots": {},
     }
+    cmap = plt.get_cmap("RdBu_r")
+    vort_stats["color_mapping"] = {
+        "negative_values": "blue side",
+        "zero_values": "white center",
+        "positive_values": "red side",
+        "negative_rgba": [float(v) for v in cmap(0.0)],
+        "zero_rgba": [float(v) for v in cmap(0.5)],
+        "positive_rgba": [float(v) for v in cmap(1.0)],
+        "normalization": {"vmin": -2.5, "vcenter": 0.0, "vmax": 2.5},
+    }
+    print("   (0) Color sign check: vx-uy < 0 -> blue, vx-uy = 0 -> white, vx-uy > 0 -> red (RdBu_r, centered at 0).")
 
     all_valid_vort: list[float] = []
     print("   (1) Quantitative Vorticity Distribution Across 5 Snapshots:")
@@ -494,14 +507,27 @@ def main() -> int:
         if not grid_file.exists():
             print(f"       [WARN] Grid file missing: {grid_file.name}")
             continue
-        with open(grid_file, "r", encoding="utf-8") as f:
-            data_lines = [line for line in f if not line.startswith("%")]
-        V = np.empty((ny_grid, nx_grid), dtype=np.float64)
-        for i, line in enumerate(data_lines):
-            V[i // nx_grid, i % nx_grid] = float(line.split()[2])
+        try:
+            grid = load_comsol_vorticity_grid(
+                grid_file,
+                expected_time=float(t_s),
+                expected_shape=(ny_grid, nx_grid),
+            )
+        except (ComsolExportValidationError, ValueError) as exc:
+            print(f"       [ERROR] Rejected grid {grid_file.name}: {exc}")
+            raise
+        V = np.asarray(grid["vorticity"], dtype=np.float64)
+        grid_x_coords = np.asarray(grid["x"], dtype=np.float64) / D
+        grid_y_coords = np.asarray(grid["y"], dtype=np.float64) / D
+        if x_coords is None:
+            x_coords, y_coords = grid_x_coords, grid_y_coords
+        elif not np.array_equal(x_coords, grid_x_coords) or not np.array_equal(y_coords, grid_y_coords):
+            raise ComsolExportValidationError(
+                f"{grid_file.name}: coordinate axes differ from the first validated grid"
+            )
         grids[t_s] = V
 
-        valid_vals = V[~np.isnan(V)]
+        valid_vals = V[np.isfinite(V)]
         all_valid_vort.extend(valid_vals.tolist())
         abs_valid = np.abs(valid_vals)
 
@@ -515,11 +541,51 @@ def main() -> int:
         q995 = float(np.percentile(abs_valid, 99.5))
         q999 = float(np.percentile(abs_valid, 99.9))
 
-        clip_25 = float(np.sum(abs_valid > 2.50) / len(valid_vals) * 100.0)
-        clip_20 = float(np.sum(abs_valid > 2.00) / len(valid_vals) * 100.0)
+        clip_25_mask = np.isfinite(V) & (np.abs(V) > 2.50)
+        clip_20_mask = np.isfinite(V) & (np.abs(V) > 2.00)
+        clip_25 = float(np.count_nonzero(clip_25_mask) / len(valid_vals) * 100.0)
+        clip_20 = float(np.count_nonzero(clip_20_mask) / len(valid_vals) * 100.0)
+
+        def _clip_location(mask: np.ndarray) -> dict[str, Any]:
+            indices = np.argwhere(mask)
+            if indices.size == 0:
+                return {
+                    "count": 0,
+                    "pct_of_valid": 0.0,
+                    "x_range_m": None,
+                    "y_range_m": None,
+                    "x_range_D": None,
+                    "y_range_D": None,
+                    "max_radius_over_D": 0.0,
+                    "within_0_6D_pct": 0.0,
+                    "within_1_0D_pct": 0.0,
+                    "within_2_0D_pct": 0.0,
+                    "wake_vortices_clipped_beyond_12D": 0,
+                }
+            yy = np.asarray(grid["y"])[indices[:, 0]]
+            xx = np.asarray(grid["x"])[indices[:, 1]]
+            radius_over_d = np.sqrt((xx - xc_cyl) ** 2 + (yy - yc_cyl) ** 2) / D
+            return {
+                "count": int(len(indices)),
+                "pct_of_valid": float(len(indices) / len(valid_vals) * 100.0),
+                "x_range_m": [float(np.min(xx)), float(np.max(xx))],
+                "y_range_m": [float(np.min(yy)), float(np.max(yy))],
+                "x_range_D": [float(np.min(xx) / D), float(np.max(xx) / D)],
+                "y_range_D": [float(np.min(yy) / D), float(np.max(yy) / D)],
+                "max_radius_over_D": float(np.max(radius_over_d)),
+                "within_0_6D_pct": float(np.mean(radius_over_d <= 0.6) * 100.0),
+                "within_1_0D_pct": float(np.mean(radius_over_d <= 1.0) * 100.0),
+                "within_2_0D_pct": float(np.mean(radius_over_d <= 2.0) * 100.0),
+                "wake_vortices_clipped_beyond_12D": int(np.count_nonzero(xx > 0.12)),
+            }
+
+        min_idx = np.unravel_index(int(np.nanargmin(V)), V.shape)
+        max_idx = np.unravel_index(int(np.nanargmax(V)), V.shape)
 
         # Get instantaneous Cl
         idx_t = int(np.argmin(np.abs(t_cl - t_s)))
+        if abs(float(t_cl[idx_t]) - float(t_s)) > 1e-8:
+            raise ValueError(f"No exact CL(t) sample at t={t_s}s; nearest is {t_cl[idx_t]}")
         cl_instant = float(cl[idx_t])
 
         vort_stats["snapshots"][str(t_s)] = {
@@ -537,6 +603,31 @@ def main() -> int:
             "q999": q999,
             "clipping_pct_at_2_5": clip_25,
             "clipping_pct_at_2_0": clip_20,
+            "grid": {
+                "num_rows": grid["num_rows"],
+                "shape": grid["shape"],
+                "num_unique_points": grid["num_unique_points"],
+                "x_range_m": [float(grid["x"][0]), float(grid["x"][-1])],
+                "y_range_m": [float(grid["y"][0]), float(grid["y"][-1])],
+                "x_step_m": grid["x_step"],
+                "y_step_m": grid["y_step"],
+                "length_unit": grid["length_unit"],
+                "vorticity_unit": grid["vorticity_unit"],
+                "num_nan": grid["num_nan"],
+                "num_inf": grid["num_inf"],
+                "row_order": "y outer, x inner",
+            },
+            "sign_counts": {
+                "negative": int(np.count_nonzero(valid_vals < 0.0)),
+                "zero": int(np.count_nonzero(valid_vals == 0.0)),
+                "positive": int(np.count_nonzero(valid_vals > 0.0)),
+            },
+            "extrema_locations_m": {
+                "min": [float(grid["x"][min_idx[1]]), float(grid["y"][min_idx[0]])],
+                "max": [float(grid["x"][max_idx[1]]), float(grid["y"][max_idx[0]])],
+            },
+            "clip_locations_at_2_5": _clip_location(clip_25_mask),
+            "clip_locations_at_2_0": _clip_location(clip_20_mask),
         }
         print(
             f"       t = {t_s:3d}s (t* = {t_s/TAU_CONV:5.1f}): Min = {v_min:7.3f}, Max = {v_max:7.3f}, 99% = {q99:5.3f}, 99.5% = {q995:5.3f} s^-1 | Clip(2.5) = {clip_25:5.3f}% | Cl = {cl_instant:+7.4f}"
@@ -555,7 +646,7 @@ def main() -> int:
         "total_valid_points": int(len(all_abs_arr)),
     }
     print(
-        f"       Pooled 5 Moments: 99% = {pooled_q99:.3f} s^-1, 99.5% = {pooled_q995:.3f} s^-1 | Unified limit omega_lim = +/- 2.50 s^-1 gives {pooled_clip_25:.3f}% clipping strictly confined to boundary layer (r <= 0.6D)."
+        f"       Pooled 5 Moments: 99% = {pooled_q99:.3f} s^-1, 99.5% = {pooled_q995:.3f} s^-1 | Unified limit omega_lim = +/- 2.50 s^-1 gives {pooled_clip_25:.3f}% clipping; locations are recorded from the validated COMSOL coordinates."
     )
 
     # Save stats JSON
@@ -564,13 +655,17 @@ def main() -> int:
     print(f"   Saved {stats_json_path.name}")
 
     omega_lim = 2.50
-    neutral_titles = [
-        r"Initial Vortex Roll-up ($C_L \approx 0.000$)",
-        r"Shedding Transition ($C_L \approx -0.007$)",
-        r"Developing Karman Street (S1-A Checkpoint, $C_L \approx +0.165$)",
-        r"Saturated Limit-Cycle Wake (Near Zero Crossing, $C_L \approx +0.018$)",
-        r"Saturated Limit-Cycle Wake (Near Trough Phase, $C_L \approx -0.292$)",
-    ]
+    phase_labels = []
+    for t_s in snap_times:
+        cl_value = vort_stats["snapshots"][str(t_s)]["cl_instant"]
+        if abs(cl_value) < 0.05:
+            phase = "near lift zero crossing"
+        elif cl_value > 0.0:
+            phase = "positive lift phase"
+        else:
+            phase = "negative lift phase"
+        phase_labels.append(rf"$C_L(t) = {cl_value:+.4f}$ ({phase})")
+    neutral_titles = phase_labels
 
     # Figure 4: Version A - 科研讨论版 (Compact 5-Row Vertical Layout, High Contrast RdBu_r, Unified Colorbar)
     if len(grids) == 5:
@@ -771,7 +866,7 @@ def main() -> int:
         plt.close(fig_sym)
         print(f"   Saved {fig_sym_path.name} (Auxiliary: SymLog 宽动态范围)")
 
-    # Figure 6: Comparison of t=195s Old vs Upgraded Visualization
+    # Figure 6: Comparison of t=195s Old vs Upgraded Visualization (Three-Way Comparison)
     old_img_path = S1A2_DIR / "vorticity_t195s_old_comsol.png"
     if not old_img_path.exists():
         version_dirs = list((S1A2_DIR / "versions").glob("run_*"))
@@ -781,34 +876,71 @@ def main() -> int:
                 old_img_path = candidate
 
     new_img_path = S1A2_DIR / "vorticity_t195s_comsol.png"
-    if old_img_path.exists() and new_img_path.exists():
-        fig, (ax_old, ax_new) = plt.subplots(2, 1, figsize=(12, 10), dpi=160)
+    if old_img_path.exists() and new_img_path.exists() and 195 in grids:
+        fig = plt.figure(figsize=(13, 13), dpi=180)
+        gs = fig.add_gridspec(3, 1, height_ratios=[1.0, 1.0, 1.15], hspace=0.32, left=0.08, right=0.88, top=0.96, bottom=0.06)
+        ax_old = fig.add_subplot(gs[0])
+        ax_comsol = fig.add_subplot(gs[1])
+        ax_mpl = fig.add_subplot(gs[2])
+
         im_old = Image.open(old_img_path)
         im_new = Image.open(new_img_path)
 
         ax_old.imshow(im_old)
         ax_old.set_title(
-            r"(A) Previous Baseline: Full Domain ($40D \times 24D$), Default Rainbow, No Colorbar, Weak Contrast",
+            r"(A) Previous Baseline COMSOL: Full Domain ($40D \times 24D$, $t=195\,$s), Default Rainbow, No Colorbar, Weak Contrast",
             fontsize=11,
             fontweight="bold",
-            pad=8,
+            pad=6,
         )
         ax_old.axis("off")
 
-        ax_new.imshow(im_new)
-        ax_new.set_title(
-            r"(B) Upgraded Wake Zoom: $x \in [0.08, 0.30]\,$m, $y \in [0.07, 0.17]\,$m, Wave Diverging Colormap ($\pm 2.0\,\mathrm{s}^{-1}$), Native Colorbar & Axes",
+        ax_comsol.imshow(im_new)
+        ax_comsol.set_title(
+            r"(B) Upgraded COMSOL Native View: Wake Zoom ($22D \times 10D$, $t=195\,$s), Wave Diverging Colormap ($\pm 2.0\,\mathrm{s}^{-1}$), Native Axes & Colorbar",
             fontsize=11,
             fontweight="bold",
-            pad=8,
+            pad=6,
         )
-        ax_new.axis("off")
+        ax_comsol.axis("off")
 
-        plt.tight_layout()
+        im_mpl = ax_mpl.imshow(
+            grids[195],
+            origin="lower",
+            extent=[x_coords[0], x_coords[-1], y_coords[0], y_coords[-1]],
+            cmap="RdBu_r",
+            vmin=-omega_lim,
+            vmax=omega_lim,
+            interpolation="bilinear",
+        )
+        cyl = Circle(
+            (xc_cyl / D, yc_cyl / D),
+            0.5,
+            facecolor="white",
+            edgecolor="black",
+            linewidth=1.5,
+            zorder=10,
+        )
+        ax_mpl.add_patch(cyl)
+        ax_mpl.set_aspect("equal")
+        ax_mpl.set_xlabel(r"$x / D$", fontsize=10, fontweight="bold")
+        ax_mpl.set_ylabel(r"$y / D$", fontsize=10, fontweight="bold")
+        ax_mpl.set_title(
+            r"(C) New Matplotlib Scientific Visualization: Validated COMSOL Grid ($88,641$ pts, $t=195\,$s), RdBu_r ($\pm 2.50\,\mathrm{s}^{-1}$), 1:1 Aspect Ratio",
+            fontsize=11,
+            fontweight="bold",
+            pad=6,
+        )
+        ax_mpl.grid(True, linestyle=":", alpha=0.4, color="gray")
+
+        cbar_ax = fig.add_axes([0.90, 0.08, 0.02, 0.20])
+        cbar = fig.colorbar(im_mpl, cax=cbar_ax)
+        cbar.set_label(r"Vorticity $\omega_z$ [s$^{-1}$]", fontsize=10, fontweight="bold")
+
         fig6_path = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
-        fig.savefig(fig6_path)
+        fig.savefig(fig6_path, dpi=180)
         plt.close(fig)
-        print(f"   Saved {fig6_path.name}")
+        print(f"   Saved {fig6_path.name} (Three-Way Comparison: Old COMSOL vs Upgraded COMSOL vs New Matplotlib)")
 
     # Figure 7: Full Domain Reference Overview (40D x 24D)
     overview_img_path = S1A2_DIR / "vorticity_overview_t200s_comsol.png"
