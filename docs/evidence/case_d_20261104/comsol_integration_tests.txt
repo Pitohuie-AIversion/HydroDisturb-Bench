@@ -1,0 +1,14 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 4 items
+
+tests/test_comsol_integration.py::test_real_comsol_inspect_api PASSED    [ 25%]
+tests/test_comsol_integration.py::test_real_comsol_inspect_model PASSED  [ 50%]
+tests/test_comsol_integration.py::test_real_comsol_update_parameter_and_readback PASSED [ 75%]
+tests/test_comsol_integration.py::test_real_comsol_run_study_and_solution_check PASSED [100%]
+
+======================== 4 passed in 96.72s (0:01:36) =========================

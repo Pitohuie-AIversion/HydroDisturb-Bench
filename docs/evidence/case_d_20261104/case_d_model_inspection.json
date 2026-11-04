@@ -1,0 +1,1355 @@
+{
+  "status": "SUCCESS",
+  "operation": "inspect_model",
+  "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_d_20261104_verified\\re100_s1b1_case_d_solved.mph",
+  "model_tag": "Model",
+  "comsol_version": "COMSOL Multiphysics 6.4 (开发版本: 429)",
+  "parameters": {
+    "H": {
+      "expr": "0.24[m]",
+      "value": 0.24,
+      "unit": "m",
+      "description": "Domain height (24D)"
+    },
+    "L": {
+      "expr": "0.40[m]",
+      "value": 0.4,
+      "unit": "m",
+      "description": "Domain length (40D)"
+    },
+    "W": {
+      "expr": "1[m]",
+      "value": 1.0,
+      "unit": "m",
+      "description": "Channel width (not modeled)"
+    },
+    "R": {
+      "expr": "D/2",
+      "value": 0.005,
+      "unit": "m",
+      "description": "Cylinder radius"
+    },
+    "U_mean": {
+      "expr": "U_inf",
+      "value": 0.010058104588258865,
+      "unit": "m/s",
+      "description": "Mean inflow velocity alias"
+    },
+    "D": {
+      "expr": "0.01[m]",
+      "value": 0.01,
+      "unit": "m",
+      "description": "Cylinder diameter"
+    },
+    "x_c": {
+      "expr": "0.10[m]",
+      "value": 0.1,
+      "unit": "m",
+      "description": "Cylinder center X (10D upstream distance)"
+    },
+    "y_c": {
+      "expr": "0.12[m]",
+      "value": 0.12,
+      "unit": "m",
+      "description": "Cylinder center Y (12D lateral half-width)"
+    },
+    "rho_f": {
+      "expr": "998.2[kg/m^3]",
+      "value": 998.2,
+      "unit": "kg/m^3",
+      "description": "Water density at 20 degC"
+    },
+    "mu_f": {
+      "expr": "1.004e-3[Pa*s]",
+      "value": 0.001004,
+      "unit": "Pa*s",
+      "description": "Water dynamic viscosity at 20 degC"
+    },
+    "Re": {
+      "expr": "100",
+      "value": 100.0,
+      "unit": null,
+      "description": "Target Reynolds number"
+    },
+    "U_inf": {
+      "expr": "Re*mu_f/(rho_f*D)",
+      "value": 0.010058104588258865,
+      "unit": "m/s",
+      "description": "Inflow free-stream velocity"
+    }
+  },
+  "components": [
+    {
+      "tag": "comp1",
+      "label": "Component 1",
+      "geometries": [
+        {
+          "tag": "geom1",
+          "sdim": 2,
+          "features": [
+            "r1",
+            "c1",
+            "dif1",
+            "fin"
+          ],
+          "boundary_geometry": {
+            "available": true,
+            "source": "COMSOL GeomSequence live query (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX)",
+            "geometry_tag": "geom1",
+            "geometry_rebuilt_in_memory": false,
+            "n_boundaries": 8,
+            "n_domains": 1,
+            "bounding_box": [
+              0.0,
+              0.4000000000000001,
+              0.0,
+              0.24
+            ],
+            "samples_per_boundary": 17,
+            "boundaries": [
+              {
+                "id": 1,
+                "x_range": [
+                  0.0,
+                  0.0
+                ],
+                "y_range": [
+                  0.0,
+                  0.24
+                ],
+                "length_polyline": 0.24,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.015
+                  ],
+                  [
+                    0.0,
+                    0.03
+                  ],
+                  [
+                    0.0,
+                    0.045
+                  ],
+                  [
+                    0.0,
+                    0.06
+                  ],
+                  [
+                    0.0,
+                    0.075
+                  ],
+                  [
+                    0.0,
+                    0.09
+                  ],
+                  [
+                    0.0,
+                    0.105
+                  ],
+                  [
+                    0.0,
+                    0.12
+                  ],
+                  [
+                    0.0,
+                    0.135
+                  ],
+                  [
+                    0.0,
+                    0.15
+                  ],
+                  [
+                    0.0,
+                    0.16499999999999998
+                  ],
+                  [
+                    0.0,
+                    0.18
+                  ],
+                  [
+                    0.0,
+                    0.195
+                  ],
+                  [
+                    0.0,
+                    0.21
+                  ],
+                  [
+                    0.0,
+                    0.22499999999999998
+                  ],
+                  [
+                    0.0,
+                    0.24
+                  ]
+                ]
+              },
+              {
+                "id": 2,
+                "x_range": [
+                  0.0,
+                  0.4
+                ],
+                "y_range": [
+                  0.0,
+                  0.0
+                ],
+                "length_polyline": 0.40000000000000013,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.4,
+                    0.0
+                  ],
+                  [
+                    0.375,
+                    0.0
+                  ],
+                  [
+                    0.35000000000000003,
+                    0.0
+                  ],
+                  [
+                    0.325,
+                    0.0
+                  ],
+                  [
+                    0.30000000000000004,
+                    0.0
+                  ],
+                  [
+                    0.275,
+                    0.0
+                  ],
+                  [
+                    0.25,
+                    0.0
+                  ],
+                  [
+                    0.225,
+                    0.0
+                  ],
+                  [
+                    0.2,
+                    0.0
+                  ],
+                  [
+                    0.17500000000000002,
+                    0.0
+                  ],
+                  [
+                    0.15000000000000002,
+                    0.0
+                  ],
+                  [
+                    0.125,
+                    0.0
+                  ],
+                  [
+                    0.1,
+                    0.0
+                  ],
+                  [
+                    0.07500000000000001,
+                    0.0
+                  ],
+                  [
+                    0.05,
+                    0.0
+                  ],
+                  [
+                    0.025,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ]
+                ]
+              },
+              {
+                "id": 3,
+                "x_range": [
+                  0.0,
+                  0.4
+                ],
+                "y_range": [
+                  0.24,
+                  0.24
+                ],
+                "length_polyline": 0.4,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.0,
+                    0.24
+                  ],
+                  [
+                    0.025,
+                    0.24
+                  ],
+                  [
+                    0.05,
+                    0.24
+                  ],
+                  [
+                    0.07500000000000001,
+                    0.24
+                  ],
+                  [
+                    0.1,
+                    0.24
+                  ],
+                  [
+                    0.125,
+                    0.24
+                  ],
+                  [
+                    0.15000000000000002,
+                    0.24
+                  ],
+                  [
+                    0.17500000000000002,
+                    0.24
+                  ],
+                  [
+                    0.2,
+                    0.24
+                  ],
+                  [
+                    0.225,
+                    0.24
+                  ],
+                  [
+                    0.25,
+                    0.24
+                  ],
+                  [
+                    0.275,
+                    0.24
+                  ],
+                  [
+                    0.30000000000000004,
+                    0.24
+                  ],
+                  [
+                    0.325,
+                    0.24
+                  ],
+                  [
+                    0.35000000000000003,
+                    0.24
+                  ],
+                  [
+                    0.375,
+                    0.24
+                  ],
+                  [
+                    0.4,
+                    0.24
+                  ]
+                ]
+              },
+              {
+                "id": 4,
+                "x_range": [
+                  0.4,
+                  0.4
+                ],
+                "y_range": [
+                  0.0,
+                  0.24
+                ],
+                "length_polyline": 0.2400000000000001,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.4,
+                    0.24
+                  ],
+                  [
+                    0.4,
+                    0.22499999999999998
+                  ],
+                  [
+                    0.4,
+                    0.21
+                  ],
+                  [
+                    0.4,
+                    0.195
+                  ],
+                  [
+                    0.4,
+                    0.18
+                  ],
+                  [
+                    0.4,
+                    0.16499999999999998
+                  ],
+                  [
+                    0.4,
+                    0.15
+                  ],
+                  [
+                    0.4,
+                    0.135
+                  ],
+                  [
+                    0.4,
+                    0.12
+                  ],
+                  [
+                    0.4,
+                    0.105
+                  ],
+                  [
+                    0.4,
+                    0.09
+                  ],
+                  [
+                    0.4,
+                    0.075
+                  ],
+                  [
+                    0.4,
+                    0.06
+                  ],
+                  [
+                    0.4,
+                    0.045
+                  ],
+                  [
+                    0.4,
+                    0.03
+                  ],
+                  [
+                    0.4,
+                    0.015
+                  ],
+                  [
+                    0.4,
+                    0.0
+                  ]
+                ]
+              },
+              {
+                "id": 5,
+                "x_range": [
+                  0.095,
+                  0.1
+                ],
+                "y_range": [
+                  0.11499999999999999,
+                  0.12
+                ],
+                "length_polyline": 0.007850807486099223,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.095,
+                    0.12
+                  ],
+                  [
+                    0.09502022545693561,
+                    0.11955072781051146
+                  ],
+                  [
+                    0.09508347315791713,
+                    0.11909018473793928
+                  ],
+                  [
+                    0.09519300520906483,
+                    0.11862420892577315
+                  ],
+                  [
+                    0.09535105849468786,
+                    0.11815952645219067
+                  ],
+                  [
+                    0.09555857996585122,
+                    0.11770352703471998
+                  ],
+                  [
+                    0.09581502244390673,
+                    0.11726395123307429
+                  ],
+                  [
+                    0.0961182340621258,
+                    0.11684850936800388
+                  ],
+                  [
+                    0.09646446609406725,
+                    0.11646446609406727
+                  ],
+                  [
+                    0.09684850936800385,
+                    0.11611823406212579
+                  ],
+                  [
+                    0.09726395123307428,
+                    0.11581502244390675
+                  ],
+                  [
+                    0.09770352703471999,
+                    0.11555857996585123
+                  ],
+                  [
+                    0.09815952645219064,
+                    0.11535105849468787
+                  ],
+                  [
+                    0.09862420892577316,
+                    0.11519300520906484
+                  ],
+                  [
+                    0.09909018473793929,
+                    0.11508347315791713
+                  ],
+                  [
+                    0.09955072781051147,
+                    0.11502022545693559
+                  ],
+                  [
+                    0.1,
+                    0.11499999999999999
+                  ]
+                ]
+              },
+              {
+                "id": 6,
+                "x_range": [
+                  0.095,
+                  0.1
+                ],
+                "y_range": [
+                  0.12,
+                  0.125
+                ],
+                "length_polyline": 0.00785080748609923,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.1,
+                    0.125
+                  ],
+                  [
+                    0.09955072781051147,
+                    0.12497977454306439
+                  ],
+                  [
+                    0.09909018473793929,
+                    0.12491652684208286
+                  ],
+                  [
+                    0.09862420892577316,
+                    0.12480699479093516
+                  ],
+                  [
+                    0.09815952645219066,
+                    0.12464894150531217
+                  ],
+                  [
+                    0.09770352703471999,
+                    0.12444142003414875
+                  ],
+                  [
+                    0.09726395123307428,
+                    0.12418497755609324
+                  ],
+                  [
+                    0.09684850936800386,
+                    0.12388176593787421
+                  ],
+                  [
+                    0.09646446609406725,
+                    0.12353553390593273
+                  ],
+                  [
+                    0.0961182340621258,
+                    0.12315149063199615
+                  ],
+                  [
+                    0.09581502244390673,
+                    0.1227360487669257
+                  ],
+                  [
+                    0.09555857996585122,
+                    0.12229647296528
+                  ],
+                  [
+                    0.09535105849468785,
+                    0.12184047354780937
+                  ],
+                  [
+                    0.09519300520906485,
+                    0.12137579107422683
+                  ],
+                  [
+                    0.09508347315791713,
+                    0.12090981526206072
+                  ],
+                  [
+                    0.0950202254569356,
+                    0.1204492721894885
+                  ],
+                  [
+                    0.095,
+                    0.12
+                  ]
+                ]
+              },
+              {
+                "id": 7,
+                "x_range": [
+                  0.1,
+                  0.10500000000000001
+                ],
+                "y_range": [
+                  0.11499999999999999,
+                  0.12
+                ],
+                "length_polyline": 0.007850807486099221,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.1,
+                    0.11499999999999999
+                  ],
+                  [
+                    0.10044927218948851,
+                    0.11502022545693559
+                  ],
+                  [
+                    0.10090981526206075,
+                    0.11508347315791713
+                  ],
+                  [
+                    0.10137579107422687,
+                    0.11519300520906484
+                  ],
+                  [
+                    0.10184047354780938,
+                    0.11535105849468787
+                  ],
+                  [
+                    0.10229647296528002,
+                    0.11555857996585123
+                  ],
+                  [
+                    0.10273604876692571,
+                    0.11581502244390675
+                  ],
+                  [
+                    0.10315149063199618,
+                    0.1161182340621258
+                  ],
+                  [
+                    0.10353553390593276,
+                    0.11646446609406727
+                  ],
+                  [
+                    0.10388176593787424,
+                    0.11684850936800388
+                  ],
+                  [
+                    0.10418497755609325,
+                    0.11726395123307429
+                  ],
+                  [
+                    0.10444142003414876,
+                    0.11770352703471998
+                  ],
+                  [
+                    0.10464894150531218,
+                    0.11815952645219067
+                  ],
+                  [
+                    0.10480699479093517,
+                    0.11862420892577315
+                  ],
+                  [
+                    0.10491652684208289,
+                    0.11909018473793928
+                  ],
+                  [
+                    0.1049797745430644,
+                    0.11955072781051146
+                  ],
+                  [
+                    0.10500000000000001,
+                    0.12
+                  ]
+                ]
+              },
+              {
+                "id": 8,
+                "x_range": [
+                  0.1,
+                  0.10500000000000001
+                ],
+                "y_range": [
+                  0.12,
+                  0.125
+                ],
+                "length_polyline": 0.007850807486099233,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.10500000000000001,
+                    0.12
+                  ],
+                  [
+                    0.10497977454306441,
+                    0.1204492721894885
+                  ],
+                  [
+                    0.10491652684208289,
+                    0.12090981526206072
+                  ],
+                  [
+                    0.10480699479093517,
+                    0.12137579107422683
+                  ],
+                  [
+                    0.10464894150531219,
+                    0.12184047354780937
+                  ],
+                  [
+                    0.10444142003414876,
+                    0.12229647296528
+                  ],
+                  [
+                    0.10418497755609327,
+                    0.1227360487669257
+                  ],
+                  [
+                    0.10388176593787424,
+                    0.12315149063199615
+                  ],
+                  [
+                    0.10353553390593276,
+                    0.12353553390593273
+                  ],
+                  [
+                    0.10315149063199615,
+                    0.12388176593787423
+                  ],
+                  [
+                    0.10273604876692571,
+                    0.12418497755609324
+                  ],
+                  [
+                    0.10229647296528002,
+                    0.12444142003414875
+                  ],
+                  [
+                    0.10184047354780938,
+                    0.12464894150531217
+                  ],
+                  [
+                    0.10137579107422687,
+                    0.12480699479093517
+                  ],
+                  [
+                    0.10090981526206073,
+                    0.12491652684208288
+                  ],
+                  [
+                    0.10044927218948851,
+                    0.12497977454306439
+                  ],
+                  [
+                    0.1,
+                    0.125
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "meshes": [
+        {
+          "tag": "mesh1",
+          "sdim": 2,
+          "is_complete": true,
+          "num_elem": 7493,
+          "num_vertex": 3944,
+          "features": [
+            "size",
+            "size1",
+            "cr1",
+            "ftri1",
+            "bl1"
+          ]
+        }
+      ],
+      "physics": [
+        {
+          "tag": "spf",
+          "label": "Laminar Flow",
+          "type": "LaminarFlow",
+          "features": [
+            {
+              "tag": "fp1",
+              "label": "Fluid Properties 1",
+              "type": "FluidProperties",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "init1",
+              "label": "Initial Values 1",
+              "type": "init",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "wallbc1",
+              "label": "Wall 1",
+              "type": "WallBC",
+              "selection_entities": [
+                5,
+                6,
+                7,
+                8
+              ]
+            },
+            {
+              "tag": "grav1",
+              "label": "Gravity 1",
+              "type": "Gravity",
+              "selection_entities": []
+            },
+            {
+              "tag": "rtfr1",
+              "label": "Rotating Frame 1",
+              "type": "RotatingFrameFD",
+              "selection_entities": []
+            },
+            {
+              "tag": "dcont1",
+              "label": "Flow Continuity 1",
+              "type": "Continuity",
+              "selection_entities": []
+            },
+            {
+              "tag": "inl1",
+              "label": "Inlet 1",
+              "type": "InletBoundary",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "out1",
+              "label": "Outlet 1",
+              "type": "OutletBoundary",
+              "selection_entities": [
+                4
+              ]
+            },
+            {
+              "tag": "sym1",
+              "label": "对称 1",
+              "type": "Symmetry",
+              "selection_entities": [
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "materials": [
+        {
+          "tag": "mat1",
+          "label": "Material 1"
+        }
+      ]
+    }
+  ],
+  "studies": [
+    {
+      "tag": "std1",
+      "label": "Study 1",
+      "features": [
+        {
+          "tag": "time",
+          "label": "Time Dependent",
+          "type": "Transient",
+          "properties": {
+            "tdescr": "Time",
+            "showtlist": "on",
+            "usetunit": "on",
+            "tunit": "s",
+            "tlist": "range(0, 0.2, 200)",
+            "tlist_vector_method": "step",
+            "tlist_vector_start": "",
+            "tlist_vector_stop": "",
+            "tlist_vector_step": "",
+            "tlist_vector_numvalues": "",
+            "tlist_vector_function": "none",
+            "tlist_vector_interval": "octave",
+            "tlist_vector_freqperdec": "",
+            "initialtime": "0.0",
+            "usertol": "on",
+            "rtol": "1e-4",
+            "time_discrete": "off",
+            "geometricNonlinearity": "off",
+            "geometricNonlinearityActive": "off",
+            "updateOptimizationSettings": "off",
+            "ftplistmethod": "ignore",
+            "method": "fixed_number_of_iterations",
+            "expr": "1",
+            "rtolterm": "0.001",
+            "rtolthresh": "1",
+            "maxiter": "25",
+            "miniter": "1",
+            "atolterm": "0.001",
+            "iter": "5",
+            "outputhide": "off",
+            "plot": "off",
+            "plotgroupdummy": "Default",
+            "plotgrouparr": "pg1",
+            "plotwindowsarr": "",
+            "windowforpg": "new",
+            "plotfreq": "tout",
+            "probesel": "all",
+            "probes": "[]",
+            "probefreq": "tsteps",
+            "physselection": "",
+            "activate": "spf, on, frame:spatial1, on, frame:material1, on, comp1, on",
+            "useadvanceddisable": "off",
+            "disabledvariables": "[]",
+            "disabledcoordinatesystems": "[]",
+            "disabledcommon": "",
+            "disabledpair": "[]",
+            "disabledphysics": "",
+            "disableFrameControl": "",
+            "disabledcoupling": "",
+            "disabledreduced": "",
+            "disabledcomponent": "",
+            "discretization": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "equationform": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "shapeOrder": "comp1, component",
+            "equationform_freq": "spf, 1[kHz], frame:spatial1, 0, frame:material1, 0, comp1, 0",
+            "discretization_proxy": "physics",
+            "equationform_proxy": "physics",
+            "equationform_freq_proxy": "0",
+            "reconstructors_proxy": "none",
+            "shapeOrder_proxy": "component",
+            "multiphysicsSelection": "",
+            "activateCoupling": "",
+            "romselection": "",
+            "activaterom": "",
+            "activateimagereconstruct": "",
+            "reconstructables": "",
+            "reconstructors": "",
+            "useinitsol": "off",
+            "initmethod": "init",
+            "initstudy": "zero",
+            "initstudyhide": "on",
+            "initsol": "current",
+            "initsolhide": "on",
+            "initsoluse": "current",
+            "initsolusesolnumhide": "on",
+            "initsolusesolnum": "1",
+            "oldinitsoluse": "0",
+            "initstudystep": "",
+            "solvertype": "foo",
+            "solnumhide": "on",
+            "solnum": "auto",
+            "timeinterp": "off",
+            "t": "0",
+            "listsol": "off",
+            "listsolnum": "1",
+            "manualsol": "off",
+            "manualsolnum": "1",
+            "manualsolnum_vector_method": "step",
+            "manualsolnum_vector_start": "",
+            "manualsolnum_vector_stop": "",
+            "manualsolnum_vector_step": "",
+            "manualsolnum_vector_numvalues": "",
+            "manualsolnum_vector_function": "none",
+            "manualsolnum_vector_interval": "octave",
+            "manualsolnum_vector_freqperdec": "",
+            "usesol": "off",
+            "notsolmethod": "init",
+            "notstudy": "zero",
+            "notstudyhide": "on",
+            "notsol": "current",
+            "notsolhide": "on",
+            "notsoluse": "current",
+            "notsolusesolnumhide": "on",
+            "notsolusesolnum": "1",
+            "oldnotsoluse": "0",
+            "notstudystep": "",
+            "notsolvertype": "foo",
+            "notsolnumhide": "on",
+            "notsolnum": "auto",
+            "nottimeinterp": "off",
+            "nott": "0",
+            "notlistsol": "off",
+            "notlistsolnum": "1",
+            "notmanualsol": "off",
+            "notmanualsolnum": "1",
+            "notmanualsolnum_vector_method": "step",
+            "notmanualsolnum_vector_start": "",
+            "notmanualsolnum_vector_stop": "",
+            "notmanualsolnum_vector_step": "",
+            "notmanualsolnum_vector_numvalues": "",
+            "notmanualsolnum_vector_function": "none",
+            "notmanualsolnum_vector_interval": "octave",
+            "notmanualsolnum_vector_freqperdec": "",
+            "outputmap": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "outputselectionmap": "spf, , frame:spatial1, , frame:material1, , comp1, ",
+            "outputSelectionProxy": "",
+            "geomselection": "",
+            "mesh": "geom1, mesh1",
+            "timeadaption": "none",
+            "timeadapgeom": "geom1",
+            "tauto": "manual",
+            "rmethod": "longest",
+            "rmethodauto": "longest",
+            "adaptselection": "",
+            "auxsweepmethod": "ignore",
+            "showuseparam": "on",
+            "useparam": "off",
+            "sweeptype": "sparse",
+            "loadFile": "",
+            "saveFile": "",
+            "pname": "",
+            "plistarr": "",
+            "plistarr_vector_method": "",
+            "plistarr_vector_start": "",
+            "plistarr_vector_stop": "",
+            "plistarr_vector_step": "",
+            "plistarr_vector_numvalues": "",
+            "plistarr_vector_function": "",
+            "plistarr_vector_interval": "octave",
+            "plistarr_vector_freqperdec": "",
+            "punit": "",
+            "optimization": "off",
+            "pdistrib": "off",
+            "autoremesh": "off",
+            "autoremeshgeom": "geom1",
+            "treeSelectionKey": "",
+            "equationFormCouplingColumn": "",
+            "tableRow": "",
+            "outputInterface": ""
+          }
+        }
+      ]
+    }
+  ],
+  "solvers": [
+    {
+      "tag": "sol1",
+      "label": "Solution 1",
+      "feature_tags": [
+        "st1",
+        "v1",
+        "t1"
+      ],
+      "features": [
+        {
+          "tag": "st1",
+          "type": "StudyStep",
+          "label": "编译方程: Time Dependent",
+          "properties": {
+            "study": "std1",
+            "studystep": "time",
+            "unredstudy": "",
+            "unredstep": "",
+            "useForModelReduction": "on",
+            "splitcomplex": "off",
+            "partmethod": "parent",
+            "linsmallelem": "physicscontrolled",
+            "componentid": "",
+            "linsmallelemexpr": "geom1, 0.0",
+            "units": "",
+            "saveprevioussolution": "off",
+            "assempara": "on",
+            "useent": "all",
+            "entsel": "[]",
+            "keeplog": "off",
+            "message": "<---- Study 1/Solution 1 (sol1) 中的“编译方程: Time Dependent” -----------------------\n开始于 2026年11月4日 19:59:46。\n几何形函数: 线性拉格朗日单元\n在 Intel(R) Core(TM) i7-14700 上运行。\n在以下位置使用 1 个插槽： SR-MuZY 上（共 16 个内核）。\n可用内存：32.42 GB。\n在 Intel(R) Core(TM) i7-14700 上运行。\n在以下位置使用 1 个插槽： SR-MuZY 上（共 16 个内核）。\n可用内存：32.42 GB。\n时间：2 s。\n物理内存: 731 MB\n虚拟内存: 780 MB\n结束时间：2026年11月4日 19:59:48。\n----- Study 1/Solution 1 (sol1) 中的“编译方程: Time Dependent” ---------------------->\n",
+            "const": "",
+            "propertyDefaults": "",
+            "changedproperties": "",
+            "hiddenchangedproperties": "",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        },
+        {
+          "tag": "v1",
+          "type": "Variables",
+          "label": "Dependent Variables 1",
+          "properties": {
+            "control": "time",
+            "initmethod": "init",
+            "initsol": "zero",
+            "initsolhide": "on",
+            "initsoluse": "current",
+            "oldinitsoluse": "0",
+            "initsolusesolnumhide": "on",
+            "initsolusesolnum": "1",
+            "solvertype": "none",
+            "solnum": "auto",
+            "timeinterp": "off",
+            "t": "0",
+            "manualsol": "off",
+            "manualsolnum": "1",
+            "manualsolnum_vector_method": "step",
+            "manualsolnum_vector_start": "",
+            "manualsolnum_vector_stop": "",
+            "manualsolnum_vector_step": "",
+            "manualsolnum_vector_numvalues": "",
+            "manualsolnum_vector_function": "none",
+            "manualsolnum_vector_interval": "octave",
+            "manualsolnum_vector_freqperdec": "",
+            "listsol": "off",
+            "listsolnum": "1",
+            "scalemethod": "auto",
+            "scaleval": "1.0",
+            "resscalemethod": "auto",
+            "resscaleval": "1.0",
+            "resscalethresh": "100.0",
+            "notsolmethod": "init",
+            "notsol": "zero",
+            "notsolhide": "on",
+            "notsoluse": "current",
+            "oldnotsoluse": "0",
+            "notsolusesolnumhide": "on",
+            "notsolusesolnum": "1",
+            "notsolvertype": "none",
+            "notsolnum": "auto",
+            "nottimeinterp": "off",
+            "nott": "0",
+            "notmanualsol": "off",
+            "notmanualsolnum": "1",
+            "notmanualsolnum_vector_method": "step",
+            "notmanualsolnum_vector_start": "",
+            "notmanualsolnum_vector_stop": "",
+            "notmanualsolnum_vector_step": "",
+            "notmanualsolnum_vector_numvalues": "",
+            "notmanualsolnum_vector_function": "none",
+            "notmanualsolnum_vector_interval": "octave",
+            "notmanualsolnum_vector_freqperdec": "",
+            "notlistsol": "off",
+            "notlistsolnum": "1",
+            "initparametersmethod": "auto",
+            "clistctrl": "t1_t, t1_timestep",
+            "cname": "t, timestep",
+            "clist": "0, 0.2, 0.4, 0.6000000000000001, 0.8, 1, 1.2000000000000002, 1.4000000000000001, 1.6, 1.8, 2, 2.2, 2.4000000000000004, 2.6, 2.8000000000000003, 3, 3.2, 3.4000000000000004, 3.6, 3.8000000000000003, 4, 4.2, 4.4, 4.6000000000000005, 4.800000000000001, 5, 5.2, 5.4, 5.6000000000000005, 5.800000000000001, 6, 6.2, 6.4, 6.6000000000000005, 6.800000000000001, 7, 7.2, 7.4, 7.6000000000000005, 7.800000000000001, 8, 8.200000000000001, 8.4, 8.6, 8.8, 9, 9.200000000000001, 9.4, 9.600000000000001, 9.8, 10, 10.200000000000001, 10.4, 10.600000000000001, 10.8, 11, 11.200000000000001, 11.4, 11.600000000000001, 11.8, 12, 12.200000000000001, 12.4, 12.600000000000001, 12.8, 13, 13.200000000000001, 13.4, 13.600000000000001, 13.8, 14, 14.200000000000001, 14.4, 14.600000000000001, 14.8, 15, 15.200000000000001, 15.4, 15.600000000000001, 15.8, 16, 16.2, 16.400000000000002, 16.6, 16.8, 17, 17.2, 17.400000000000002, 17.6, 17.8, 18, 18.2, 18.400000000000002, 18.6, 18.8, 19, 19.200000000000003, 19.400000000000002, 19.6, 19.8, 20, 20.200000000000003, 20.400000000000002, 20.6, 20.8, 21, 21.200000000000003, 21.400000000000002, 21.6, 21.8, 22, 22.200000000000003, 22.400000000000002, 22.6, 22.8, 23, 23.200000000000003, 23.400000000000002, 23.6, 23.8, 24, 24.200000000000003, 24.400000000000002, 24.6, 24.8, 25, 25.200000000000003, 25.400000000000002, 25.6, 25.8, 26, 26.200000000000003, 26.400000000000002, 26.6, 26.8, 27, 27.200000000000003, 27.400000000000002, 27.6, 27.8, 28, 28.200000000000003, 28.400000000000002, 28.6, 28.8, 29, 29.200000000000003, 29.400000000000002, 29.6, 29.8, 30, 30.200000000000003, 30.400000000000002, 30.6, 30.8, 31, 31.200000000000003, 31.400000000000002, 31.6, 31.8, 32, 32.2, 32.4, 32.6, 32.800000000000004, 33, 33.2, 33.4, 33.6, 33.800000000000004, 34, 34.2, 34.4, 34.6, 34.800000000000004, 35, 35.2, 35.4, 35.6, 35.800000000000004, 36, 36.2, 36.4, 36.6, 36.800000000000004, 37, 37.2, 37.4, 37.6, 37.800000000000004, 38, 38.2, 38.400000000000006, 38.6, 38.800000000000004, 39, 39.2, 39.400000000000006, 39.6, 39.800000000000004, 40, 40.2, 40.400000000000006, 40.6, 40.800000000000004, 41, 41.2, 41.400000000000006, 41.6, 41.800000000000004, 42, 42.2, 42.400000000000006, 42.6, 42.800000000000004, 43, 43.2, 43.400000000000006, 43.6, 43.800000000000004, 44, 44.2, 44.400000000000006, 44.6, 44.800000000000004, 45, 45.2, 45.400000000000006, 45.6, 45.800000000000004, 46, 46.2, 46.400000000000006, 46.6, 46.800000000000004, 47, 47.2, 47.400000000000006, 47.6, 47.800000000000004, 48, 48.2, 48.400000000000006, 48.6, 48.800000000000004, 49, 49.2, 49.400000000000006, 49.6, 49.800000000000004, 50, 50.2, 50.400000000000006, 50.6, 50.800000000000004, 51, 51.2, 51.400000000000006, 51.6, 51.800000000000004, 52, 52.2, 52.400000000000006, 52.6, 52.800000000000004, 53, 53.2, 53.400000000000006, 53.6, 53.800000000000004, 54, 54.2, 54.400000000000006, 54.6, 54.800000000000004, 55, 55.2, 55.400000000000006, 55.6, 55.800000000000004, 56, 56.2, 56.400000000000006, 56.6, 56.800000000000004, 57, 57.2, 57.400000000000006, 57.6, 57.800000000000004, 58, 58.2, 58.400000000000006, 58.6, 58.800000000000004, 59, 59.2, 59.400000000000006, 59.6, 59.800000000000004, 60, 60.2, 60.400000000000006, 60.6, 60.800000000000004, 61, 61.2, 61.400000000000006, 61.6, 61.800000000000004, 62, 62.2, 62.400000000000006, 62.6, 62.800000000000004, 63, 63.2, 63.400000000000006, 63.6, 63.800000000000004, 64, 64.2, 64.4, 64.60000000000001, 64.8, 65, 65.2, 65.4, 65.60000000000001, 65.8, 66, 66.2, 66.4, 66.60000000000001, 66.8, 67, 67.2, 67.4, 67.60000000000001, 67.8, 68, 68.2, 68.4, 68.60000000000001, 68.8, 69, 69.2, 69.4, 69.60000000000001, 69.8, 70, 70.2, 70.4, 70.60000000000001, 70.8, 71, 71.2, 71.4, 71.60000000000001, 71.8, 72, 72.2, 72.4, 72.60000000000001, 72.8, 73, 73.2, 73.4, 73.60000000000001, 73.8, 74, 74.2, 74.4, 74.60000000000001, 74.8, 75, 75.2, 75.4, 75.60000000000001, 75.8, 76, 76.2, 76.4, 76.60000000000001, 76.80000000000001, 77, 77.2, 77.4, 77.60000000000001, 77.80000000000001, 78, 78.2, 78.4, 78.60000000000001, 78.80000000000001, 79, 79.2, 79.4, 79.60000000000001, 79.80000000000001, 80, 80.2, 80.4, 80.60000000000001, 80.80000000000001, 81, 81.2, 81.4, 81.60000000000001, 81.80000000000001, 82, 82.2, 82.4, 82.60000000000001, 82.80000000000001, 83, 83.2, 83.4, 83.60000000000001, 83.80000000000001, 84, 84.2, 84.4, 84.60000000000001, 84.80000000000001, 85, 85.2, 85.4, 85.60000000000001, 85.80000000000001, 86, 86.2, 86.4, 86.60000000000001, 86.80000000000001, 87, 87.2, 87.4, 87.60000000000001, 87.80000000000001, 88, 88.2, 88.4, 88.60000000000001, 88.80000000000001, 89, 89.2, 89.4, 89.60000000000001, 89.80000000000001, 90, 90.2, 90.4, 90.60000000000001, 90.80000000000001, 91, 91.2, 91.4, 91.60000000000001, 91.80000000000001, 92, 92.2, 92.4, 92.60000000000001, 92.80000000000001, 93, 93.2, 93.4, 93.60000000000001, 93.80000000000001, 94, 94.2, 94.4, 94.60000000000001, 94.80000000000001, 95, 95.2, 95.4, 95.60000000000001, 95.80000000000001, 96, 96.2, 96.4, 96.60000000000001, 96.80000000000001, 97, 97.2, 97.4, 97.60000000000001, 97.80000000000001, 98, 98.2, 98.4, 98.60000000000001, 98.80000000000001, 99, 99.2, 99.4, 99.60000000000001, 99.80000000000001, 100, 100.2, 100.4, 100.60000000000001, 100.80000000000001, 101, 101.2, 101.4, 101.60000000000001, 101.80000000000001, 102, 102.2, 102.4, 102.60000000000001, 102.80000000000001, 103, 103.2, 103.4, 103.60000000000001, 103.80000000000001, 104, 104.2, 104.4, 104.60000000000001, 104.80000000000001, 105, 105.2, 105.4, 105.60000000000001, 105.80000000000001, 106, 106.2, 106.4, 106.60000000000001, 106.80000000000001, 107, 107.2, 107.4, 107.60000000000001, 107.80000000000001, 108, 108.2, 108.4, 108.60000000000001, 108.80000000000001, 109, 109.2, 109.4, 109.60000000000001, 109.80000000000001, 110, 110.2, 110.4, 110.60000000000001, 110.80000000000001, 111, 111.2, 111.4, 111.60000000000001, 111.80000000000001, 112, 112.2, 112.4, 112.60000000000001, 112.80000000000001, 113, 113.2, 113.4, 113.60000000000001, 113.80000000000001, 114, 114.2, 114.4, 114.60000000000001, 114.80000000000001, 115, 115.2, 115.4, 115.60000000000001, 115.80000000000001, 116, 116.2, 116.4, 116.60000000000001, 116.80000000000001, 117, 117.2, 117.4, 117.60000000000001, 117.80000000000001, 118, 118.2, 118.4, 118.60000000000001, 118.80000000000001, 119, 119.2, 119.4, 119.60000000000001, 119.80000000000001, 120, 120.2, 120.4, 120.60000000000001, 120.80000000000001, 121, 121.2, 121.4, 121.60000000000001, 121.80000000000001, 122, 122.2, 122.4, 122.60000000000001, 122.80000000000001, 123, 123.2, 123.4, 123.60000000000001, 123.80000000000001, 124, 124.2, 124.4, 124.60000000000001, 124.80000000000001, 125, 125.2, 125.4, 125.60000000000001, 125.80000000000001, 126, 126.2, 126.4, 126.60000000000001, 126.80000000000001, 127, 127.2, 127.4, 127.60000000000001, 127.80000000000001, 128, 128.20000000000002, 128.4, 128.6, 128.8, 129, 129.20000000000002, 129.4, 129.6, 129.8, 130, 130.20000000000002, 130.4, 130.6, 130.8, 131, 131.20000000000002, 131.4, 131.6, 131.8, 132, 132.20000000000002, 132.4, 132.6, 132.8, 133, 133.20000000000002, 133.4, 133.6, 133.8, 134, 134.20000000000002, 134.4, 134.6, 134.8, 135, 135.20000000000002, 135.4, 135.6, 135.8, 136, 136.20000000000002, 136.4, 136.6, 136.8, 137, 137.20000000000002, 137.4, 137.6, 137.8, 138, 138.20000000000002, 138.4, 138.6, 138.8, 139, 139.20000000000002, 139.4, 139.6, 139.8, 140, 140.20000000000002, 140.4, 140.6, 140.8, 141, 141.20000000000002, 141.4, 141.6, 141.8, 142, 142.20000000000002, 142.4, 142.6, 142.8, 143, 143.20000000000002, 143.4, 143.6, 143.8, 144, 144.20000000000002, 144.4, 144.6, 144.8, 145, 145.20000000000002, 145.4, 145.6, 145.8, 146, 146.20000000000002, 146.4, 146.6, 146.8, 147, 147.20000000000002, 147.4, 147.6, 147.8, 148, 148.20000000000002, 148.4, 148.6, 148.8, 149, 149.20000000000002, 149.4, 149.6, 149.8, 150, 150.20000000000002, 150.4, 150.6, 150.8, 151, 151.20000000000002, 151.4, 151.6, 151.8, 152, 152.20000000000002, 152.4, 152.6, 152.8, 153, 153.20000000000002, 153.4, 153.60000000000002, 153.8, 154, 154.20000000000002, 154.4, 154.60000000000002, 154.8, 155, 155.20000000000002, 155.4, 155.60000000000002, 155.8, 156, 156.20000000000002, 156.4, 156.60000000000002, 156.8, 157, 157.20000000000002, 157.4, 157.60000000000002, 157.8, 158, 158.20000000000002, 158.4, 158.60000000000002, 158.8, 159, 159.20000000000002, 159.4, 159.60000000000002, 159.8, 160, 160.20000000000002, 160.4, 160.60000000000002, 160.8, 161, 161.20000000000002, 161.4, 161.60000000000002, 161.8, 162, 162.20000000000002, 162.4, 162.60000000000002, 162.8, 163, 163.20000000000002, 163.4, 163.60000000000002, 163.8, 164, 164.20000000000002, 164.4, 164.60000000000002, 164.8, 165, 165.20000000000002, 165.4, 165.60000000000002, 165.8, 166, 166.20000000000002, 166.4, 166.60000000000002, 166.8, 167, 167.20000000000002, 167.4, 167.60000000000002, 167.8, 168, 168.20000000000002, 168.4, 168.60000000000002, 168.8, 169, 169.20000000000002, 169.4, 169.60000000000002, 169.8, 170, 170.20000000000002, 170.4, 170.60000000000002, 170.8, 171, 171.20000000000002, 171.4, 171.60000000000002, 171.8, 172, 172.20000000000002, 172.4, 172.60000000000002, 172.8, 173, 173.20000000000002, 173.4, 173.60000000000002, 173.8, 174, 174.20000000000002, 174.4, 174.60000000000002, 174.8, 175, 175.20000000000002, 175.4, 175.60000000000002, 175.8, 176, 176.20000000000002, 176.4, 176.60000000000002, 176.8, 177, 177.20000000000002, 177.4, 177.60000000000002, 177.8, 178, 178.20000000000002, 178.4, 178.60000000000002, 178.8, 179, 179.20000000000002, 179.4, 179.60000000000002, 179.8, 180, 180.20000000000002, 180.4, 180.60000000000002, 180.8, 181, 181.20000000000002, 181.4, 181.60000000000002, 181.8, 182, 182.20000000000002, 182.4, 182.60000000000002, 182.8, 183, 183.20000000000002, 183.4, 183.60000000000002, 183.8, 184, 184.20000000000002, 184.4, 184.60000000000002, 184.8, 185, 185.20000000000002, 185.4, 185.60000000000002, 185.8, 186, 186.20000000000002, 186.4, 186.60000000000002, 186.8, 187, 187.20000000000002, 187.4, 187.60000000000002, 187.8, 188, 188.20000000000002, 188.4, 188.60000000000002, 188.8, 189, 189.20000000000002, 189.4, 189.60000000000002, 189.8, 190, 190.20000000000002, 190.4, 190.60000000000002, 190.8, 191, 191.20000000000002, 191.4, 191.60000000000002, 191.8, 192, 192.20000000000002, 192.4, 192.60000000000002, 192.8, 193, 193.20000000000002, 193.4, 193.60000000000002, 193.8, 194, 194.20000000000002, 194.4, 194.60000000000002, 194.8, 195, 195.20000000000002, 195.4, 195.60000000000002, 195.8, 196, 196.20000000000002, 196.4, 196.60000000000002, 196.8, 197, 197.20000000000002, 197.4, 197.60000000000002, 197.8, 198, 198.20000000000002, 198.4, 198.60000000000002, 198.8, 199, 199.20000000000002, 199.4, 199.60000000000002, 199.8, 200; 0.2",
+            "keeplog": "off",
+            "message": "<---- Study 1/Solution 1 (sol1) 中的“Dependent Variables 1” ----------------------\n开始于 2026年11月4日 19:59:48。\n求解时间：0 s。\n物理内存: 738 MB\n虚拟内存: 791 MB\n结束时间：2026年11月4日 19:59:48。\n----- Study 1/Solution 1 (sol1) 中的“Dependent Variables 1” --------------------->\n",
+            "const": "",
+            "storesol": "init",
+            "propertyDefaults": "",
+            "changedproperties": "Parameter name and value, clist, {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], 0.007[s]; -, cname, t, t, timestep; -, clistctrl, t1_t, t1_t, t1_timestep",
+            "hiddenchangedproperties": "",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        },
+        {
+          "tag": "t1",
+          "type": "Time",
+          "label": "Time-Dependent Solver 1",
+          "properties": {
+            "control": "time",
+            "usetunit": "on",
+            "tunit": "s",
+            "tlist": "range(0, 0.2, 200)",
+            "tlist_vector_method": "step",
+            "tlist_vector_start": "",
+            "tlist_vector_stop": "",
+            "tlist_vector_step": "",
+            "tlist_vector_numvalues": "",
+            "tlist_vector_function": "none",
+            "tlist_vector_interval": "octave",
+            "tlist_vector_freqperdec": "",
+            "tout": "tlist",
+            "tstepsstore": "1",
+            "rtol": "1e-4",
+            "atolglobalmethod": "scaled",
+            "atolglobalvaluemethod": "factor",
+            "atolglobalfactor": "0.05",
+            "tderglobalmethod": "auto",
+            "tderglobalfactor": "1",
+            "atolglobal": "0.001",
+            "ewtrescale": "on",
+            "atolmethod": "comp1_p, scaled, comp1_u, global",
+            "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+            "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+            "tdermethod": "comp1_p, auto, comp1_u, auto",
+            "tderfactor": "comp1_p, 1.0, comp1_u, 1.0",
+            "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+            "atoludot": "comp1_p, 1e-3, comp1_u, 1e-3",
+            "atolmethodAUX": "scaled",
+            "atolvaluemethodAUX": "factor",
+            "atolfactorAUX": "1",
+            "tdermethodAUX": "auto",
+            "tderfactorAUX": "1.0",
+            "atolAUX": "1e-3",
+            "atoludotAUX": "1e-3",
+            "odesolvertype": "implicit",
+            "timemethod": "bdf",
+            "tstepsbdf": "intermediate",
+            "endtimeinterpolation": "on",
+            "initialstepbdf": "0.001",
+            "initialstepbdfactive": "off",
+            "maxstepconstraintbdf": "const",
+            "maxstepbdf": "0.025",
+            "maxstepexpressionbdf": "0.1",
+            "maxorder": "2",
+            "minorder": "1",
+            "bdforder": "2",
+            "initialstepfractionbdf-1": "1",
+            "initialstepgrowthratebdf-1": "1.5",
+            "initialstepfractionbdf-2": "1",
+            "initialstepgrowthratebdf-2": "1.5",
+            "initialstepfractionbdf-3": "0.1",
+            "initialstepgrowthratebdf-3": "1.2",
+            "initialstepfractionbdf-4": "0.01",
+            "initialstepgrowthratebdf-4": "1.15",
+            "initialstepfractionbdf-5": "0.001",
+            "initialstepgrowthratebdf-5": "1.1",
+            "timestepbdf": "0.01",
+            "eventtol": "0.01",
+            "stabcntrl": "on",
+            "masssingular": "maybe",
+            "consistent": "bweuler",
+            "bwinitstepfrac": "0.01",
+            "bwinitfactor": "20",
+            "estrat": "exclude",
+            "tstepsgenalpha": "free",
+            "initialstepgenalpha": "0.001",
+            "initialstepgenalphaactive": "off",
+            "maxstepconstraintgenalpha": "auto",
+            "maxstepgenalpha": "0.1",
+            "maxstepexpressiongenalpha": "0.1",
+            "incrdelay": "15",
+            "incrdelayactive": "off",
+            "rhoinf": "0.5",
+            "predictor": "constant",
+            "timestepgenalpha": "0.01",
+            "rescaleafterinitbw": "off",
+            "timemethodexp": "rk",
+            "rkmethod": "rk34",
+            "tstepsrk34": "free",
+            "initialsteprk34": "0.001",
+            "initialsteprk34active": "off",
+            "timesteprk34": "0.01",
+            "tstepsck5": "free",
+            "initialstepck5": "0.001",
+            "initialstepck5active": "off",
+            "timestepck5": "0.01",
+            "tstepsdopri5": "free",
+            "initialstepdopri5": "0.001",
+            "initialstepdopri5active": "off",
+            "dopripicontrol": "smooth",
+            "maxstepconstraintdopri5": "auto",
+            "maxstepdopri5": "0.1",
+            "maxstepexpressiondopri5": "0.1",
+            "doprigrowmin": "0.2",
+            "doprigrowmax": "10",
+            "doprisafe": "0.9",
+            "timestepdopri5": "0.01",
+            "rkstiffcheck": "on",
+            "erkorder": "4",
+            "tstepping": "manual",
+            "rktimestep": "1.e-3",
+            "updtstep": "off",
+            "ntimestepsupdate": "10",
+            "exprs": "",
+            "mlinsolver": "dDef",
+            "algebraicsolvemethodRK": "full",
+            "algebraicsolveeverynRK": "1",
+            "algebraicsolveeverydtRK": "0",
+            "algebraicsolvemethod": "n",
+            "algebraicsolveeveryn": "1",
+            "algebraicsolveeverydt": "0",
+            "updtlvl": "off",
+            "ntimestepsupdateab3loc": "100",
+            "rtstepab3loc": "0.1",
+            "verletauxsolver": "ab2",
+            "checkvalidity": "off",
+            "exprsgeom": "",
+            "exprsgeomab3loc": "",
+            "exprsgporder": "",
+            "exprsgporderupdt": "",
+            "exprsgporderab3loc": "",
+            "plot": "off",
+            "plotgroupdummy": "Default",
+            "plotgrouparr": "pg1",
+            "plotwindowsarr": "",
+            "windowforpg": "new",
+            "plotfreq": "tout",
+            "probesel": "all",
+            "probes": "[]",
+            "probefreq": "tsteps",
+            "reacf": "on",
+            "lumpedflux": "off",
+            "storeudot": "on",
+            "eventout": "off",
+            "complex": "off",
+            "solref": "off",
+            "assumeperiodic": "off",
+            "starttime": "0",
+            "solutionperiod": "0",
+            "cosimstoressol": "off",
+            "cosim": "off",
+            "cosiminput": "",
+            "cosimoutput": "",
+            "cosimconsistent": "on",
+            "uselsqtimedata": "on",
+            "tlistlsq": "",
+            "excludelsqtimes": "on",
+            "lsqtimesout": "",
+            "clistctrl": "",
+            "cname": "",
+            "clist": "",
+            "keeplog": "off",
+            "message": "7741      191.85       0.025     22835 7744 22835     2     0      0  2.4e-13  3.4e-15\n7742      191.88       0.025     22839 7745 22839     2     0      0  4.4e-13  6.7e-15\n7743       191.9       0.025     22843 7746 22843     2     0      0  3.2e-13  3.6e-14\n7744      191.93       0.025     22845 7747 22845     2     0      0  4.2e-13  3.7e-15\n7745      191.95       0.025     22847 7748 22847     2     0      0  6.4e-14  1.8e-15\n7746      191.98       0.025     22850 7749 22850     2     0      0  1.7e-13  1.2e-14\n   -         192           - out\n7747         192       0.025     22853 7750 22853     2     0      0  1.6e-13  1.5e-14\n7748      192.03       0.025     22855 7751 22855     2     0      0  1.9e-13  6.3e-15\n7749      192.05       0.025     22857 7752 22857     2     0      0  5.7e-13  3.9e-15\n7750      192.08       0.025     22861 7753 22861     2     0      0  3.4e-13  7.6e-15\n7751       192.1       0.025     22864 7754 22864     2     0      0  3.2e-14  1.7e-14\n7752      192.13       0.025     22866 7755 22866     2     0      0  3.7e-13  3.5e-15\n7753      192.15       0.025     22869 7756 22869     2     0      0  6.1e-13  1.9e-14\n7754      192.18       0.025     22871 7757 22871     2     0      0  1.6e-13  1.1e-14\n   -       192.2           - out\n7755       192.2       0.025     22873 7758 22873     2     0      0  2.5e-13  1.2e-14\n7756      192.23       0.025     22877 7759 22877     2     0      0  4.8e-13    1e-14\n7757      192.25       0.025     22881 7760 22881     2     0      0    8e-14  1.6e-14\n7758      192.28       0.025     22883 7761 22883     2     0      0  1.3e-13  7.1e-15\n7759       192.3       0.025     22885 7762 22885     2     0      0  1.4e-13  4.8e-15\n7760      192.33       0.025     22888 7763 22888     2     0      0  9.8e-14  1.5e-14\n7761      192.35       0.025     22890 7764 22890     2     0      0  7.2e-14  4.3e-15\n7762      192.38       0.025     22894 7765 22894     2     0      0  2.9e-14  1.3e-14\n   -       192.4           - out\n7763       192.4       0.025     22897 7766 22897     2     0      0  2.9e-13  5.9e-15\n7764      192.43       0.025     22900 7767 22900     2     0      0    3e-13  2.6e-14\n7765      192.45       0.025     22902 7768 22902     2     0      0  5.8e-13  3.7e-15\n7766      192.48       0.025     22905 7769 22905     2     0      0  6.4e-13  2.1e-14\n7767       192.5       0.025     22908 7770 22908     2     0      0  4.9e-13  6.2e-15\n7768      192.53       0.025     22911 7771 22911     2     0      0  1.3e-13  3.3e-15\n7769      192.55       0.025     22914 7772 22914     2     0      0  3.2e-13  5.8e-15\n7770      192.58       0.025     22917 7773 22917     2     0      0    2e-13  8.8e-15\n   -       192.6           - out\n7771       192.6       0.025     22920 7774 22920     2     0      0  5.5e-13    1e-14\n7772      192.63       0.025     22923 7775 22923     2     0      0  1.6e-13  1.2e-14\n7773      192.65       0.025     22925 7776 22925     2     0      0    3e-13  4.2e-15\n7774      192.68       0.025     22928 7777 22928     2     0      0  1.9e-13  2.3e-14\n7775       192.7       0.025     22930 7778 22930     2     0      0  2.3e-13  9.8e-15\n7776      192.73       0.025     22934 7779 22934     2     0      0  4.2e-14    5e-15\n7777      192.75       0.025     22936 7780 22936     2     0      0  3.8e-13  6.5e-15\n7778      192.78       0.025     22939 7781 22939     2     0      0  4.6e-13  3.1e-14\n   -       192.8           - out\n7779       192.8       0.025     22942 7782 22942     2     0      0  1.9e-13  7.6e-15\n7780      192.83       0.025     22946 7783 22946     2     0      0    9e-13  5.8e-15\n7781      192.85       0.025     22949 7784 22949     2     0      0  5.2e-13    8e-15\n7782      192.88       0.025     22951 7785 22951     2     0      0  2.9e-13  2.5e-15\n7783       192.9       0.025     22954 7786 22954     2     0      0  2.2e-13  1.6e-14\n7784      192.93       0.025     22958 7787 22958     2     0      0    4e-13  7.3e-15\n7785      192.95       0.025     22960 7788 22960     2     0      0  3.1e-13  6.8e-15\n7786      192.98       0.025     22963 7789 22963     2     0      0  4.4e-14  8.7e-15\n   -         193           - out\n7787         193       0.025     22966 7790 22966     2     0      0  2.8e-13  2.2e-14\n7788      193.03       0.025     22968 7791 22968     2     0      0  1.2e-13  1.3e-14\n7789      193.05       0.025     22972 7792 22972     2     0      0  2.4e-13  1.4e-14\n7790      193.08       0.025     22976 7793 22976     2     0      0  4.9e-13    2e-15\n7791       193.1       0.025     22980 7794 22980     2     0      0  8.8e-13  5.7e-15\n7792      193.13       0.025     22984 7795 22984     2     0      0  1.3e-12  2.1e-15\n7793      193.15       0.025     22988 7796 22988     2     0      0  1.4e-13  5.7e-15\n7794      193.18       0.025     22992 7797 22992     2     0      0  4.5e-13  6.4e-15\n   -       193.2           - out\n7795       193.2       0.025     22996 7798 22996     2     0      0  7.6e-14  2.2e-14\n7796      193.23       0.025     22999 7799 22999     2     0      0  9.9e-14  2.3e-14\n7797      193.25       0.025     23001 7800 23001     2     0      0    1e-13    5e-15\n7798      193.28       0.025     23003 7801 23003     2     0      0  5.9e-13  2.6e-15\n7799       193.3       0.025     23005 7802 23005     2     0      0    3e-13  7.5e-15\n7800      193.33       0.025     23007 7803 23007     2     0      0  1.7e-13  3.7e-15\n7801      193.35       0.025     23010 7804 23010     2     0      0  1.9e-13  1.3e-14\n7802      193.38       0.025     23012 7805 23012     2     0      0  3.4e-13  3.6e-15\n   -       193.4           - out\n7803       193.4       0.025     23015 7806 23015     2     0      0  3.7e-14  4.3e-15\n7804      193.43       0.025     23018 7807 23018     2     0      0  4.3e-13  1.8e-14\n7805      193.45       0.025     23020 7808 23020     2     0      0  6.7e-13  4.6e-15\n7806      193.48       0.025     23022 7809 23022     2     0      0  8.5e-14  2.6e-15\n7807       193.5       0.025     23024 7810 23024     2     0      0  3.3e-13  5.5e-15\n7808      193.53       0.025     23026 7811 23026     2     0      0  4.1e-13  1.5e-14\n7809      193.55       0.025     23028 7812 23028     2     0      0  1.6e-13  6.9e-15\n7810      193.58       0.025     23032 7813 23032     2     0      0  4.3e-13  7.4e-15\n   -       193.6           - out\n7811       193.6       0.025     23035 7814 23035     2     0      0  9.4e-14  1.6e-14\n7812      193.63       0.025     23038 7815 23038     2     0      0    3e-13  8.9e-15\n7813      193.65       0.025     23040 7816 23040     2     0      0  3.4e-13  5.7e-15\n7814      193.68       0.025     23042 7817 23042     2     0      0  4.1e-13  7.4e-15\n7815       193.7       0.025     23044 7818 23044     2     0      0  1.8e-13    2e-15\n7816      193.73       0.025     23046 7819 23046     2     0      0  4.3e-13  8.1e-15\n7817      193.75       0.025     23049 7820 23049     2     0      0  2.4e-13  3.1e-14\n7818      193.78       0.025     23051 7821 23051     2     0      0  1.3e-13  4.4e-15\n   -       193.8           - out\n7819       193.8       0.025     23054 7822 23054     2     0      0  6.4e-13  3.3e-14\n7820      193.83       0.025     23058 7823 23058     2     0      0  1.1e-13  2.2e-14\n7821      193.85       0.025     23061 7824 23061     2     0      0  2.3e-13  2.5e-14\n7822      193.88       0.025     23063 7825 23063     2     0      0  5.8e-14  1.3e-14\n7823       193.9       0.025     23066 7826 23066     2     0      0  2.3e-13  1.3e-14\n7824      193.93       0.025     23069 7827 23069     2     0      0    6e-13  2.8e-14\n7825      193.95       0.025     23072 7828 23072     2     0      0  3.4e-13  1.4e-14\n7826      193.98       0.025     23075 7829 23075     2     0      0  1.4e-13    1e-14\n   -         194           - out\n7827         194       0.025     23077 7830 23077     2     0      0  1.9e-13  1.6e-14\n7828      194.03       0.025     23081 7831 23081     2     0      0  2.1e-13  6.7e-15\n7829      194.05       0.025     23083 7832 23083     2     0      0  1.9e-13  3.2e-15\n7830      194.08       0.025     23086 7833 23086     2     0      0  2.1e-13  1.3e-14\n7831       194.1       0.025     23088 7834 23088     2     0      0  2.6e-13  7.5e-15\n7832      194.13       0.025     23090 7835 23090     2     0      0  2.6e-13  8.7e-15\n7833      194.15       0.025     23093 7836 23093     2     0      0  6.6e-13  1.1e-14\n7834      194.18       0.025     23095 7837 23095     2     0      0  1.4e-13  1.8e-14\n   -       194.2           - out\n7835       194.2       0.025     23097 7838 23097     2     0      0  1.9e-14  4.5e-15\n7836      194.23       0.025     23100 7839 23100     2     0      0  4.9e-14  1.9e-14\n7837      194.25       0.025     23103 7840 23103     2     0      0  6.6e-13  7.1e-15\n7838      194.28       0.025     23105 7841 23105     2     0      0  2.3e-13  1.4e-14\n7839       194.3       0.025     23108 7842 23108     2     0      0  1.7e-13    2e-14\n7840      194.33       0.025     23110 7843 23110     2     0      0  6.6e-14  1.4e-14\n7841      194.35       0.025     23112 7844 23112     2     0      0  8.1e-13  4.4e-15\n7842      194.38       0.025     23116 7845 23116     2     0      0  3.8e-13  4.3e-15\n   -       194.4           - out\n7843       194.4       0.025     23119 7846 23119     2     0      0  3.5e-13  2.1e-14\n7844      194.43       0.025     23121 7847 23121     2     0      0  6.8e-13  5.1e-15\n7845      194.45       0.025     23123 7848 23123     2     0      0  1.8e-13  6.1e-15\n7846      194.48       0.025     23125 7849 23125     2     0      0    1e-12  4.1e-15\n7847       194.5       0.025     23127 7850 23127     2     0      0  4.4e-14  8.5e-15\n7848      194.53       0.025     23129 7851 23129     2     0      0  3.4e-13  3.6e-15\n7849      194.55       0.025     23131 7852 23131     2     0      0  1.7e-13  5.8e-15\n7850      194.58       0.025     23135 7853 23135     2     0      0  7.5e-14    2e-14\n   -       194.6           - out\n7851       194.6       0.025     23138 7854 23138     2     0      0  2.9e-13  9.2e-15\n7852      194.63       0.025     23141 7855 23141     2     0      0  9.1e-14    4e-15\n7853      194.65       0.025     23144 7856 23144     2     0      0  3.4e-14  2.5e-14\n7854      194.68       0.025     23146 7857 23146     2     0      0  3.3e-14  7.3e-15\n7855       194.7       0.025     23149 7858 23149     2     0      0  9.3e-13  7.5e-15\n7856      194.73       0.025     23152 7859 23152     2     0      0  2.4e-13  5.3e-15\n7857      194.75       0.025     23155 7860 23155     2     0      0  1.5e-13  1.6e-14\n7858      194.78       0.025     23157 7861 23157     2     0      0  5.1e-14  1.2e-14\n   -       194.8           - out\n7859       194.8       0.025     23161 7862 23161     2     0      0  2.1e-13  1.7e-14\n7860      194.83       0.025     23163 7863 23163     2     0      0  1.2e-12  3.3e-15\n7861      194.85       0.025     23167 7864 23167     2     0      0    4e-13  2.9e-14\n7862      194.88       0.025     23171 7865 23171     2     0      0    4e-13  1.5e-14\n7863       194.9       0.025     23174 7866 23174     2     0      0    8e-14  1.6e-14\n7864      194.93       0.025     23178 7867 23178     2     0      0  2.1e-13  3.1e-15\n7865      194.95       0.025     23182 7868 23182     2     0      0    2e-13  5.8e-15\n7866      194.98       0.025     23184 7869 23184     2     0      0  5.2e-13  1.2e-14\n   -         195           - out\n7867         195       0.025     23187 7870 23187     2     0      0  3.6e-13  3.6e-14\n7868      195.03       0.025     23190 7871 23190     2     0      0  3.4e-13  2.6e-14\n7869      195.05       0.025     23192 7872 23192     2     0      0  1.3e-13  5.8e-15\n7870      195.08       0.025     23195 7873 23195     2     0      0  8.3e-14  2.1e-14\n7871       195.1       0.025     23198 7874 23198     2     0      0  1.7e-13  1.5e-14\n7872      195.13       0.025     23201 7875 23201     2     0      0  5.6e-14    1e-14\n7873      195.15       0.025     23203 7876 23203     2     0      0  1.9e-13  5.4e-15\n7874      195.18       0.025     23206 7877 23206     2     0      0  6.8e-14  1.2e-14\n   -       195.2           - out\n7875       195.2       0.025     23208 7878 23208     2     0      0  8.2e-13  1.8e-15\n7876      195.23       0.025     23212 7879 23212     2     0      0  6.1e-13  6.6e-15\n7877      195.25       0.025     23215 7880 23215     2     0      0  9.8e-14  1.6e-14\n7878      195.28       0.025     23218 7881 23218     2     0      0  2.2e-13  2.9e-14\n7879       195.3       0.025     23221 7882 23221     2     0      0  7.9e-13  7.3e-15\n7880      195.33       0.025     23223 7883 23223     2     0      0  1.5e-13  2.8e-15\n7881      195.35       0.025     23227 7884 23227     2     0      0  7.2e-13  1.5e-14\n7882      195.38       0.025     23229 7885 23229     2     0      0  1.8e-13  7.5e-15\n   -       195.4           - out\n7883       195.4       0.025     23232 7886 23232     2     0      0  3.2e-13  4.9e-15\n7884      195.43       0.025     23235 7887 23235     2     0      0  5.9e-14  1.2e-14\n7885      195.45       0.025     23239 7888 23239     2     0      0  2.8e-13  6.1e-15\n7886      195.48       0.025     23243 7889 23243     2     0      0  1.9e-13    3e-15\n7887       195.5       0.025     23246 7890 23246     2     0      0  3.4e-13  7.1e-15\n7888      195.53       0.025     23249 7891 23249     2     0      0  2.7e-13  5.8e-15\n7889      195.55       0.025     23252 7892 23252     2     0      0  2.8e-14  1.1e-14\n7890      195.58       0.025     23256 7893 23256     2     0      0    3e-13  9.6e-15\n   -       195.6           - out\n7891       195.6       0.025     23259 7894 23259     2     0      0  2.1e-13  6.5e-15\n7892      195.63       0.025     23262 7895 23262     2     0      0  5.2e-13  1.3e-14\n7893      195.65       0.025     23265 7896 23265     2     0      0  2.8e-13  5.7e-15\n7894      195.68       0.025     23267 7897 23267     2     0      0  5.1e-13    2e-15\n7895       195.7       0.025     23271 7898 23271     2     0      0  2.4e-13  2.6e-14\n7896      195.73       0.025     23275 7899 23275     2     0      0  1.7e-13  6.5e-15\n7897      195.75       0.025     23278 7900 23278     2     0      0  5.7e-14  2.9e-14\n7898      195.78       0.025     23281 7901 23281     2     0      0  1.1e-13  1.9e-14\n   -       195.8           - out\n7899       195.8       0.025     23284 7902 23284     2     0      0  2.1e-13  1.1e-14\n7900      195.83       0.025     23287 7903 23287     2     0      0  2.5e-13  3.9e-15\n7901      195.85       0.025     23289 7904 23289     2     0      0  1.1e-13  2.7e-15\n7902      195.88       0.025     23291 7905 23291     2     0      0  7.3e-14  6.6e-15\n7903       195.9       0.025     23294 7906 23294     2     0      0  3.9e-13  6.5e-15\n7904      195.93       0.025     23298 7907 23298     2     0      0  1.7e-13  2.1e-14\n7905      195.95       0.025     23300 7908 23300     2     0      0  4.8e-13  5.1e-15\n7906      195.98       0.025     23302 7909 23302     2     0      0  2.2e-13  8.8e-15\n   -         196           - out\n7907         196       0.025     23304 7910 23304     2     0      0  3.8e-13  1.3e-14\n7908      196.03       0.025     23308 7911 23308     2     0      0  3.3e-13  1.9e-14\n7909      196.05       0.025     23312 7912 23312     2     0      0  2.5e-14  2.1e-14\n7910      196.08       0.025     23316 7913 23316     2     0      0    1e-13  1.7e-14\n7911       196.1       0.025     23320 7914 23320     2     0      0    6e-13  4.4e-15\n7912      196.13       0.025     23322 7915 23322     2     0      0  9.7e-14  1.2e-15\n7913      196.15       0.025     23324 7916 23324     2     0      0    7e-13  8.6e-15\n7914      196.18       0.025     23326 7917 23326     2     0      0  4.4e-13  1.9e-15\n   -       196.2           - out\n7915       196.2       0.025     23329 7918 23329     2     0      0  3.2e-13  5.8e-15\n7916      196.23       0.025     23333 7919 23333     2     0      0  2.1e-13  1.1e-14\n7917      196.25       0.025     23335 7920 23335     2     0      0  7.1e-13  7.7e-15\n7918      196.28       0.025     23339 7921 23339     2     0      0  8.3e-14  2.8e-15\n7919       196.3       0.025     23342 7922 23342     2     0      0    3e-14  1.3e-14\n7920      196.33       0.025     23345 7923 23345     2     0      0  2.8e-13  1.5e-14\n7921      196.35       0.025     23348 7924 23348     2     0      0  4.1e-13  1.2e-14\n7922      196.38       0.025     23352 7925 23352     2     0      0  4.1e-13  8.5e-15\n   -       196.4           - out\n7923       196.4       0.025     23355 7926 23355     2     0      0  4.6e-13  9.4e-15\n7924      196.43       0.025     23358 7927 23358     2     0      0  4.6e-13    2e-14\n7925      196.45       0.025     23361 7928 23361     2     0      0  5.3e-14  1.5e-14\n7926      196.48       0.025     23365 7929 23365     2     0      0  1.5e-13  1.4e-14\n7927       196.5       0.025     23369 7930 23369     2     0      0    4e-13  2.5e-14\n7928      196.53       0.025     23373 7931 23373     2     0      0  2.1e-13  2.3e-14\n7929      196.55       0.025     23377 7932 23377     2     0      0  5.7e-13  9.5e-15\n7930      196.58       0.025     23379 7933 23379     2     0      0  2.5e-13  8.4e-15\n   -       196.6           - out\n7931       196.6       0.025     23382 7934 23382     2     0      0  5.6e-14  1.8e-14\n7932      196.63       0.025     23385 7935 23385     2     0      0  5.4e-13  1.7e-14\n7933      196.65       0.025     23388 7936 23388     2     0      0  2.7e-13  2.9e-14\n7934      196.68       0.025     23390 7937 23390     2     0      0  8.2e-14  6.4e-15\n7935       196.7       0.025     23393 7938 23393     2     0      0  2.5e-13  1.4e-14\n7936      196.73       0.025     23396 7939 23396     2     0      0  4.6e-14    7e-15\n7937      196.75       0.025     23398 7940 23398     2     0      0  6.5e-13  6.8e-15\n7938      196.78       0.025     23401 7941 23401     2     0      0  9.6e-14  2.1e-14\n   -       196.8           - out\n7939       196.8       0.025     23404 7942 23404     2     0      0  5.9e-13  2.4e-14\n7940      196.83       0.025     23407 7943 23407     2     0      0  1.9e-13  1.9e-14\n7941      196.85       0.025     23410 7944 23410     2     0      0  3.2e-13  1.1e-14\n7942      196.88       0.025     23412 7945 23412     2     0      0  2.8e-13    5e-15\n7943       196.9       0.025     23415 7946 23415     2     0      0  1.2e-13  1.5e-14\n7944      196.93       0.025     23417 7947 23417     2     0      0  9.2e-14    8e-15\n7945      196.95       0.025     23419 7948 23419     2     0      0  6.5e-13  6.5e-15\n7946      196.98       0.025     23421 7949 23421     2     0      0  1.1e-13  1.7e-14\n   -         197           - out\n7947         197       0.025     23423 7950 23423     2     0      0  3.2e-13  9.8e-15\n7948      197.03       0.025     23425 7951 23425     2     0      0  4.1e-13  8.9e-15\n7949      197.05       0.025     23427 7952 23427     2     0      0  3.6e-13  2.1e-14\n7950      197.08       0.025     23430 7953 23430     2     0      0  7.3e-13  1.9e-14\n7951       197.1       0.025     23434 7954 23434     2     0      0  4.6e-13  3.6e-14\n7952      197.13       0.025     23437 7955 23437     2     0      0  3.3e-13  4.7e-15\n7953      197.15       0.025     23439 7956 23439     2     0      0  2.9e-13  9.8e-15\n7954      197.18       0.025     23442 7957 23442     2     0      0  2.9e-13    3e-14\n   -       197.2           - out\n7955       197.2       0.025     23445 7958 23445     2     0      0  4.4e-13    5e-15\n7956      197.23       0.025     23448 7959 23448     2     0      0  8.9e-13  4.7e-15\n7957      197.25       0.025     23451 7960 23451     2     0      0  8.3e-14  3.4e-14\n7958      197.28       0.025     23455 7961 23455     2     0      0  2.1e-13    2e-14\n7959       197.3       0.025     23458 7962 23458     2     0      0  1.3e-13  5.1e-15\n7960      197.33       0.025     23460 7963 23460     2     0      0  5.3e-14  1.2e-14\n7961      197.35       0.025     23463 7964 23463     2     0      0  7.6e-14  4.4e-15\n7962      197.38       0.025     23466 7965 23466     2     0      0  3.8e-13  3.8e-15\n   -       197.4           - out\n7963       197.4       0.025     23468 7966 23468     2     0      0  3.3e-13  5.1e-15\n7964      197.43       0.025     23472 7967 23472     2     0      0  1.7e-13    2e-14\n7965      197.45       0.025     23474 7968 23474     2     0      0    6e-13  1.3e-14\n7966      197.48       0.025     23476 7969 23476     2     0      0  7.6e-13  4.4e-15\n7967       197.5       0.025     23480 7970 23480     2     0      0    6e-13  1.2e-14\n7968      197.53       0.025     23482 7971 23482     2     0      0  1.6e-12    6e-15\n7969      197.55       0.025     23484 7972 23484     2     0      0  8.4e-13  5.6e-15\n7970      197.58       0.025     23487 7973 23487     2     0      0  1.1e-13  1.7e-14\n   -       197.6           - out\n7971       197.6       0.025     23489 7974 23489     2     0      0  3.9e-13  9.1e-15\n7972      197.63       0.025     23493 7975 23493     2     0      0  2.7e-13  9.4e-15\n7973      197.65       0.025     23495 7976 23495     2     0      0  8.4e-14  2.9e-15\n7974      197.68       0.025     23499 7977 23499     2     0      0  2.1e-13  2.1e-14\n7975       197.7       0.025     23503 7978 23503     2     0      0  4.9e-13  2.3e-14\n7976      197.73       0.025     23507 7979 23507     2     0      0  4.8e-14    2e-14\n7977      197.75       0.025     23511 7980 23511     2     0      0  4.5e-14  1.3e-14\n7978      197.78       0.025     23515 7981 23515     2     0      0    3e-14  1.8e-14\n   -       197.8           - out\n7979       197.8       0.025     23518 7982 23518     2     0      0    6e-13  9.4e-15\n7980      197.83       0.025     23521 7983 23521     2     0      0  8.3e-13  8.2e-15\n7981      197.85       0.025     23523 7984 23523     2     0      0  3.3e-13  3.5e-15\n7982      197.88       0.025     23527 7985 23527     2     0      0  6.2e-13  1.1e-14\n7983       197.9       0.025     23529 7986 23529     2     0      0  1.2e-13  4.9e-15\n7984      197.93       0.025     23532 7987 23532     2     0      0    6e-14  2.8e-14\n7985      197.95       0.025     23534 7988 23534     2     0      0    1e-13  5.6e-15\n7986      197.98       0.025     23538 7989 23538     2     0      0    5e-13  1.1e-14\n   -         198           - out\n7987         198       0.025     23542 7990 23542     2     0      0  7.8e-13  2.5e-15\n7988      198.03       0.025     23546 7991 23546     2     0      0  2.6e-14  2.4e-15\n7989      198.05       0.025     23549 7992 23549     2     0      0  9.5e-13  1.5e-14\n7990      198.08       0.025     23553 7993 23553     2     0      0  6.8e-13  1.1e-15\n7991       198.1       0.025     23557 7994 23557     2     0      0  9.9e-13  7.9e-15\n7992      198.13       0.025     23561 7995 23561     2     0      0  2.1e-13  3.2e-14\n7993      198.15       0.025     23564 7996 23564     2     0      0  7.4e-13  2.1e-14\n7994      198.18       0.025     23566 7997 23566     2     0      0  5.3e-13  1.2e-15\n   -       198.2           - out\n7995       198.2       0.025     23569 7998 23569     2     0      0  2.7e-13  1.4e-14\n7996      198.23       0.025     23572 7999 23572     2     0      0  4.7e-14  1.1e-14\n7997      198.25       0.025     23574 8000 23574     2     0      0  2.3e-13  9.6e-15\n7998      198.28       0.025     23576 8001 23576     2     0      0  5.9e-13  3.7e-15\n7999       198.3       0.025     23580 8002 23580     2     0      0  8.1e-13  1.1e-14\n8000      198.33       0.025     23583 8003 23583     2     0      0  3.3e-13  2.7e-14\n8001      198.35       0.025     23585 8004 23585     2     0      0  2.4e-13  7.4e-15\n8002      198.38       0.025     23589 8005 23589     2     0      0  5.1e-13  3.3e-15\n   -       198.4           - out\n8003       198.4       0.025     23592 8006 23592     2     0      0  3.4e-13  1.8e-14\n8004      198.43       0.025     23595 8007 23595     2     0      0    2e-13  1.8e-14\n8005      198.45       0.025     23599 8008 23599     2     0      0  6.6e-13  1.7e-14\n8006      198.48       0.025     23602 8009 23602     2     0      0  2.7e-13  2.1e-14\n8007       198.5       0.025     23605 8010 23605     2     0      0  2.8e-13  3.4e-14\n8008      198.53       0.025     23608 8011 23608     2     0      0  5.5e-14  1.9e-15\n8009      198.55       0.025     23611 8012 23611     2     0      0  5.5e-13  9.1e-15\n8010      198.58       0.025     23613 8013 23613     2     0      0    3e-13  6.9e-15\n   -       198.6           - out\n8011       198.6       0.025     23617 8014 23617     2     0      0  5.8e-14  1.6e-14\n8012      198.63       0.025     23619 8015 23619     2     0      0  4.2e-13  9.2e-15\n8013      198.65       0.025     23622 8016 23622     2     0      0  2.4e-13  3.2e-14\n8014      198.68       0.025     23625 8017 23625     2     0      0    3e-13  8.5e-15\n8015       198.7       0.025     23628 8018 23628     2     0      0  5.5e-14  3.7e-15\n8016      198.73       0.025     23631 8019 23631     2     0      0  2.4e-13  6.4e-15\n8017      198.75       0.025     23634 8020 23634     2     0      0  8.1e-14    8e-15\n8018      198.78       0.025     23636 8021 23636     2     0      0  5.2e-14  5.7e-15\n   -       198.8           - out\n8019       198.8       0.025     23638 8022 23638     2     0      0  1.9e-13  3.2e-15\n8020      198.83       0.025     23641 8023 23641     2     0      0  3.9e-13  1.3e-14\n8021      198.85       0.025     23644 8024 23644     2     0      0  3.8e-13    5e-15\n8022      198.88       0.025     23646 8025 23646     2     0      0    9e-13  7.9e-15\n8023       198.9       0.025     23649 8026 23649     2     0      0  2.8e-13  2.3e-14\n8024      198.93       0.025     23652 8027 23652     2     0      0  9.2e-13  7.4e-15\n8025      198.95       0.025     23656 8028 23656     2     0      0  1.1e-13  7.3e-15\n8026      198.98       0.025     23658 8029 23658     2     0      0  4.8e-14  1.6e-14\n   -         199           - out\n8027         199       0.025     23662 8030 23662     2     0      0    5e-13  7.6e-15\n8028      199.03       0.025     23664 8031 23664     2     0      0  2.9e-14  5.2e-15\n8029      199.05       0.025     23668 8032 23668     2     0      0  1.4e-13  6.6e-15\n8030      199.08       0.025     23671 8033 23671     2     0      0  3.5e-13  1.1e-14\n8031       199.1       0.025     23676 8034 23676     2     0      0  2.5e-13  2.4e-15\n8032      199.13       0.025     23679 8035 23679     2     0      0  2.8e-14  1.5e-14\n8033      199.15       0.025     23682 8036 23682     2     0      0  1.5e-13  2.5e-14\n8034      199.18       0.025     23684 8037 23684     2     0      0  4.7e-14  1.2e-14\n   -       199.2           - out\n8035       199.2       0.025     23687 8038 23687     2     0      0  2.6e-14    6e-15\n8036      199.23       0.025     23690 8039 23690     2     0      0  1.6e-13  1.5e-14\n8037      199.25       0.025     23692 8040 23692     2     0      0  7.7e-13  3.1e-15\n8038      199.28       0.025     23696 8041 23696     2     0      0    3e-13  1.6e-14\n8039       199.3       0.025     23700 8042 23700     2     0      0  8.1e-13  1.5e-15\n8040      199.33       0.025     23704 8043 23704     2     0      0  2.5e-13  6.1e-15\n8041      199.35       0.025     23708 8044 23708     2     0      0  4.5e-13  1.7e-15\n8042      199.38       0.025     23712 8045 23712     2     0      0  5.6e-14  7.7e-15\n   -       199.4           - out\n8043       199.4       0.025     23716 8046 23716     2     0      0  4.6e-14  5.3e-15\n8044      199.43       0.025     23720 8047 23720     2     0      0  1.7e-13    2e-14\n8045      199.45       0.025     23724 8048 23724     2     0      0  1.6e-13  8.1e-15\n8046      199.48       0.025     23726 8049 23726     2     0      0  1.3e-13  8.9e-15\n8047       199.5       0.025     23728 8050 23728     2     0      0  1.9e-13  3.3e-15\n8048      199.53       0.025     23731 8051 23731     2     0      0  2.3e-13    1e-14\n8049      199.55       0.025     23733 8052 23733     2     0      0  4.7e-13    5e-15\n8050      199.58       0.025     23735 8053 23735     2     0      0  2.3e-13  6.6e-15\n   -       199.6           - out\n8051       199.6       0.025     23737 8054 23737     2     0      0  5.4e-13  7.9e-15\n8052      199.63       0.025     23739 8055 23739     2     0      0  2.3e-13  4.5e-15\n8053      199.65       0.025     23741 8056 23741     2     0      0    2e-13  1.3e-14\n8054      199.68       0.025     23743 8057 23743     2     0      0  1.9e-13  4.6e-15\n8055       199.7       0.025     23745 8058 23745     2     0      0  2.7e-13  2.3e-15\n8056      199.73       0.025     23747 8059 23747     2     0      0  3.8e-13  5.1e-15\n8057      199.75       0.025     23749 8060 23749     2     0      0  8.9e-14    5e-15\n8058      199.78       0.025     23753 8061 23753     2     0      0  5.4e-13  9.5e-15\n   -       199.8           - out\n8059       199.8       0.025     23756 8062 23756     2     0      0  3.2e-13  1.8e-14\n8060      199.83       0.025     23758 8063 23758     2     0      0  1.4e-13  7.1e-15\n8061      199.85       0.025     23761 8064 23761     2     0      0  4.3e-14  1.5e-14\n8062      199.88       0.025     23763 8065 23763     2     0      0  1.3e-12  6.2e-15\n8063       199.9       0.025     23765 8066 23765     2     0      0  4.5e-13  7.6e-15\n8064      199.93       0.025     23767 8067 23767     2     0      0  8.6e-14  5.3e-15\n8065      199.95       0.025     23771 8068 23771     2     0      0    4e-13  2.3e-14\n8066      199.98       0.025     23774 8069 23774     2     0      0  1.8e-13    3e-14\n   -         200           - out\n8067         200       0.025     23777 8070 23777     2     0      0  4.5e-14  4.3e-15\n时间步进已完成。\n求解时间：399 s。 （6 分钟，39 秒）\n物理内存: 1.09 GB\n虚拟内存: 1.05 GB\n结束时间：2026年11月4日 20:06:27。\n----- Study 1/Solution 1 (sol1) 中的“Time-Dependent Solver 1” ------------------->\n",
+            "const": "",
+            "propertyDefaults": "maxstepconstraintbdf, auto; maxstepbdf, 0.1",
+            "changedproperties": "Steps taken by solver, tstepsbdf, free, intermediate",
+            "hiddenchangedproperties": "",
+            "fieldselection": "comp1_p",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        }
+      ]
+    }
+  ],
+  "log": "*******************************************\n***COMSOL 6.4.0.429 progress output file***\n*******************************************\nWed Nov 04 20:07:43 CST 2026\n<<<JSON_START>>>\n{\n  \"status\": \"SUCCESS\",\n  \"operation\": \"inspect_model\",\n  \"model_path\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\re100_s1b1_case_d_20261104_verified\\\\re100_s1b1_case_d_solved.mph\",\n  \"model_tag\": \"Model\",\n  \"comsol_version\": \"COMSOL Multiphysics 6.4 (\\u5f00\\u53d1\\u7248\\u672c: 429)\",\n  \"parameters\": {\n    \"H\": {\n      \"expr\": \"0.24[m]\",\n      \"value\": 0.24,\n      \"unit\": \"m\",\n      \"description\": \"Domain height (24D)\"\n    },\n    \"L\": {\n      \"expr\": \"0.40[m]\",\n      \"value\": 0.4,\n      \"unit\": \"m\",\n      \"description\": \"Domain length (40D)\"\n    },\n    \"W\": {\n      \"expr\": \"1[m]\",\n      \"value\": 1.0,\n      \"unit\": \"m\",\n      \"description\": \"Channel width (not modeled)\"\n    },\n    \"R\": {\n      \"expr\": \"D/2\",\n      \"value\": 0.005,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder radius\"\n    },\n    \"U_mean\": {\n      \"expr\": \"U_inf\",\n      \"value\": 0.010058104588258865,\n      \"unit\": \"m/s\",\n      \"description\": \"Mean inflow velocity alias\"\n    },\n    \"D\": {\n      \"expr\": \"0.01[m]\",\n      \"value\": 0.01,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder diameter\"\n    },\n    \"x_c\": {\n      \"expr\": \"0.10[m]\",\n      \"value\": 0.1,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder center X (10D upstream distance)\"\n    },\n    \"y_c\": {\n      \"expr\": \"0.12[m]\",\n      \"value\": 0.12,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder center Y (12D lateral half-width)\"\n    },\n    \"rho_f\": {\n      \"expr\": \"998.2[kg/m^3]\",\n      \"value\": 998.2,\n      \"unit\": \"kg/m^3\",\n      \"description\": \"Water density at 20 degC\"\n    },\n    \"mu_f\": {\n      \"expr\": \"1.004e-3[Pa*s]\",\n      \"value\": 0.001004,\n      \"unit\": \"Pa*s\",\n      \"description\": \"Water dynamic viscosity at 20 degC\"\n    },\n    \"Re\": {\n      \"expr\": \"100\",\n      \"value\": 100.0,\n      \"unit\": null,\n      \"description\": \"Target Reynolds number\"\n    },\n    \"U_inf\": {\n      \"expr\": \"Re*mu_f/(rho_f*D)\",\n      \"value\": 0.010058104588258865,\n      \"unit\": \"m/s\",\n      \"description\": \"Inflow free-stream velocity\"\n    }\n  },\n  \"components\": [\n    {\n      \"tag\": \"comp1\",\n      \"label\": \"Component 1\",\n      \"geometries\": [\n        {\n          \"tag\": \"geom1\",\n          \"sdim\": 2,\n          \"features\": [\"r1\", \"c1\", \"dif1\", \"fin\"],\n          \"boundary_geometry\": {\n            \"available\": true,\n            \"source\": \"COMSOL GeomSequence live query (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX)\",\n            \"geometry_tag\": \"geom1\",\n            \"geometry_rebuilt_in_memory\": false,\n            \"n_boundaries\": 8,\n            \"n_domains\": 1,\n            \"bounding_box\": [0.0, 0.4000000000000001, 0.0, 0.24],\n            \"samples_per_boundary\": 17,\n            \"boundaries\": [\n              {\"id\": 1, \"x_range\": [0.0, 0.0], \"y_range\": [0.0, 0.24], \"length_polyline\": 0.24, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.0, 0.0], [0.0, 0.015], [0.0, 0.03], [0.0, 0.045], [0.0, 0.06], [0.0, 0.075], [0.0, 0.09], [0.0, 0.105], [0.0, 0.12], [0.0, 0.135], [0.0, 0.15], [0.0, 0.16499999999999998], [0.0, 0.18], [0.0, 0.195], [0.0, 0.21], [0.0, 0.22499999999999998], [0.0, 0.24]]},\n              {\"id\": 2, \"x_range\": [0.0, 0.4], \"y_range\": [0.0, 0.0], \"length_polyline\": 0.40000000000000013, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.4, 0.0], [0.375, 0.0], [0.35000000000000003, 0.0], [0.325, 0.0], [0.30000000000000004, 0.0], [0.275, 0.0], [0.25, 0.0], [0.225, 0.0], [0.2, 0.0], [0.17500000000000002, 0.0], [0.15000000000000002, 0.0], [0.125, 0.0], [0.1, 0.0], [0.07500000000000001, 0.0], [0.05, 0.0], [0.025, 0.0], [0.0, 0.0]]},\n              {\"id\": 3, \"x_range\": [0.0, 0.4], \"y_range\": [0.24, 0.24], \"length_polyline\": 0.4, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.0, 0.24], [0.025, 0.24], [0.05, 0.24], [0.07500000000000001, 0.24], [0.1, 0.24], [0.125, 0.24], [0.15000000000000002, 0.24], [0.17500000000000002, 0.24], [0.2, 0.24], [0.225, 0.24], [0.25, 0.24], [0.275, 0.24], [0.30000000000000004, 0.24], [0.325, 0.24], [0.35000000000000003, 0.24], [0.375, 0.24], [0.4, 0.24]]},\n              {\"id\": 4, \"x_range\": [0.4, 0.4], \"y_range\": [0.0, 0.24], \"length_polyline\": 0.2400000000000001, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.4, 0.24], [0.4, 0.22499999999999998], [0.4, 0.21], [0.4, 0.195], [0.4, 0.18], [0.4, 0.16499999999999998], [0.4, 0.15], [0.4, 0.135], [0.4, 0.12], [0.4, 0.105], [0.4, 0.09], [0.4, 0.075], [0.4, 0.06], [0.4, 0.045], [0.4, 0.03], [0.4, 0.015], [0.4, 0.0]]},\n              {\"id\": 5, \"x_range\": [0.095, 0.1], \"y_range\": [0.11499999999999999, 0.12], \"length_polyline\": 0.007850807486099223, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.095, 0.12], [0.09502022545693561, 0.11955072781051146], [0.09508347315791713, 0.11909018473793928], [0.09519300520906483, 0.11862420892577315], [0.09535105849468786, 0.11815952645219067], [0.09555857996585122, 0.11770352703471998], [0.09581502244390673, 0.11726395123307429], [0.0961182340621258, 0.11684850936800388], [0.09646446609406725, 0.11646446609406727], [0.09684850936800385, 0.11611823406212579], [0.09726395123307428, 0.11581502244390675], [0.09770352703471999, 0.11555857996585123], [0.09815952645219064, 0.11535105849468787], [0.09862420892577316, 0.11519300520906484], [0.09909018473793929, 0.11508347315791713], [0.09955072781051147, 0.11502022545693559], [0.1, 0.11499999999999999]]},\n              {\"id\": 6, \"x_range\": [0.095, 0.1], \"y_range\": [0.12, 0.125], \"length_polyline\": 0.00785080748609923, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.1, 0.125], [0.09955072781051147, 0.12497977454306439], [0.09909018473793929, 0.12491652684208286], [0.09862420892577316, 0.12480699479093516], [0.09815952645219066, 0.12464894150531217], [0.09770352703471999, 0.12444142003414875], [0.09726395123307428, 0.12418497755609324], [0.09684850936800386, 0.12388176593787421], [0.09646446609406725, 0.12353553390593273], [0.0961182340621258, 0.12315149063199615], [0.09581502244390673, 0.1227360487669257], [0.09555857996585122, 0.12229647296528], [0.09535105849468785, 0.12184047354780937], [0.09519300520906485, 0.12137579107422683], [0.09508347315791713, 0.12090981526206072], [0.0950202254569356, 0.1204492721894885], [0.095, 0.12]]},\n              {\"id\": 7, \"x_range\": [0.1, 0.10500000000000001], \"y_range\": [0.11499999999999999, 0.12], \"length_polyline\": 0.007850807486099221, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.1, 0.11499999999999999], [0.10044927218948851, 0.11502022545693559], [0.10090981526206075, 0.11508347315791713], [0.10137579107422687, 0.11519300520906484], [0.10184047354780938, 0.11535105849468787], [0.10229647296528002, 0.11555857996585123], [0.10273604876692571, 0.11581502244390675], [0.10315149063199618, 0.1161182340621258], [0.10353553390593276, 0.11646446609406727], [0.10388176593787424, 0.11684850936800388], [0.10418497755609325, 0.11726395123307429], [0.10444142003414876, 0.11770352703471998], [0.10464894150531218, 0.11815952645219067], [0.10480699479093517, 0.11862420892577315], [0.10491652684208289, 0.11909018473793928], [0.1049797745430644, 0.11955072781051146], [0.10500000000000001, 0.12]]},\n              {\"id\": 8, \"x_range\": [0.1, 0.10500000000000001], \"y_range\": [0.12, 0.125], \"length_polyline\": 0.007850807486099233, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.10500000000000001, 0.12], [0.10497977454306441, 0.1204492721894885], [0.10491652684208289, 0.12090981526206072], [0.10480699479093517, 0.12137579107422683], [0.10464894150531219, 0.12184047354780937], [0.10444142003414876, 0.12229647296528], [0.10418497755609327, 0.1227360487669257], [0.10388176593787424, 0.12315149063199615], [0.10353553390593276, 0.12353553390593273], [0.10315149063199615, 0.12388176593787423], [0.10273604876692571, 0.12418497755609324], [0.10229647296528002, 0.12444142003414875], [0.10184047354780938, 0.12464894150531217], [0.10137579107422687, 0.12480699479093517], [0.10090981526206073, 0.12491652684208288], [0.10044927218948851, 0.12497977454306439], [0.1, 0.125]]}\n            ]\n          }\n        }\n      ],\n      \"meshes\": [\n        {\n          \"tag\": \"mesh1\",\n          \"sdim\": 2,\n          \"is_complete\": true,\n          \"num_elem\": 7493,\n          \"num_vertex\": 3944,\n          \"features\": [\"size\", \"size1\", \"cr1\", \"ftri1\", \"bl1\"]\n        }\n      ],\n      \"physics\": [\n        {\n          \"tag\": \"spf\",\n          \"label\": \"Laminar Flow\",\n          \"type\": \"LaminarFlow\",\n          \"features\": [\n            {\n              \"tag\": \"fp1\",\n              \"label\": \"Fluid Properties 1\",\n              \"type\": \"FluidProperties\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"init1\",\n              \"label\": \"Initial Values 1\",\n              \"type\": \"init\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"wallbc1\",\n              \"label\": \"Wall 1\",\n              \"type\": \"WallBC\",\n              \"selection_entities\": [5, 6, 7, 8]\n            },\n            {\n              \"tag\": \"grav1\",\n              \"label\": \"Gravity 1\",\n              \"type\": \"Gravity\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"rtfr1\",\n              \"label\": \"Rotating Frame 1\",\n              \"type\": \"RotatingFrameFD\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"dcont1\",\n              \"label\": \"Flow Continuity 1\",\n              \"type\": \"Continuity\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"inl1\",\n              \"label\": \"Inlet 1\",\n              \"type\": \"InletBoundary\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"out1\",\n              \"label\": \"Outlet 1\",\n              \"type\": \"OutletBoundary\",\n              \"selection_entities\": [4]\n            },\n            {\n              \"tag\": \"sym1\",\n              \"label\": \"\\u5bf9\\u79f0 1\",\n              \"type\": \"Symmetry\",\n              \"selection_entities\": [2, 3]\n            }\n          ]\n        }\n      ],\n      \"materials\": [\n        {\n          \"tag\": \"mat1\",\n          \"label\": \"Material 1\"\n        }\n      ]\n    }\n  ],\n  \"studies\": [\n    {\n      \"tag\": \"std1\",\n      \"label\": \"Study 1\",\n      \"features\": [\n        {\n          \"tag\": \"time\",\n          \"label\": \"Time Dependent\",\n          \"type\": \"Transient\",\n          \"properties\": {\n            \"tdescr\": \"Time\",\n            \"showtlist\": \"on\",\n            \"usetunit\": \"on\",\n            \"tunit\": \"s\",\n            \"tlist\": \"range(0, 0.2, 200)\",\n            \"tlist_vector_method\": \"step\",\n            \"tlist_vector_start\": \"\",\n            \"tlist_vector_stop\": \"\",\n            \"tlist_vector_step\": \"\",\n            \"tlist_vector_numvalues\": \"\",\n            \"tlist_vector_function\": \"none\",\n            \"tlist_vector_interval\": \"octave\",\n            \"tlist_vector_freqperdec\": \"\",\n            \"initialtime\": \"0.0\",\n            \"usertol\": \"on\",\n            \"rtol\": \"1e-4\",\n            \"time_discrete\": \"off\",\n            \"geometricNonlinearity\": \"off\",\n            \"geometricNonlinearityActive\": \"off\",\n            \"updateOptimizationSettings\": \"off\",\n            \"ftplistmethod\": \"ignore\",\n            \"method\": \"fixed_number_of_iterations\",\n            \"expr\": \"1\",\n            \"rtolterm\": \"0.001\",\n            \"rtolthresh\": \"1\",\n            \"maxiter\": \"25\",\n            \"miniter\": \"1\",\n            \"atolterm\": \"0.001\",\n            \"iter\": \"5\",\n            \"outputhide\": \"off\",\n            \"plot\": \"off\",\n            \"plotgroupdummy\": \"Default\",\n            \"plotgrouparr\": \"pg1\",\n            \"plotwindowsarr\": \"\",\n            \"windowforpg\": \"new\",\n            \"plotfreq\": \"tout\",\n            \"probesel\": \"all\",\n            \"probes\": \"[]\",\n            \"probefreq\": \"tsteps\",\n            \"physselection\": \"\",\n            \"activate\": \"spf, on, frame:spatial1, on, frame:material1, on, comp1, on\",\n            \"useadvanceddisable\": \"off\",\n            \"disabledvariables\": \"[]\",\n            \"disabledcoordinatesystems\": \"[]\",\n            \"disabledcommon\": \"\",\n            \"disabledpair\": \"[]\",\n            \"disabledphysics\": \"\",\n            \"disableFrameControl\": \"\",\n            \"disabledcoupling\": \"\",\n            \"disabledreduced\": \"\",\n            \"disabledcomponent\": \"\",\n            \"discretization\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"equationform\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"shapeOrder\": \"comp1, component\",\n            \"equationform_freq\": \"spf, 1[kHz], frame:spatial1, 0, frame:material1, 0, comp1, 0\",\n            \"discretization_proxy\": \"physics\",\n            \"equationform_proxy\": \"physics\",\n            \"equationform_freq_proxy\": \"0\",\n            \"reconstructors_proxy\": \"none\",\n            \"shapeOrder_proxy\": \"component\",\n            \"multiphysicsSelection\": \"\",\n            \"activateCoupling\": \"\",\n            \"romselection\": \"\",\n            \"activaterom\": \"\",\n            \"activateimagereconstruct\": \"\",\n            \"reconstructables\": \"\",\n            \"reconstructors\": \"\",\n            \"useinitsol\": \"off\",\n            \"initmethod\": \"init\",\n            \"initstudy\": \"zero\",\n            \"initstudyhide\": \"on\",\n            \"initsol\": \"current\",\n            \"initsolhide\": \"on\",\n            \"initsoluse\": \"current\",\n            \"initsolusesolnumhide\": \"on\",\n            \"initsolusesolnum\": \"1\",\n            \"oldinitsoluse\": \"0\",\n            \"initstudystep\": \"\",\n            \"solvertype\": \"foo\",\n            \"solnumhide\": \"on\",\n            \"solnum\": \"auto\",\n            \"timeinterp\": \"off\",\n            \"t\": \"0\",\n            \"listsol\": \"off\",\n            \"listsolnum\": \"1\",\n            \"manualsol\": \"off\",\n            \"manualsolnum\": \"1\",\n            \"manualsolnum_vector_method\": \"step\",\n            \"manualsolnum_vector_start\": \"\",\n            \"manualsolnum_vector_stop\": \"\",\n            \"manualsolnum_vector_step\": \"\",\n            \"manualsolnum_vector_numvalues\": \"\",\n            \"manualsolnum_vector_function\": \"none\",\n            \"manualsolnum_vector_interval\": \"octave\",\n            \"manualsolnum_vector_freqperdec\": \"\",\n            \"usesol\": \"off\",\n            \"notsolmethod\": \"init\",\n            \"notstudy\": \"zero\",\n            \"notstudyhide\": \"on\",\n            \"notsol\": \"current\",\n            \"notsolhide\": \"on\",\n            \"notsoluse\": \"current\",\n            \"notsolusesolnumhide\": \"on\",\n            \"notsolusesolnum\": \"1\",\n            \"oldnotsoluse\": \"0\",\n            \"notstudystep\": \"\",\n            \"notsolvertype\": \"foo\",\n            \"notsolnumhide\": \"on\",\n            \"notsolnum\": \"auto\",\n            \"nottimeinterp\": \"off\",\n            \"nott\": \"0\",\n            \"notlistsol\": \"off\",\n            \"notlistsolnum\": \"1\",\n            \"notmanualsol\": \"off\",\n            \"notmanualsolnum\": \"1\",\n            \"notmanualsolnum_vector_method\": \"step\",\n            \"notmanualsolnum_vector_start\": \"\",\n            \"notmanualsolnum_vector_stop\": \"\",\n            \"notmanualsolnum_vector_step\": \"\",\n            \"notmanualsolnum_vector_numvalues\": \"\",\n            \"notmanualsolnum_vector_function\": \"none\",\n            \"notmanualsolnum_vector_interval\": \"octave\",\n            \"notmanualsolnum_vector_freqperdec\": \"\",\n            \"outputmap\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"outputselectionmap\": \"spf, , frame:spatial1, , frame:material1, , comp1, \",\n            \"outputSelectionProxy\": \"\",\n            \"geomselection\": \"\",\n            \"mesh\": \"geom1, mesh1\",\n            \"timeadaption\": \"none\",\n            \"timeadapgeom\": \"geom1\",\n            \"tauto\": \"manual\",\n            \"rmethod\": \"longest\",\n            \"rmethodauto\": \"longest\",\n            \"adaptselection\": \"\",\n            \"auxsweepmethod\": \"ignore\",\n            \"showuseparam\": \"on\",\n            \"useparam\": \"off\",\n            \"sweeptype\": \"sparse\",\n            \"loadFile\": \"\",\n            \"saveFile\": \"\",\n            \"pname\": \"\",\n            \"plistarr\": \"\",\n            \"plistarr_vector_method\": \"\",\n            \"plistarr_vector_start\": \"\",\n            \"plistarr_vector_stop\": \"\",\n            \"plistarr_vector_step\": \"\",\n            \"plistarr_vector_numvalues\": \"\",\n            \"plistarr_vector_function\": \"\",\n            \"plistarr_vector_interval\": \"octave\",\n            \"plistarr_vector_freqperdec\": \"\",\n            \"punit\": \"\",\n            \"optimization\": \"off\",\n            \"pdistrib\": \"off\",\n            \"autoremesh\": \"off\",\n            \"autoremeshgeom\": \"geom1\",\n            \"treeSelectionKey\": \"\",\n            \"equationFormCouplingColumn\": \"\",\n            \"tableRow\": \"\",\n            \"outputInterface\": \"\"\n          }\n        }\n      ]\n    }\n  ],\n  \"solvers\": [\n    {\n      \"tag\": \"sol1\",\n      \"label\": \"Solution 1\",\n      \"feature_tags\": [\"st1\", \"v1\", \"t1\"],\n      \"features\": [\n        {\n          \"tag\": \"st1\",\n          \"type\": \"StudyStep\",\n          \"label\": \"\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\",\n          \"properties\": {\n            \"study\": \"std1\",\n            \"studystep\": \"time\",\n            \"unredstudy\": \"\",\n            \"unredstep\": \"\",\n            \"useForModelReduction\": \"on\",\n            \"splitcomplex\": \"off\",\n            \"partmethod\": \"parent\",\n            \"linsmallelem\": \"physicscontrolled\",\n            \"componentid\": \"\",\n            \"linsmallelemexpr\": \"geom1, 0.0\",\n            \"units\": \"\",\n            \"saveprevioussolution\": \"off\",\n            \"assempara\": \"on\",\n            \"useent\": \"all\",\n            \"entsel\": \"[]\",\n            \"keeplog\": \"off\",\n            \"message\": \"<---- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201c\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\\u201d -----------------------\\n\\u5f00\\u59cb\\u4e8e 2026\\u5e7411\\u67084\\u65e5 19:59:46\\u3002\\n\\u51e0\\u4f55\\u5f62\\u51fd\\u6570: \\u7ebf\\u6027\\u62c9\\u683c\\u6717\\u65e5\\u5355\\u5143\\n\\u5728 Intel(R) Core(TM) i7-14700 \\u4e0a\\u8fd0\\u884c\\u3002\\n\\u5728\\u4ee5\\u4e0b\\u4f4d\\u7f6e\\u4f7f\\u7528 1 \\u4e2a\\u63d2\\u69fd\\uff1a SR-MuZY \\u4e0a\\uff08\\u5171 16 \\u4e2a\\u5185\\u6838\\uff09\\u3002\\n\\u53ef\\u7528\\u5185\\u5b58\\uff1a32.42 GB\\u3002\\n\\u5728 Intel(R) Core(TM) i7-14700 \\u4e0a\\u8fd0\\u884c\\u3002\\n\\u5728\\u4ee5\\u4e0b\\u4f4d\\u7f6e\\u4f7f\\u7528 1 \\u4e2a\\u63d2\\u69fd\\uff1a SR-MuZY \\u4e0a\\uff08\\u5171 16 \\u4e2a\\u5185\\u6838\\uff09\\u3002\\n\\u53ef\\u7528\\u5185\\u5b58\\uff1a32.42 GB\\u3002\\n\\u65f6\\u95f4\\uff1a2 s\\u3002\\n\\u7269\\u7406\\u5185\\u5b58: 731 MB\\n\\u865a\\u62df\\u5185\\u5b58: 780 MB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67084\\u65e5 19:59:48\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201c\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\\u201d ---------------------->\\n\",\n            \"const\": \"\",\n            \"propertyDefaults\": \"\",\n            \"changedproperties\": \"\",\n            \"hiddenchangedproperties\": \"\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        },\n        {\n          \"tag\": \"v1\",\n          \"type\": \"Variables\",\n          \"label\": \"Dependent Variables 1\",\n          \"properties\": {\n            \"control\": \"time\",\n            \"initmethod\": \"init\",\n            \"initsol\": \"zero\",\n            \"initsolhide\": \"on\",\n            \"initsoluse\": \"current\",\n            \"oldinitsoluse\": \"0\",\n            \"initsolusesolnumhide\": \"on\",\n            \"initsolusesolnum\": \"1\",\n            \"solvertype\": \"none\",\n            \"solnum\": \"auto\",\n            \"timeinterp\": \"off\",\n            \"t\": \"0\",\n            \"manualsol\": \"off\",\n            \"manualsolnum\": \"1\",\n            \"manualsolnum_vector_method\": \"step\",\n            \"manualsolnum_vector_start\": \"\",\n            \"manualsolnum_vector_stop\": \"\",\n            \"manualsolnum_vector_step\": \"\",\n            \"manualsolnum_vector_numvalues\": \"\",\n            \"manualsolnum_vector_function\": \"none\",\n            \"manualsolnum_vector_interval\": \"octave\",\n            \"manualsolnum_vector_freqperdec\": \"\",\n            \"listsol\": \"off\",\n            \"listsolnum\": \"1\",\n            \"scalemethod\": \"auto\",\n            \"scaleval\": \"1.0\",\n            \"resscalemethod\": \"auto\",\n            \"resscaleval\": \"1.0\",\n            \"resscalethresh\": \"100.0\",\n            \"notsolmethod\": \"init\",\n            \"notsol\": \"zero\",\n            \"notsolhide\": \"on\",\n            \"notsoluse\": \"current\",\n            \"oldnotsoluse\": \"0\",\n            \"notsolusesolnumhide\": \"on\",\n            \"notsolusesolnum\": \"1\",\n            \"notsolvertype\": \"none\",\n            \"notsolnum\": \"auto\",\n            \"nottimeinterp\": \"off\",\n            \"nott\": \"0\",\n            \"notmanualsol\": \"off\",\n            \"notmanualsolnum\": \"1\",\n            \"notmanualsolnum_vector_method\": \"step\",\n            \"notmanualsolnum_vector_start\": \"\",\n            \"notmanualsolnum_vector_stop\": \"\",\n            \"notmanualsolnum_vector_step\": \"\",\n            \"notmanualsolnum_vector_numvalues\": \"\",\n            \"notmanualsolnum_vector_function\": \"none\",\n            \"notmanualsolnum_vector_interval\": \"octave\",\n            \"notmanualsolnum_vector_freqperdec\": \"\",\n            \"notlistsol\": \"off\",\n            \"notlistsolnum\": \"1\",\n            \"initparametersmethod\": \"auto\",\n            \"clistctrl\": \"t1_t, t1_timestep\",\n            \"cname\": \"t, timestep\",\n            \"clist\": \"0, 0.2, 0.4, 0.6000000000000001, 0.8, 1, 1.2000000000000002, 1.4000000000000001, 1.6, 1.8, 2, 2.2, 2.4000000000000004, 2.6, 2.8000000000000003, 3, 3.2, 3.4000000000000004, 3.6, 3.8000000000000003, 4, 4.2, 4.4, 4.6000000000000005, 4.800000000000001, 5, 5.2, 5.4, 5.6000000000000005, 5.800000000000001, 6, 6.2, 6.4, 6.6000000000000005, 6.800000000000001, 7, 7.2, 7.4, 7.6000000000000005, 7.800000000000001, 8, 8.200000000000001, 8.4, 8.6, 8.8, 9, 9.200000000000001, 9.4, 9.600000000000001, 9.8, 10, 10.200000000000001, 10.4, 10.600000000000001, 10.8, 11, 11.200000000000001, 11.4, 11.600000000000001, 11.8, 12, 12.200000000000001, 12.4, 12.600000000000001, 12.8, 13, 13.200000000000001, 13.4, 13.600000000000001, 13.8, 14, 14.200000000000001, 14.4, 14.600000000000001, 14.8, 15, 15.200000000000001, 15.4, 15.600000000000001, 15.8, 16, 16.2, 16.400000000000002, 16.6, 16.8, 17, 17.2, 17.400000000000002, 17.6, 17.8, 18, 18.2, 18.400000000000002, 18.6, 18.8, 19, 19.200000000000003, 19.400000000000002, 19.6, 19.8, 20, 20.200000000000003, 20.400000000000002, 20.6, 20.8, 21, 21.200000000000003, 21.400000000000002, 21.6, 21.8, 22, 22.200000000000003, 22.400000000000002, 22.6, 22.8, 23, 23.200000000000003, 23.400000000000002, 23.6, 23.8, 24, 24.200000000000003, 24.400000000000002, 24.6, 24.8, 25, 25.200000000000003, 25.400000000000002, 25.6, 25.8, 26, 26.200000000000003, 26.400000000000002, 26.6, 26.8, 27, 27.200000000000003, 27.400000000000002, 27.6, 27.8, 28, 28.200000000000003, 28.400000000000002, 28.6, 28.8, 29, 29.200000000000003, 29.400000000000002, 29.6, 29.8, 30, 30.200000000000003, 30.400000000000002, 30.6, 30.8, 31, 31.200000000000003, 31.400000000000002, 31.6, 31.8, 32, 32.2, 32.4, 32.6, 32.800000000000004, 33, 33.2, 33.4, 33.6, 33.800000000000004, 34, 34.2, 34.4, 34.6, 34.800000000000004, 35, 35.2, 35.4, 35.6, 35.800000000000004, 36, 36.2, 36.4, 36.6, 36.800000000000004, 37, 37.2, 37.4, 37.6, 37.800000000000004, 38, 38.2, 38.400000000000006, 38.6, 38.800000000000004, 39, 39.2, 39.400000000000006, 39.6, 39.800000000000004, 40, 40.2, 40.400000000000006, 40.6, 40.800000000000004, 41, 41.2, 41.400000000000006, 41.6, 41.800000000000004, 42, 42.2, 42.400000000000006, 42.6, 42.800000000000004, 43, 43.2, 43.400000000000006, 43.6, 43.800000000000004, 44, 44.2, 44.400000000000006, 44.6, 44.800000000000004, 45, 45.2, 45.400000000000006, 45.6, 45.800000000000004, 46, 46.2, 46.400000000000006, 46.6, 46.800000000000004, 47, 47.2, 47.400000000000006, 47.6, 47.800000000000004, 48, 48.2, 48.400000000000006, 48.6, 48.800000000000004, 49, 49.2, 49.400000000000006, 49.6, 49.800000000000004, 50, 50.2, 50.400000000000006, 50.6, 50.800000000000004, 51, 51.2, 51.400000000000006, 51.6, 51.800000000000004, 52, 52.2, 52.400000000000006, 52.6, 52.800000000000004, 53, 53.2, 53.400000000000006, 53.6, 53.800000000000004, 54, 54.2, 54.400000000000006, 54.6, 54.800000000000004, 55, 55.2, 55.400000000000006, 55.6, 55.800000000000004, 56, 56.2, 56.400000000000006, 56.6, 56.800000000000004, 57, 57.2, 57.400000000000006, 57.6, 57.800000000000004, 58, 58.2, 58.400000000000006, 58.6, 58.800000000000004, 59, 59.2, 59.400000000000006, 59.6, 59.800000000000004, 60, 60.2, 60.400000000000006, 60.6, 60.800000000000004, 61, 61.2, 61.400000000000006, 61.6, 61.800000000000004, 62, 62.2, 62.400000000000006, 62.6, 62.800000000000004, 63, 63.2, 63.400000000000006, 63.6, 63.800000000000004, 64, 64.2, 64.4, 64.60000000000001, 64.8, 65, 65.2, 65.4, 65.60000000000001, 65.8, 66, 66.2, 66.4, 66.60000000000001, 66.8, 67, 67.2, 67.4, 67.60000000000001, 67.8, 68, 68.2, 68.4, 68.60000000000001, 68.8, 69, 69.2, 69.4, 69.60000000000001, 69.8, 70, 70.2, 70.4, 70.60000000000001, 70.8, 71, 71.2, 71.4, 71.60000000000001, 71.8, 72, 72.2, 72.4, 72.60000000000001, 72.8, 73, 73.2, 73.4, 73.60000000000001, 73.8, 74, 74.2, 74.4, 74.60000000000001, 74.8, 75, 75.2, 75.4, 75.60000000000001, 75.8, 76, 76.2, 76.4, 76.60000000000001, 76.80000000000001, 77, 77.2, 77.4, 77.60000000000001, 77.80000000000001, 78, 78.2, 78.4, 78.60000000000001, 78.80000000000001, 79, 79.2, 79.4, 79.60000000000001, 79.80000000000001, 80, 80.2, 80.4, 80.60000000000001, 80.80000000000001, 81, 81.2, 81.4, 81.60000000000001, 81.80000000000001, 82, 82.2, 82.4, 82.60000000000001, 82.80000000000001, 83, 83.2, 83.4, 83.60000000000001, 83.80000000000001, 84, 84.2, 84.4, 84.60000000000001, 84.80000000000001, 85, 85.2, 85.4, 85.60000000000001, 85.80000000000001, 86, 86.2, 86.4, 86.60000000000001, 86.80000000000001, 87, 87.2, 87.4, 87.60000000000001, 87.80000000000001, 88, 88.2, 88.4, 88.60000000000001, 88.80000000000001, 89, 89.2, 89.4, 89.60000000000001, 89.80000000000001, 90, 90.2, 90.4, 90.60000000000001, 90.80000000000001, 91, 91.2, 91.4, 91.60000000000001, 91.80000000000001, 92, 92.2, 92.4, 92.60000000000001, 92.80000000000001, 93, 93.2, 93.4, 93.60000000000001, 93.80000000000001, 94, 94.2, 94.4, 94.60000000000001, 94.80000000000001, 95, 95.2, 95.4, 95.60000000000001, 95.80000000000001, 96, 96.2, 96.4, 96.60000000000001, 96.80000000000001, 97, 97.2, 97.4, 97.60000000000001, 97.80000000000001, 98, 98.2, 98.4, 98.60000000000001, 98.80000000000001, 99, 99.2, 99.4, 99.60000000000001, 99.80000000000001, 100, 100.2, 100.4, 100.60000000000001, 100.80000000000001, 101, 101.2, 101.4, 101.60000000000001, 101.80000000000001, 102, 102.2, 102.4, 102.60000000000001, 102.80000000000001, 103, 103.2, 103.4, 103.60000000000001, 103.80000000000001, 104, 104.2, 104.4, 104.60000000000001, 104.80000000000001, 105, 105.2, 105.4, 105.60000000000001, 105.80000000000001, 106, 106.2, 106.4, 106.60000000000001, 106.80000000000001, 107, 107.2, 107.4, 107.60000000000001, 107.80000000000001, 108, 108.2, 108.4, 108.60000000000001, 108.80000000000001, 109, 109.2, 109.4, 109.60000000000001, 109.80000000000001, 110, 110.2, 110.4, 110.60000000000001, 110.80000000000001, 111, 111.2, 111.4, 111.60000000000001, 111.80000000000001, 112, 112.2, 112.4, 112.60000000000001, 112.80000000000001, 113, 113.2, 113.4, 113.60000000000001, 113.80000000000001, 114, 114.2, 114.4, 114.60000000000001, 114.80000000000001, 115, 115.2, 115.4, 115.60000000000001, 115.80000000000001, 116, 116.2, 116.4, 116.60000000000001, 116.80000000000001, 117, 117.2, 117.4, 117.60000000000001, 117.80000000000001, 118, 118.2, 118.4, 118.60000000000001, 118.80000000000001, 119, 119.2, 119.4, 119.60000000000001, 119.80000000000001, 120, 120.2, 120.4, 120.60000000000001, 120.80000000000001, 121, 121.2, 121.4, 121.60000000000001, 121.80000000000001, 122, 122.2, 122.4, 122.60000000000001, 122.80000000000001, 123, 123.2, 123.4, 123.60000000000001, 123.80000000000001, 124, 124.2, 124.4, 124.60000000000001, 124.80000000000001, 125, 125.2, 125.4, 125.60000000000001, 125.80000000000001, 126, 126.2, 126.4, 126.60000000000001, 126.80000000000001, 127, 127.2, 127.4, 127.60000000000001, 127.80000000000001, 128, 128.20000000000002, 128.4, 128.6, 128.8, 129, 129.20000000000002, 129.4, 129.6, 129.8, 130, 130.20000000000002, 130.4, 130.6, 130.8, 131, 131.20000000000002, 131.4, 131.6, 131.8, 132, 132.20000000000002, 132.4, 132.6, 132.8, 133, 133.20000000000002, 133.4, 133.6, 133.8, 134, 134.20000000000002, 134.4, 134.6, 134.8, 135, 135.20000000000002, 135.4, 135.6, 135.8, 136, 136.20000000000002, 136.4, 136.6, 136.8, 137, 137.20000000000002, 137.4, 137.6, 137.8, 138, 138.20000000000002, 138.4, 138.6, 138.8, 139, 139.20000000000002, 139.4, 139.6, 139.8, 140, 140.20000000000002, 140.4, 140.6, 140.8, 141, 141.20000000000002, 141.4, 141.6, 141.8, 142, 142.20000000000002, 142.4, 142.6, 142.8, 143, 143.20000000000002, 143.4, 143.6, 143.8, 144, 144.20000000000002, 144.4, 144.6, 144.8, 145, 145.20000000000002, 145.4, 145.6, 145.8, 146, 146.20000000000002, 146.4, 146.6, 146.8, 147, 147.20000000000002, 147.4, 147.6, 147.8, 148, 148.20000000000002, 148.4, 148.6, 148.8, 149, 149.20000000000002, 149.4, 149.6, 149.8, 150, 150.20000000000002, 150.4, 150.6, 150.8, 151, 151.20000000000002, 151.4, 151.6, 151.8, 152, 152.20000000000002, 152.4, 152.6, 152.8, 153, 153.20000000000002, 153.4, 153.60000000000002, 153.8, 154, 154.20000000000002, 154.4, 154.60000000000002, 154.8, 155, 155.20000000000002, 155.4, 155.60000000000002, 155.8, 156, 156.20000000000002, 156.4, 156.60000000000002, 156.8, 157, 157.20000000000002, 157.4, 157.60000000000002, 157.8, 158, 158.20000000000002, 158.4, 158.60000000000002, 158.8, 159, 159.20000000000002, 159.4, 159.60000000000002, 159.8, 160, 160.20000000000002, 160.4, 160.60000000000002, 160.8, 161, 161.20000000000002, 161.4, 161.60000000000002, 161.8, 162, 162.20000000000002, 162.4, 162.60000000000002, 162.8, 163, 163.20000000000002, 163.4, 163.60000000000002, 163.8, 164, 164.20000000000002, 164.4, 164.60000000000002, 164.8, 165, 165.20000000000002, 165.4, 165.60000000000002, 165.8, 166, 166.20000000000002, 166.4, 166.60000000000002, 166.8, 167, 167.20000000000002, 167.4, 167.60000000000002, 167.8, 168, 168.20000000000002, 168.4, 168.60000000000002, 168.8, 169, 169.20000000000002, 169.4, 169.60000000000002, 169.8, 170, 170.20000000000002, 170.4, 170.60000000000002, 170.8, 171, 171.20000000000002, 171.4, 171.60000000000002, 171.8, 172, 172.20000000000002, 172.4, 172.60000000000002, 172.8, 173, 173.20000000000002, 173.4, 173.60000000000002, 173.8, 174, 174.20000000000002, 174.4, 174.60000000000002, 174.8, 175, 175.20000000000002, 175.4, 175.60000000000002, 175.8, 176, 176.20000000000002, 176.4, 176.60000000000002, 176.8, 177, 177.20000000000002, 177.4, 177.60000000000002, 177.8, 178, 178.20000000000002, 178.4, 178.60000000000002, 178.8, 179, 179.20000000000002, 179.4, 179.60000000000002, 179.8, 180, 180.20000000000002, 180.4, 180.60000000000002, 180.8, 181, 181.20000000000002, 181.4, 181.60000000000002, 181.8, 182, 182.20000000000002, 182.4, 182.60000000000002, 182.8, 183, 183.20000000000002, 183.4, 183.60000000000002, 183.8, 184, 184.20000000000002, 184.4, 184.60000000000002, 184.8, 185, 185.20000000000002, 185.4, 185.60000000000002, 185.8, 186, 186.20000000000002, 186.4, 186.60000000000002, 186.8, 187, 187.20000000000002, 187.4, 187.60000000000002, 187.8, 188, 188.20000000000002, 188.4, 188.60000000000002, 188.8, 189, 189.20000000000002, 189.4, 189.60000000000002, 189.8, 190, 190.20000000000002, 190.4, 190.60000000000002, 190.8, 191, 191.20000000000002, 191.4, 191.60000000000002, 191.8, 192, 192.20000000000002, 192.4, 192.60000000000002, 192.8, 193, 193.20000000000002, 193.4, 193.60000000000002, 193.8, 194, 194.20000000000002, 194.4, 194.60000000000002, 194.8, 195, 195.20000000000002, 195.4, 195.60000000000002, 195.8, 196, 196.20000000000002, 196.4, 196.60000000000002, 196.8, 197, 197.20000000000002, 197.4, 197.60000000000002, 197.8, 198, 198.20000000000002, 198.4, 198.60000000000002, 198.8, 199, 199.20000000000002, 199.4, 199.60000000000002, 199.8, 200; 0.2\",\n            \"keeplog\": \"off\",\n            \"message\": \"<---- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cDependent Variables 1\\u201d ----------------------\\n\\u5f00\\u59cb\\u4e8e 2026\\u5e7411\\u67084\\u65e5 19:59:48\\u3002\\n\\u6c42\\u89e3\\u65f6\\u95f4\\uff1a0 s\\u3002\\n\\u7269\\u7406\\u5185\\u5b58: 738 MB\\n\\u865a\\u62df\\u5185\\u5b58: 791 MB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67084\\u65e5 19:59:48\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cDependent Variables 1\\u201d --------------------->\\n\",\n            \"const\": \"\",\n            \"storesol\": \"init\",\n            \"propertyDefaults\": \"\",\n            \"changedproperties\": \"Parameter name and value, clist, {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], 0.007[s]; -, cname, t, t, timestep; -, clistctrl, t1_t, t1_t, t1_timestep\",\n            \"hiddenchangedproperties\": \"\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        },\n        {\n          \"tag\": \"t1\",\n          \"type\": \"Time\",\n          \"label\": \"Time-Dependent Solver 1\",\n          \"properties\": {\n            \"control\": \"time\",\n            \"usetunit\": \"on\",\n            \"tunit\": \"s\",\n            \"tlist\": \"range(0, 0.2, 200)\",\n            \"tlist_vector_method\": \"step\",\n            \"tlist_vector_start\": \"\",\n            \"tlist_vector_stop\": \"\",\n            \"tlist_vector_step\": \"\",\n            \"tlist_vector_numvalues\": \"\",\n            \"tlist_vector_function\": \"none\",\n            \"tlist_vector_interval\": \"octave\",\n            \"tlist_vector_freqperdec\": \"\",\n            \"tout\": \"tlist\",\n            \"tstepsstore\": \"1\",\n            \"rtol\": \"1e-4\",\n            \"atolglobalmethod\": \"scaled\",\n            \"atolglobalvaluemethod\": \"factor\",\n            \"atolglobalfactor\": \"0.05\",\n            \"tderglobalmethod\": \"auto\",\n            \"tderglobalfactor\": \"1\",\n            \"atolglobal\": \"0.001\",\n            \"ewtrescale\": \"on\",\n            \"atolmethod\": \"comp1_p, scaled, comp1_u, global\",\n            \"atolvaluemethod\": \"comp1_p, factor, comp1_u, factor\",\n            \"atolfactor\": \"comp1_p, 1, comp1_u, 0.1\",\n            \"tdermethod\": \"comp1_p, auto, comp1_u, auto\",\n            \"tderfactor\": \"comp1_p, 1.0, comp1_u, 1.0\",\n            \"atol\": \"comp1_p, 1e-3, comp1_u, 1e-3\",\n            \"atoludot\": \"comp1_p, 1e-3, comp1_u, 1e-3\",\n            \"atolmethodAUX\": \"scaled\",\n            \"atolvaluemethodAUX\": \"factor\",\n            \"atolfactorAUX\": \"1\",\n            \"tdermethodAUX\": \"auto\",\n            \"tderfactorAUX\": \"1.0\",\n            \"atolAUX\": \"1e-3\",\n            \"atoludotAUX\": \"1e-3\",\n            \"odesolvertype\": \"implicit\",\n            \"timemethod\": \"bdf\",\n            \"tstepsbdf\": \"intermediate\",\n            \"endtimeinterpolation\": \"on\",\n            \"initialstepbdf\": \"0.001\",\n            \"initialstepbdfactive\": \"off\",\n            \"maxstepconstraintbdf\": \"const\",\n            \"maxstepbdf\": \"0.025\",\n            \"maxstepexpressionbdf\": \"0.1\",\n            \"maxorder\": \"2\",\n            \"minorder\": \"1\",\n            \"bdforder\": \"2\",\n            \"initialstepfractionbdf-1\": \"1\",\n            \"initialstepgrowthratebdf-1\": \"1.5\",\n            \"initialstepfractionbdf-2\": \"1\",\n            \"initialstepgrowthratebdf-2\": \"1.5\",\n            \"initialstepfractionbdf-3\": \"0.1\",\n            \"initialstepgrowthratebdf-3\": \"1.2\",\n            \"initialstepfractionbdf-4\": \"0.01\",\n            \"initialstepgrowthratebdf-4\": \"1.15\",\n            \"initialstepfractionbdf-5\": \"0.001\",\n            \"initialstepgrowthratebdf-5\": \"1.1\",\n            \"timestepbdf\": \"0.01\",\n            \"eventtol\": \"0.01\",\n            \"stabcntrl\": \"on\",\n            \"masssingular\": \"maybe\",\n            \"consistent\": \"bweuler\",\n            \"bwinitstepfrac\": \"0.01\",\n            \"bwinitfactor\": \"20\",\n            \"estrat\": \"exclude\",\n            \"tstepsgenalpha\": \"free\",\n            \"initialstepgenalpha\": \"0.001\",\n            \"initialstepgenalphaactive\": \"off\",\n            \"maxstepconstraintgenalpha\": \"auto\",\n            \"maxstepgenalpha\": \"0.1\",\n            \"maxstepexpressiongenalpha\": \"0.1\",\n            \"incrdelay\": \"15\",\n            \"incrdelayactive\": \"off\",\n            \"rhoinf\": \"0.5\",\n            \"predictor\": \"constant\",\n            \"timestepgenalpha\": \"0.01\",\n            \"rescaleafterinitbw\": \"off\",\n            \"timemethodexp\": \"rk\",\n            \"rkmethod\": \"rk34\",\n            \"tstepsrk34\": \"free\",\n            \"initialsteprk34\": \"0.001\",\n            \"initialsteprk34active\": \"off\",\n            \"timesteprk34\": \"0.01\",\n            \"tstepsck5\": \"free\",\n            \"initialstepck5\": \"0.001\",\n            \"initialstepck5active\": \"off\",\n            \"timestepck5\": \"0.01\",\n            \"tstepsdopri5\": \"free\",\n            \"initialstepdopri5\": \"0.001\",\n            \"initialstepdopri5active\": \"off\",\n            \"dopripicontrol\": \"smooth\",\n            \"maxstepconstraintdopri5\": \"auto\",\n            \"maxstepdopri5\": \"0.1\",\n            \"maxstepexpressiondopri5\": \"0.1\",\n            \"doprigrowmin\": \"0.2\",\n            \"doprigrowmax\": \"10\",\n            \"doprisafe\": \"0.9\",\n            \"timestepdopri5\": \"0.01\",\n            \"rkstiffcheck\": \"on\",\n            \"erkorder\": \"4\",\n            \"tstepping\": \"manual\",\n            \"rktimestep\": \"1.e-3\",\n            \"updtstep\": \"off\",\n            \"ntimestepsupdate\": \"10\",\n            \"exprs\": \"\",\n            \"mlinsolver\": \"dDef\",\n            \"algebraicsolvemethodRK\": \"full\",\n            \"algebraicsolveeverynRK\": \"1\",\n            \"algebraicsolveeverydtRK\": \"0\",\n            \"algebraicsolvemethod\": \"n\",\n            \"algebraicsolveeveryn\": \"1\",\n            \"algebraicsolveeverydt\": \"0\",\n            \"updtlvl\": \"off\",\n            \"ntimestepsupdateab3loc\": \"100\",\n            \"rtstepab3loc\": \"0.1\",\n            \"verletauxsolver\": \"ab2\",\n            \"checkvalidity\": \"off\",\n            \"exprsgeom\": \"\",\n            \"exprsgeomab3loc\": \"\",\n            \"exprsgporder\": \"\",\n            \"exprsgporderupdt\": \"\",\n            \"exprsgporderab3loc\": \"\",\n            \"plot\": \"off\",\n            \"plotgroupdummy\": \"Default\",\n            \"plotgrouparr\": \"pg1\",\n            \"plotwindowsarr\": \"\",\n            \"windowforpg\": \"new\",\n            \"plotfreq\": \"tout\",\n            \"probesel\": \"all\",\n            \"probes\": \"[]\",\n            \"probefreq\": \"tsteps\",\n            \"reacf\": \"on\",\n            \"lumpedflux\": \"off\",\n            \"storeudot\": \"on\",\n            \"eventout\": \"off\",\n            \"complex\": \"off\",\n            \"solref\": \"off\",\n            \"assumeperiodic\": \"off\",\n            \"starttime\": \"0\",\n            \"solutionperiod\": \"0\",\n            \"cosimstoressol\": \"off\",\n            \"cosim\": \"off\",\n            \"cosiminput\": \"\",\n            \"cosimoutput\": \"\",\n            \"cosimconsistent\": \"on\",\n            \"uselsqtimedata\": \"on\",\n            \"tlistlsq\": \"\",\n            \"excludelsqtimes\": \"on\",\n            \"lsqtimesout\": \"\",\n            \"clistctrl\": \"\",\n            \"cname\": \"\",\n            \"clist\": \"\",\n            \"keeplog\": \"off\",\n            \"message\": \"7741      191.85       0.025     22835 7744 22835     2     0      0  2.4e-13  3.4e-15\\n7742      191.88       0.025     22839 7745 22839     2     0      0  4.4e-13  6.7e-15\\n7743       191.9       0.025     22843 7746 22843     2     0      0  3.2e-13  3.6e-14\\n7744      191.93       0.025     22845 7747 22845     2     0      0  4.2e-13  3.7e-15\\n7745      191.95       0.025     22847 7748 22847     2     0      0  6.4e-14  1.8e-15\\n7746      191.98       0.025     22850 7749 22850     2     0      0  1.7e-13  1.2e-14\\n   -         192           - out\\n7747         192       0.025     22853 7750 22853     2     0      0  1.6e-13  1.5e-14\\n7748      192.03       0.025     22855 7751 22855     2     0      0  1.9e-13  6.3e-15\\n7749      192.05       0.025     22857 7752 22857     2     0      0  5.7e-13  3.9e-15\\n7750      192.08       0.025     22861 7753 22861     2     0      0  3.4e-13  7.6e-15\\n7751       192.1       0.025     22864 7754 22864     2     0      0  3.2e-14  1.7e-14\\n7752      192.13       0.025     22866 7755 22866     2     0      0  3.7e-13  3.5e-15\\n7753      192.15       0.025     22869 7756 22869     2     0      0  6.1e-13  1.9e-14\\n7754      192.18       0.025     22871 7757 22871     2     0      0  1.6e-13  1.1e-14\\n   -       192.2           - out\\n7755       192.2       0.025     22873 7758 22873     2     0      0  2.5e-13  1.2e-14\\n7756      192.23       0.025     22877 7759 22877     2     0      0  4.8e-13    1e-14\\n7757      192.25       0.025     22881 7760 22881     2     0      0    8e-14  1.6e-14\\n7758      192.28       0.025     22883 7761 22883     2     0      0  1.3e-13  7.1e-15\\n7759       192.3       0.025     22885 7762 22885     2     0      0  1.4e-13  4.8e-15\\n7760      192.33       0.025     22888 7763 22888     2     0      0  9.8e-14  1.5e-14\\n7761      192.35       0.025     22890 7764 22890     2     0      0  7.2e-14  4.3e-15\\n7762      192.38       0.025     22894 7765 22894     2     0      0  2.9e-14  1.3e-14\\n   -       192.4           - out\\n7763       192.4       0.025     22897 7766 22897     2     0      0  2.9e-13  5.9e-15\\n7764      192.43       0.025     22900 7767 22900     2     0      0    3e-13  2.6e-14\\n7765      192.45       0.025     22902 7768 22902     2     0      0  5.8e-13  3.7e-15\\n7766      192.48       0.025     22905 7769 22905     2     0      0  6.4e-13  2.1e-14\\n7767       192.5       0.025     22908 7770 22908     2     0      0  4.9e-13  6.2e-15\\n7768      192.53       0.025     22911 7771 22911     2     0      0  1.3e-13  3.3e-15\\n7769      192.55       0.025     22914 7772 22914     2     0      0  3.2e-13  5.8e-15\\n7770      192.58       0.025     22917 7773 22917     2     0      0    2e-13  8.8e-15\\n   -       192.6           - out\\n7771       192.6       0.025     22920 7774 22920     2     0      0  5.5e-13    1e-14\\n7772      192.63       0.025     22923 7775 22923     2     0      0  1.6e-13  1.2e-14\\n7773      192.65       0.025     22925 7776 22925     2     0      0    3e-13  4.2e-15\\n7774      192.68       0.025     22928 7777 22928     2     0      0  1.9e-13  2.3e-14\\n7775       192.7       0.025     22930 7778 22930     2     0      0  2.3e-13  9.8e-15\\n7776      192.73       0.025     22934 7779 22934     2     0      0  4.2e-14    5e-15\\n7777      192.75       0.025     22936 7780 22936     2     0      0  3.8e-13  6.5e-15\\n7778      192.78       0.025     22939 7781 22939     2     0      0  4.6e-13  3.1e-14\\n   -       192.8           - out\\n7779       192.8       0.025     22942 7782 22942     2     0      0  1.9e-13  7.6e-15\\n7780      192.83       0.025     22946 7783 22946     2     0      0    9e-13  5.8e-15\\n7781      192.85       0.025     22949 7784 22949     2     0      0  5.2e-13    8e-15\\n7782      192.88       0.025     22951 7785 22951     2     0      0  2.9e-13  2.5e-15\\n7783       192.9       0.025     22954 7786 22954     2     0      0  2.2e-13  1.6e-14\\n7784      192.93       0.025     22958 7787 22958     2     0      0    4e-13  7.3e-15\\n7785      192.95       0.025     22960 7788 22960     2     0      0  3.1e-13  6.8e-15\\n7786      192.98       0.025     22963 7789 22963     2     0      0  4.4e-14  8.7e-15\\n   -         193           - out\\n7787         193       0.025     22966 7790 22966     2     0      0  2.8e-13  2.2e-14\\n7788      193.03       0.025     22968 7791 22968     2     0      0  1.2e-13  1.3e-14\\n7789      193.05       0.025     22972 7792 22972     2     0      0  2.4e-13  1.4e-14\\n7790      193.08       0.025     22976 7793 22976     2     0      0  4.9e-13    2e-15\\n7791       193.1       0.025     22980 7794 22980     2     0      0  8.8e-13  5.7e-15\\n7792      193.13       0.025     22984 7795 22984     2     0      0  1.3e-12  2.1e-15\\n7793      193.15       0.025     22988 7796 22988     2     0      0  1.4e-13  5.7e-15\\n7794      193.18       0.025     22992 7797 22992     2     0      0  4.5e-13  6.4e-15\\n   -       193.2           - out\\n7795       193.2       0.025     22996 7798 22996     2     0      0  7.6e-14  2.2e-14\\n7796      193.23       0.025     22999 7799 22999     2     0      0  9.9e-14  2.3e-14\\n7797      193.25       0.025     23001 7800 23001     2     0      0    1e-13    5e-15\\n7798      193.28       0.025     23003 7801 23003     2     0      0  5.9e-13  2.6e-15\\n7799       193.3       0.025     23005 7802 23005     2     0      0    3e-13  7.5e-15\\n7800      193.33       0.025     23007 7803 23007     2     0      0  1.7e-13  3.7e-15\\n7801      193.35       0.025     23010 7804 23010     2     0      0  1.9e-13  1.3e-14\\n7802      193.38       0.025     23012 7805 23012     2     0      0  3.4e-13  3.6e-15\\n   -       193.4           - out\\n7803       193.4       0.025     23015 7806 23015     2     0      0  3.7e-14  4.3e-15\\n7804      193.43       0.025     23018 7807 23018     2     0      0  4.3e-13  1.8e-14\\n7805      193.45       0.025     23020 7808 23020     2     0      0  6.7e-13  4.6e-15\\n7806      193.48       0.025     23022 7809 23022     2     0      0  8.5e-14  2.6e-15\\n7807       193.5       0.025     23024 7810 23024     2     0      0  3.3e-13  5.5e-15\\n7808      193.53       0.025     23026 7811 23026     2     0      0  4.1e-13  1.5e-14\\n7809      193.55       0.025     23028 7812 23028     2     0      0  1.6e-13  6.9e-15\\n7810      193.58       0.025     23032 7813 23032     2     0      0  4.3e-13  7.4e-15\\n   -       193.6           - out\\n7811       193.6       0.025     23035 7814 23035     2     0      0  9.4e-14  1.6e-14\\n7812      193.63       0.025     23038 7815 23038     2     0      0    3e-13  8.9e-15\\n7813      193.65       0.025     23040 7816 23040     2     0      0  3.4e-13  5.7e-15\\n7814      193.68       0.025     23042 7817 23042     2     0      0  4.1e-13  7.4e-15\\n7815       193.7       0.025     23044 7818 23044     2     0      0  1.8e-13    2e-15\\n7816      193.73       0.025     23046 7819 23046     2     0      0  4.3e-13  8.1e-15\\n7817      193.75       0.025     23049 7820 23049     2     0      0  2.4e-13  3.1e-14\\n7818      193.78       0.025     23051 7821 23051     2     0      0  1.3e-13  4.4e-15\\n   -       193.8           - out\\n7819       193.8       0.025     23054 7822 23054     2     0      0  6.4e-13  3.3e-14\\n7820      193.83       0.025     23058 7823 23058     2     0      0  1.1e-13  2.2e-14\\n7821      193.85       0.025     23061 7824 23061     2     0      0  2.3e-13  2.5e-14\\n7822      193.88       0.025     23063 7825 23063     2     0      0  5.8e-14  1.3e-14\\n7823       193.9       0.025     23066 7826 23066     2     0      0  2.3e-13  1.3e-14\\n7824      193.93       0.025     23069 7827 23069     2     0      0    6e-13  2.8e-14\\n7825      193.95       0.025     23072 7828 23072     2     0      0  3.4e-13  1.4e-14\\n7826      193.98       0.025     23075 7829 23075     2     0      0  1.4e-13    1e-14\\n   -         194           - out\\n7827         194       0.025     23077 7830 23077     2     0      0  1.9e-13  1.6e-14\\n7828      194.03       0.025     23081 7831 23081     2     0      0  2.1e-13  6.7e-15\\n7829      194.05       0.025     23083 7832 23083     2     0      0  1.9e-13  3.2e-15\\n7830      194.08       0.025     23086 7833 23086     2     0      0  2.1e-13  1.3e-14\\n7831       194.1       0.025     23088 7834 23088     2     0      0  2.6e-13  7.5e-15\\n7832      194.13       0.025     23090 7835 23090     2     0      0  2.6e-13  8.7e-15\\n7833      194.15       0.025     23093 7836 23093     2     0      0  6.6e-13  1.1e-14\\n7834      194.18       0.025     23095 7837 23095     2     0      0  1.4e-13  1.8e-14\\n   -       194.2           - out\\n7835       194.2       0.025     23097 7838 23097     2     0      0  1.9e-14  4.5e-15\\n7836      194.23       0.025     23100 7839 23100     2     0      0  4.9e-14  1.9e-14\\n7837      194.25       0.025     23103 7840 23103     2     0      0  6.6e-13  7.1e-15\\n7838      194.28       0.025     23105 7841 23105     2     0      0  2.3e-13  1.4e-14\\n7839       194.3       0.025     23108 7842 23108     2     0      0  1.7e-13    2e-14\\n7840      194.33       0.025     23110 7843 23110     2     0      0  6.6e-14  1.4e-14\\n7841      194.35       0.025     23112 7844 23112     2     0      0  8.1e-13  4.4e-15\\n7842      194.38       0.025     23116 7845 23116     2     0      0  3.8e-13  4.3e-15\\n   -       194.4           - out\\n7843       194.4       0.025     23119 7846 23119     2     0      0  3.5e-13  2.1e-14\\n7844      194.43       0.025     23121 7847 23121     2     0      0  6.8e-13  5.1e-15\\n7845      194.45       0.025     23123 7848 23123     2     0      0  1.8e-13  6.1e-15\\n7846      194.48       0.025     23125 7849 23125     2     0      0    1e-12  4.1e-15\\n7847       194.5       0.025     23127 7850 23127     2     0      0  4.4e-14  8.5e-15\\n7848      194.53       0.025     23129 7851 23129     2     0      0  3.4e-13  3.6e-15\\n7849      194.55       0.025     23131 7852 23131     2     0      0  1.7e-13  5.8e-15\\n7850      194.58       0.025     23135 7853 23135     2     0      0  7.5e-14    2e-14\\n   -       194.6           - out\\n7851       194.6       0.025     23138 7854 23138     2     0      0  2.9e-13  9.2e-15\\n7852      194.63       0.025     23141 7855 23141     2     0      0  9.1e-14    4e-15\\n7853      194.65       0.025     23144 7856 23144     2     0      0  3.4e-14  2.5e-14\\n7854      194.68       0.025     23146 7857 23146     2     0      0  3.3e-14  7.3e-15\\n7855       194.7       0.025     23149 7858 23149     2     0      0  9.3e-13  7.5e-15\\n7856      194.73       0.025     23152 7859 23152     2     0      0  2.4e-13  5.3e-15\\n7857      194.75       0.025     23155 7860 23155     2     0      0  1.5e-13  1.6e-14\\n7858      194.78       0.025     23157 7861 23157     2     0      0  5.1e-14  1.2e-14\\n   -       194.8           - out\\n7859       194.8       0.025     23161 7862 23161     2     0      0  2.1e-13  1.7e-14\\n7860      194.83       0.025     23163 7863 23163     2     0      0  1.2e-12  3.3e-15\\n7861      194.85       0.025     23167 7864 23167     2     0      0    4e-13  2.9e-14\\n7862      194.88       0.025     23171 7865 23171     2     0      0    4e-13  1.5e-14\\n7863       194.9       0.025     23174 7866 23174     2     0      0    8e-14  1.6e-14\\n7864      194.93       0.025     23178 7867 23178     2     0      0  2.1e-13  3.1e-15\\n7865      194.95       0.025     23182 7868 23182     2     0      0    2e-13  5.8e-15\\n7866      194.98       0.025     23184 7869 23184     2     0      0  5.2e-13  1.2e-14\\n   -         195           - out\\n7867         195       0.025     23187 7870 23187     2     0      0  3.6e-13  3.6e-14\\n7868      195.03       0.025     23190 7871 23190     2     0      0  3.4e-13  2.6e-14\\n7869      195.05       0.025     23192 7872 23192     2     0      0  1.3e-13  5.8e-15\\n7870      195.08       0.025     23195 7873 23195     2     0      0  8.3e-14  2.1e-14\\n7871       195.1       0.025     23198 7874 23198     2     0      0  1.7e-13  1.5e-14\\n7872      195.13       0.025     23201 7875 23201     2     0      0  5.6e-14    1e-14\\n7873      195.15       0.025     23203 7876 23203     2     0      0  1.9e-13  5.4e-15\\n7874      195.18       0.025     23206 7877 23206     2     0      0  6.8e-14  1.2e-14\\n   -       195.2           - out\\n7875       195.2       0.025     23208 7878 23208     2     0      0  8.2e-13  1.8e-15\\n7876      195.23       0.025     23212 7879 23212     2     0      0  6.1e-13  6.6e-15\\n7877      195.25       0.025     23215 7880 23215     2     0      0  9.8e-14  1.6e-14\\n7878      195.28       0.025     23218 7881 23218     2     0      0  2.2e-13  2.9e-14\\n7879       195.3       0.025     23221 7882 23221     2     0      0  7.9e-13  7.3e-15\\n7880      195.33       0.025     23223 7883 23223     2     0      0  1.5e-13  2.8e-15\\n7881      195.35       0.025     23227 7884 23227     2     0      0  7.2e-13  1.5e-14\\n7882      195.38       0.025     23229 7885 23229     2     0      0  1.8e-13  7.5e-15\\n   -       195.4           - out\\n7883       195.4       0.025     23232 7886 23232     2     0      0  3.2e-13  4.9e-15\\n7884      195.43       0.025     23235 7887 23235     2     0      0  5.9e-14  1.2e-14\\n7885      195.45       0.025     23239 7888 23239     2     0      0  2.8e-13  6.1e-15\\n7886      195.48       0.025     23243 7889 23243     2     0      0  1.9e-13    3e-15\\n7887       195.5       0.025     23246 7890 23246     2     0      0  3.4e-13  7.1e-15\\n7888      195.53       0.025     23249 7891 23249     2     0      0  2.7e-13  5.8e-15\\n7889      195.55       0.025     23252 7892 23252     2     0      0  2.8e-14  1.1e-14\\n7890      195.58       0.025     23256 7893 23256     2     0      0    3e-13  9.6e-15\\n   -       195.6           - out\\n7891       195.6       0.025     23259 7894 23259     2     0      0  2.1e-13  6.5e-15\\n7892      195.63       0.025     23262 7895 23262     2     0      0  5.2e-13  1.3e-14\\n7893      195.65       0.025     23265 7896 23265     2     0      0  2.8e-13  5.7e-15\\n7894      195.68       0.025     23267 7897 23267     2     0      0  5.1e-13    2e-15\\n7895       195.7       0.025     23271 7898 23271     2     0      0  2.4e-13  2.6e-14\\n7896      195.73       0.025     23275 7899 23275     2     0      0  1.7e-13  6.5e-15\\n7897      195.75       0.025     23278 7900 23278     2     0      0  5.7e-14  2.9e-14\\n7898      195.78       0.025     23281 7901 23281     2     0      0  1.1e-13  1.9e-14\\n   -       195.8           - out\\n7899       195.8       0.025     23284 7902 23284     2     0      0  2.1e-13  1.1e-14\\n7900      195.83       0.025     23287 7903 23287     2     0      0  2.5e-13  3.9e-15\\n7901      195.85       0.025     23289 7904 23289     2     0      0  1.1e-13  2.7e-15\\n7902      195.88       0.025     23291 7905 23291     2     0      0  7.3e-14  6.6e-15\\n7903       195.9       0.025     23294 7906 23294     2     0      0  3.9e-13  6.5e-15\\n7904      195.93       0.025     23298 7907 23298     2     0      0  1.7e-13  2.1e-14\\n7905      195.95       0.025     23300 7908 23300     2     0      0  4.8e-13  5.1e-15\\n7906      195.98       0.025     23302 7909 23302     2     0      0  2.2e-13  8.8e-15\\n   -         196           - out\\n7907         196       0.025     23304 7910 23304     2     0      0  3.8e-13  1.3e-14\\n7908      196.03       0.025     23308 7911 23308     2     0      0  3.3e-13  1.9e-14\\n7909      196.05       0.025     23312 7912 23312     2     0      0  2.5e-14  2.1e-14\\n7910      196.08       0.025     23316 7913 23316     2     0      0    1e-13  1.7e-14\\n7911       196.1       0.025     23320 7914 23320     2     0      0    6e-13  4.4e-15\\n7912      196.13       0.025     23322 7915 23322     2     0      0  9.7e-14  1.2e-15\\n7913      196.15       0.025     23324 7916 23324     2     0      0    7e-13  8.6e-15\\n7914      196.18       0.025     23326 7917 23326     2     0      0  4.4e-13  1.9e-15\\n   -       196.2           - out\\n7915       196.2       0.025     23329 7918 23329     2     0      0  3.2e-13  5.8e-15\\n7916      196.23       0.025     23333 7919 23333     2     0      0  2.1e-13  1.1e-14\\n7917      196.25       0.025     23335 7920 23335     2     0      0  7.1e-13  7.7e-15\\n7918      196.28       0.025     23339 7921 23339     2     0      0  8.3e-14  2.8e-15\\n7919       196.3       0.025     23342 7922 23342     2     0      0    3e-14  1.3e-14\\n7920      196.33       0.025     23345 7923 23345     2     0      0  2.8e-13  1.5e-14\\n7921      196.35       0.025     23348 7924 23348     2     0      0  4.1e-13  1.2e-14\\n7922      196.38       0.025     23352 7925 23352     2     0      0  4.1e-13  8.5e-15\\n   -       196.4           - out\\n7923       196.4       0.025     23355 7926 23355     2     0      0  4.6e-13  9.4e-15\\n7924      196.43       0.025     23358 7927 23358     2     0      0  4.6e-13    2e-14\\n7925      196.45       0.025     23361 7928 23361     2     0      0  5.3e-14  1.5e-14\\n7926      196.48       0.025     23365 7929 23365     2     0      0  1.5e-13  1.4e-14\\n7927       196.5       0.025     23369 7930 23369     2     0      0    4e-13  2.5e-14\\n7928      196.53       0.025     23373 7931 23373     2     0      0  2.1e-13  2.3e-14\\n7929      196.55       0.025     23377 7932 23377     2     0      0  5.7e-13  9.5e-15\\n7930      196.58       0.025     23379 7933 23379     2     0      0  2.5e-13  8.4e-15\\n   -       196.6           - out\\n7931       196.6       0.025     23382 7934 23382     2     0      0  5.6e-14  1.8e-14\\n7932      196.63       0.025     23385 7935 23385     2     0      0  5.4e-13  1.7e-14\\n7933      196.65       0.025     23388 7936 23388     2     0      0  2.7e-13  2.9e-14\\n7934      196.68       0.025     23390 7937 23390     2     0      0  8.2e-14  6.4e-15\\n7935       196.7       0.025     23393 7938 23393     2     0      0  2.5e-13  1.4e-14\\n7936      196.73       0.025     23396 7939 23396     2     0      0  4.6e-14    7e-15\\n7937      196.75       0.025     23398 7940 23398     2     0      0  6.5e-13  6.8e-15\\n7938      196.78       0.025     23401 7941 23401     2     0      0  9.6e-14  2.1e-14\\n   -       196.8           - out\\n7939       196.8       0.025     23404 7942 23404     2     0      0  5.9e-13  2.4e-14\\n7940      196.83       0.025     23407 7943 23407     2     0      0  1.9e-13  1.9e-14\\n7941      196.85       0.025     23410 7944 23410     2     0      0  3.2e-13  1.1e-14\\n7942      196.88       0.025     23412 7945 23412     2     0      0  2.8e-13    5e-15\\n7943       196.9       0.025     23415 7946 23415     2     0      0  1.2e-13  1.5e-14\\n7944      196.93       0.025     23417 7947 23417     2     0      0  9.2e-14    8e-15\\n7945      196.95       0.025     23419 7948 23419     2     0      0  6.5e-13  6.5e-15\\n7946      196.98       0.025     23421 7949 23421     2     0      0  1.1e-13  1.7e-14\\n   -         197           - out\\n7947         197       0.025     23423 7950 23423     2     0      0  3.2e-13  9.8e-15\\n7948      197.03       0.025     23425 7951 23425     2     0      0  4.1e-13  8.9e-15\\n7949      197.05       0.025     23427 7952 23427     2     0      0  3.6e-13  2.1e-14\\n7950      197.08       0.025     23430 7953 23430     2     0      0  7.3e-13  1.9e-14\\n7951       197.1       0.025     23434 7954 23434     2     0      0  4.6e-13  3.6e-14\\n7952      197.13       0.025     23437 7955 23437     2     0      0  3.3e-13  4.7e-15\\n7953      197.15       0.025     23439 7956 23439     2     0      0  2.9e-13  9.8e-15\\n7954      197.18       0.025     23442 7957 23442     2     0      0  2.9e-13    3e-14\\n   -       197.2           - out\\n7955       197.2       0.025     23445 7958 23445     2     0      0  4.4e-13    5e-15\\n7956      197.23       0.025     23448 7959 23448     2     0      0  8.9e-13  4.7e-15\\n7957      197.25       0.025     23451 7960 23451     2     0      0  8.3e-14  3.4e-14\\n7958      197.28       0.025     23455 7961 23455     2     0      0  2.1e-13    2e-14\\n7959       197.3       0.025     23458 7962 23458     2     0      0  1.3e-13  5.1e-15\\n7960      197.33       0.025     23460 7963 23460     2     0      0  5.3e-14  1.2e-14\\n7961      197.35       0.025     23463 7964 23463     2     0      0  7.6e-14  4.4e-15\\n7962      197.38       0.025     23466 7965 23466     2     0      0  3.8e-13  3.8e-15\\n   -       197.4           - out\\n7963       197.4       0.025     23468 7966 23468     2     0      0  3.3e-13  5.1e-15\\n7964      197.43       0.025     23472 7967 23472     2     0      0  1.7e-13    2e-14\\n7965      197.45       0.025     23474 7968 23474     2     0      0    6e-13  1.3e-14\\n7966      197.48       0.025     23476 7969 23476     2     0      0  7.6e-13  4.4e-15\\n7967       197.5       0.025     23480 7970 23480     2     0      0    6e-13  1.2e-14\\n7968      197.53       0.025     23482 7971 23482     2     0      0  1.6e-12    6e-15\\n7969      197.55       0.025     23484 7972 23484     2     0      0  8.4e-13  5.6e-15\\n7970      197.58       0.025     23487 7973 23487     2     0      0  1.1e-13  1.7e-14\\n   -       197.6           - out\\n7971       197.6       0.025     23489 7974 23489     2     0      0  3.9e-13  9.1e-15\\n7972      197.63       0.025     23493 7975 23493     2     0      0  2.7e-13  9.4e-15\\n7973      197.65       0.025     23495 7976 23495     2     0      0  8.4e-14  2.9e-15\\n7974      197.68       0.025     23499 7977 23499     2     0      0  2.1e-13  2.1e-14\\n7975       197.7       0.025     23503 7978 23503     2     0      0  4.9e-13  2.3e-14\\n7976      197.73       0.025     23507 7979 23507     2     0      0  4.8e-14    2e-14\\n7977      197.75       0.025     23511 7980 23511     2     0      0  4.5e-14  1.3e-14\\n7978      197.78       0.025     23515 7981 23515     2     0      0    3e-14  1.8e-14\\n   -       197.8           - out\\n7979       197.8       0.025     23518 7982 23518     2     0      0    6e-13  9.4e-15\\n7980      197.83       0.025     23521 7983 23521     2     0      0  8.3e-13  8.2e-15\\n7981      197.85       0.025     23523 7984 23523     2     0      0  3.3e-13  3.5e-15\\n7982      197.88       0.025     23527 7985 23527     2     0      0  6.2e-13  1.1e-14\\n7983       197.9       0.025     23529 7986 23529     2     0      0  1.2e-13  4.9e-15\\n7984      197.93       0.025     23532 7987 23532     2     0      0    6e-14  2.8e-14\\n7985      197.95       0.025     23534 7988 23534     2     0      0    1e-13  5.6e-15\\n7986      197.98       0.025     23538 7989 23538     2     0      0    5e-13  1.1e-14\\n   -         198           - out\\n7987         198       0.025     23542 7990 23542     2     0      0  7.8e-13  2.5e-15\\n7988      198.03       0.025     23546 7991 23546     2     0      0  2.6e-14  2.4e-15\\n7989      198.05       0.025     23549 7992 23549     2     0      0  9.5e-13  1.5e-14\\n7990      198.08       0.025     23553 7993 23553     2     0      0  6.8e-13  1.1e-15\\n7991       198.1       0.025     23557 7994 23557     2     0      0  9.9e-13  7.9e-15\\n7992      198.13       0.025     23561 7995 23561     2     0      0  2.1e-13  3.2e-14\\n7993      198.15       0.025     23564 7996 23564     2     0      0  7.4e-13  2.1e-14\\n7994      198.18       0.025     23566 7997 23566     2     0      0  5.3e-13  1.2e-15\\n   -       198.2           - out\\n7995       198.2       0.025     23569 7998 23569     2     0      0  2.7e-13  1.4e-14\\n7996      198.23       0.025     23572 7999 23572     2     0      0  4.7e-14  1.1e-14\\n7997      198.25       0.025     23574 8000 23574     2     0      0  2.3e-13  9.6e-15\\n7998      198.28       0.025     23576 8001 23576     2     0      0  5.9e-13  3.7e-15\\n7999       198.3       0.025     23580 8002 23580     2     0      0  8.1e-13  1.1e-14\\n8000      198.33       0.025     23583 8003 23583     2     0      0  3.3e-13  2.7e-14\\n8001      198.35       0.025     23585 8004 23585     2     0      0  2.4e-13  7.4e-15\\n8002      198.38       0.025     23589 8005 23589     2     0      0  5.1e-13  3.3e-15\\n   -       198.4           - out\\n8003       198.4       0.025     23592 8006 23592     2     0      0  3.4e-13  1.8e-14\\n8004      198.43       0.025     23595 8007 23595     2     0      0    2e-13  1.8e-14\\n8005      198.45       0.025     23599 8008 23599     2     0      0  6.6e-13  1.7e-14\\n8006      198.48       0.025     23602 8009 23602     2     0      0  2.7e-13  2.1e-14\\n8007       198.5       0.025     23605 8010 23605     2     0      0  2.8e-13  3.4e-14\\n8008      198.53       0.025     23608 8011 23608     2     0      0  5.5e-14  1.9e-15\\n8009      198.55       0.025     23611 8012 23611     2     0      0  5.5e-13  9.1e-15\\n8010      198.58       0.025     23613 8013 23613     2     0      0    3e-13  6.9e-15\\n   -       198.6           - out\\n8011       198.6       0.025     23617 8014 23617     2     0      0  5.8e-14  1.6e-14\\n8012      198.63       0.025     23619 8015 23619     2     0      0  4.2e-13  9.2e-15\\n8013      198.65       0.025     23622 8016 23622     2     0      0  2.4e-13  3.2e-14\\n8014      198.68       0.025     23625 8017 23625     2     0      0    3e-13  8.5e-15\\n8015       198.7       0.025     23628 8018 23628     2     0      0  5.5e-14  3.7e-15\\n8016      198.73       0.025     23631 8019 23631     2     0      0  2.4e-13  6.4e-15\\n8017      198.75       0.025     23634 8020 23634     2     0      0  8.1e-14    8e-15\\n8018      198.78       0.025     23636 8021 23636     2     0      0  5.2e-14  5.7e-15\\n   -       198.8           - out\\n8019       198.8       0.025     23638 8022 23638     2     0      0  1.9e-13  3.2e-15\\n8020      198.83       0.025     23641 8023 23641     2     0      0  3.9e-13  1.3e-14\\n8021      198.85       0.025     23644 8024 23644     2     0      0  3.8e-13    5e-15\\n8022      198.88       0.025     23646 8025 23646     2     0      0    9e-13  7.9e-15\\n8023       198.9       0.025     23649 8026 23649     2     0      0  2.8e-13  2.3e-14\\n8024      198.93       0.025     23652 8027 23652     2     0      0  9.2e-13  7.4e-15\\n8025      198.95       0.025     23656 8028 23656     2     0      0  1.1e-13  7.3e-15\\n8026      198.98       0.025     23658 8029 23658     2     0      0  4.8e-14  1.6e-14\\n   -         199           - out\\n8027         199       0.025     23662 8030 23662     2     0      0    5e-13  7.6e-15\\n8028      199.03       0.025     23664 8031 23664     2     0      0  2.9e-14  5.2e-15\\n8029      199.05       0.025     23668 8032 23668     2     0      0  1.4e-13  6.6e-15\\n8030      199.08       0.025     23671 8033 23671     2     0      0  3.5e-13  1.1e-14\\n8031       199.1       0.025     23676 8034 23676     2     0      0  2.5e-13  2.4e-15\\n8032      199.13       0.025     23679 8035 23679     2     0      0  2.8e-14  1.5e-14\\n8033      199.15       0.025     23682 8036 23682     2     0      0  1.5e-13  2.5e-14\\n8034      199.18       0.025     23684 8037 23684     2     0      0  4.7e-14  1.2e-14\\n   -       199.2           - out\\n8035       199.2       0.025     23687 8038 23687     2     0      0  2.6e-14    6e-15\\n8036      199.23       0.025     23690 8039 23690     2     0      0  1.6e-13  1.5e-14\\n8037      199.25       0.025     23692 8040 23692     2     0      0  7.7e-13  3.1e-15\\n8038      199.28       0.025     23696 8041 23696     2     0      0    3e-13  1.6e-14\\n8039       199.3       0.025     23700 8042 23700     2     0      0  8.1e-13  1.5e-15\\n8040      199.33       0.025     23704 8043 23704     2     0      0  2.5e-13  6.1e-15\\n8041      199.35       0.025     23708 8044 23708     2     0      0  4.5e-13  1.7e-15\\n8042      199.38       0.025     23712 8045 23712     2     0      0  5.6e-14  7.7e-15\\n   -       199.4           - out\\n8043       199.4       0.025     23716 8046 23716     2     0      0  4.6e-14  5.3e-15\\n8044      199.43       0.025     23720 8047 23720     2     0      0  1.7e-13    2e-14\\n8045      199.45       0.025     23724 8048 23724     2     0      0  1.6e-13  8.1e-15\\n8046      199.48       0.025     23726 8049 23726     2     0      0  1.3e-13  8.9e-15\\n8047       199.5       0.025     23728 8050 23728     2     0      0  1.9e-13  3.3e-15\\n8048      199.53       0.025     23731 8051 23731     2     0      0  2.3e-13    1e-14\\n8049      199.55       0.025     23733 8052 23733     2     0      0  4.7e-13    5e-15\\n8050      199.58       0.025     23735 8053 23735     2     0      0  2.3e-13  6.6e-15\\n   -       199.6           - out\\n8051       199.6       0.025     23737 8054 23737     2     0      0  5.4e-13  7.9e-15\\n8052      199.63       0.025     23739 8055 23739     2     0      0  2.3e-13  4.5e-15\\n8053      199.65       0.025     23741 8056 23741     2     0      0    2e-13  1.3e-14\\n8054      199.68       0.025     23743 8057 23743     2     0      0  1.9e-13  4.6e-15\\n8055       199.7       0.025     23745 8058 23745     2     0      0  2.7e-13  2.3e-15\\n8056      199.73       0.025     23747 8059 23747     2     0      0  3.8e-13  5.1e-15\\n8057      199.75       0.025     23749 8060 23749     2     0      0  8.9e-14    5e-15\\n8058      199.78       0.025     23753 8061 23753     2     0      0  5.4e-13  9.5e-15\\n   -       199.8           - out\\n8059       199.8       0.025     23756 8062 23756     2     0      0  3.2e-13  1.8e-14\\n8060      199.83       0.025     23758 8063 23758     2     0      0  1.4e-13  7.1e-15\\n8061      199.85       0.025     23761 8064 23761     2     0      0  4.3e-14  1.5e-14\\n8062      199.88       0.025     23763 8065 23763     2     0      0  1.3e-12  6.2e-15\\n8063       199.9       0.025     23765 8066 23765     2     0      0  4.5e-13  7.6e-15\\n8064      199.93       0.025     23767 8067 23767     2     0      0  8.6e-14  5.3e-15\\n8065      199.95       0.025     23771 8068 23771     2     0      0    4e-13  2.3e-14\\n8066      199.98       0.025     23774 8069 23774     2     0      0  1.8e-13    3e-14\\n   -         200           - out\\n8067         200       0.025     23777 8070 23777     2     0      0  4.5e-14  4.3e-15\\n\\u65f6\\u95f4\\u6b65\\u8fdb\\u5df2\\u5b8c\\u6210\\u3002\\n\\u6c42\\u89e3\\u65f6\\u95f4\\uff1a399 s\\u3002 \\uff086 \\u5206\\u949f\\uff0c39 \\u79d2\\uff09\\n\\u7269\\u7406\\u5185\\u5b58: 1.09 GB\\n\\u865a\\u62df\\u5185\\u5b58: 1.05 GB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67084\\u65e5 20:06:27\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cTime-Dependent Solver 1\\u201d ------------------->\\n\",\n            \"const\": \"\",\n            \"propertyDefaults\": \"maxstepconstraintbdf, auto; maxstepbdf, 0.1\",\n            \"changedproperties\": \"Steps taken by solver, tstepsbdf, free, intermediate\",\n            \"hiddenchangedproperties\": \"\",\n            \"fieldselection\": \"comp1_p\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        }\n      ]\n    }\n  ]\n}\n\n<<<JSON_END>>>\n",
+  "launch_mode": "standalone_java_api",
+  "batch_startup_failure": {
+    "stdout": "\nERROR: Failed to start COMSOL. For details, see the log file C:\\Users\\Administrator\\.comsol\\v64\\logs\\batch2.log\nERROR: Additional information: com/comsol/nativejni/FlNativeException\n",
+    "stderr": "",
+    "returncode": 0
+  },
+  "sha256": "75183E3B4BE7AAAF1A2EEC9F09079F5AE0497ABA5B868268DE0EBA782525EDAB"
+}

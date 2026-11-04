@@ -1,0 +1,341 @@
+{
+  "audit_type": "read_only_saved_artifacts_no_COMSOL_no_solve",
+  "report_status": "PASS",
+  "final_checker": {
+    "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_d_20261104_verified\\solver_run.log",
+    "logged_rows": 8067,
+    "last_step_number": 8067,
+    "last_logged_time": 200.0,
+    "all_dt_range": [
+      0.0017176,
+      0.025
+    ],
+    "late_dt_range": [
+      0.025,
+      0.025
+    ],
+    "late_dt_mean": 0.02499999999999925,
+    "sequential_unique_step_ids": true,
+    "strictly_increasing_time": true,
+    "cap_verified": true
+  },
+  "independent_log_checks": {
+    "count": 8067,
+    "ids_contiguous_unique_from_1": true,
+    "times_strictly_increasing": true,
+    "all_finite": true,
+    "all_dt_positive_at_most_0025": true,
+    "last_time_reaches_200": true,
+    "first": [
+      1,
+      0.0058385,
+      0.0018385
+    ],
+    "last": [
+      8067,
+      200.0,
+      0.025
+    ],
+    "min_dt": 0.0017176,
+    "max_dt": 0.025
+  },
+  "model_hashes": {
+    "actual_c": "D29F8A55695B42B2FC2B351512FBE85FBE1042BDF380700F44FAB402B695C5C2",
+    "expected_accepted_c": "D29F8A55695B42B2FC2B351512FBE85FBE1042BDF380700F44FAB402B695C5C2",
+    "actual_d": "75183E3B4BE7AAAF1A2EEC9F09079F5AE0497ABA5B868268DE0EBA782525EDAB",
+    "solve_source_sha256": "D29F8A55695B42B2FC2B351512FBE85FBE1042BDF380700F44FAB402B695C5C2",
+    "solve_output_sha256": "75183E3B4BE7AAAF1A2EEC9F09079F5AE0497ABA5B868268DE0EBA782525EDAB",
+    "metadata_output_sha256": "75183E3B4BE7AAAF1A2EEC9F09079F5AE0497ABA5B868268DE0EBA782525EDAB"
+  },
+  "protected_models": {
+    "count": 6,
+    "all_unchanged_against_before_and_after": true,
+    "actual": {
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\case\\cylinder_flow.mph": "CE72D06EB181ACA2D152505A138F472B7EF424FE7A2CC20C900C670002F00A7A",
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\models\\cylinder_2d\\re100_benchmark.mph": "3087119AF52A8B59DBBA4500F370A46044E71BC17CDD031A53710A74FBA0BEB0",
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1a_trial\\re100_s1a_solved.mph": "0BB3354255DA95F60622DAFDFDA11EB131383ECD3F9BA113B980D363CB0520DC",
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1a2_trial\\re100_s1a2_solved.mph": "9FB19CEE90F994470D22ED825F975B24FA4D41BE96B5EDA28070A2BA34EB4A8B",
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_trial\\re100_s1b1_solved.mph": "43E8D15360DEBF77B63ABA814281802185547257282B539FF7AE3BD31AA36C86",
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_c_20261104_verified\\re100_s1b1_case_c_solved.mph": "D29F8A55695B42B2FC2B351512FBE85FBE1042BDF380700F44FAB402B695C5C2"
+    }
+  },
+  "actual_settings": {
+    "c_solver": {
+      "timemethod": "bdf",
+      "tstepsbdf": "intermediate",
+      "maxorder": "2",
+      "minorder": "1",
+      "rtol": "1e-4",
+      "atolmethod": "comp1_p, scaled, comp1_u, global",
+      "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+      "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+      "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+      "atolglobal": "0.001",
+      "atolglobalfactor": "0.05",
+      "atolglobalmethod": "scaled",
+      "atolglobalvaluemethod": "factor",
+      "maxstepconstraintbdf": "const",
+      "maxstepbdf": "0.05",
+      "initialstepbdf": "0.001",
+      "initialstepbdfactive": "off",
+      "tlist": "range(0, 0.2, 200)"
+    },
+    "d_solver": {
+      "timemethod": "bdf",
+      "tstepsbdf": "intermediate",
+      "maxorder": "2",
+      "minorder": "1",
+      "rtol": "1e-4",
+      "atolmethod": "comp1_p, scaled, comp1_u, global",
+      "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+      "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+      "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+      "atolglobal": "0.001",
+      "atolglobalfactor": "0.05",
+      "atolglobalmethod": "scaled",
+      "atolglobalvaluemethod": "factor",
+      "maxstepconstraintbdf": "const",
+      "maxstepbdf": "0.025",
+      "initialstepbdf": "0.001",
+      "initialstepbdfactive": "off",
+      "tlist": "range(0, 0.2, 200)"
+    },
+    "only_changed_readback": {
+      "maxstepbdf": [
+        "0.05",
+        "0.025"
+      ]
+    },
+    "non_target_equality": {
+      "parameters": true,
+      "components": true,
+      "mesh_details": true,
+      "physics_details": true
+    },
+    "readback_limits": "Component inspection covers physics selections and material tags; it does not enumerate every BC/material property. Unavailable physics fields are retained as UNOBTAINED."
+  },
+  "series_checks": {
+    "lift_coeff.txt": {
+      "shape": [
+        1001,
+        2
+      ],
+      "all_finite": true,
+      "time_range": [
+        0.0,
+        200.0
+      ],
+      "dt_02_verified": true
+    },
+    "drag_coeff.txt": {
+      "shape": [
+        1001,
+        2
+      ],
+      "all_finite": true,
+      "time_range": [
+        0.0,
+        200.0
+      ],
+      "dt_02_verified": true
+    },
+    "wake_u.txt": {
+      "shape": [
+        1001,
+        2
+      ],
+      "all_finite": true,
+      "time_range": [
+        0.0,
+        200.0
+      ],
+      "dt_02_verified": true
+    },
+    "wake_v.txt": {
+      "shape": [
+        1001,
+        2
+      ],
+      "all_finite": true,
+      "time_range": [
+        0.0,
+        200.0
+      ],
+      "dt_02_verified": true
+    },
+    "inlet_u.txt": {
+      "shape": [
+        1001,
+        2
+      ],
+      "all_finite": true,
+      "time_range": [
+        0.0,
+        200.0
+      ],
+      "dt_02_verified": true
+    },
+    "inlet_p.txt": {
+      "shape": [
+        1001,
+        2
+      ],
+      "all_finite": true,
+      "time_range": [
+        0.0,
+        200.0
+      ],
+      "dt_02_verified": true
+    },
+    "stag_p.txt": {
+      "shape": [
+        1001,
+        2
+      ],
+      "all_finite": true,
+      "time_range": [
+        0.0,
+        200.0
+      ],
+      "dt_02_verified": true
+    }
+  },
+  "unit_evidence": {
+    "C": [
+      {
+        "component": "u",
+        "checks": {
+          "unit_m_s": true,
+          "expression_matches_channel": true,
+          "feature_inherits_dataset": true,
+          "dataset_chain": true,
+          "coordinates": true,
+          "file_sha256_matches": true,
+          "model_sha256_matches": true,
+          "all_1001_samples_identical": true
+        },
+        "export_tag": "exp_unit_u",
+        "file_sha256": "C4151CF7220C64E2BFBED9A5EA6957FE524E913BE3CD03F5AF9E58B2060F0486",
+        "original_sha256": "65646CCE8CBBA1AC7648D56B165A73557E47BCA596B4C808B5C8475002FE56B4",
+        "max_abs_difference": 0.0
+      },
+      {
+        "component": "v",
+        "checks": {
+          "unit_m_s": true,
+          "expression_matches_channel": true,
+          "feature_inherits_dataset": true,
+          "dataset_chain": true,
+          "coordinates": true,
+          "file_sha256_matches": true,
+          "model_sha256_matches": true,
+          "all_1001_samples_identical": true
+        },
+        "export_tag": "exp_unit_v",
+        "file_sha256": "4C4D4742E3CF0D20DE264FCB59C6D97A64CAC53D7ABD40723E455E0E3F89616B",
+        "original_sha256": "1C3ACC74AAACCFA5EA51871E92C81219061F5ECDC3E15CFB5803CEEC430E6AAA",
+        "max_abs_difference": 0.0
+      }
+    ],
+    "D": [
+      {
+        "component": "u",
+        "checks": {
+          "unit_m_s": true,
+          "expression_matches_channel": true,
+          "feature_inherits_dataset": true,
+          "dataset_chain": true,
+          "coordinates": true,
+          "file_sha256_matches": true,
+          "model_sha256_matches": true,
+          "all_1001_samples_identical": true
+        },
+        "export_tag": "exp_unit_u",
+        "file_sha256": "496DB737E8818DF306DF6C9EC99109EF208C98C956B96076B1132DAA91065E94",
+        "original_sha256": "496DB737E8818DF306DF6C9EC99109EF208C98C956B96076B1132DAA91065E94",
+        "max_abs_difference": 0.0
+      },
+      {
+        "component": "v",
+        "checks": {
+          "unit_m_s": true,
+          "expression_matches_channel": true,
+          "feature_inherits_dataset": true,
+          "dataset_chain": true,
+          "coordinates": true,
+          "file_sha256_matches": true,
+          "model_sha256_matches": true,
+          "all_1001_samples_identical": true
+        },
+        "export_tag": "exp_unit_v",
+        "file_sha256": "823EA932D8551246523137FAE06AC7936010AF03CFFF969B1AAA38D59E68C2D6",
+        "original_sha256": "823EA932D8551246523137FAE06AC7936010AF03CFFF969B1AAA38D59E68C2D6",
+        "max_abs_difference": 0.0
+      }
+    ]
+  },
+  "cycle_reanalysis": {
+    "C": {
+      "status": "STABLE",
+      "num_cycles": 5,
+      "window": [
+        168.15213926684655,
+        199.31974477839887
+      ],
+      "stability_drifts": {
+        "st_drift_pct": 0.01387319453070598,
+        "amp_drift_pct": 0.11382239059280155,
+        "cd_drift_pct": 0.0011100248801012564
+      },
+      "St_zc_mean": 0.15949622913812228,
+      "Cd_mean": 1.3469625042153146,
+      "Cl_amp_mean": 0.31297616455782606,
+      "Cl_demeaned_rms": 0.22152675865412097
+    },
+    "D": {
+      "status": "STABLE",
+      "num_cycles": 5,
+      "window": [
+        168.0405906364966,
+        199.19152139246708
+      ],
+      "stability_drifts": {
+        "st_drift_pct": 0.006619761031895928,
+        "amp_drift_pct": 0.13320119046265,
+        "cd_drift_pct": 0.0020845010284121605
+      },
+      "St_zc_mean": 0.15958160541784727,
+      "Cd_mean": 1.3469333786339484,
+      "Cl_amp_mean": 0.31321169264933973,
+      "Cl_demeaned_rms": 0.22173343876745283
+    }
+  },
+  "independent_four_metric_arithmetic": {
+    "St_zc": {
+      "C": 0.15949622913812228,
+      "D": 0.15958160541784727,
+      "relative_change_percent": 0.05352871361683179,
+      "within_1_percent": true
+    },
+    "Cd_mean": {
+      "C": 1.3469625042153146,
+      "D": 1.3469333786339484,
+      "relative_change_percent": -0.0021623156750914183,
+      "within_1_percent": true
+    },
+    "Cl_amp": {
+      "C": 0.31297616455782606,
+      "D": 0.31321169264933973,
+      "relative_change_percent": 0.0752543222728879,
+      "within_1_percent": true
+    },
+    "Cl_rms": {
+      "C": 0.22152675865412097,
+      "D": 0.22173343876745283,
+      "relative_change_percent": 0.09329803522948525,
+      "within_1_percent": true
+    }
+  },
+  "acceptance_consistent": true,
+  "audit_status": "PASS"
+}

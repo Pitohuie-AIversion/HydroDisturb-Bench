@@ -1,0 +1,42 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 32 items
+
+tests/test_re100_s1b1_case_d.py::test_case_d_log_accepts_adaptive_steps_below_cap PASSED [  3%]
+tests/test_re100_s1b1_case_d.py::test_case_d_log_rejects_invalid_internal_step_evidence[over_cap] PASSED [  6%]
+tests/test_re100_s1b1_case_d.py::test_case_d_log_rejects_invalid_internal_step_evidence[gap] PASSED [  9%]
+tests/test_re100_s1b1_case_d.py::test_case_d_log_rejects_invalid_internal_step_evidence[duplicate] PASSED [ 12%]
+tests/test_re100_s1b1_case_d.py::test_case_d_log_rejects_invalid_internal_step_evidence[time_reversal] PASSED [ 15%]
+tests/test_re100_s1b1_case_d.py::test_case_d_log_rejects_invalid_internal_step_evidence[truncated] PASSED [ 18%]
+tests/test_re100_s1b1_case_d.py::test_case_d_log_rejects_invalid_internal_step_evidence[short_tail] PASSED [ 21%]
+tests/test_re100_s1b1_case_d.py::test_case_d_actual_settings_accept_only_target_cap_change PASSED [ 25%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_actual_noncompliant_settings[wrong_cap] PASSED [ 28%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_actual_noncompliant_settings[auto_mode] PASSED [ 31%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_actual_noncompliant_settings[rtol] PASSED [ 34%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_actual_noncompliant_settings[atol] PASSED [ 37%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_actual_noncompliant_settings[output_schedule] PASSED [ 40%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_actual_noncompliant_settings[mesh] PASSED [ 43%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_actual_noncompliant_settings[initial_condition] PASSED [ 46%]
+tests/test_re100_s1b1_case_d.py::test_case_d_rejects_changed_model_parameter PASSED [ 50%]
+tests/test_re100_s1b1_case_d.py::test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[St_zc_mean] PASSED [ 53%]
+tests/test_re100_s1b1_case_d.py::test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[Cd_mean] PASSED [ 56%]
+tests/test_re100_s1b1_case_d.py::test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[Cl_amp_mean] PASSED [ 59%]
+tests/test_re100_s1b1_case_d.py::test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[Cl_demeaned_rms] PASSED [ 62%]
+tests/test_re100_s1b1_case_d.py::test_case_d_requires_both_cases_stable_with_five_complete_cycles[unstable-C] PASSED [ 65%]
+tests/test_re100_s1b1_case_d.py::test_case_d_requires_both_cases_stable_with_five_complete_cycles[unstable-D] PASSED [ 68%]
+tests/test_re100_s1b1_case_d.py::test_case_d_requires_both_cases_stable_with_five_complete_cycles[insufficient_cycles-C] PASSED [ 71%]
+tests/test_re100_s1b1_case_d.py::test_case_d_requires_both_cases_stable_with_five_complete_cycles[insufficient_cycles-D] PASSED [ 75%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_solves_only_c_into_new_directory_with_only_cap_override PASSED [ 78%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_refuses_existing_output_before_external_calls PASSED [ 81%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_rejects_bad_c_evidence_before_solving[precheck] PASSED [ 84%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_rejects_bad_c_evidence_before_solving[source_cap] PASSED [ 87%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_rejects_bad_c_evidence_before_solving[source_mode] PASSED [ 90%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_rejects_bad_c_evidence_before_solving[source_rtol] PASSED [ 93%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_reports_sensitive_result_without_promoting_to_pass PASSED [ 96%]
+tests/test_re100_s1b1_case_d.py::test_case_d_entry_persists_failed_stability_gate PASSED [100%]
+
+============================= 32 passed in 0.95s ==============================
