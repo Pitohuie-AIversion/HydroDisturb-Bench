@@ -1,0 +1,164 @@
+{
+  "can_compare": true,
+  "conclusion": "INSENSITIVE_WITHIN_TESTED_RANGE",
+  "scientific_summary": "Tightening solver tolerance strategy by 10x (rtol 1e-3 -> 1e-4) resulted in 2.08x internal steps (2688 vs 1290) and 2.14x compute time (162.37s vs 75.75996589660645s). Over the last 5 verified stable cycles, all 4 physical indicators changed by: St: +0.5929% (tol 1.0%), Mean Cd: +0.0166% (tol 1.0%), Lift Amplitude: +0.5556% (tol 1.0%), De-meaned RMS: +0.5265% (tol 1.0%). Overall Conclusion: INSENSITIVE_WITHIN_TESTED_RANGE (Sensitive reasons: None). Note: Insensitivity within this tested tolerance range does NOT imply full time-step independence or grid independence; subsequent tests must evaluate explicit internal step constraints.",
+  "participating_metrics": [
+    "St_zc",
+    "Cd_mean",
+    "Cl_amp",
+    "Cl_rms"
+  ],
+  "thresholds_pct": {
+    "st_tol_pct": 1.0,
+    "cd_tol_pct": 1.0,
+    "amp_tol_pct": 1.0,
+    "rms_tol_pct": 1.0
+  },
+  "sensitive_reasons": [],
+  "comparisons": {
+    "St_zc": {
+      "case_a": 0.15848939658642586,
+      "case_b": 0.15942904890376935,
+      "rel_diff_pct": 0.5928802415694076
+    },
+    "St_peaks": {
+      "case_a": 0.1584873701554395,
+      "case_b": 0.1594258366510994,
+      "rel_diff_pct": 0.5921396100771198
+    },
+    "Cd_mean": {
+      "case_a": 1.346768567763446,
+      "case_b": 1.3469922501866713,
+      "rel_diff_pct": 0.016608824157279805
+    },
+    "Cl_amp": {
+      "case_a": 0.31106085653369325,
+      "case_b": 0.312789185200971,
+      "rel_diff_pct": 0.5556239658494371
+    },
+    "Cl_rms": {
+      "case_a": 0.22025424692254417,
+      "case_b": 0.22141388496355266,
+      "rel_diff_pct": 0.5264997416446174
+    }
+  },
+  "case_a": {
+    "name": "Case A (Baseline, rtol = 1e-3)",
+    "trial_dir": "runs\\re100_s1a2_trial",
+    "status": "STABLE",
+    "is_stable": true,
+    "stability_message": "Stable",
+    "window": [
+      163.57602348033575,
+      194.94162676458825
+    ],
+    "duration_sec": 31.3656032842525,
+    "num_cycles": 5,
+    "St_zc_mean": 0.15848939658642586,
+    "St_zc_range": [
+      0.1584884602740632,
+      0.15849034127838202
+    ],
+    "St_peaks_mean": 0.1584873701554395,
+    "St_peaks_range": [
+      0.15847774634215225,
+      0.15849726337743364
+    ],
+    "Cd_mean": 1.346768567763446,
+    "cycle_cds": [
+      1.3467670118374653,
+      1.34676762447238,
+      1.3467696182161124,
+      1.34676909975024,
+      1.3467694845502078
+    ],
+    "Cl_amp_mean": 0.31106085653369325,
+    "cycle_amps": [
+      0.31082465342885,
+      0.3113882793276731,
+      0.3109399526934662,
+      0.310712942080486,
+      0.31143845513799095
+    ],
+    "Cl_demeaned_rms": 0.22025424692254417,
+    "sinusoidal_ratio": 1.0013684995250927,
+    "stability_drifts": {
+      "st_drift_pct": 0.0011868328480829713,
+      "amp_drift_pct": 0.23323830120887315,
+      "cd_drift_pct": 0.000193528324725797
+    },
+    "step_info": {
+      "step_count": 1290,
+      "late_dt_mean": 0.1458,
+      "late_dt_range": [
+        0.08,
+        0.2
+      ],
+      "source": "S1-A2 documented run record"
+    },
+    "solve_wall_clock_sec": 75.75996589660645
+  },
+  "case_b": {
+    "name": "Case B (Tightened, rtol = 1e-4)",
+    "trial_dir": "runs\\re100_s1b1_trial",
+    "status": "STABLE",
+    "is_stable": true,
+    "stability_message": "Stable",
+    "window": [
+      162.63503503718724,
+      193.8157739362172
+    ],
+    "duration_sec": 31.18073889902996,
+    "num_cycles": 5,
+    "St_zc_mean": 0.15942904890376935,
+    "St_zc_range": [
+      0.15942019606494046,
+      0.15943669222834492
+    ],
+    "St_peaks_mean": 0.1594258366510994,
+    "St_peaks_range": [
+      0.1593718992902507,
+      0.15946778304192707
+    ],
+    "Cd_mean": 1.3469922501866713,
+    "cycle_cds": [
+      1.3469868829331029,
+      1.34700030561203,
+      1.3469986293433311,
+      1.3469929851065536,
+      1.3469824486927344
+    ],
+    "Cl_amp_mean": 0.312789185200971,
+    "cycle_amps": [
+      0.31256280055997443,
+      0.3130043406412112,
+      0.3129783695514895,
+      0.31255226958822213,
+      0.31284814566395763
+    ],
+    "Cl_demeaned_rms": 0.22141388496355266,
+    "sinusoidal_ratio": 1.0010784701906645,
+    "stability_drifts": {
+      "st_drift_pct": 0.010347103418276375,
+      "amp_drift_pct": 0.1445289908916111,
+      "cd_drift_pct": 0.0013256883468485458
+    },
+    "step_info": {
+      "step_count": 2688,
+      "late_dt_mean": 0.062762,
+      "late_dt_range": [
+        0.062762,
+        0.062762
+      ]
+    },
+    "solve_wall_clock_sec": 162.37
+  },
+  "computational_cost": {
+    "steps_a": 1290,
+    "steps_b": 2688,
+    "step_ratio": "2.08x",
+    "time_a_sec": 75.75996589660645,
+    "time_b_sec": 162.37,
+    "time_ratio": "2.14x"
+  }
+}

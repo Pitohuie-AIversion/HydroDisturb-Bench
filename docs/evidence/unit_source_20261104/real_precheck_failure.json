@@ -1,0 +1,25 @@
+{
+  "precheck_a_wake_probe": {
+    "is_valid": false,
+    "status": "FAIL",
+    "errors": [
+      "[COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):\nSTDOUT:\n\nERROR: Failed to start COMSOL. For details, see the log file C:\\Users\\Administrator\\.comsol\\v64\\logs\\batch5.log\nERROR: Additional information: com/comsol/nativejni/FlNativeException\n\nSTDERR:\n"
+    ],
+    "unit": "unknown",
+    "unit_source": "none",
+    "comparison_table": [],
+    "probe_coordinates_m": [
+      null,
+      null
+    ]
+  },
+  "precheck_b_solver_model": {
+    "status": "UNVERIFIED",
+    "solver_details": {},
+    "mesh_details": {},
+    "physics_details": {},
+    "tolerance_coupling_noted": "comp1_u absolute tolerance is tied to rtol with factor 0.1 and global atol (atolglobalfactor=0.05, method=scaled)"
+  },
+  "overall_prechecks_status": "FAIL",
+  "report_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\s1b1_prechecks_qfj4486g\\report.json"
+}

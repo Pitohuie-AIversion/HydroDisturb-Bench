@@ -1,0 +1,310 @@
+2026-11-04T18:07:39.078+0800 INFO     Loggers starting up... [com.comsol.logger]
+2026-11-04T18:07:39.080+0800 INFO     File logger initialized. [com.comsol.logger]
+2026-11-04T18:07:39.082+0800 INFO     Loggers registered with log service. [com.comsol.logger]
+2026-11-04T18:07:39.084+0800 INFO     Configured log levels with logger admin. [com.comsol.logger]
+2026-11-04T18:07:39.086+0800 INFO     Loggers completed starting. [com.comsol.logger]
+2026-11-04T18:07:39.088+0800 INFO     BundleEvent STARTED [com.comsol.logger]
+2026-11-04T18:07:39.102+0800 INFO     COMSOL 6.4.0.429 starting. [com.comsol.util]
+2026-11-04T18:07:39.650+0800 INFO     Path=D:\Program Files\COMSOL64\Multiphysics\bin\win64;D:\Program Files\COMSOL64\Multiphysics\lib\win64;D:\Program Files\COMSOL64\Multiphysics\ext\cadimport\win64;D:\Program Files\COMSOL64\Multiphysics\ext\dcm\win64;D:\Program Files\COMSOL64\Multiphysics\ext\dnn\win64;D:/Program Files/COMSOL64/Multiphysics/bin/win64//../../java/win64/jre/bin/server;D:/Program Files/COMSOL64/Multiphysics/bin/win64//../../java/win64/jre/bin;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell;C:\Users\Administrator\.codex\tmp\arg0-windows\codex-arg0dhRFwV;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\libheif\libheif\bin;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\jxrlib\jxrlib\bin;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\poppler\Library\bin;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\bin\override;C:\Program Files\YunShu\utils;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\Common Files\NSEC\;C:\Program Files (x86)\Common Files\NSEC\x64;C:\Program Files\dotnet\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Bandizip\;D:\Program Files (x86)\Tencent\?D?web?a¡¤¡é??¡è??;;D:\Program Files\Git\cmd;C:\Users\Administrator\.local\bin;C:\Users\Administrator\.agi-tools\bin;D:\Program Files\Anaconda;D:\Program Files\Anaconda\Scripts;D:\Program Files\Anaconda\Library\bin;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;D:\Program Files\Antigravity IDE\bin;D:\Program Files\Microsoft VS Code\bin;C:\Users\Administrator\AppData\Local\Programs\Antigravity IDE\bin;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\bin\fallback;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin;C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd;C:\Users\Administrator\AppData\Local\OpenAI\Codex\bin\85e840bd9ad04c3b;C:\Users\Administrator\AppData\Local\OpenAI\Codex\bin\a159911ff70742e9;D:\?? 01_Workspaces (¡䨲??¨®?3¨¬??)\Hy [com.comsol.util]
+2026-11-04T18:07:39.652+0800 INFO     BundleEvent STARTING [com.comsol.batch]
+2026-11-04T18:07:39.653+0800 INFO     BundleEvent STARTED [com.comsol.batch]
+2026-11-04T18:07:39.654+0800 INFO     BundleEvent STARTING [org.eclipse.core.resources]
+2026-11-04T18:07:39.655+0800 INFO     ServiceEvent REGISTERED [org.eclipse.core.resources] {org.eclipse.osgi.service.debug.DebugOptionsListener}
+2026-11-04T18:07:39.656+0800 INFO     BundleEvent STARTING [org.eclipse.core.jobs]
+2026-11-04T18:07:39.666+0800 INFO     ServiceEvent REGISTERED [org.eclipse.core.jobs] {org.eclipse.osgi.service.debug.DebugOptionsListener}
+2026-11-04T18:07:39.667+0800 INFO     ServiceEvent REGISTERED [org.eclipse.core.jobs] {org.eclipse.core.runtime.jobs.IJobManager}
+2026-11-04T18:07:39.668+0800 INFO     BundleEvent STARTED [org.eclipse.core.jobs]
+2026-11-04T18:07:39.813+0800 INFO     BundleEvent STARTING [org.eclipse.core.filesystem]
+2026-11-04T18:07:39.814+0800 INFO     BundleEvent STARTED [org.eclipse.core.filesystem]
+2026-11-04T18:07:39.816+0800 INFO     ServiceEvent REGISTERED [org.eclipse.core.resources] {org.eclipse.core.resources.IWorkspace}
+2026-11-04T18:07:39.817+0800 INFO     ServiceEvent REGISTERED [org.eclipse.core.resources] {org.eclipse.core.resources.IResourceChangeListener}
+2026-11-04T18:07:39.831+0800 INFO     BundleEvent STARTED [org.eclipse.core.resources]
+2026-11-04T18:07:39.837+0800 INFO     BundleEvent STARTING [com.comsol.nativeutil]
+2026-11-04T18:07:39.838+0800 INFO     BundleEvent STARTED [com.comsol.nativeutil]
+2026-11-04T18:07:39.841+0800 INFO     BundleEvent STARTING [com.comsol.nativejni]
+2026-11-04T18:07:39.865+0800 INFO     BundleEvent STOPPING [com.comsol.nativejni]
+2026-11-04T18:07:39.867+0800 INFO     BundleEvent STOPPED [com.comsol.nativejni]
+2026-11-04T18:07:39.869+0800 ERROR    An error occurred while automatically activating bundle com.comsol.nativejni (113). [org.eclipse.osgi]
+org.osgi.framework.BundleException: Exception in com.comsol.nativejni.internal.CsPlugin.start() of bundle com.comsol.nativejni.
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:847)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.start(BundleContextImpl.java:768)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle.startWorker0(EquinoxBundle.java:1066)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle$EquinoxModule.startWorker(EquinoxBundle.java:394)
+	at org.eclipse.osgi.container.Module.doStart(Module.java:643)
+	at org.eclipse.osgi.container.Module.start(Module.java:500)
+	at org.eclipse.osgi.framework.util.SecureAction.start(SecureAction.java:528)
+	at org.eclipse.osgi.internal.hooks.EclipseLazyStarter.postFindLocalClass(EclipseLazyStarter.java:122)
+	at org.eclipse.osgi.internal.loader.classpath.ClasspathManager.findLocalClass(ClasspathManager.java:622)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.findLocalClass(ModuleClassLoader.java:353)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findLocalClass(BundleLoader.java:417)
+	at org.eclipse.osgi.internal.loader.sources.SingleSourcePackage.loadClass(SingleSourcePackage.java:41)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass0(BundleLoader.java:521)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass(BundleLoader.java:438)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.loadClass(ModuleClassLoader.java:195)
+	at java.base/java.lang.ClassLoader.loadClass(Unknown Source)
+	at com.comsol.batch.BatchApplication.doStart(SourceFile:191)
+	at com.comsol.util.application.ComsolApplication.doStart(SourceFile:271)
+	at com.comsol.util.application.CsBaseApplication.start(SourceFile:190)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:219)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:149)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:115)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:467)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:298)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:627)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:575)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1431)
+Caused by: java.lang.UnsatisfiedLinkError: D:\Program Files\COMSOL64\Multiphysics\lib\win64\csutil.dll: Can't find dependent libraries
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/java.lang.ClassLoader.loadLibrary(Unknown Source)
+	at java.base/java.lang.Runtime.load0(Unknown Source)
+	at java.base/java.lang.System.load(Unknown Source)
+	at com.comsol.nativejni.FlNativeUtil.a(SourceFile:239)
+	at com.comsol.nativejni.FlNativeUtil.loadLibrary(SourceFile:220)
+	at com.comsol.nativejni.FlNativeUtil.ensureLibIsLoaded(SourceFile:51)
+	at com.comsol.nativejni.internal.CsPlugin.doStart(SourceFile:51)
+	at com.comsol.util.classes.CsAbstractPlugin.start(SourceFile:76)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:826)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:1)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:818)
+	... 28 more
+
+
+2026-11-04T18:07:39.873+0800 INFO     BundleEvent STARTING [com.comsol.cluster]
+2026-11-04T18:07:39.874+0800 INFO     BundleEvent STARTED [com.comsol.cluster]
+2026-11-04T18:07:39.985+0800 ERROR
+!ENTRY com.comsol.util 4 0 2026-11-04 18:07:39.984
+!MESSAGE Failed to start COMSOL. Error: com/comsol/nativejni/FlNativeException
+!STACK 0
+java.lang.NoClassDefFoundError: com/comsol/nativejni/FlNativeException
+	at com.comsol.batch.BatchApplication.doStart(SourceFile:191)
+	at com.comsol.util.application.ComsolApplication.doStart(SourceFile:271)
+	at com.comsol.util.application.CsBaseApplication.start(SourceFile:190)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:219)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:149)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:115)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:467)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:298)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:627)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:575)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1431)
+Caused by: java.lang.ClassNotFoundException: An error occurred while automatically activating bundle com.comsol.nativejni (113).
+	at org.eclipse.osgi.internal.hooks.EclipseLazyStarter.postFindLocalClass(EclipseLazyStarter.java:133)
+	at org.eclipse.osgi.internal.loader.classpath.ClasspathManager.findLocalClass(ClasspathManager.java:622)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.findLocalClass(ModuleClassLoader.java:353)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findLocalClass(BundleLoader.java:417)
+	at org.eclipse.osgi.internal.loader.sources.SingleSourcePackage.loadClass(SingleSourcePackage.java:41)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass0(BundleLoader.java:521)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass(BundleLoader.java:438)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.loadClass(ModuleClassLoader.java:195)
+	at java.base/java.lang.ClassLoader.loadClass(Unknown Source)
+	... 13 more
+Caused by: org.osgi.framework.BundleException: Exception in com.comsol.nativejni.internal.CsPlugin.start() of bundle com.comsol.nativejni.
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:847)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.start(BundleContextImpl.java:768)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle.startWorker0(EquinoxBundle.java:1066)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle$EquinoxModule.startWorker(EquinoxBundle.java:394)
+	at org.eclipse.osgi.container.Module.doStart(Module.java:643)
+	at org.eclipse.osgi.container.Module.start(Module.java:500)
+	at org.eclipse.osgi.framework.util.SecureAction.start(SecureAction.java:528)
+	at org.eclipse.osgi.internal.hooks.EclipseLazyStarter.postFindLocalClass(EclipseLazyStarter.java:122)
+	... 21 more
+Caused by: java.lang.UnsatisfiedLinkError: D:\Program Files\COMSOL64\Multiphysics\lib\win64\csutil.dll: Can't find dependent libraries
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/java.lang.ClassLoader.loadLibrary(Unknown Source)
+	at java.base/java.lang.Runtime.load0(Unknown Source)
+	at java.base/java.lang.System.load(Unknown Source)
+	at com.comsol.nativejni.FlNativeUtil.a(SourceFile:239)
+	at com.comsol.nativejni.FlNativeUtil.loadLibrary(SourceFile:220)
+	at com.comsol.nativejni.FlNativeUtil.ensureLibIsLoaded(SourceFile:51)
+	at com.comsol.nativejni.internal.CsPlugin.doStart(SourceFile:51)
+	at com.comsol.util.classes.CsAbstractPlugin.start(SourceFile:76)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:826)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:1)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:818)
+	... 28 more
+ [com.comsol.logger]
+2026-11-04T18:07:39.988+0800 ERROR    Failed to start COMSOL. Error: com/comsol/nativejni/FlNativeException [com.comsol.util]
+java.lang.NoClassDefFoundError: com/comsol/nativejni/FlNativeException
+	at com.comsol.batch.BatchApplication.doStart(SourceFile:191)
+	at com.comsol.util.application.ComsolApplication.doStart(SourceFile:271)
+	at com.comsol.util.application.CsBaseApplication.start(SourceFile:190)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:219)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:149)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:115)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:467)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:298)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:627)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:575)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1431)
+Caused by: java.lang.ClassNotFoundException: An error occurred while automatically activating bundle com.comsol.nativejni (113).
+	at org.eclipse.osgi.internal.hooks.EclipseLazyStarter.postFindLocalClass(EclipseLazyStarter.java:133)
+	at org.eclipse.osgi.internal.loader.classpath.ClasspathManager.findLocalClass(ClasspathManager.java:622)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.findLocalClass(ModuleClassLoader.java:353)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findLocalClass(BundleLoader.java:417)
+	at org.eclipse.osgi.internal.loader.sources.SingleSourcePackage.loadClass(SingleSourcePackage.java:41)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass0(BundleLoader.java:521)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass(BundleLoader.java:438)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.loadClass(ModuleClassLoader.java:195)
+	at java.base/java.lang.ClassLoader.loadClass(Unknown Source)
+	... 13 more
+Caused by: org.osgi.framework.BundleException: Exception in com.comsol.nativejni.internal.CsPlugin.start() of bundle com.comsol.nativejni.
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:847)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.start(BundleContextImpl.java:768)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle.startWorker0(EquinoxBundle.java:1066)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle$EquinoxModule.startWorker(EquinoxBundle.java:394)
+	at org.eclipse.osgi.container.Module.doStart(Module.java:643)
+	at org.eclipse.osgi.container.Module.start(Module.java:500)
+	at org.eclipse.osgi.framework.util.SecureAction.start(SecureAction.java:528)
+	at org.eclipse.osgi.internal.hooks.EclipseLazyStarter.postFindLocalClass(EclipseLazyStarter.java:122)
+	... 21 more
+Caused by: java.lang.UnsatisfiedLinkError: D:\Program Files\COMSOL64\Multiphysics\lib\win64\csutil.dll: Can't find dependent libraries
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/java.lang.ClassLoader.loadLibrary(Unknown Source)
+	at java.base/java.lang.Runtime.load0(Unknown Source)
+	at java.base/java.lang.System.load(Unknown Source)
+	at com.comsol.nativejni.FlNativeUtil.a(SourceFile:239)
+	at com.comsol.nativejni.FlNativeUtil.loadLibrary(SourceFile:220)
+	at com.comsol.nativejni.FlNativeUtil.ensureLibIsLoaded(SourceFile:51)
+	at com.comsol.nativejni.internal.CsPlugin.doStart(SourceFile:51)
+	at com.comsol.util.classes.CsAbstractPlugin.start(SourceFile:76)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:826)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:1)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:818)
+	... 28 more
+
+
+2026-11-04T18:07:39.990+0800 INFO     ServiceEvent UNREGISTERING [org.eclipse.equinox.app] {org.osgi.service.application.ApplicationHandle, org.eclipse.equinox.app.IApplicationContext}
+2026-11-04T18:07:39.991+0800 INFO     ServiceEvent UNREGISTERING [org.eclipse.osgi] {org.eclipse.osgi.service.runnable.ApplicationLauncher}
+2026-11-04T18:07:39.992+0800 INFO     ServiceEvent UNREGISTERING [org.eclipse.osgi] {org.eclipse.osgi.service.runnable.StartupMonitor}
+2026-11-04T18:07:39.994+0800 INFO     BundleEvent STOPPING [org.eclipse.osgi]
+2026-11-04T18:07:39.997+0800 INFO     BundleEvent STOPPING [com.comsol.guidb]
+2026-11-04T18:07:39.998+0800 INFO     BundleEvent STOPPED [com.comsol.guidb]
+2026-11-04T18:07:39.999+0800 INFO     BundleEvent STOPPING [com.comsol.dbmodel]
+2026-11-04T18:07:40.000+0800 INFO     BundleEvent STOPPED [com.comsol.dbmodel]
+2026-11-04T18:07:40.001+0800 INFO     BundleEvent STOPPING [com.comsol.extbridge]
+2026-11-04T18:07:40.002+0800 INFO     BundleEvent STOPPED [com.comsol.extbridge]
+2026-11-04T18:07:40.003+0800 INFO     BundleEvent STOPPING [com.comsol.bridge]
+2026-11-04T18:07:40.004+0800 INFO     BundleEvent STOPPED [com.comsol.bridge]
+2026-11-04T18:07:40.005+0800 INFO     BundleEvent STOPPING [com.comsol.guigeommesh]
+2026-11-04T18:07:40.006+0800 INFO     BundleEvent STOPPED [com.comsol.guigeommesh]
+2026-11-04T18:07:40.008+0800 INFO     BundleEvent STOPPING [com.comsol.guipost]
+2026-11-04T18:07:40.008+0800 INFO     Loggers un-registered with log service. [com.comsol.logger]
+2026-11-04T18:07:40.010+0800 INFO     BundleEvent STOPPED [com.comsol.guipost]
+2026-11-04T18:07:40.010+0800 INFO     Logger admin removed. [com.comsol.logger]
+2026-11-04T18:07:40.011+0800 INFO     BundleEvent STOPPING [com.comsol.guitdp]
+2026-11-04T18:07:40.011+0800 INFO     BundleEvent STOPPED [com.comsol.guitdp]
+2026-11-04T18:07:40.014+0800 INFO     BundleEvent STOPPING [com.comsol.guimph]
+2026-11-04T18:07:40.015+0800 INFO     BundleEvent STOPPED [com.comsol.guimph]
+2026-11-04T18:07:40.016+0800 INFO     BundleEvent STOPPING [com.comsol.batch]
+2026-11-04T18:07:40.018+0800 INFO     BundleEvent STOPPED [com.comsol.batch]
+2026-11-04T18:07:40.019+0800 INFO     BundleEvent STOPPING [com.comsol.post]
+2026-11-04T18:07:40.020+0800 INFO     BundleEvent STOPPED [com.comsol.post]
+2026-11-04T18:07:40.022+0800 INFO     BundleEvent STOPPING [com.comsol.cluster]
+2026-11-04T18:07:40.024+0800 ERROR    An abort error occurred on node 0. [com.comsol.cluster]
+java.lang.NoClassDefFoundError: com/comsol/nativejni/FlNativeUtil
+	at com.comsol.cluster.a.B(SourceFile:376)
+	at com.comsol.cluster.a.h(SourceFile:355)
+	at com.comsol.cluster.internal.CsPlugin.doStop(SourceFile:59)
+	at com.comsol.util.classes.CsAbstractPlugin.stop(SourceFile:110)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$3.run(BundleContextImpl.java:896)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$3.run(BundleContextImpl.java:1)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.stop(BundleContextImpl.java:888)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle.stopWorker0(EquinoxBundle.java:1080)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle$EquinoxModule.stopWorker(EquinoxBundle.java:399)
+	at org.eclipse.osgi.container.Module.doStop(Module.java:699)
+	at org.eclipse.osgi.container.Module.stop(Module.java:557)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.decStartLevel(ModuleContainer.java:2153)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:2022)
+	at org.eclipse.osgi.container.SystemModule.stopWorker(SystemModule.java:281)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle$SystemBundle$EquinoxSystemModule.stopWorker(EquinoxBundle.java:225)
+	at org.eclipse.osgi.container.Module.doStop(Module.java:699)
+	at org.eclipse.osgi.container.Module.stop(Module.java:557)
+	at org.eclipse.osgi.container.SystemModule.stop(SystemModule.java:212)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle$SystemBundle$EquinoxSystemModule$1.run(EquinoxBundle.java:244)
+	at java.base/java.lang.Thread.run(Unknown Source)
+Caused by: java.lang.ClassNotFoundException: An error occurred while automatically activating bundle com.comsol.nativejni (113).
+	at org.eclipse.osgi.internal.hooks.EclipseLazyStarter.postFindLocalClass(EclipseLazyStarter.java:133)
+	at org.eclipse.osgi.internal.loader.classpath.ClasspathManager.findLocalClass(ClasspathManager.java:622)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.findLocalClass(ModuleClassLoader.java:353)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findLocalClass(BundleLoader.java:417)
+	at org.eclipse.osgi.internal.loader.sources.SingleSourcePackage.loadClass(SingleSourcePackage.java:41)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass0(BundleLoader.java:521)
+	at org.eclipse.osgi.internal.loader.BundleLoader.findClass(BundleLoader.java:438)
+	at org.eclipse.osgi.internal.loader.ModuleClassLoader.loadClass(ModuleClassLoader.java:195)
+	at java.base/java.lang.ClassLoader.loadClass(Unknown Source)
+	at com.comsol.batch.BatchApplication.doStart(SourceFile:191)
+	at com.comsol.util.application.ComsolApplication.doStart(SourceFile:271)
+	at com.comsol.util.application.CsBaseApplication.start(SourceFile:190)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:219)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:149)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:115)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:467)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:298)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:627)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:575)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1431)
+Caused by: org.osgi.framework.BundleException: Exception in com.comsol.nativejni.internal.CsPlugin.start() of bundle com.comsol.nativejni.
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:847)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.start(BundleContextImpl.java:768)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle.startWorker0(EquinoxBundle.java:1066)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle$EquinoxModule.startWorker(EquinoxBundle.java:394)
+	at org.eclipse.osgi.container.Module.doStart(Module.java:643)
+	at org.eclipse.osgi.container.Module.start(Module.java:500)
+	at org.eclipse.osgi.framework.util.SecureAction.start(SecureAction.java:528)
+	at org.eclipse.osgi.internal.hooks.EclipseLazyStarter.postFindLocalClass(EclipseLazyStarter.java:122)
+	... 21 more
+Caused by: java.lang.UnsatisfiedLinkError: D:\Program Files\COMSOL64\Multiphysics\lib\win64\csutil.dll: Can't find dependent libraries
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(Unknown Source)
+	at java.base/java.lang.ClassLoader.loadLibrary(Unknown Source)
+	at java.base/java.lang.Runtime.load0(Unknown Source)
+	at java.base/java.lang.System.load(Unknown Source)
+	at com.comsol.nativejni.FlNativeUtil.a(SourceFile:239)
+	at com.comsol.nativejni.FlNativeUtil.loadLibrary(SourceFile:220)
+	at com.comsol.nativejni.FlNativeUtil.ensureLibIsLoaded(SourceFile:51)
+	at com.comsol.nativejni.internal.CsPlugin.doStart(SourceFile:51)
+	at com.comsol.util.classes.CsAbstractPlugin.start(SourceFile:76)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:826)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl$2.run(BundleContextImpl.java:1)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at org.eclipse.osgi.internal.framework.BundleContextImpl.startActivator(BundleContextImpl.java:818)
+	... 28 more
+
+
+2026-11-04T18:07:40.025+0800 INFO     BundleEvent STOPPED [com.comsol.cluster]
+2026-11-04T18:07:40.026+0800 INFO     BundleEvent STOPPING [com.comsol.geommesh]
+2026-11-04T18:07:40.028+0800 INFO     BundleEvent STOPPED [com.comsol.geommesh]
+2026-11-04T18:07:40.029+0800 INFO     BundleEvent STOPPING [com.comsol.guigraphics]
+2026-11-04T18:07:40.030+0800 INFO     BundleEvent STOPPED [com.comsol.guigraphics]
+2026-11-04T18:07:40.032+0800 INFO     BundleEvent STOPPING [com.comsol.model]
+2026-11-04T18:07:40.033+0800 INFO     BundleEvent STOPPED [com.comsol.model]
+2026-11-04T18:07:40.034+0800 INFO     BundleEvent STOPPING [com.comsol.guiswt]
+2026-11-04T18:07:40.035+0800 INFO     BundleEvent STOPPED [com.comsol.guiswt]
+2026-11-04T18:07:40.036+0800 INFO     BundleEvent STOPPING [com.comsol.gui]
+2026-11-04T18:07:40.038+0800 INFO     BundleEvent STOPPED [com.comsol.gui]
+2026-11-04T18:07:40.039+0800 INFO     BundleEvent STOPPING [com.comsol.loader]
+2026-11-04T18:07:40.040+0800 INFO     BundleEvent STOPPED [com.comsol.loader]
+2026-11-04T18:07:40.041+0800 INFO     BundleEvent STOPPING [com.comsol.logger]

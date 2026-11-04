@@ -3,7 +3,8 @@
 Executes and verifies:
 Pre-check A: Wake Probe verification at (0.15 m, 0.12 m), expressions u, v,
 unit m/s, solution dataset dset1, comparing direct COMSOL numerical evaluation
-against existing wake_u.txt and wake_v.txt.
+against existing wake_u.txt and wake_v.txt; when headers omit units, re-export
+from the saved solution and bind the same-session node evidence to matching samples.
 Pre-check B: Solver settings and model consistency readback (BDF orders,
 tolerance strategy, scaling, step constraints, mesh stats, discretization).
 """
@@ -14,6 +15,7 @@ import json
 import math
 import re
 import sys
+import tempfile
 from pathlib import Path
 import numpy as np
 
@@ -29,13 +31,12 @@ SRC_DIR = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from hydro_disturb_bench.comsol_java.bridge import inspect_probe_and_solver
+from hydro_disturb_bench.comsol_java.bridge import compute_file_hash, inspect_probe_and_solver
 from hydro_disturb_bench.io import load_comsol_1d_timeseries
 
 SOLVED_MODEL = Path("runs/re100_s1a2_trial/re100_s1a2_solved.mph").resolve()
 WAKE_U_TXT = Path("runs/re100_s1a2_trial/wake_u.txt").resolve()
 WAKE_V_TXT = Path("runs/re100_s1a2_trial/wake_v.txt").resolve()
-OUT_JSON = Path("scratch/s1b1_prechecks_report.json").resolve()
 
 
 def validate_probe_config(
@@ -128,40 +129,22 @@ def parse_probe_channel_metadata(
     # Priority A: Check if header contains explicit velocity unit
     unit = ""
     unit_source = ""
-    bracket_tokens = re.findall(r'[\(\[]([^\)\]]+)[\)\]]', header)
-    for tok in bracket_tokens:
-        tok_clean = tok.strip()
-        tok_lower = tok_clean.lower()
-        if tok_lower in ("m/s", "cm/s", "mm/s", "m*s^-1", "1", "无量纲", "normalized"):
-            unit = tok_clean
-            unit_source = "header"
-            break
+    velocity_header = header[m_time.end():] if m_time else header
+    bracket_tokens = re.findall(r'[\(\[]([^\)\]]+)[\)\]]', velocity_header)
+    if bracket_tokens:
+        unit = bracket_tokens[-1].strip()
+        unit_source = "header"
 
     if not unit:
         if "无量纲" in header or "normalized" in header.lower():
             unit = "1"
             unit_source = "header"
 
-    # Priority B: Explicit unit in meta dictionary
-    if not unit and "unit" in meta and meta["unit"]:
-        unit = str(meta["unit"]).strip()
-        unit_source = meta.get("unit_source", "metadata")
-
-    # Priority C: Unit readback from COMSOL inspection res
-    if not unit:
-        res_probe_units = res.get("probe_units")
-        if isinstance(res_probe_units, dict) and component in res_probe_units:
-            unit = str(res_probe_units[component]).strip()
-            unit_source = res.get("probe_unit_source", "comsol_model")
-        elif isinstance(res_probe_units, str) and res_probe_units:
-            unit = res_probe_units.strip()
-            unit_source = res.get("probe_unit_source", "comsol_model")
-        elif "probe_unit" in res and res["probe_unit"]:
-            unit = str(res["probe_unit"]).strip()
-            unit_source = res.get("probe_unit_source", "comsol_model")
-        elif "unit" in res and res["unit"]:
-            unit = str(res["unit"]).strip()
-            unit_source = res.get("probe_unit_source", "comsol_model")
+    # Priority B: A node readback already bound to file/model by bind_probe_export.
+    evidence = meta.get("probe_export_evidence", {})
+    if not unit and evidence.get("unit") and meta.get("unit") == evidence["unit"]:
+        unit = str(evidence["unit"]).strip()
+        unit_source = "comsol_model_export_node"
 
     # If neither header nor COMSOL model provides unit, fail
     if not unit:
@@ -330,6 +313,8 @@ def verify_probe_metadata(
             "expr_v": raw_expr_v,
             "unit": raw_unit_u,
             "unit_source": unit_src_u,
+            "unit_v": raw_unit_v,
+            "unit_source_v": unit_src_v,
             "u": {"direct": u_dir, "txt": val_u_txt, "diff": diff_u, "match": match_u},
             "v": {"direct": v_dir, "txt": val_v_txt, "diff": diff_v, "match": match_v},
         })
@@ -352,6 +337,8 @@ def verify_probe_metadata(
         "expressions": [raw_expr_u, raw_expr_v],
         "unit": raw_unit_u,
         "unit_source": unit_src_u,
+        "units": {"u": raw_unit_u, "v": raw_unit_v},
+        "unit_sources": {"u": unit_src_u, "v": unit_src_v},
         "dataset": "dset1",
         "dataset_verified": "dset1" in datasets,
         "time_alignment_verified": time_alignment_verified,
@@ -361,27 +348,81 @@ def verify_probe_metadata(
     }
 
 
-def run_prechecks() -> dict:
-    print("==================================================================")
-    print("Stage S1-B1: Running Pre-checks A & B Verification")
-    print(f"Target model: {SOLVED_MODEL}")
-    print("==================================================================")
+def bind_probe_export(res: dict, component: str, model: Path, file: Path, meta: dict) -> dict:
+    """Bind same-session getter evidence to this exact exported file and model."""
+    matches = [e for e in res.get("probe_exports", []) if e.get("component") == component]
+    if len(matches) != 1:
+        raise ValueError(f"Velocity unit evidence missing/ambiguous for {component}")
+    evidence = matches[0]
+    required = ("model_path", "model_tag", "model_sha256", "filename", "file_sha256",
+                "export_tag", "plotgroup_tag", "feature_tag", "expression", "unit",
+                "dataset_tag", "dataset_type", "solution_dataset", "solution_type", "solution_tag")
+    if any(not evidence.get(k) for k in required):
+        raise ValueError(f"Incomplete export node readback for {component}: {evidence}")
+    if Path(evidence["model_path"]).resolve() != model.resolve() or evidence["model_sha256"] != compute_file_hash(model):
+        raise ValueError("Export evidence model identity mismatch")
+    if Path(evidence["filename"]).resolve() != file.resolve() or evidence["file_sha256"] != compute_file_hash(file):
+        raise ValueError("Export evidence file identity mismatch")
+    if (evidence["expression"] != component or evidence["dataset_type"] != "CutPoint2D"
+            or evidence["solution_dataset"] != "dset1" or evidence["solution_type"] != "Solution"
+            or evidence["feature_tags"] != [evidence["feature_tag"]]
+            or evidence.get("feature_data") not in ("parent", evidence["dataset_tag"])):
+        raise ValueError("Export expression/dataset/feature association mismatch")
+    coords = [float(evidence["point_x"]), float(evidence["point_y"])]
+    if not np.all(np.isfinite(coords)) or not np.allclose(coords, [0.15, 0.12], rtol=0, atol=1e-10):
+        raise ValueError("Export probe coordinate mismatch")
+    # Preserve the getter's unit even if non-SI; the downstream SI gate rejects it.
+    return dict(meta, unit=evidence["unit"], unit_source="comsol_model_export_node",
+                probe_export_evidence=evidence)
 
-    # 1. Direct COMSOL live inspection
-    res = inspect_probe_and_solver(SOLVED_MODEL, probe_x="0.15", probe_y="0.12")
-    # Link probe velocity unit from verified COMSOL model export node
-    res["probe_units"] = {"u": "m/s", "v": "m/s"}
-    res["probe_unit_source"] = "comsol_model_export_node"
 
-    # 2. Load existing 1D series from TXT
-    t_u, u_txt, meta_u = load_comsol_1d_timeseries(WAKE_U_TXT)
-    t_v, v_txt, meta_v = load_comsol_1d_timeseries(WAKE_V_TXT)
-
-    # 3. Explicit programmatic verification of metadata and values
-    precheck_a = verify_probe_metadata(res, meta_u, meta_v, t_u, t_v, u_txt, v_txt)
-
-    probe_x = precheck_a["probe_coordinates_m"][0]
-    probe_y = precheck_a["probe_coordinates_m"][1]
+def run_prechecks(*, model_path=None, wake_u_path=None, wake_v_path=None, output_dir=None) -> dict:
+    model = Path(model_path or SOLVED_MODEL).resolve()
+    originals = {"u": Path(wake_u_path or WAKE_U_TXT).resolve(),
+                 "v": Path(wake_v_path or WAKE_V_TXT).resolve()}
+    if output_dir is None:
+        Path("scratch").mkdir(exist_ok=True)
+        out = Path(tempfile.mkdtemp(prefix="s1b1_prechecks_", dir="scratch")).resolve()
+    else:
+        out = Path(output_dir).resolve()
+        out.mkdir(parents=True, exist_ok=False)
+    report_path = out / "report.json"
+    print(f"Stage S1-B1 prechecks: {model} -> {out}")
+    res = {}
+    try:
+        loaded = {c: load_comsol_1d_timeseries(p) for c, p in originals.items()}
+        # Explicit file headers take priority. Missing units require a fresh export
+        # because the historical saved models omit temporary probe nodes.
+        needs_export = any(parse_probe_channel_metadata(m[2].get("column_header", ""), m[2], c, {})[2] == "unknown"
+                           for c, m in loaded.items())
+        kwargs = {"probe_output_dir": out / "probe_export"} if needs_export else {}
+        res = inspect_probe_and_solver(model, probe_x="0.15", probe_y="0.12", **kwargs)
+        (out / "raw_inspection.json").write_text(json.dumps(res, indent=2, ensure_ascii=False), encoding="utf-8")
+        associations = {}
+        if needs_export:
+            for c in ("u", "v"):
+                fresh_file = out / "probe_export" / f"wake_{c}.txt"
+                t_new, y_new, meta_new = load_comsol_1d_timeseries(fresh_file)
+                meta_bound = bind_probe_export(res, c, model, fresh_file, meta_new)
+                t_old, y_old, meta_old = loaded[c]
+                if not np.array_equal(t_old, t_new) or not np.allclose(y_old, y_new, rtol=0, atol=1e-12):
+                    raise ValueError(f"Historical and fresh {c} export series differ")
+                # Validate the historical header (including any explicit non-SI unit),
+                # using the newly exported node only where the header has no unit.
+                loaded[c] = (t_old, y_old, dict(meta_old, unit=meta_bound["unit"],
+                    unit_source=meta_bound["unit_source"], probe_export_evidence=meta_bound["probe_export_evidence"]))
+                associations[c] = {"historical_file": str(originals[c]),
+                    "historical_sha256": compute_file_hash(originals[c]),
+                    "fresh_export_evidence": meta_bound["probe_export_evidence"],
+                    "all_samples_equal_within": 1e-12}
+        t_u, u_txt, meta_u = loaded["u"]
+        t_v, v_txt, meta_v = loaded["v"]
+        precheck_a = verify_probe_metadata(res, meta_u, meta_v, t_u, t_v, u_txt, v_txt)
+        precheck_a["export_associations"] = associations
+    except Exception as exc:
+        precheck_a = {"is_valid": False, "status": "FAIL", "errors": [str(exc)],
+                      "unit": "unknown", "unit_source": "none", "comparison_table": [],
+                      "probe_coordinates_m": [None, None]}
 
     print("\n[PRE-CHECK A: Wake Probe Direct Evaluation vs TXT Comparison Table]")
     print(f"{'Target t (s)':<12} | {'Actual t (s)':<12} | {'TXT t (s)':<10} | {'Expr':<5} | {'Unit':<5} | {'Unit Source':<24} | {'Direct Eval (m/s)':<22} | {'TXT Eval (m/s)':<22} | {'Diff (m/s)':<10} | {'Status'}")
@@ -396,8 +437,8 @@ def run_prechecks() -> dict:
         v_item = item["v"]
         status_u = "MATCH" if u_item["match"] else "MISMATCH"
         status_v = "MATCH" if v_item["match"] else "MISMATCH"
-        print(f"{t_target:<12.1f} | {t_actual:<12.1f} | {t_txt:<10.1f} | {'u':<5} | {'m/s':<5} | {unit_src:<24} | {u_item['direct']:<22.16e} | {u_item['txt']:<22.16e} | {u_item['diff']:<10.2e} | {status_u}")
-        print(f"{t_target:<12.1f} | {t_actual:<12.1f} | {t_txt:<10.1f} | {'v':<5} | {'m/s':<5} | {unit_src:<24} | {v_item['direct']:<22.16e} | {v_item['txt']:<22.16e} | {v_item['diff']:<10.2e} | {status_v}")
+        print(f"{t_target:<12.1f} | {t_actual:<12.1f} | {t_txt:<10.1f} | {'u':<5} | {item['unit']:<5} | {unit_src:<24} | {str(u_item['direct']):<22} | {u_item['txt']:<22.16e} | {u_item['diff']:<10.2e} | {status_u}")
+        print(f"{t_target:<12.1f} | {t_actual:<12.1f} | {t_txt:<10.1f} | {'v':<5} | {item['unit_v']:<5} | {item['unit_source_v']:<24} | {str(v_item['direct']):<22} | {v_item['txt']:<22.16e} | {v_item['diff']:<10.2e} | {status_v}")
 
     # Pre-check B: Solver & Model Readback
     solver_details = res.get("solver_details", {})
@@ -430,7 +471,7 @@ def run_prechecks() -> dict:
     report = {
         "precheck_a_wake_probe": precheck_a,
         "precheck_b_solver_model": {
-            "status": "PASS",
+            "status": "READ_BACK" if solver_details else "UNVERIFIED",
             "solver_details": solver_details,
             "mesh_details": mesh_details,
             "physics_details": physics_details,
@@ -439,9 +480,9 @@ def run_prechecks() -> dict:
         "overall_prechecks_status": "PASS" if precheck_a["is_valid"] else "FAIL",
     }
 
-    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    OUT_JSON.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"\nPre-checks complete! Saved report to {OUT_JSON}")
+    report["report_path"] = str(report_path)
+    report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"\nPre-checks complete! Saved report to {report_path}")
     return report
 
 

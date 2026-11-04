@@ -1,0 +1,24 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 25 items / 11 deselected / 14 selected
+
+tests/test_re100_s1b1_time_convergence.py::test_probe_mismatch_rejection_logic PASSED [  7%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_production_validation PASSED [ 14%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_rejects_actual_metadata_errors PASSED [ 21%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_rejects_actual_time_mismatches PASSED [ 28%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_rejects_unspecified_units_and_missing_actual_t PASSED [ 35%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[missing] PASSED [ 42%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[cm/s] PASSED [ 50%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[m/s] PASSED [ 57%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[read_failure] PASSED [ 64%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[wrong_file] PASSED [ 71%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[wrong_dataset] PASSED [ 78%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[ft/s_header] PASSED [ 85%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[unbound_label] PASSED [ 92%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[feature_override] PASSED [100%]
+
+====================== 14 passed, 11 deselected in 0.66s ======================

@@ -1,0 +1,19 @@
+{
+  "status": "BLOCKED_NATIVE_RUNTIME",
+  "installation": "D:/Program Files/COMSOL64/Multiphysics",
+  "default_failure": "java.lang.UnsatisfiedLinkError: lib/win64/csutil.dll: Cannot find dependent libraries",
+  "latest_default_log": "C:/Users/Administrator/.comsol/v64/logs/batch6.log",
+  "findings": [
+    "csutil.dll imports libiomp5md.dll and tbbmalloc.dll. Both exist in COMSOL bin/win64 and lib/win64 respectively.",
+    "ctypes.WinDLL(csutil.dll) succeeds with os.add_dll_directory for COMSOL bin/lib/JRE bin.",
+    "Bundled java.exe System.load(csutil.dll) fails even with clean PATH; preloading libiomp5md and tbbmalloc succeeds.",
+    "Temporary javaagent calling AddDllDirectory and SetDefaultDllDirectories starts batch only when -vm java.exe is selected.",
+    "Executing a class file spawns another worker with embedded JVM; inherited javaagent fails instrument.dll dependent-library lookup.",
+    "No model loaded, no CFD solved, no installation or repository source changed.",
+    "Official comsolbatch -h lists -comsolinifile, no -jdkroot option."
+  ],
+  "temporary_artifacts": [
+    "C:/Users/Administrator/AppData/Local/Temp/comsol_startup_probe_20261104",
+    "C:/Users/Administrator/AppData/Local/Temp/comsol_workspace_20261104 (directory junction to existing repository)"
+  ]
+}

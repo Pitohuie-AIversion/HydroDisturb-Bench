@@ -1,0 +1,1212 @@
+.............................FFFF.........FF..FFF...........FF.......... [ 56%]
+.....................F..................................                 [100%]
+================================== FAILURES ===================================
+________________________ test_real_comsol_inspect_api _________________________
+
+    def test_real_comsol_inspect_api():
+        """Verify inspection of official COMSOL installation and Java API capabilities."""
+>       res = inspect_api()
+
+tests\test_comsol_integration.py:54:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:330: in inspect_api
+    return _run_bridge(["inspect-api"], root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['inspect-api']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch9.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+_______________________ test_real_comsol_inspect_model ________________________
+
+    def test_real_comsol_inspect_model():
+        """Verify read-only inspection of real cylinder_flow.mph and file immutability."""
+        hash_initial = compute_file_hash(BASELINE_MODEL_PATH)
+
+>       res = inspect_model(BASELINE_MODEL_PATH)
+
+tests\test_comsol_integration.py:75:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:342: in inspect_model
+    res = _run_bridge(["inspect-model", str(model_path.resolve())], root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['inspect-model', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\case\\\\cylinder_flow.mph']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch1.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+_______________ test_real_comsol_update_parameter_and_readback ________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-141/test_real_comsol_update_parame0')
+
+    def test_real_comsol_update_parameter_and_readback(tmp_path: Path):
+        """Verify modifying a parameter on a working copy and reading back the value."""
+        hash_initial = compute_file_hash(BASELINE_MODEL_PATH)
+        target_copy = tmp_path / "cylinder_copy_param.mph"
+
+>       res = update_parameter(
+            model_path=BASELINE_MODEL_PATH,
+            output_path=target_copy,
+            param_name="U_mean",
+            param_expr="1.15[m/s]",
+            descr="Test modified inlet velocity",
+        )
+
+tests\test_comsol_integration.py:130:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:1100: in update_parameter
+    res = _run_bridge(args, root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['update-param', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\case\\\\cylinder_flow.mph', 'C:\\\\Users\\\\Administrato..._parame0\\\\.staging\\\\stage_d7b0c40bd4d1_cylinder_copy_param.mph', 'U_mean', '1.15[m/s]', 'Test modified inlet velocity']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch2.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+________________ test_real_comsol_run_study_and_solution_check ________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-141/test_real_comsol_run_study_and0')
+
+    def test_real_comsol_run_study_and_solution_check(tmp_path: Path):
+        """Verify solving a study on a working copy generates real solution nodes and logs."""
+        hash_initial = compute_file_hash(BASELINE_MODEL_PATH)
+        target_solved = tmp_path / "cylinder_test_solved.mph"
+
+        # Solve a short time range to verify transient solver
+>       res = run_study(
+            model_path=BASELINE_MODEL_PATH,
+            output_path=target_solved,
+            study_tag="std1",
+            tlist_override="range(0,0.05,0.1)",
+        )
+
+tests\test_comsol_integration.py:163:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:1177: in run_study
+    res = _run_bridge(args, root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['run-study', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\case\\\\cylinder_flow.mph', 'C:\\\\Users\\\\Administrator\\\\...\\\\test_real_comsol_run_study_and0\\\\.staging\\\\stage_0dcd1afd887c_cylinder_test_solved.mph', 'std1', 'range(0,0.05,0.1)']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch3.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+_____________ test_re100_parameter_definitions_and_re_consistency _____________
+
+    def test_re100_parameter_definitions_and_re_consistency():
+        """Verify physical properties, formulas, and Re calculation consistency."""
+        # Ensure benchmark model exists
+        if not BENCHMARK_MODEL.is_file():
+            build_re100_benchmark(BASELINE_MODEL, BENCHMARK_MODEL, allow_overwrite=True)
+
+>       insp = inspect_model(BENCHMARK_MODEL)
+
+tests\test_re100_s0_benchmark.py:72:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:342: in inspect_model
+    res = _run_bridge(["inspect-model", str(model_path.resolve())], root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['inspect-model', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\models\\\\cylinder_2d\\\\re100_benchmark.mph']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch6.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+____________ test_re100_geometry_and_boundary_selections_integrity ____________
+
+    def test_re100_geometry_and_boundary_selections_integrity():
+        """Verify geometry topology and complete boundary selection mapping."""
+>       insp = inspect_model(BENCHMARK_MODEL)
+
+tests\test_re100_s0_benchmark.py:120:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:342: in inspect_model
+    res = _run_bridge(["inspect-model", str(model_path.resolve())], root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['inspect-model', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\models\\\\cylinder_2d\\\\re100_benchmark.mph']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch4.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+_________________________ test_re100_mesh_properties __________________________
+
+    def test_re100_mesh_properties():
+        """Verify mesh completeness and boundary layer inflation on cylinder."""
+>       insp = inspect_model(BENCHMARK_MODEL)
+
+tests\test_re100_s0_benchmark.py:176:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:342: in inspect_model
+    res = _run_bridge(["inspect-model", str(model_path.resolve())], root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['inspect-model', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\models\\\\cylinder_2d\\\\re100_benchmark.mph']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch5.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+___________________ test_re100_short_solve_and_data_export ____________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-141/test_re100_short_solve_and_dat0')
+
+    @pytest.mark.integration
+    def test_re100_short_solve_and_data_export(tmp_path: Path):
+        """Verify short transient solve generates valid non-NaN solution and exports readable fields."""
+        test_solved_mph = tmp_path / "re100_short_solved.mph"
+        test_data_txt = tmp_path / "flow_data.txt"
+
+        # 1. Run short transient solve (3 output steps: 0.0, 0.05, 0.10)
+>       res = run_study(
+            model_path=BENCHMARK_MODEL,
+            output_path=test_solved_mph,
+            study_tag="std1",
+            tlist_override="range(0, 0.05, 0.10)",
+        )
+
+tests\test_re100_s0_benchmark.py:192:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:1177: in run_study
+    res = _run_bridge(args, root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['run-study', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\models\\\\cylinder_2d\\\\re100_benchmark.mph', 'C:\\\\Users...\\test_re100_short_solve_and_dat0\\\\.staging\\\\stage_14fecff4ce37_re100_short_solved.mph', 'std1', 'range(0, 0.05, 0.10)']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch7.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+_____________ test_re100_abnormal_study_failure_does_not_publish ______________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-141/test_re100_abnormal_study_fail0')
+
+    def test_re100_abnormal_study_failure_does_not_publish(tmp_path: Path):
+        """Verify abnormal study tag fails safely without publishing corrupt results."""
+        bad_output = tmp_path / "should_not_exist.mph"
+        with pytest.raises(NodeNotFoundError):
+>           run_study(
+                model_path=BENCHMARK_MODEL,
+                output_path=bad_output,
+                study_tag="nonexistent_study_tag",
+            )
+
+tests\test_re100_s0_benchmark.py:230:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:1177: in run_study
+    res = _run_bridge(args, root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['run-study', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\models\\\\cylinder_2d\\\\re100_benchmark.mph', 'C:\\\\Users...test-141\\\\test_re100_abnormal_study_fail0\\\\.staging\\\\stage_e725263ccf81_should_not_exist.mph', 'nonexistent_study_tag']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch8.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+___ test_inspect_model_reports_live_geometry_distinct_for_different_models ____
+
+    def test_inspect_model_reports_live_geometry_distinct_for_different_models():
+        """inspect_model must dynamically query live COMSOL geometry and not emit a hardcoded coordinate map."""
+>       base_insp = inspect_model(BASELINE_MODEL)
+
+tests\test_re100_s0_benchmark.py:532:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:342: in inspect_model
+    res = _run_bridge(["inspect-model", str(model_path.resolve())], root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['inspect-model', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\case\\\\cylinder_flow.mph']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch10.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+_____________ test_re100_boundary_geometry_matches_physical_spec ______________
+
+    def test_re100_boundary_geometry_matches_physical_spec():
+        """Verify live boundary geometry evidence in Re=100 model exactly matches physics spec."""
+>       insp = inspect_model(BENCHMARK_MODEL)
+
+tests\test_re100_s0_benchmark.py:553:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:342: in inspect_model
+    res = _run_bridge(["inspect-model", str(model_path.resolve())], root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['inspect-model', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\models\\\\cylinder_2d\\\\re100_benchmark.mph']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch9.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+______________ test_real_comsol_export_s1_diagnostics_end_to_end ______________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-141/test_real_comsol_export_s1_dia0')
+
+    @pytest.mark.integration
+    def test_real_comsol_export_s1_diagnostics_end_to_end(tmp_path: Path):
+        """Test full COMSOL Java API export and safe publish using already-solved model into isolated dir."""
+        if not comsol_available() or not SOLVED_MPH.is_file():
+            pytest.skip("COMSOL or solved model not available for live export integration")
+
+        export_dest = tmp_path / "real_s1_export"
+>       res = export_s1_diagnostics(SOLVED_MPH, export_dest, allow_overwrite=False)
+
+tests\test_re100_s1a_trial.py:375:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\hydro_disturb_bench\comsol_java\bridge.py:1543: in export_s1_diagnostics
+    res = _run_bridge(args, root=root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ['export-s1-diagnostics', 'D:\\\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\re100_s1a_trial\\\\re100_s1a_solved.m...Data\\\\Local\\\\Temp\\\\pytest-of-Administrator\\\\pytest-141\\\\test_real_comsol_export_s1_dia0\\\\.staging\\\\stage_3e375a9d516f']
+root = WindowsPath('D:/Program Files/COMSOL64/Multiphysics')
+
+    def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+        """Execute ComsolBridge with given arguments and parse JSON result."""
+        root = root or find_comsol_root()
+        bin_dir = get_comsol_bin_dir(root)
+        comsolbatch = bin_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")
+        if not comsolbatch.is_file():
+            raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
+
+        class_file = ensure_bridge_compiled(root)
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Clean up comsolbatch status file if created in the directory
+        status_file = class_file.with_name(f"{class_file.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
+
+        stdout = proc.stdout or ""
+        start_tag = "<<<JSON_START>>>"
+        end_tag = "<<<JSON_END>>>"
+
+        # Attempt to extract structured JSON report
+        data: Any = None
+        if start_tag in stdout and end_tag in stdout:
+            json_str = stdout.split(start_tag, 1)[1].split(end_tag, 1)[0].strip()
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as err:
+                raise ComsolConnectionError(
+                    f"Failed to decode JSON from ComsolBridge: {err}\nRaw output: {json_str}"
+                ) from err
+
+        # Top-level JSON must be an object/dict
+        if data is not None and not isinstance(data, dict):
+            raise ComsolConnectionError(
+                f"ComsolBridge emitted invalid JSON payload: expected JSON object, got {type(data).__name__}"
+            )
+
+        # If the bridge emitted a structured error, propagate it as a typed exception
+        if data and data.get("status") != "SUCCESS":
+            err_code = data.get("error_code")
+            if not isinstance(err_code, str):
+                err_code = ERR_COMSOL_CONNECTION_FAILED
+            msg = data.get("message", "Bridge execution failed")
+            details = data.get("details", "")
+            raise map_error(str(err_code), str(msg), str(details))
+
+        # If subprocess returned non-zero without a structured SUCCESS
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"ComsolBridge process failed with exit code {proc.returncode}:\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+
+        # If no valid structured output was emitted
+        if not data or data.get("status") != "SUCCESS":
+>           raise ComsolConnectionError(
+                f"ComsolBridge execution produced invalid output without SUCCESS status (exit code {proc.returncode}):\n"
+                f"STDOUT:\n{stdout}\nSTDERR:\n{proc.stderr}"
+            )
+E           hydro_disturb_bench.comsol_java.bridge.ComsolConnectionError: [COMSOL_CONNECTION_FAILED] ComsolBridge execution produced invalid output without SUCCESS status (exit code 0):
+E           STDOUT:
+E
+E           ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch2.log
+E           ERROR: Additional information: com/comsol/nativejni/FlNativeException
+E
+E           STDERR:
+
+src\hydro_disturb_bench\comsol_java\bridge.py:281: ComsolConnectionError
+=========================== short test summary info ===========================
+FAILED tests/test_comsol_integration.py::test_real_comsol_inspect_api - hydro...
+FAILED tests/test_comsol_integration.py::test_real_comsol_inspect_model - hyd...
+FAILED tests/test_comsol_integration.py::test_real_comsol_update_parameter_and_readback
+FAILED tests/test_comsol_integration.py::test_real_comsol_run_study_and_solution_check
+FAILED tests/test_re100_s0_benchmark.py::test_re100_parameter_definitions_and_re_consistency
+FAILED tests/test_re100_s0_benchmark.py::test_re100_geometry_and_boundary_selections_integrity
+FAILED tests/test_re100_s0_benchmark.py::test_re100_mesh_properties - hydro_d...
+FAILED tests/test_re100_s0_benchmark.py::test_re100_short_solve_and_data_export
+FAILED tests/test_re100_s0_benchmark.py::test_re100_abnormal_study_failure_does_not_publish
+FAILED tests/test_re100_s0_benchmark.py::test_inspect_model_reports_live_geometry_distinct_for_different_models
+FAILED tests/test_re100_s0_benchmark.py::test_re100_boundary_geometry_matches_physical_spec
+FAILED tests/test_re100_s1a_trial.py::test_real_comsol_export_s1_diagnostics_end_to_end
+12 failed, 116 passed in 75.86s (0:01:15)

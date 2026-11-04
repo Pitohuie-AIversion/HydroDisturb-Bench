@@ -358,27 +358,52 @@ def inspect_probe_and_solver(
     probe_x: str = "0.15",
     probe_y: str = "0.12",
     root: Path | None = None,
+    *,
+    probe_output_dir: Path | str | None = None,
 ) -> dict[str, Any]:
-    """Inspect model probe datasets, plotgroups, live solver parameters, and evaluate point velocity directly."""
+    """Inspect a saved solution; optionally re-export probes with live node evidence.
+
+    The optional export directory must not exist. No solver runs or model saves
+    occur, and every returned export is bound to the source and file hashes.
+    """
     model_path = Path(model_path)
     if not model_path.is_file():
         raise ModelNotFoundError(f"Model file does not exist: {model_path}")
 
     hash_before = compute_file_hash(model_path)
+    args = ["inspect-probe-and-solver", str(model_path.resolve()), str(probe_x), str(probe_y)]
+    export_dir = None
+    if probe_output_dir is not None:
+        export_dir = Path(probe_output_dir).resolve()
+        export_dir.mkdir(parents=True, exist_ok=False)
+        args.append(str(export_dir))
 
-    res = _run_bridge(
-        ["inspect-probe-and-solver", str(model_path.resolve()), str(probe_x), str(probe_y)],
-        root=root,
-    )
-
-    hash_after = compute_file_hash(model_path)
-    if hash_before != hash_after:
-        raise ModelValidationError(
-            f"Integrity check failed: source model was modified during probe and solver inspection! "
-            f"Before: {hash_before}, After: {hash_after}"
-        )
+    try:
+        res = _run_bridge(args, root=root)
+    finally:
+        hash_after = compute_file_hash(model_path)
+        if hash_before != hash_after:
+            raise ModelValidationError(
+                f"Integrity check failed: source model was modified during probe and solver inspection! "
+                f"Before: {hash_before}, After: {hash_after}"
+            )
 
     res["sha256"] = hash_after
+    if export_dir is not None:
+        exports = res.get("probe_exports")
+        if not isinstance(exports, list) or len(exports) != 2:
+            raise ModelValidationError("Probe re-export did not return both node evidence records")
+        for entry in exports:
+            exported = Path(entry["filename"]).resolve()
+            if exported.parent != export_dir or not exported.is_file():
+                raise ModelValidationError(f"Probe export file association invalid: {exported}")
+            if Path(entry["model_path"]).resolve() != model_path.resolve():
+                raise ModelValidationError("Probe export model association invalid")
+            entry["file_sha256"] = compute_file_hash(exported)
+            entry["model_sha256"] = hash_after
+        (export_dir / "probe_evidence.json").write_text(
+            json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     return res
 
 

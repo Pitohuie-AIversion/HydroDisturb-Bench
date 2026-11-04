@@ -70,12 +70,13 @@ public class ComsolBridge {
                 handleExportS1Diagnostics(args[1], args[2], snapTimes);
             } else if ("inspect-probe-and-solver".equals(command)) {
                 if (args.length < 2) {
-                    outputError("INVALID_PARAMETER", "Usage: inspect-probe-and-solver <modelPath> [probeX] [probeY]", "");
+                    outputError("INVALID_PARAMETER", "Usage: inspect-probe-and-solver <modelPath> [probeX] [probeY] [probeOutputDir]", "");
                     return;
                 }
                 String px = (args.length >= 3) ? args[2] : "0.15";
                 String py = (args.length >= 4) ? args[3] : "0.12";
-                handleInspectProbeAndSolver(args[1], px, py);
+                String probeOutputDir = (args.length >= 5) ? args[4] : "";
+                handleInspectProbeAndSolver(args[1], px, py, probeOutputDir);
             } else {
                 outputError("API_UNSUPPORTED", "Unknown command: " + command, "");
             }
@@ -897,7 +898,7 @@ public class ComsolBridge {
         return "UNOBTAINED";
     }
 
-    private static void handleInspectProbeAndSolver(String modelPath, String probeX, String probeY) {
+    private static void handleInspectProbeAndSolver(String modelPath, String probeX, String probeY, String probeOutputDir) {
         Model model;
         try {
             model = ModelUtil.loadCopy("Model", modelPath);
@@ -913,6 +914,63 @@ public class ComsolBridge {
             sb.append("  \"operation\": \"inspect_probe_and_solver\",\n");
             sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
             sb.append("  \"probe_coords\": {\"x\": ").append(quote(probeX)).append(", \"y\": ").append(quote(probeY)).append("},\n");
+
+            // Re-export from the loaded solution only. The source model is never saved.
+            // Read the complete export -> plot -> point dataset -> solution chain AFTER run().
+            sb.append("  \"probe_exports\": [\n");
+            if (!probeOutputDir.isEmpty()) {
+                DatasetFeature point = model.result().dataset().create("cpt_unit_evidence", "CutPoint2D");
+                point.set("data", "dset1");
+                point.set("pointx", probeX);
+                point.set("pointy", probeY);
+                String[] components = new String[]{"u", "v"};
+                for (int i = 0; i < components.length; i++) {
+                    String component = components[i];
+                    ResultFeature pg = model.result().create("pg_unit_" + component, "PlotGroup1D");
+                    pg.set("data", point.tag());
+                    ResultFeature feature = pg.feature().create("point", "PointGraph");
+                    feature.set("expr", component);
+                    // Do not set unit: COMSOL resolves it from this expression and dataset.
+                    ExportFeature exporter = model.result().export().create("exp_unit_" + component, "Plot");
+                    exporter.set("plotgroup", pg.tag());
+                    java.io.File target = new java.io.File(probeOutputDir, "wake_" + component + ".txt");
+                    if (target.exists()) throw new IllegalArgumentException("Refusing to overwrite probe export: " + target);
+                    exporter.set("filename", target.getAbsolutePath());
+                    exporter.run();
+
+                    ResultFeature actualPg = model.result(exporter.getString("plotgroup"));
+                    String[] actualFeatures = actualPg.feature().tags();
+                    if (actualFeatures.length != 1) throw new IllegalStateException("Probe plot must contain exactly one feature");
+                    ResultFeature actualFeature = actualPg.feature(actualFeatures[0]);
+                    String featureData = actualFeature.getString("data");
+                    if (!"parent".equals(featureData) && !actualPg.getString("data").equals(featureData)) {
+                        throw new IllegalStateException("PointGraph overrides the probe dataset: " + featureData);
+                    }
+                    DatasetFeature actualPoint = model.result().dataset(actualPg.getString("data"));
+                    DatasetFeature actualSolution = model.result().dataset(actualPoint.getString("data"));
+                    sb.append("    {\n");
+                    sb.append("      \"component\": ").append(quote(component)).append(",\n");
+                    sb.append("      \"model_path\": ").append(quote(modelPath)).append(",\n");
+                    sb.append("      \"model_tag\": ").append(quote(model.tag())).append(",\n");
+                    sb.append("      \"export_tag\": ").append(quote(exporter.tag())).append(",\n");
+                    sb.append("      \"filename\": ").append(quote(exporter.getString("filename"))).append(",\n");
+                    sb.append("      \"plotgroup_tag\": ").append(quote(actualPg.tag())).append(",\n");
+                    sb.append("      \"feature_tags\": ").append(stringArrayToJson(actualFeatures)).append(",\n");
+                    sb.append("      \"feature_tag\": ").append(quote(actualFeature.tag())).append(",\n");
+                    sb.append("      \"expression\": ").append(quote(actualFeature.getString("expr"))).append(",\n");
+                    sb.append("      \"unit\": ").append(quote(actualFeature.getString("unit"))).append(",\n");
+                    sb.append("      \"feature_data\": ").append(quote(featureData)).append(",\n");
+                    sb.append("      \"dataset_tag\": ").append(quote(actualPoint.tag())).append(",\n");
+                    sb.append("      \"dataset_type\": ").append(quote(actualPoint.getType())).append(",\n");
+                    sb.append("      \"point_x\": ").append(quote(actualPoint.getString("pointx"))).append(",\n");
+                    sb.append("      \"point_y\": ").append(quote(actualPoint.getString("pointy"))).append(",\n");
+                    sb.append("      \"solution_dataset\": ").append(quote(actualSolution.tag())).append(",\n");
+                    sb.append("      \"solution_type\": ").append(quote(actualSolution.getType())).append(",\n");
+                    sb.append("      \"solution_tag\": ").append(quote(actualSolution.getString("solution"))).append("\n");
+                    sb.append("    }").append(i < components.length - 1 ? "," : "").append("\n");
+                }
+            }
+            sb.append("  ],\n");
 
             // 1. Datasets inspection
             sb.append("  \"datasets\": [\n");
@@ -1025,7 +1083,7 @@ public class ComsolBridge {
 
                 double evalU = Double.NaN;
                 double evalV = Double.NaN;
-                double actualT = (bestIdx >= 0) ? pvals[bestIdx] : tt;
+                double actualT = (bestIdx >= 0) ? pvals[bestIdx] : Double.NaN;
 
                 if (realMatrix != null && bestIdx >= 0) {
                     if (realMatrix.length == pvals.length && realMatrix[0].length >= 2) {
@@ -1039,7 +1097,7 @@ public class ComsolBridge {
 
                 sb.append("    {\n");
                 sb.append("      \"target_t\": ").append(tt).append(",\n");
-                sb.append("      \"actual_t\": ").append(actualT).append(",\n");
+                sb.append("      \"actual_t\": ").append(Double.isFinite(actualT) ? Double.toString(actualT) : "null").append(",\n");
                 sb.append("      \"point_x\": ").append(quote(probeX)).append(",\n");
                 sb.append("      \"point_y\": ").append(quote(probeY)).append(",\n");
                 sb.append("      \"u_direct\": ").append(Double.isNaN(evalU) ? "null" : Double.toString(evalU)).append(",\n");
@@ -1622,7 +1680,8 @@ public class ComsolBridge {
                 case '\r': sb.append("\\r"); break;
                 case '\t': sb.append("\\t"); break;
                 default:
-                    if (c < ' ') {
+                    // Keep structured JSON lossless through locale-dependent batch stdout.
+                    if (c < ' ' || c > 126) {
                         sb.append(String.format("\\u%04x", (int) c));
                     } else {
                         sb.append(c);

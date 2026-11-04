@@ -118,8 +118,8 @@ def test_verify_probe_metadata_production_validation():
     u_fake = np.full(1001, 0.0065)
     v_fake = np.full(1001, 0.0015)
 
-    valid_meta_u = {"column_header": "% 时间 (s)                  速度场，x 分量"}
-    valid_meta_v = {"column_header": "% 时间 (s)                  速度场，y 分量"}
+    valid_meta_u = {"column_header": "% 时间 (s)                  速度场，x 分量 (m/s)"}
+    valid_meta_v = {"column_header": "% 时间 (s)                  速度场，y 分量 (m/s)"}
 
     valid_res = {
         "probe_coords": {"x": "0.15", "y": "0.12"},
@@ -136,7 +136,7 @@ def test_verify_probe_metadata_production_validation():
     assert report["is_valid"] is True
     assert report["status"] == "PASS"
     assert report["unit"] == "m/s"
-    assert report["unit_source"] == "comsol_model_export_node"
+    assert report["unit_source"] == "header"
     assert report["raw_metadata_verified"] is True
     assert report["time_alignment_verified"] is True
 
@@ -653,3 +653,74 @@ def test_s1b1_diagnostics_completeness_and_manifest():
     assert len(val.get("snapshots", [])) == 5
     assert (S1B1_DIR / "solver_metadata.json").is_file()
     assert (S1B1_DIR / "solver_run.log").is_file()
+
+
+@pytest.mark.parametrize("scenario", ["missing", "cm/s", "m/s", "read_failure", "wrong_file", "wrong_dataset", "ft/s_header", "unbound_label", "feature_override"])
+def test_probe_run_prechecks_unit_provenance_entry(monkeypatch, tmp_path, scenario):
+    """Fault injection goes through the real entry, real TXT loader and binding gate."""
+    from scripts import verify_s1b1_prechecks as entry
+    model = tmp_path / "solved.mph"
+    model.write_bytes(b"fixture model identity")
+    def write_series(file, component):
+        value = 0.0065 if component == "u" else 0.0015
+        file.write_text("% Time (s)  " + component + "\n" +
+                        "\n".join(f"{t:.1f} {value}" for t in np.linspace(0, 200, 1001)), encoding="utf-8")
+    originals = {}
+    for c in ("u", "v"):
+        originals[c] = tmp_path / f"old_{c}.txt"
+        write_series(originals[c], c)
+    if scenario == "ft/s_header":
+        content = originals["u"].read_text(encoding="utf-8")
+        originals["u"].write_text(content.replace("  u\n", "  u (ft/s)\n"), encoding="utf-8")
+    upstream = {}
+    def inspect(model_path, *, probe_x, probe_y, probe_output_dir):
+        if scenario == "read_failure":
+            raise RuntimeError("actual COMSOL read failed")
+        probe_output_dir.mkdir()
+        upstream.update({"probe_coords": {"x": probe_x, "y": probe_y},
+            "datasets": [{"tag": "dset1", "type": "Solution"}],
+            "probe_exports": [],
+            "direct_evaluations": [{"target_t": 180., "actual_t": 180.,
+                "point_x": .15, "point_y": .12, "u_direct": .0065, "v_direct": .0015}]})
+        for c in ("u", "v"):
+            file = probe_output_dir / f"wake_{c}.txt"
+            write_series(file, c)
+            if scenario not in ("missing", "unbound_label"):
+                upstream["probe_exports"].append({"component": c,
+                    "model_path": str(model_path), "model_tag": "Model",
+                    "model_sha256": compute_file_hash(model), "filename": str(file),
+                    "file_sha256": compute_file_hash(file), "export_tag": f"exp_{c}",
+                    "plotgroup_tag": f"pg_{c}", "feature_tag": "pt", "feature_tags": ["pt"], "feature_data": "parent",
+                    "expression": c, "unit": "cm/s" if scenario == "cm/s" else "m/s",
+                    "dataset_tag": "cpt", "dataset_type": "CutPoint2D", "solution_dataset": "dset1",
+                    "solution_type": "Solution", "solution_tag": "sol1", "point_x": "0.15", "point_y": "0.12"})
+        if scenario == "wrong_file":
+            upstream["probe_exports"][0]["filename"] = str(originals["u"])
+        if scenario == "feature_override":
+            upstream["probe_exports"][0]["feature_data"] = "other_point"
+        if scenario == "wrong_dataset":
+            upstream["probe_exports"][0]["solution_dataset"] = "dset2"
+        if scenario == "unbound_label":
+            upstream["probe_units"] = {"u": "m/s", "v": "m/s"}
+            upstream["probe_unit_source"] = "comsol_model_export_node"
+        return upstream
+    monkeypatch.setattr(entry, "inspect_probe_and_solver", inspect)
+    report = entry.run_prechecks(model_path=model, wake_u_path=originals["u"],
+        wake_v_path=originals["v"], output_dir=tmp_path / "verification")
+    probe = report["precheck_a_wake_probe"]
+    assert (report["overall_prechecks_status"] == "PASS") == (scenario == "m/s")
+    if scenario != "unbound_label":
+        assert "probe_units" not in upstream and "probe_unit_source" not in upstream
+    if scenario == "ft/s_header":
+        assert probe["unit"] == "ft/s"
+        assert probe["unit_source"] == "header"
+    if scenario == "cm/s":
+        assert probe["unit"] == "cm/s"
+        assert upstream["probe_exports"][0]["unit"] == "cm/s"
+        assert any("Invalid velocity unit" in e for e in probe["errors"])
+    if scenario == "m/s":
+        assert probe["unit_source"] == "comsol_model_export_node"
+        assert probe["export_associations"]["u"]["fresh_export_evidence"]["expression"] == "u"
+    if scenario in ("missing", "read_failure", "wrong_file", "wrong_dataset", "unbound_label", "feature_override"):
+        assert probe["unit_source"] == "none"
+        assert "comsol_model_export_node" not in json.dumps(probe)
