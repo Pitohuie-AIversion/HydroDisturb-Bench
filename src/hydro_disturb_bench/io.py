@@ -481,10 +481,11 @@ def load_comsol_vorticity_grid(
     converting the rows into a 2-D array.  In particular, it never allocates
     an uninitialised ``np.empty`` array and then guesses where rows belong.
 
-    ``NaN`` vorticity values are expected only inside the solid cylinder, where
-    COMSOL has no fluid field.  Coordinates must always be finite and ``Inf``
-    is never accepted.  The returned ``vorticity`` array has shape
-    ``(ny, nx)`` and is safe to plot with ``origin='lower'``.
+    ``NaN`` vorticity values are expected only inside the solid cylinder and
+    its half-grid boundary tolerance band (r <= R + spacing/2), where COMSOL
+    has no fluid field.  Coordinates must always be finite and ``Inf`` is never
+    accepted.  The returned ``vorticity`` array has shape ``(ny, nx)`` and is
+    safe to plot with ``origin='lower'``.
     """
     import numpy as np
 
