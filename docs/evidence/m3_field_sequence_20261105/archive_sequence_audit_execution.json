@@ -1,0 +1,22 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "scratch\\m3_field_sequence_20261105\\archive_sequence_audit.py",
+    "--evidence-dir",
+    "docs/evidence/m3_field_sequence_20261105",
+    "--output-dir",
+    "scratch\\m3_field_sequence_20261105\\independent_native_extract",
+    "--reference-dir",
+    "runs/re100_m3_field_sample_20261105_verified/grid_161x97",
+    "--output",
+    "scratch\\m3_field_sequence_20261105\\archive_sequence_audit.json",
+    "--runtime-dir",
+    "runs/re100_m3_field_sequence_20261105_verified"
+  ],
+  "returncode": 1,
+  "started_unix": 1793886685.5789783,
+  "finished_unix": 1793886693.6805897,
+  "elapsed_seconds": 8.101611375808716,
+  "stdout": "archive_sequence_audit.log",
+  "stderr": "archive_sequence_audit_stderr.log"
+}

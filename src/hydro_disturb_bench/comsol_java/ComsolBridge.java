@@ -73,12 +73,14 @@ public class ComsolBridge {
                     return;
                 }
                 handleExportSolutionData(args[1], args[2]);
-            } else if ("export-full-field-sample".equals(command)) {
+            } else if ("export-full-field-sample".equals(command)
+                    || "export-full-field-sequence-batch".equals(command)) {
                 if (args.length < 10) {
-                    outputError("INVALID_PARAMETER", "Usage: export-full-field-sample <modelPath> <outputDir> <timesCsv> <nx> <ny> <xmin> <xmax> <ymin> <ymax>", "");
+                    outputError("INVALID_PARAMETER", "Usage: " + command + " <modelPath> <outputDir> <timesCsv> <nx> <ny> <xmin> <xmax> <ymin> <ymax> [datasetTag]", "");
                     return;
                 }
-                handleExportFullFieldSample(args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args.length >= 11 ? args[10] : "dset1");
+                handleExportFullFieldSample(args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9],
+                    args.length >= 11 ? args[10] : "dset1", "export-full-field-sequence-batch".equals(command));
             } else if ("export-s1-diagnostics".equals(command)) {
                 if (args.length < 3) {
                     outputError("INVALID_PARAMETER", "Usage: export-s1-diagnostics <modelPath> <outputDir> [snapshotTimes]", "");
@@ -1121,11 +1123,11 @@ public class ComsolBridge {
         }
     }
 
-    /** Sample saved solution frames without solving or saving the loaded model. */
+    /** Shared sample/sequence-batch primitive; never solves or saves the loaded model. */
     private static void handleExportFullFieldSample(String modelPath, String outputDir, String timesCsv,
                                                     String nxText, String nyText, String xminText,
                                                     String xmaxText, String yminText, String ymaxText,
-                                                    String datasetTag) {
+                                                    String datasetTag, boolean sequenceBatch) {
         Model model;
         try {
             model = ModelUtil.loadCopy("Model", modelPath);
@@ -1188,7 +1190,14 @@ public class ComsolBridge {
                 }
             }
             String[] tokens = timesCsv.split(",");
-            if (tokens.length < 3 || tokens.length > 5) throw new IllegalArgumentException("Sample must contain 3 to 5 requested times");
+            // Each invocation loads its own existing solution. Bound temporary Data
+            // nodes to 32 while reusing the same verified per-frame export/check path.
+            int minFrames = sequenceBatch ? 1 : 3, maxFrames = sequenceBatch ? 32 : 5;
+            if (tokens.length < minFrames || tokens.length > maxFrames) {
+                throw new IllegalArgumentException(sequenceBatch
+                    ? "Sequence batch must contain 1 to 32 requested times"
+                    : "Sample must contain 3 to 5 requested times");
+            }
             double[] requested = new double[tokens.length], actualTimes = new double[tokens.length];
             int[] solutionNumbers = new int[tokens.length];
             for (int ti = 0; ti < tokens.length; ti++) {
@@ -1311,6 +1320,7 @@ public class ComsolBridge {
             exports.append("]"); direct.append("]");
             StringBuilder sb = new StringBuilder("{\n  \"status\":\"SUCCESS\",\n");
             sb.append("  \"operation\":\"export_full_field_sample\",\n")
+              .append("  \"batch_mode\":").append(sequenceBatch).append(",\n")
               .append("  \"model_path\":").append(quote(modelPath)).append(",\n")
               .append("  \"model_tag\":").append(quote(model.tag())).append(",\n")
               .append("  \"comsol_version\":").append(quote(ModelUtil.getComsolVersion())).append(",\n")

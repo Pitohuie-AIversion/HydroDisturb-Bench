@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "D:\\U0001f4c1 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scratch\m3_field_sequence_20261105\archive_sequence_audit.py", line 101, in <module>
+    run(parser.parse_args())
+  File "D:\\U0001f4c1 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scratch\m3_field_sequence_20261105\archive_sequence_audit.py", line 65, in run
+    from hydro_disturb_bench.field_sequence import load_full_field_sequence
+ModuleNotFoundError: No module named 'hydro_disturb_bench'

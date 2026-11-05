@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "output_dir": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\runs\\re100_m3_field_sequence_20261105_verified",
+  "shape": [
+    151,
+    3,
+    97,
+    161
+  ],
+  "source_sha256": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4",
+  "readback_passed": true,
+  "direct_point_checks": 453,
+  "max_direct_absolute_errors": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "overlap_check": {
+    "status": "PASS",
+    "reference": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\runs\\re100_m3_field_sample_20261105_verified\\grid_161x97",
+    "reference_npz_sha256": "D9646E1BF03687EA9A6E10A0275F64D750CC4E78CA02A89C2F5942593CF77570",
+    "times": [
+      180.0,
+      185.0,
+      190.0,
+      195.0,
+      200.0
+    ],
+    "frames_checked": 5,
+    "max_absolute_errors": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "fluid_entries": 7068612,
+  "masked_entries": 5889
+}

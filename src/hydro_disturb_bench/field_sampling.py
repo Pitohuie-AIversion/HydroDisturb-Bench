@@ -200,6 +200,49 @@ def load_full_field_sample(grid_dir):
     return data
 
 
+def _export_grid_sample(model_path, grid_dir, times, shape, bounds, before, *, root=None,
+                        command="export-full-field-sample"):
+    """Run the shared per-grid validation and write one immutable NPZ batch."""
+    nx, ny = shape
+    grid_dir.mkdir()
+    response = bridge._run_bridge([command, str(model_path), str(grid_dir),
+        ",".join(format(t, ".17g") for t in times), str(nx), str(ny),
+        *(format(v, ".17g") for v in bounds)], root=root)
+    _write_json(grid_dir / "bridge_response.json", response)
+    if command == "export-full-field-sequence-batch":
+        _require(response.get("batch_mode") is True, "Missing explicit sequence batch mode")
+    x, y, actual = _validate_response(response, model_path, times, (nx, ny), bounds)
+    raw_files = {item["filename"] for item in response["exports"]}
+    _require({path.name for path in grid_dir.glob("*.txt")} == raw_files, "Missing or extra raw field exports")
+    raw_values = np.stack([_parse_grid(grid_dir / item["filename"], x, y, actual[ti]) for ti, item in enumerate(response["exports"])])
+    cylinder = _cylinder_mask(x, y, response["geometry"])
+    invalid = ~np.isfinite(raw_values).all(axis=1)
+    _require(not (invalid & ~cylinder[None]).any(), "COMSOL produced invalid values outside the cylinder mask")
+    mask = cylinder[None] | invalid
+    values = np.where(mask[:, None], np.nan, raw_values)
+    checks = _check_direct(response, values, x, y, actual, mask)
+    np.savez_compressed(grid_dir / "field_sample.npz", values=values, mask=mask,
+                        cylinder_mask=cylinder, invalid_mask=invalid, x=x, y=y, times=actual)
+    metadata = {"schema_version": 1, "source_model": str(model_path), "source_sha256": before,
+        "model_tag": response["model_tag"], "dataset": response["dataset"], "geometry": response["geometry"],
+        "requested_times": times.tolist(), "actual_times": actual.tolist(),
+        "tensor_layout": LAYOUT, "shape": list(values.shape), "channel_order": list(CHANNELS),
+        "units": response["exports"][0]["units"], "coordinates": {"x": x.tolist(), "y": y.tolist(), "unit": "m", "includes_endpoints": True, "increasing": True},
+        "mask_semantics": {"cylinder_mask": "r <= R + 1e-12 m, includes the cylinder boundary", "invalid_mask": "any raw u/v/p value non-finite at this time and coordinate", "mask": "union of cylinder_mask and invalid_mask; masked values stored as NaN; non-finite fluid values reject export"},
+        "unit_evidence": response["exports"], "direct_evaluation_node": response["direct_evaluation_node"], "direct_eval_checks": checks,
+        "validation_tolerances": {"time_absolute_s": TIME_ATOL, "coordinate_absolute_m": COORD_ATOL, "value_absolute": VALUE_ATOL, "value_relative": VALUE_RTOL},
+        "npz_sha256": bridge.compute_file_hash(grid_dir / "field_sample.npz"),
+        "raw_files": {name: bridge.compute_file_hash(grid_dir / name) for name in sorted(raw_files)}}
+    _write_json(grid_dir / "metadata.json", metadata)
+    loaded = load_full_field_sample(grid_dir)
+    _require(np.array_equal(loaded["values"], values, equal_nan=True), "NPZ values changed on readback")
+    return {"path": grid_dir.name, "shape": list(values.shape),
+        "masked_points_per_time": mask.sum(axis=(1, 2)).tolist(), "raw_invalid_points_per_time": invalid.sum(axis=(1, 2)).tolist(),
+        "cylinder_points": int(cylinder.sum()), "direct_checks": len(checks),
+        "max_direct_absolute_errors": np.max([c["absolute_errors"] for c in checks], axis=0).tolist(),
+        "readback_passed": True, "npz_sha256": metadata["npz_sha256"]}
+
+
 def export_full_field_sample(model_path, output_dir, requested_times=(180., 185., 190., 195., 200.),
                              grid_shapes=((81, 49), (161, 97)), bounds=(0., .4, 0., .24),
                              *, allow_overwrite=False, root=None):
@@ -231,41 +274,8 @@ def export_full_field_sample(model_path, output_dir, requested_times=(180., 185.
     try:
         for nx, ny in grid_shapes:
             grid_dir = stage / f"grid_{nx}x{ny}"
-            grid_dir.mkdir()
-            response = bridge._run_bridge(["export-full-field-sample", str(model_path), str(grid_dir),
-                ",".join(format(t, ".17g") for t in times), str(nx), str(ny),
-                *(format(v, ".17g") for v in bounds)], root=root)
-            _write_json(grid_dir / "bridge_response.json", response)
-            x, y, actual = _validate_response(response, model_path, times, (nx, ny), bounds)
-            raw_files = {item["filename"] for item in response["exports"]}
-            _require({path.name for path in grid_dir.glob("*.txt")} == raw_files, "Missing or extra raw field exports")
-            raw_values = np.stack([_parse_grid(grid_dir / item["filename"], x, y, actual[ti]) for ti, item in enumerate(response["exports"])])
-            cylinder = _cylinder_mask(x, y, response["geometry"])
-            invalid = ~np.isfinite(raw_values).all(axis=1)
-            _require(not (invalid & ~cylinder[None]).any(), "COMSOL produced invalid values outside the cylinder mask")
-            mask = cylinder[None] | invalid
-            values = np.where(mask[:, None], np.nan, raw_values)
-            checks = _check_direct(response, values, x, y, actual, mask)
-            np.savez_compressed(grid_dir / "field_sample.npz", values=values, mask=mask,
-                                cylinder_mask=cylinder, invalid_mask=invalid, x=x, y=y, times=actual)
-            metadata = {"schema_version": 1, "source_model": str(model_path), "source_sha256": before,
-                "model_tag": response["model_tag"], "dataset": response["dataset"], "geometry": response["geometry"],
-                "requested_times": times.tolist(), "actual_times": actual.tolist(),
-                "tensor_layout": LAYOUT, "shape": list(values.shape), "channel_order": list(CHANNELS),
-                "units": response["exports"][0]["units"], "coordinates": {"x": x.tolist(), "y": y.tolist(), "unit": "m", "includes_endpoints": True, "increasing": True},
-                "mask_semantics": {"cylinder_mask": "r <= R + 1e-12 m, includes the cylinder boundary", "invalid_mask": "any raw u/v/p value non-finite at this time and coordinate", "mask": "union of cylinder_mask and invalid_mask; masked values stored as NaN; non-finite fluid values reject export"},
-                "unit_evidence": response["exports"], "direct_evaluation_node": response["direct_evaluation_node"], "direct_eval_checks": checks,
-                "validation_tolerances": {"time_absolute_s": TIME_ATOL, "coordinate_absolute_m": COORD_ATOL, "value_absolute": VALUE_ATOL, "value_relative": VALUE_RTOL},
-                "npz_sha256": bridge.compute_file_hash(grid_dir / "field_sample.npz"),
-                "raw_files": {name: bridge.compute_file_hash(grid_dir / name) for name in sorted(raw_files)}}
-            _write_json(grid_dir / "metadata.json", metadata)
-            loaded = load_full_field_sample(grid_dir)
-            _require(np.array_equal(loaded["values"], values, equal_nan=True), "NPZ values changed on readback")
-            report["grids"].append({"path": grid_dir.name, "shape": list(values.shape),
-                "masked_points_per_time": mask.sum(axis=(1, 2)).tolist(), "raw_invalid_points_per_time": invalid.sum(axis=(1, 2)).tolist(),
-                "cylinder_points": int(cylinder.sum()), "direct_checks": len(checks),
-                "max_direct_absolute_errors": np.max([c["absolute_errors"] for c in checks], axis=0).tolist(),
-                "readback_passed": True, "npz_sha256": metadata["npz_sha256"]})
+            report["grids"].append(_export_grid_sample(
+                model_path, grid_dir, times, (nx, ny), bounds, before, root=root))
         _require(bridge.compute_file_hash(model_path) == before, "Source model changed during sampling")
         report.update(status="PASS", output_dir=str(output_dir.resolve()), source_unchanged=True)
         _write_json(stage / "sample_report.json", report)

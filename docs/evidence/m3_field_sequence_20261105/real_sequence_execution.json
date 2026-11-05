@@ -1,0 +1,13 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "scripts/sample_re100_m3_sequence.py",
+    "--output",
+    "runs/re100_m3_field_sequence_20261105_verified"
+  ],
+  "returncode": 0,
+  "started_unix": 1793886252.6003087,
+  "finished_unix": 1793886444.0551796,
+  "elapsed_seconds": 191.45487093925476,
+  "log": "real_sequence.log"
+}

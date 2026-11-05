@@ -1,0 +1,21 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-m",
+    "pytest",
+    "-v",
+    "tests/test_field_sequence.py",
+    "tests/test_full_field_sampling.py",
+    "--junitxml=D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\m3_field_sequence_20261105\\sampling_regression.xml"
+  ],
+  "cwd": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench",
+  "started_utc": "2026-11-05T13:43:13.933813+00:00",
+  "finished_utc": "2026-11-05T13:43:24.755963+00:00",
+  "returncode": 0,
+  "stdout_log": "docs\\evidence\\m3_field_sequence_20261105\\sampling_regression.log",
+  "stdout_sha256": "98872ad9912c2dd9f23059dc645cd77d436595637c4557eb557194159b7aeb4a",
+  "junit_xml": "docs\\evidence\\m3_field_sequence_20261105\\sampling_regression.xml",
+  "junit_exists": true,
+  "archived_stdout_original": "execution_logs.zip::sampling_regression.log",
+  "display_stdout_sha256": "af127754182aa00d883adf67abc90f42c29b3ea4fd4c30fa0b08ecfee9d5433b"
+}

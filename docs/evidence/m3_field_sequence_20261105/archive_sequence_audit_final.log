@@ -1,0 +1,119 @@
+{
+  "status": "PASS",
+  "checked_utc": "2026-11-05T13:53:00.037954+00:00",
+  "scope": "Independent raw TXT/NPZ/response audit; no production sampling/parser imports, no COMSOL process.",
+  "sequence_directory": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\m3_field_sequence_20261105\\independent_native_extract_final",
+  "source_model_sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "physical_model_bytes_checked": true,
+  "shape": [
+    151,
+    3,
+    97,
+    161
+  ],
+  "frame_count": 151,
+  "first_time_s": 170.0,
+  "last_time_s": 200.0,
+  "requested_step_s": 0.2,
+  "solnum_first_last": [
+    851,
+    1001
+  ],
+  "time_order_unique_contiguous": true,
+  "raw_txt_files_checked": 151,
+  "raw_rows_checked": 2358167,
+  "tensor_entries_compared": 7074501,
+  "finite_fluid_entries_compared": 7068612,
+  "masked_nan_entries_compared": 5889,
+  "cylinder_mask_points": 13,
+  "raw_invalid_mask_constant_across_all_frames": true,
+  "direct_point_checks": 453,
+  "direct_channel_value_checks": 1359,
+  "max_direct_absolute_errors": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "overlap_reference_directory": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\runs\\re100_m3_field_sample_20261105_verified\\grid_161x97",
+  "overlap_frame_indices": [
+    50,
+    75,
+    100,
+    125,
+    150
+  ],
+  "overlap_tensor_entries_compared": 234255,
+  "overlap_finite_fluid_entries_compared": 234060,
+  "overlap_max_absolute_errors": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "limitations": [
+    "Agreement with the same saved solution checks export and assembly, not pointwise CFD error."
+  ]
+}
+{
+  "status": "PASS",
+  "checked_utc": "2026-11-05T13:53:00.764776+00:00",
+  "archives": [
+    {
+      "path": "native_index.zip",
+      "bytes": 36887,
+      "sha256": "0e92b63f3ed0da2a9e4a86b9215beb70563f3cde8579ef8e58bed49bfe1baaa4",
+      "entries_checked": 4
+    },
+    {
+      "path": "native_batch_0000.zip",
+      "bytes": 28115167,
+      "sha256": "fd63ba28967f1c452c488b381fe61ea4a3b2b59f193d1ee314cd95371c6c6b26",
+      "entries_checked": 35
+    },
+    {
+      "path": "native_batch_0001.zip",
+      "bytes": 28115892,
+      "sha256": "efda407ed0e0dd045b03de9b3477d15cc6343b308045141ef83594cec965b429",
+      "entries_checked": 35
+    },
+    {
+      "path": "native_batch_0002.zip",
+      "bytes": 28114528,
+      "sha256": "c0ba702cd0285f919078d92dd57ff2790b4e359bdbaa44b7f90f80014ca4b0e6",
+      "entries_checked": 35
+    },
+    {
+      "path": "native_batch_0003.zip",
+      "bytes": 28116235,
+      "sha256": "bde662da8984c93aa32a8dec32c740935f7c18fdb01f83be886e6bcb03605224",
+      "entries_checked": 35
+    },
+    {
+      "path": "native_batch_0004.zip",
+      "bytes": 20211646,
+      "sha256": "b7870945ff7be870f1afa7b9885ee68bd21353a31b03de9b030ccf534c397d0e",
+      "entries_checked": 26
+    }
+  ],
+  "archives_checked": 6,
+  "entries_checked": 170,
+  "total_compressed_bytes": 132710355,
+  "total_native_uncompressed_bytes": 346828436,
+  "all_archive_and_entry_hashes_match": true,
+  "all_entries_match_published_runtime_bytes": true,
+  "extracted_directory": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\m3_field_sequence_20261105\\independent_native_extract_final",
+  "independent_sequence_audit": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\m3_field_sequence_20261105\\archive_sequence_audit_final_sequence.json",
+  "production_loader_check": {
+    "status": "PASS",
+    "function": "hydro_disturb_bench.field_sequence.load_full_field_sequence",
+    "shape": [
+      151,
+      3,
+      97,
+      161
+    ],
+    "compared_tensor_entries": 7074501,
+    "all_seven_arrays_match_direct_npz_assembly": true,
+    "elapsed_seconds": 0.6836253000001307
+  },
+  "scope": "ZIP bytes and extracted files independently validated; separate production-loader readback checks all seven arrays. No COMSOL process started."
+}

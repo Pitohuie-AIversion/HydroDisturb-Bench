@@ -1,0 +1,55 @@
+{
+  "status": "PASS",
+  "checked_utc": "2026-11-05T13:51:33.606808+00:00",
+  "scope": "Independent raw TXT/NPZ/response audit; no production sampling/parser imports, no COMSOL process.",
+  "sequence_directory": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\m3_field_sequence_20261105\\independent_native_extract",
+  "source_model_sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "physical_model_bytes_checked": true,
+  "shape": [
+    151,
+    3,
+    97,
+    161
+  ],
+  "frame_count": 151,
+  "first_time_s": 170.0,
+  "last_time_s": 200.0,
+  "requested_step_s": 0.2,
+  "solnum_first_last": [
+    851,
+    1001
+  ],
+  "time_order_unique_contiguous": true,
+  "raw_txt_files_checked": 151,
+  "raw_rows_checked": 2358167,
+  "tensor_entries_compared": 7074501,
+  "finite_fluid_entries_compared": 7068612,
+  "masked_nan_entries_compared": 5889,
+  "cylinder_mask_points": 13,
+  "raw_invalid_mask_constant_across_all_frames": true,
+  "direct_point_checks": 453,
+  "direct_channel_value_checks": 1359,
+  "max_direct_absolute_errors": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "overlap_reference_directory": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\runs\\re100_m3_field_sample_20261105_verified\\grid_161x97",
+  "overlap_frame_indices": [
+    50,
+    75,
+    100,
+    125,
+    150
+  ],
+  "overlap_tensor_entries_compared": 234255,
+  "overlap_finite_fluid_entries_compared": 234060,
+  "overlap_max_absolute_errors": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "limitations": [
+    "Agreement with the same saved solution checks export and assembly, not pointwise CFD error."
+  ]
+}

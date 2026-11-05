@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "invalid_path_cases": [
+    {
+      "name": "../outside.txt",
+      "rejected": true
+    },
+    {
+      "name": "/absolute/out.txt",
+      "rejected": true
+    },
+    {
+      "name": "C:/outside.txt",
+      "rejected": true
+    },
+    {
+      "name": "batch/../../outside.txt",
+      "rejected": true
+    },
+    {
+      "name": "batch\\outside.txt",
+      "rejected": true
+    },
+    {
+      "name": "batch//outside.txt",
+      "rejected": true
+    }
+  ],
+  "valid_relative_path_accepted": true,
+  "existing_output_directory_rejected_before_write": true
+}

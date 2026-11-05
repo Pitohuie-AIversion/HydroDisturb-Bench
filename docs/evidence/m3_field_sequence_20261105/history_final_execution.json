@@ -1,0 +1,13 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "scratch\\m3_field_sequence_20261105\\history_audit.py",
+    "--final"
+  ],
+  "returncode": 0,
+  "started_unix": 1793886499.9029841,
+  "finished_unix": 1793886508.0874655,
+  "elapsed_seconds": 8.184481382369995,
+  "stdout": "history_final.log",
+  "stderr": "history_final_stderr.log"
+}
