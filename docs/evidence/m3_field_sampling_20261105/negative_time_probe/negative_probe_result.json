@@ -1,0 +1,53 @@
+{
+  "operation": "real_saved_time_negative_probe",
+  "requested_args": [
+    "export-full-field-sample",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_solved.mph",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_field_probe_20261105\\api_negative_time_01",
+    "180,180.1,185",
+    "9",
+    "9",
+    "0",
+    "0.4",
+    "0",
+    "0.24",
+    "dset1"
+  ],
+  "model_sha256_before": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "model_sha256_after": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "model_unchanged": true,
+  "processes": [
+    {
+      "returncode": 0,
+      "executable": "D:\\Program Files\\COMSOL64\\Multiphysics\\bin\\win64\\comsolbatch.exe",
+      "stdout_file": "process_00_stdout.log",
+      "stderr_file": "process_00_stderr.log"
+    },
+    {
+      "returncode": 0,
+      "executable": "D:\\Program Files\\COMSOL64\\Multiphysics\\java\\win64\\jre\\bin\\javac.exe",
+      "stdout_file": "process_01_stdout.log",
+      "stderr_file": "process_01_stderr.log"
+    },
+    {
+      "returncode": 0,
+      "executable": "D:\\Program Files\\COMSOL64\\Multiphysics\\java\\win64\\jre\\bin\\java.exe",
+      "stdout_file": "process_02_stdout.log",
+      "stderr_file": "process_02_stderr.log"
+    }
+  ],
+  "bridge_process": {
+    "returncode": 0,
+    "executable": "D:\\Program Files\\COMSOL64\\Multiphysics\\java\\win64\\jre\\bin\\java.exe",
+    "stdout_file": "process_02_stdout.log",
+    "stderr_file": "process_02_stderr.log"
+  },
+  "python_exception": {
+    "type": "ModelValidationError",
+    "message": "[MODEL_VALIDATION_FAILED] Full-field sampling failed: Requested time 180.1 is not an exact saved time; nearest-time substitution is forbidden"
+  },
+  "exported_files": [],
+  "expected_rejection": true,
+  "harness_exitcode": 1,
+  "harness_failure": "Post-recording console print raised UnicodeEncodeError under GBK for source path emoji; all evidence files had already been saved. Actual COMSOL bridge return code remains 0."
+}

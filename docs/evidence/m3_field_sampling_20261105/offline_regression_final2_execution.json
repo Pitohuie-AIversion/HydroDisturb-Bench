@@ -1,0 +1,16 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-m",
+    "not integration",
+    "--junitxml=D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\m3_field_sampling_20261105\\offline_regression_final2.xml"
+  ],
+  "returncode": 0,
+  "elapsed_seconds": 22.9710533618927,
+  "started_unix": 1793884008.3141987,
+  "finished_unix": 1793884031.285252,
+  "log": "offline_regression_final2.log"
+}

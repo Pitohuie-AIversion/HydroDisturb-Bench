@@ -1,0 +1,12 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "scripts/sample_re100_m3_fields.py",
+    "--output",
+    "runs/re100_m3_field_sample_20261105_verified"
+  ],
+  "returncode": 0,
+  "elapsed_seconds": 70.82327651977539,
+  "started_unix": 1793883955.6144037,
+  "finished_unix": 1793884026.4376802
+}

@@ -73,6 +73,12 @@ public class ComsolBridge {
                     return;
                 }
                 handleExportSolutionData(args[1], args[2]);
+            } else if ("export-full-field-sample".equals(command)) {
+                if (args.length < 10) {
+                    outputError("INVALID_PARAMETER", "Usage: export-full-field-sample <modelPath> <outputDir> <timesCsv> <nx> <ny> <xmin> <xmax> <ymin> <ymax>", "");
+                    return;
+                }
+                handleExportFullFieldSample(args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args.length >= 11 ? args[10] : "dset1");
             } else if ("export-s1-diagnostics".equals(command)) {
                 if (args.length < 3) {
                     outputError("INVALID_PARAMETER", "Usage: export-s1-diagnostics <modelPath> <outputDir> [snapshotTimes]", "");
@@ -1113,6 +1119,259 @@ public class ComsolBridge {
         } catch (Throwable t) {
             outputError("SOLVER_FAILED", "Failed to export solution data: " + t.getMessage(), getStackTrace(t));
         }
+    }
+
+    /** Sample saved solution frames without solving or saving the loaded model. */
+    private static void handleExportFullFieldSample(String modelPath, String outputDir, String timesCsv,
+                                                    String nxText, String nyText, String xminText,
+                                                    String xmaxText, String yminText, String ymaxText,
+                                                    String datasetTag) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for full-field sampling: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+        try {
+            int nx = Integer.parseInt(nxText), ny = Integer.parseInt(nyText);
+            if (nx < 3 || ny < 3) throw new IllegalArgumentException("Grid dimensions must be at least 3x3");
+            double xmin = Double.parseDouble(xminText), xmax = Double.parseDouble(xmaxText);
+            double ymin = Double.parseDouble(yminText), ymax = Double.parseDouble(ymaxText);
+            double[] bounds = new double[]{xmin, xmax, ymin, ymax};
+            for (double value : bounds) if (!Double.isFinite(value)) throw new IllegalArgumentException("Non-finite grid bounds");
+            if (!(xmax > xmin) || !(ymax > ymin)) throw new IllegalArgumentException("Invalid grid bounds");
+
+            DatasetFeature dataset = model.result().dataset(datasetTag);
+            if (!"Solution".equals(dataset.getType())) throw new IllegalArgumentException("Full-field sampling requires an actual Solution dataset");
+            String solutionTag = dataset.getString("solution");
+            String componentTag = dataset.getString("comp");
+            if (solutionTag == null || solutionTag.isEmpty() || componentTag == null || componentTag.isEmpty()) {
+                throw new IllegalStateException("Dataset lacks actual solution/component association");
+            }
+            ModelNode comp = model.component(componentTag);
+            String[] geometryTags = comp.geom().tags();
+            if (geometryTags.length != 1) throw new IllegalStateException("Sampling requires one unambiguous geometry in the dataset component");
+            String geometryTag = geometryTags[0];
+            GeomSequence geom = comp.geom(geometryTag);
+            if (geom.getSDim() != 2 || !"m".equals(geom.lengthUnit())) throw new IllegalStateException("Sampling requires a 2D geometry in metres");
+            double[] actualBounds = geom.getBoundingBox();
+            if (actualBounds.length != 4) throw new IllegalStateException("Unexpected live geometry bounding box");
+            for (int i = 0; i < 4; i++) if (Math.abs(actualBounds[i] - bounds[i]) > 1e-12) {
+                throw new IllegalArgumentException("Requested full-domain bounds disagree with live geometry");
+            }
+            GeomFeature circle = null;
+            for (String tag : geom.feature().tags()) {
+                GeomFeature feature = geom.feature(tag);
+                if ("Circle".equals(feature.getType())) {
+                    if (circle != null) throw new IllegalStateException("Ambiguous cylinder geometry: multiple Circle features");
+                    circle = feature;
+                }
+            }
+            if (circle == null) throw new IllegalStateException("No Circle feature found for the cylinder mask");
+            double[] center = circle.getDoubleArray("pos");
+            double radius = circle.getDouble("r");
+            if (center.length != 2 || !Double.isFinite(center[0]) || !Double.isFinite(center[1])
+                    || !Double.isFinite(radius) || radius <= 0) throw new IllegalStateException("Invalid live circle geometry");
+            int[][] boundaryClasses = classifyCylinderChannelBoundaries(geom, center[0], center[1], radius);
+
+            SolverSequence solution = model.sol(solutionTag);
+            String[] parameterNames = solution.getPNames();
+            if (parameterNames.length != 1 || !"t".equals(parameterNames[0])) {
+                throw new IllegalStateException("Saved solution must have only the transient parameter t");
+            }
+            double[] savedTimes = solution.getPVals();
+            if (savedTimes == null || savedTimes.length == 0) throw new IllegalStateException("Saved solution has no time values");
+            for (int i = 0; i < savedTimes.length; i++) {
+                if (!Double.isFinite(savedTimes[i]) || (i > 0 && savedTimes[i] <= savedTimes[i - 1])) {
+                    throw new IllegalStateException("Saved solution times must be finite and strictly increasing");
+                }
+            }
+            String[] tokens = timesCsv.split(",");
+            if (tokens.length < 3 || tokens.length > 5) throw new IllegalArgumentException("Sample must contain 3 to 5 requested times");
+            double[] requested = new double[tokens.length], actualTimes = new double[tokens.length];
+            int[] solutionNumbers = new int[tokens.length];
+            for (int ti = 0; ti < tokens.length; ti++) {
+                requested[ti] = Double.parseDouble(tokens[ti].trim());
+                if (!Double.isFinite(requested[ti]) || (ti > 0 && requested[ti] <= requested[ti - 1])) {
+                    throw new IllegalArgumentException("Requested times must be finite, unique and strictly increasing");
+                }
+                int match = -1;
+                for (int si = 0; si < savedTimes.length; si++) {
+                    if (Math.abs(savedTimes[si] - requested[ti]) <= 1e-12) {
+                        if (match >= 0) throw new IllegalStateException("Multiple saved frames match requested time");
+                        match = si;
+                    }
+                }
+                if (match < 0) throw new IllegalArgumentException("Requested time " + requested[ti] + " is not an exact saved time; nearest-time substitution is forbidden");
+                solutionNumbers[ti] = match + 1;
+                actualTimes[ti] = savedTimes[match];
+            }
+            double[] gridx = fullFieldAxis(xmin, xmax, nx), gridy = fullFieldAxis(ymin, ymax, ny);
+            String base = outputDir.replace('\\', '/');
+            if (!base.endsWith("/")) base += "/";
+            // The Python caller owns directory creation and no-overwrite admission.
+            // Native ExportFeature performs the writes; java.io is not used.
+            String[] expressions = new String[]{"u", "v", "p"};
+            String[] directExpressions = new String[]{"u", "v", "p", "x", "y", "t"};
+            DatasetFeature point = model.result().dataset().create("cpt_fullfield_check", "CutPoint2D");
+            point.set("data", datasetTag);
+            NumericalFeature evaluator = model.result().numerical().create("num_fullfield_check", "EvalPoint");
+            evaluator.set("data", point.tag());
+            evaluator.set("expr", directExpressions);
+            evaluator.set("solrepresentation", "solnum");
+            evaluator.set("innerinput", "manual");
+            int[][] checkIndices = new int[][]{
+                {(int)Math.round((nx - 1) * 0.125), (int)Math.round((ny - 1) * 0.5)},
+                {(int)Math.round((nx - 1) * 0.375), (int)Math.round((ny - 1) * 0.5)},
+                {(int)Math.round((nx - 1) * 0.75), (int)Math.round((ny - 1) * 0.75)}
+            };
+            java.util.Set<String> distinctChecks = new java.util.HashSet<String>();
+            for (int[] ij : checkIndices) {
+                if (!distinctChecks.add(ij[0] + "," + ij[1])) throw new IllegalArgumentException("Grid is too small for three distinct direct checks");
+                if (Math.hypot(gridx[ij[0]] - center[0], gridy[ij[1]] - center[1]) <= radius + 1e-12) {
+                    throw new IllegalArgumentException("A direct-check grid point is inside or on the cylinder");
+                }
+            }
+            StringBuilder exports = new StringBuilder("["), direct = new StringBuilder("[");
+            java.util.List<String> files = new java.util.ArrayList<String>();
+            String[] actualUnits = null;
+            int directCount = 0;
+            for (int ti = 0; ti < requested.length; ti++) {
+                String filename = "field_t" + ti + ".txt";
+                ExportFeature exporter = model.result().export().create("exp_fullfield_" + ti, "Data");
+                exporter.set("data", datasetTag);
+                exporter.set("expr", expressions);
+                exporter.set("solutionparams", "manual");
+                exporter.set("innerinput", "manual");
+                exporter.set("solnum", new int[]{solutionNumbers[ti]});
+                exporter.set("filename", base + filename);
+                exporter.set("location", "grid");
+                exporter.set("gridstruct", "spreadsheet");
+                exporter.set("gridx2", gridx);
+                exporter.set("gridy2", gridy);
+                exporter.set("header", "on");
+                exporter.set("fullprec", "on");
+                exporter.set("includecoords", true);
+                exporter.set("includenan", true);
+                // Units are never supplied: read what this executed export resolved.
+                exporter.run();
+                String[] readExpressions = exporter.getStringArray("expr");
+                String[] readUnits = exporter.getStringArray("unit");
+                int[] readSolnums = exporter.getIntArray("solnum");
+                double[] readX = exporter.getDoubleArray("gridx2"), readY = exporter.getDoubleArray("gridy2");
+                String readDataset = exporter.getString("data"), readInput = exporter.getString("innerinput");
+                if (!Arrays.equals(readExpressions, expressions) || readUnits.length != 3
+                        || readSolnums.length != 1 || readSolnums[0] != solutionNumbers[ti]
+                        || !datasetTag.equals(readDataset) || !"manual".equals(readInput)
+                        || !Arrays.equals(readX, gridx) || !Arrays.equals(readY, gridy)) {
+                    throw new IllegalStateException("Executed Data export readback disagrees with requested sample");
+                }
+                for (String unit : readUnits) if (unit == null || unit.trim().isEmpty()) throw new IllegalStateException("Executed Data export has no resolved unit");
+                if (actualUnits != null && !Arrays.equals(actualUnits, readUnits)) throw new IllegalStateException("Resolved units differ between saved frames");
+                actualUnits = readUnits;
+                files.add(filename);
+                if (ti > 0) exports.append(",");
+                exports.append("{\"filename\":").append(quote(filename))
+                    .append(",\"export_tag\":").append(quote(exporter.tag()))
+                    .append(",\"export_type\":").append(quote(exporter.getType()))
+                    .append(",\"dataset_tag\":").append(quote(readDataset))
+                    .append(",\"expressions\":").append(stringArrayToJson(readExpressions))
+                    .append(",\"units\":").append(stringArrayToJson(readUnits))
+                    .append(",\"innerinput\":").append(quote(readInput))
+                    .append(",\"solnum\":").append(readSolnums[0])
+                    .append(",\"target_t\":").append(requested[ti])
+                    .append(",\"actual_t\":").append(savedTimes[readSolnums[0] - 1])
+                    .append(",\"gridx\":").append(doubleArrayToJson(readX))
+                    .append(",\"gridy\":").append(doubleArrayToJson(readY)).append("}");
+                for (int[] ij : checkIndices) {
+                    double x = gridx[ij[0]], y = gridy[ij[1]];
+                    point.set("pointx", x);
+                    point.set("pointy", y);
+                    evaluator.set("solnum", new int[]{solutionNumbers[ti]});
+                    double[] values = fullFieldSinglePoint(evaluator.getReal());
+                    if (Math.abs(values[3] - x) > 1e-12 || Math.abs(values[4] - y) > 1e-12
+                            || Math.abs(values[5] - requested[ti]) > 1e-12) {
+                        throw new IllegalStateException("Independent EvalPoint returned a different actual coordinate/time");
+                    }
+                    if (directCount++ > 0) direct.append(",");
+                    direct.append("{\"time_index\":").append(ti)
+                        .append(",\"grid_ix\":").append(ij[0]).append(",\"grid_iy\":").append(ij[1])
+                        .append(",\"target_t\":").append(requested[ti]).append(",\"actual_t\":").append(values[5])
+                        .append(",\"requested_x\":").append(x).append(",\"requested_y\":").append(y)
+                        .append(",\"x\":").append(values[3]).append(",\"y\":").append(values[4])
+                        .append(",\"values\":").append(doubleArrayToJson(new double[]{values[0], values[1], values[2]}))
+                        .append(",\"numerical_tag\":").append(quote(evaluator.tag()))
+                        .append(",\"point_dataset_tag\":").append(quote(point.tag())).append("}");
+                }
+            }
+            String[] actualDirectUnits = evaluator.getStringArray("unit");
+            if (actualDirectUnits.length != directExpressions.length) throw new IllegalStateException("Missing independent expression units");
+            for (String unit : actualDirectUnits) if (unit == null || unit.trim().isEmpty()) throw new IllegalStateException("Missing independent expression unit");
+            exports.append("]"); direct.append("]");
+            StringBuilder sb = new StringBuilder("{\n  \"status\":\"SUCCESS\",\n");
+            sb.append("  \"operation\":\"export_full_field_sample\",\n")
+              .append("  \"model_path\":").append(quote(modelPath)).append(",\n")
+              .append("  \"model_tag\":").append(quote(model.tag())).append(",\n")
+              .append("  \"comsol_version\":").append(quote(ModelUtil.getComsolVersion())).append(",\n")
+              .append("  \"dataset\":{\"tag\":").append(quote(dataset.tag()))
+              .append(",\"type\":").append(quote(dataset.getType()))
+              .append(",\"solution_tag\":").append(quote(dataset.getString("solution"))).append("},\n")
+              .append("  \"geometry\":{\"component_tag\":").append(quote(componentTag))
+              .append(",\"geometry_tag\":").append(quote(geometryTag))
+              .append(",\"association\":\"only geometry in actual dataset component\",\"length_unit\":").append(quote(geom.lengthUnit()))
+              .append(",\"bounds\":").append(doubleArrayToJson(actualBounds))
+              .append(",\"circle\":{\"feature_tag\":").append(quote(circle.tag()))
+              .append(",\"center\":").append(doubleArrayToJson(center)).append(",\"radius\":").append(radius)
+              .append(",\"unit\":").append(quote(geom.lengthUnit()))
+              .append(",\"source\":\"live Circle feature pos/r and geometry lengthUnit\",\"boundary_ids\":")
+              .append(intArrayToJson(boundaryClasses[3])).append("}},\n")
+              .append("  \"saved_times\":").append(doubleArrayToJson(savedTimes)).append(",\n")
+              .append("  \"requested_times\":").append(doubleArrayToJson(requested)).append(",\n")
+              .append("  \"actual_times\":").append(doubleArrayToJson(actualTimes)).append(",\n")
+              .append("  \"grid\":{\"nx\":").append(nx).append(",\"ny\":").append(ny)
+              .append(",\"xmin\":").append(xmin).append(",\"xmax\":").append(xmax)
+              .append(",\"ymin\":").append(ymin).append(",\"ymax\":").append(ymax).append("},\n")
+              .append("  \"exports\":").append(exports).append(",\n")
+              .append("  \"direct_evaluation_node\":{\"tag\":").append(quote(evaluator.tag()))
+              .append(",\"type\":").append(quote(evaluator.getType()))
+              .append(",\"dataset_tag\":").append(quote(evaluator.getString("data")))
+              .append(",\"point_dataset_type\":").append(quote(point.getType()))
+              .append(",\"source_dataset_tag\":").append(quote(point.getString("data")))
+              .append(",\"expressions\":").append(stringArrayToJson(evaluator.getStringArray("expr")))
+              .append(",\"units\":").append(stringArrayToJson(actualDirectUnits))
+              .append(",\"solrepresentation\":").append(quote(evaluator.getString("solrepresentation")))
+              .append(",\"innerinput\":").append(quote(evaluator.getString("innerinput"))).append("},\n")
+              .append("  \"direct_evaluations\":").append(direct).append(",\n")
+              .append("  \"exported_files\":").append(stringArrayToJson(files.toArray(new String[0]))).append("\n}");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("MODEL_VALIDATION_FAILED", "Full-field sampling failed: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static double[] fullFieldAxis(double min, double max, int count) {
+        double[] values = new double[count];
+        for (int i = 0; i < count; i++) values[i] = min + (max - min) * i / (count - 1);
+        values[0] = min;
+        values[count - 1] = max;
+        return values;
+    }
+
+    private static double[] fullFieldSinglePoint(double[][] matrix) {
+        double[] values = new double[6];
+        if (matrix.length == 6) {
+            for (int i = 0; i < 6; i++) {
+                if (matrix[i].length != 1) throw new IllegalStateException("EvalPoint must return one saved time at one point");
+                values[i] = matrix[i][0];
+            }
+        } else if (matrix.length == 1 && matrix[0].length == 6) {
+            values = matrix[0].clone();
+        } else {
+            throw new IllegalStateException("Unexpected independent EvalPoint result dimensions");
+        }
+        for (double value : values) if (!Double.isFinite(value)) throw new IllegalStateException("Non-finite independent EvalPoint value");
+        return values;
     }
 
     private static void safeRemoveExport(Model model, String tag) {

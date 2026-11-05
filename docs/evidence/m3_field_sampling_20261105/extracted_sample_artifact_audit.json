@@ -1,0 +1,140 @@
+{
+  "status": "PASS",
+  "checked_utc": "2026-11-05T13:10:59.963173+00:00",
+  "scope": "Independent raw TXT / NPZ / actual COMSOL response audit; no production sampling or parsing helpers imported, no COMSOL process started.",
+  "source_model_sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "sample_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_full_field_sampling_20261105\\independent_native_extract_ee4a38d0ccbb42b79120b380eeb03fcc",
+  "physical_model_bytes_checked": true,
+  "raw_txt_files_total": 10,
+  "raw_rows_total": 97930,
+  "tensor_entries_compared_including_masked_nan": 293790,
+  "finite_fluid_tensor_entries_compared": 293520,
+  "direct_point_checks_total": 30,
+  "direct_channel_value_checks_total": 90,
+  "grids": [
+    {
+      "path": "grid_81x49",
+      "shape": [
+        5,
+        3,
+        49,
+        81
+      ],
+      "times": [
+        180.0,
+        185.0,
+        190.0,
+        195.0,
+        200.0
+      ],
+      "raw_txt_file_count": 5,
+      "raw_rows_per_file": 3969,
+      "raw_rows_total": 19845,
+      "tensor_entries_compared_including_masked_nan": 59535,
+      "finite_fluid_tensor_entries_compared": 59460,
+      "masked_nan_tensor_entries_compared": 75,
+      "bounds_m": [
+        0.0,
+        0.4,
+        0.0,
+        0.24
+      ],
+      "units": [
+        "m/s",
+        "m/s",
+        "Pa"
+      ],
+      "cylinder_points": 5,
+      "raw_invalid_points_per_time": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "fluid_entries_finite": true,
+      "npz_raw_reconstruction_identical": true,
+      "direct_checks_per_time": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "max_direct_absolute_error_per_channel": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "npz_sha256": "f9fa532c2e3fa64f474a7ba0c4d55b2ca7c23052e7ef2cf4c933eb89f13684ff"
+    },
+    {
+      "path": "grid_161x97",
+      "shape": [
+        5,
+        3,
+        97,
+        161
+      ],
+      "times": [
+        180.0,
+        185.0,
+        190.0,
+        195.0,
+        200.0
+      ],
+      "raw_txt_file_count": 5,
+      "raw_rows_per_file": 15617,
+      "raw_rows_total": 78085,
+      "tensor_entries_compared_including_masked_nan": 234255,
+      "finite_fluid_tensor_entries_compared": 234060,
+      "masked_nan_tensor_entries_compared": 195,
+      "bounds_m": [
+        0.0,
+        0.4,
+        0.0,
+        0.24
+      ],
+      "units": [
+        "m/s",
+        "m/s",
+        "Pa"
+      ],
+      "cylinder_points": 13,
+      "raw_invalid_points_per_time": [
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "fluid_entries_finite": true,
+      "npz_raw_reconstruction_identical": true,
+      "direct_checks_per_time": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "max_direct_absolute_error_per_channel": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "npz_sha256": "d9646e1bf03687ea9a6e10a0275f64d750cc4e78ca02a89c2f5942593cf77570"
+    }
+  ],
+  "nested_grid_shared_point_max_abs_difference_per_channel": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "nested_grid_shared_spatial_points_per_time": 3969,
+  "nested_grid_compared_entries_including_masked_nan": 59535,
+  "nested_grid_finite_fluid_entries_compared": 59460,
+  "nested_grid_shared_values_match": true,
+  "limitations": [
+    "Checks sampling provenance and numerical agreement at the same saved solution; not a new CFD accuracy or pointwise error estimate."
+  ]
+}

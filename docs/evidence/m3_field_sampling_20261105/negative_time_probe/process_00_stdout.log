@@ -1,0 +1,3 @@
+
+ERROR: Failed to start COMSOL. For details, see the log file C:\Users\Administrator\.comsol\v64\logs\batch9.log
+ERROR: Additional information: com/comsol/nativejni/FlNativeException

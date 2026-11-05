@@ -1,0 +1,8 @@
+{
+  "verification": "offline verification of saved real rejection evidence",
+  "passed": true,
+  "process_returncode": 0,
+  "python_exception_type": "ModelValidationError",
+  "model_unchanged": true,
+  "export_file_count": 0
+}

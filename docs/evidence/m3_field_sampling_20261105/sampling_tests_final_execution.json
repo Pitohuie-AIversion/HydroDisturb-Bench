@@ -1,0 +1,15 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-m",
+    "pytest",
+    "-v",
+    "tests/test_full_field_sampling.py",
+    "--junitxml=D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\m3_field_sampling_20261105\\sampling_tests_final.xml"
+  ],
+  "returncode": 1,
+  "elapsed_seconds": 4.00338339805603,
+  "started_unix": 1793883975.9512532,
+  "finished_unix": 1793883979.9546366,
+  "log": "sampling_tests_final.log"
+}

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="59" time="2.747" timestamp="2026-11-05T21:06:16.697700+08:00" hostname="SR-MuZY"><testcase classname="tests.test_full_field_sampling" name="test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask" time="0.109"><failure message="PermissionError: [WinError 5] 拒绝访问。: 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\pytest-of-Administrator\\pytest-227\\test_saved_solution_sampling_r0\\.staging_full_field_cfddc6f162c7' -&gt; 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\pytest-of-Administrator\\pytest-227\\test_saved_solution_sampling_r0\\sample'">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-227/test_saved_solution_sampling_r0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000021C77452680&gt;
+
+    def test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask(tmp_path, monkeypatch):
+        from hydro_disturb_bench.field_sampling import load_full_field_sample
+    
+        model, output, fake = _setup(tmp_path, monkeypatch)
+        before = model.read_bytes()
+&gt;       result = _run(model, output)
+
+tests\test_full_field_sampling.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_full_field_sampling.py:207: in _run
+    return bridge.export_full_field_sample(model, output, requested_times=TIMES,
+src\hydro_disturb_bench\comsol_java\bridge.py:1582: in export_full_field_sample
+    return sample(model_path, output_dir, requested_times, grid_shapes, bounds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-227/test_saved_solution_sampling_r0/existing_m3.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-227/test_saved_solution_sampling_r0/sample')
+requested_times = (180.0, 185.0, 190.0), grid_shapes = ((9, 5), (17, 9))
+bounds = array([0.  , 0.4 , 0.  , 0.24]), allow_overwrite = False, root = None
+
+    def export_full_field_sample(model_path, output_dir, requested_times=(180., 185., 190., 195., 200.),
+                                 grid_shapes=((81, 49), (161, 97)), bounds=(0., .4, 0., .24),
+                                 *, allow_overwrite=False, root=None):
+        """Export two small samples into a new directory; retain failed staging evidence."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(f"Sampling output already exists: {output_dir}")
+        if allow_overwrite:
+            raise bridge.InvalidParameterError("Field samples always require a new output directory")
+        times = np.asarray(requested_times, dtype=float)
+        if times.ndim != 1 or not 3 &lt;= len(times) &lt;= 5 or not np.isfinite(times).all() or not np.all(np.diff(times) &gt; 0):
+            raise bridge.InvalidParameterError("Request 3–5 finite, unique, increasing saved times")
+        if len(grid_shapes) != 2 or len({tuple(shape) for shape in grid_shapes}) != 2:
+            raise bridge.InvalidParameterError("Require two different Cartesian grid resolutions")
+        for shape in grid_shapes:
+            if len(shape) != 2 or any(not isinstance(v, (int, np.integer)) or isinstance(v, (bool, np.bool_)) or v &lt; 3 for v in shape):
+                raise bridge.InvalidParameterError("Grid nx,ny must be integers &gt;=3")
+        bounds = np.asarray(bounds, dtype=float)
+        if bounds.shape != (4,) or not np.isfinite(bounds).all() or bounds[0] &gt;= bounds[1] or bounds[2] &gt;= bounds[3]:
+            raise bridge.InvalidParameterError("Require finite increasing x/y bounds")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_full_field_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        report = {"schema_version": 1, "operation": "export_full_field_sample", "source_model": str(model_path),
+                  "source_sha256": before, "requested_times": times.tolist(), "tensor_layout": LAYOUT,
+                  "channel_order": list(CHANNELS), "units": list(UNITS), "grids": [], "solver_called": False}
+        try:
+            for nx, ny in grid_shapes:
+                grid_dir = stage / f"grid_{nx}x{ny}"
+                grid_dir.mkdir()
+                response = bridge._run_bridge(["export-full-field-sample", str(model_path), str(grid_dir),
+                    ",".join(format(t, ".17g") for t in times), str(nx), str(ny),
+                    *(format(v, ".17g") for v in bounds)], root=root)
+                _write_json(grid_dir / "bridge_response.json", response)
+                x, y, actual = _validate_response(response, model_path, times, (nx, ny), bounds)
+                raw_files = {item["filename"] for item in response["exports"]}
+                _require({path.name for path in grid_dir.glob("*.txt")} == raw_files, "Missing or extra raw field exports")
+                raw_values = np.stack([_parse_grid(grid_dir / item["filename"], x, y, actual[ti]) for ti, item in enumerate(response["exports"])])
+                cylinder = _cylinder_mask(x, y, response["geometry"])
+                invalid = ~np.isfinite(raw_values).all(axis=1)
+                _require(not (invalid &amp; ~cylinder[None]).any(), "COMSOL produced invalid values outside the cylinder mask")
+                mask = cylinder[None] | invalid
+                values = np.where(mask[:, None], np.nan, raw_values)
+                checks = _check_direct(response, values, x, y, actual, mask)
+                np.savez_compressed(grid_dir / "field_sample.npz", values=values, mask=mask,
+                                    cylinder_mask=cylinder, invalid_mask=invalid, x=x, y=y, times=actual)
+                metadata = {"schema_version": 1, "source_model": str(model_path), "source_sha256": before,
+                    "model_tag": response["model_tag"], "dataset": response["dataset"], "geometry": response["geometry"],
+                    "requested_times": times.tolist(), "actual_times": actual.tolist(),
+                    "tensor_layout": LAYOUT, "shape": list(values.shape), "channel_order": list(CHANNELS),
+                    "units": response["exports"][0]["units"], "coordinates": {"x": x.tolist(), "y": y.tolist(), "unit": "m", "includes_endpoints": True, "increasing": True},
+                    "mask_semantics": {"cylinder_mask": "r &lt;= R + 1e-12 m, includes the cylinder boundary", "invalid_mask": "any raw u/v/p value non-finite at this time and coordinate", "mask": "union of cylinder_mask and invalid_mask; masked values stored as NaN; non-finite fluid values reject export"},
+                    "unit_evidence": response["exports"], "direct_evaluation_node": response["direct_evaluation_node"], "direct_eval_checks": checks,
+                    "validation_tolerances": {"time_absolute_s": TIME_ATOL, "coordinate_absolute_m": COORD_ATOL, "value_absolute": VALUE_ATOL, "value_relative": VALUE_RTOL},
+                    "npz_sha256": bridge.compute_file_hash(grid_dir / "field_sample.npz"),
+                    "raw_files": {name: bridge.compute_file_hash(grid_dir / name) for name in sorted(raw_files)}}
+                _write_json(grid_dir / "metadata.json", metadata)
+                loaded = load_full_field_sample(grid_dir)
+                _require(np.array_equal(loaded["values"], values, equal_nan=True), "NPZ values changed on readback")
+                report["grids"].append({"path": grid_dir.name, "shape": list(values.shape),
+                    "masked_points_per_time": mask.sum(axis=(1, 2)).tolist(), "raw_invalid_points_per_time": invalid.sum(axis=(1, 2)).tolist(),
+                    "cylinder_points": int(cylinder.sum()), "direct_checks": len(checks),
+                    "max_direct_absolute_errors": np.max([c["absolute_errors"] for c in checks], axis=0).tolist(),
+                    "readback_passed": True, "npz_sha256": metadata["npz_sha256"]})
+            _require(bridge.compute_file_hash(model_path) == before, "Source model changed during sampling")
+            report.update(status="PASS", output_dir=str(output_dir.resolve()), source_unchanged=True)
+            _write_json(stage / "sample_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(f"Sampling output already exists: {output_dir}")
+                if os.name == "nt":
+&gt;                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\pytest-of-Administrator\\pytest-227\\test_saved_solution_sampling_r0\\.staging_full_field_cfddc6f162c7' -&gt; 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\pytest-of-Administrator\\pytest-227\\test_saved_solution_sampling_r0\\sample'
+
+src\hydro_disturb_bench\field_sampling.py:276: PermissionError</failure></testcase><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[fluid_nan]" time="0.029" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[fluid_inf]" time="0.027" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_pressure_unit]" time="0.025" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_pressure_header_unit]" time="0.025" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_header_time]" time="0.026" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[duplicate_coordinate]" time="0.026" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[extra_column]" time="0.029" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[malformed_row]" time="0.029" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_bounds]" time="0.029" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[actual_time_missing]" time="0.027" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[actual_time_nearest]" time="0.025" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_export]" time="0.026" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_file]" time="0.028" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[duplicate_export]" time="0.024" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[path_escape]" time="0.026" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_dataset]" time="0.026" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_unit_evidence]" time="0.026" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_geometry]" time="0.025" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_model]" time="0.025" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_solnum]" time="0.026" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_coordinate]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_time]" time="0.034" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_channel]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_missing_time]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_insufficient]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_node]" time="0.032" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_node_units]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_node_units]" time="0.036" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_source_dataset]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_numerical_tag]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_point_dataset]" time="0.031" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_row_tag]" time="0.032" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_retains_external_read_failure_and_original_raw_export" time="0.023" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_source_mutation_before_publication" time="0.092" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_never_overwrites_existing_output_directory[False]" time="0.009" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_never_overwrites_existing_output_directory[True]" time="0.010" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value0]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value1]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value2]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value3]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value4]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value5]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value6]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value7]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value8]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value9]" time="0.007" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[bounds-value10]" time="0.008" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[bounds-value11]" time="0.008" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[wrong_tensor_shape]" time="0.081" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[mask_as_int]" time="0.081" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[finite_inside_solid]" time="0.077" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[fluid_nan]" time="0.080" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[wrong_channel_order]" time="0.077" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[time_mismatch]" time="0.082" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[requested_time_metadata_mismatch]" time="0.084" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[shape_metadata_mismatch]" time="0.093" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_changed_archive_bytes_before_loading" time="0.075" /><testcase classname="tests.test_full_field_sampling" name="test_saved_time_roundoff_is_tolerated_without_replacing_actual_with_requested" time="0.128" /></testsuite></testsuites>

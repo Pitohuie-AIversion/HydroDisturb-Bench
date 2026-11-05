@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "archive": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\m3_field_sampling_20261105\\native_sample.zip",
+  "archive_sha256": "6fb2f43fc0eaebf562843eb2446f897e94b52edd702406439e239f7208fae489",
+  "entries_checked": 18,
+  "uncompressed_bytes_checked": 14664996,
+  "all_entry_bytes_match_manifest": true,
+  "extracted_sample_audit": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\m3_full_field_sampling_20261105\\extracted_sample_artifact_audit.json"
+}

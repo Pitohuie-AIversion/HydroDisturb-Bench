@@ -1,0 +1,175 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 59 items
+
+tests/test_full_field_sampling.py::test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask FAILED [  1%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[fluid_nan] PASSED [  3%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[fluid_inf] PASSED [  5%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_pressure_unit] PASSED [  6%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_pressure_header_unit] PASSED [  8%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_header_time] PASSED [ 10%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[duplicate_coordinate] PASSED [ 11%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[extra_column] PASSED [ 13%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[malformed_row] PASSED [ 15%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_bounds] PASSED [ 16%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[actual_time_missing] PASSED [ 18%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[actual_time_nearest] PASSED [ 20%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_export] PASSED [ 22%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_file] PASSED [ 23%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[duplicate_export] PASSED [ 25%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[path_escape] PASSED [ 27%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_dataset] PASSED [ 28%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_unit_evidence] PASSED [ 30%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_geometry] PASSED [ 32%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_model] PASSED [ 33%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_solnum] PASSED [ 35%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_coordinate] PASSED [ 37%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_time] PASSED [ 38%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_channel] PASSED [ 40%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_missing_time] PASSED [ 42%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_insufficient] PASSED [ 44%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_node] PASSED [ 45%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_node_units] PASSED [ 47%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_node_units] PASSED [ 49%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_source_dataset] PASSED [ 50%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_numerical_tag] PASSED [ 52%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_point_dataset] PASSED [ 54%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_row_tag] PASSED [ 55%]
+tests/test_full_field_sampling.py::test_sampling_entry_retains_external_read_failure_and_original_raw_export PASSED [ 57%]
+tests/test_full_field_sampling.py::test_sampling_entry_rejects_source_mutation_before_publication PASSED [ 59%]
+tests/test_full_field_sampling.py::test_sampling_never_overwrites_existing_output_directory[False] PASSED [ 61%]
+tests/test_full_field_sampling.py::test_sampling_never_overwrites_existing_output_directory[True] PASSED [ 62%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[requested_times-value0] PASSED [ 64%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[requested_times-value1] PASSED [ 66%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[requested_times-value2] PASSED [ 67%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[requested_times-value3] PASSED [ 69%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[requested_times-value4] PASSED [ 71%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value5] PASSED [ 72%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value6] PASSED [ 74%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value7] PASSED [ 76%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value8] PASSED [ 77%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value9] PASSED [ 79%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[bounds-value10] PASSED [ 81%]
+tests/test_full_field_sampling.py::test_sampling_rejects_invalid_request_before_external_access[bounds-value11] PASSED [ 83%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[wrong_tensor_shape] PASSED [ 84%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[mask_as_int] PASSED [ 86%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[finite_inside_solid] PASSED [ 88%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[fluid_nan] PASSED [ 89%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[wrong_channel_order] PASSED [ 91%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[time_mismatch] PASSED [ 93%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[requested_time_metadata_mismatch] PASSED [ 94%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[shape_metadata_mismatch] PASSED [ 96%]
+tests/test_full_field_sampling.py::test_npz_reader_rejects_changed_archive_bytes_before_loading PASSED [ 98%]
+tests/test_full_field_sampling.py::test_saved_time_roundoff_is_tolerated_without_replacing_actual_with_requested PASSED [100%]
+
+================================== FAILURES ===================================
+_ test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask _
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-227/test_saved_solution_sampling_r0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021C77452680>
+
+    def test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask(tmp_path, monkeypatch):
+        from hydro_disturb_bench.field_sampling import load_full_field_sample
+    
+        model, output, fake = _setup(tmp_path, monkeypatch)
+        before = model.read_bytes()
+>       result = _run(model, output)
+
+tests\test_full_field_sampling.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_full_field_sampling.py:207: in _run
+    return bridge.export_full_field_sample(model, output, requested_times=TIMES,
+src\hydro_disturb_bench\comsol_java\bridge.py:1582: in export_full_field_sample
+    return sample(model_path, output_dir, requested_times, grid_shapes, bounds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-227/test_saved_solution_sampling_r0/existing_m3.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-227/test_saved_solution_sampling_r0/sample')
+requested_times = (180.0, 185.0, 190.0), grid_shapes = ((9, 5), (17, 9))
+bounds = array([0.  , 0.4 , 0.  , 0.24]), allow_overwrite = False, root = None
+
+    def export_full_field_sample(model_path, output_dir, requested_times=(180., 185., 190., 195., 200.),
+                                 grid_shapes=((81, 49), (161, 97)), bounds=(0., .4, 0., .24),
+                                 *, allow_overwrite=False, root=None):
+        """Export two small samples into a new directory; retain failed staging evidence."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(f"Sampling output already exists: {output_dir}")
+        if allow_overwrite:
+            raise bridge.InvalidParameterError("Field samples always require a new output directory")
+        times = np.asarray(requested_times, dtype=float)
+        if times.ndim != 1 or not 3 <= len(times) <= 5 or not np.isfinite(times).all() or not np.all(np.diff(times) > 0):
+            raise bridge.InvalidParameterError("Request 3–5 finite, unique, increasing saved times")
+        if len(grid_shapes) != 2 or len({tuple(shape) for shape in grid_shapes}) != 2:
+            raise bridge.InvalidParameterError("Require two different Cartesian grid resolutions")
+        for shape in grid_shapes:
+            if len(shape) != 2 or any(not isinstance(v, (int, np.integer)) or isinstance(v, (bool, np.bool_)) or v < 3 for v in shape):
+                raise bridge.InvalidParameterError("Grid nx,ny must be integers >=3")
+        bounds = np.asarray(bounds, dtype=float)
+        if bounds.shape != (4,) or not np.isfinite(bounds).all() or bounds[0] >= bounds[1] or bounds[2] >= bounds[3]:
+            raise bridge.InvalidParameterError("Require finite increasing x/y bounds")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_full_field_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        report = {"schema_version": 1, "operation": "export_full_field_sample", "source_model": str(model_path),
+                  "source_sha256": before, "requested_times": times.tolist(), "tensor_layout": LAYOUT,
+                  "channel_order": list(CHANNELS), "units": list(UNITS), "grids": [], "solver_called": False}
+        try:
+            for nx, ny in grid_shapes:
+                grid_dir = stage / f"grid_{nx}x{ny}"
+                grid_dir.mkdir()
+                response = bridge._run_bridge(["export-full-field-sample", str(model_path), str(grid_dir),
+                    ",".join(format(t, ".17g") for t in times), str(nx), str(ny),
+                    *(format(v, ".17g") for v in bounds)], root=root)
+                _write_json(grid_dir / "bridge_response.json", response)
+                x, y, actual = _validate_response(response, model_path, times, (nx, ny), bounds)
+                raw_files = {item["filename"] for item in response["exports"]}
+                _require({path.name for path in grid_dir.glob("*.txt")} == raw_files, "Missing or extra raw field exports")
+                raw_values = np.stack([_parse_grid(grid_dir / item["filename"], x, y, actual[ti]) for ti, item in enumerate(response["exports"])])
+                cylinder = _cylinder_mask(x, y, response["geometry"])
+                invalid = ~np.isfinite(raw_values).all(axis=1)
+                _require(not (invalid & ~cylinder[None]).any(), "COMSOL produced invalid values outside the cylinder mask")
+                mask = cylinder[None] | invalid
+                values = np.where(mask[:, None], np.nan, raw_values)
+                checks = _check_direct(response, values, x, y, actual, mask)
+                np.savez_compressed(grid_dir / "field_sample.npz", values=values, mask=mask,
+                                    cylinder_mask=cylinder, invalid_mask=invalid, x=x, y=y, times=actual)
+                metadata = {"schema_version": 1, "source_model": str(model_path), "source_sha256": before,
+                    "model_tag": response["model_tag"], "dataset": response["dataset"], "geometry": response["geometry"],
+                    "requested_times": times.tolist(), "actual_times": actual.tolist(),
+                    "tensor_layout": LAYOUT, "shape": list(values.shape), "channel_order": list(CHANNELS),
+                    "units": response["exports"][0]["units"], "coordinates": {"x": x.tolist(), "y": y.tolist(), "unit": "m", "includes_endpoints": True, "increasing": True},
+                    "mask_semantics": {"cylinder_mask": "r <= R + 1e-12 m, includes the cylinder boundary", "invalid_mask": "any raw u/v/p value non-finite at this time and coordinate", "mask": "union of cylinder_mask and invalid_mask; masked values stored as NaN; non-finite fluid values reject export"},
+                    "unit_evidence": response["exports"], "direct_evaluation_node": response["direct_evaluation_node"], "direct_eval_checks": checks,
+                    "validation_tolerances": {"time_absolute_s": TIME_ATOL, "coordinate_absolute_m": COORD_ATOL, "value_absolute": VALUE_ATOL, "value_relative": VALUE_RTOL},
+                    "npz_sha256": bridge.compute_file_hash(grid_dir / "field_sample.npz"),
+                    "raw_files": {name: bridge.compute_file_hash(grid_dir / name) for name in sorted(raw_files)}}
+                _write_json(grid_dir / "metadata.json", metadata)
+                loaded = load_full_field_sample(grid_dir)
+                _require(np.array_equal(loaded["values"], values, equal_nan=True), "NPZ values changed on readback")
+                report["grids"].append({"path": grid_dir.name, "shape": list(values.shape),
+                    "masked_points_per_time": mask.sum(axis=(1, 2)).tolist(), "raw_invalid_points_per_time": invalid.sum(axis=(1, 2)).tolist(),
+                    "cylinder_points": int(cylinder.sum()), "direct_checks": len(checks),
+                    "max_direct_absolute_errors": np.max([c["absolute_errors"] for c in checks], axis=0).tolist(),
+                    "readback_passed": True, "npz_sha256": metadata["npz_sha256"]})
+            _require(bridge.compute_file_hash(model_path) == before, "Source model changed during sampling")
+            report.update(status="PASS", output_dir=str(output_dir.resolve()), source_unchanged=True)
+            _write_json(stage / "sample_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(f"Sampling output already exists: {output_dir}")
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\pytest-of-Administrator\\pytest-227\\test_saved_solution_sampling_r0\\.staging_full_field_cfddc6f162c7' -> 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\pytest-of-Administrator\\pytest-227\\test_saved_solution_sampling_r0\\sample'
+
+src\hydro_disturb_bench\field_sampling.py:276: PermissionError
+- generated xml file: D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\docs\evidence\m3_field_sampling_20261105\sampling_tests_final.xml -
+=========================== short test summary info ===========================
+FAILED tests/test_full_field_sampling.py::test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask
+======================== 1 failed, 58 passed in 3.20s =========================

@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "operation": "export_full_field_sample",
+  "source_model": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_solved.mph",
+  "source_sha256": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4",
+  "requested_times": [
+    180.0,
+    185.0,
+    190.0,
+    195.0,
+    200.0
+  ],
+  "tensor_layout": "(T, 3, Ny, Nx)",
+  "channel_order": [
+    "u",
+    "v",
+    "p"
+  ],
+  "units": [
+    "m/s",
+    "m/s",
+    "Pa"
+  ],
+  "grids": [
+    {
+      "path": "grid_81x49",
+      "shape": [
+        5,
+        3,
+        49,
+        81
+      ],
+      "masked_points_per_time": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "raw_invalid_points_per_time": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "cylinder_points": 5,
+      "direct_checks": 15,
+      "max_direct_absolute_errors": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "readback_passed": true,
+      "npz_sha256": "F9FA532C2E3FA64F474A7BA0C4D55B2CA7C23052E7EF2CF4C933EB89F13684FF"
+    },
+    {
+      "path": "grid_161x97",
+      "shape": [
+        5,
+        3,
+        97,
+        161
+      ],
+      "masked_points_per_time": [
+        13,
+        13,
+        13,
+        13,
+        13
+      ],
+      "raw_invalid_points_per_time": [
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "cylinder_points": 13,
+      "direct_checks": 15,
+      "max_direct_absolute_errors": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "readback_passed": true,
+      "npz_sha256": "D9646E1BF03687EA9A6E10A0275F64D750CC4E78CA02A89C2F5942593CF77570"
+    }
+  ],
+  "solver_called": false,
+  "status": "PASS",
+  "output_dir": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_field_sample_20261105_verified",
+  "source_unchanged": true
+}

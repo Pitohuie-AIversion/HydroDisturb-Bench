@@ -1,0 +1,6 @@
+{
+  "status": "ERROR",
+  "error_code": "MODEL_VALIDATION_FAILED",
+  "message": "Full-field sampling failed: Requested time 180.1 is not an exact saved time; nearest-time substitution is forbidden",
+  "details": "java.lang.IllegalArgumentException: Requested time 180.1 is not an exact saved time; nearest-time substitution is forbidden\r\n\tat ComsolBridge.handleExportFullFieldSample(ComsolBridge.class:1206)\r\n\tat ComsolBridge.main(ComsolBridge.class:81)\r\n\tat ComsolStandalone.main(ComsolStandalone.java:51)\r\n"
+}

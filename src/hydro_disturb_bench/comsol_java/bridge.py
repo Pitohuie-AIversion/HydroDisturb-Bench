@@ -1568,6 +1568,21 @@ def export_solution_data(
     return res
 
 
+def export_full_field_sample(
+    model_path: Path | str,
+    output_dir: Path | str,
+    requested_times=(180.0, 185.0, 190.0, 195.0, 200.0),
+    grid_shapes=((81, 49), (161, 97)),
+    bounds=(0.0, 0.4, 0.0, 0.24),
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Read an existing solution into two validated Cartesian sample archives."""
+    from ..field_sampling import export_full_field_sample as sample
+    return sample(model_path, output_dir, requested_times, grid_shapes, bounds,
+                  allow_overwrite=allow_overwrite, root=root)
+
+
 def _archive_existing_diagnostic_set(output_dir: Path) -> str | None:
     """If output_dir contains an existing complete diagnostic result set, copy it into versions/ archive.
 

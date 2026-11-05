@@ -1,0 +1,1355 @@
+{
+  "status": "SUCCESS",
+  "operation": "inspect_model",
+  "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_solved.mph",
+  "model_tag": "Model",
+  "comsol_version": "COMSOL Multiphysics 6.4 (开发版本: 429)",
+  "parameters": {
+    "H": {
+      "expr": "0.24[m]",
+      "value": 0.24,
+      "unit": "m",
+      "description": "Domain height (24D)"
+    },
+    "L": {
+      "expr": "0.40[m]",
+      "value": 0.4,
+      "unit": "m",
+      "description": "Domain length (40D)"
+    },
+    "W": {
+      "expr": "1[m]",
+      "value": 1.0,
+      "unit": "m",
+      "description": "Channel width (not modeled)"
+    },
+    "R": {
+      "expr": "D/2",
+      "value": 0.005,
+      "unit": "m",
+      "description": "Cylinder radius"
+    },
+    "U_mean": {
+      "expr": "U_inf",
+      "value": 0.010058104588258865,
+      "unit": "m/s",
+      "description": "Mean inflow velocity alias"
+    },
+    "D": {
+      "expr": "0.01[m]",
+      "value": 0.01,
+      "unit": "m",
+      "description": "Cylinder diameter"
+    },
+    "x_c": {
+      "expr": "0.10[m]",
+      "value": 0.1,
+      "unit": "m",
+      "description": "Cylinder center X (10D upstream distance)"
+    },
+    "y_c": {
+      "expr": "0.12[m]",
+      "value": 0.12,
+      "unit": "m",
+      "description": "Cylinder center Y (12D lateral half-width)"
+    },
+    "rho_f": {
+      "expr": "998.2[kg/m^3]",
+      "value": 998.2,
+      "unit": "kg/m^3",
+      "description": "Water density at 20 degC"
+    },
+    "mu_f": {
+      "expr": "1.004e-3[Pa*s]",
+      "value": 0.001004,
+      "unit": "Pa*s",
+      "description": "Water dynamic viscosity at 20 degC"
+    },
+    "Re": {
+      "expr": "100",
+      "value": 100.0,
+      "unit": null,
+      "description": "Target Reynolds number"
+    },
+    "U_inf": {
+      "expr": "Re*mu_f/(rho_f*D)",
+      "value": 0.010058104588258865,
+      "unit": "m/s",
+      "description": "Inflow free-stream velocity"
+    }
+  },
+  "components": [
+    {
+      "tag": "comp1",
+      "label": "Component 1",
+      "geometries": [
+        {
+          "tag": "geom1",
+          "sdim": 2,
+          "features": [
+            "r1",
+            "c1",
+            "dif1",
+            "fin"
+          ],
+          "boundary_geometry": {
+            "available": true,
+            "source": "COMSOL GeomSequence live query (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX)",
+            "geometry_tag": "geom1",
+            "geometry_rebuilt_in_memory": false,
+            "n_boundaries": 8,
+            "n_domains": 1,
+            "bounding_box": [
+              0.0,
+              0.4000000000000001,
+              0.0,
+              0.24
+            ],
+            "samples_per_boundary": 17,
+            "boundaries": [
+              {
+                "id": 1,
+                "x_range": [
+                  0.0,
+                  0.0
+                ],
+                "y_range": [
+                  0.0,
+                  0.24
+                ],
+                "length_polyline": 0.24,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.015
+                  ],
+                  [
+                    0.0,
+                    0.03
+                  ],
+                  [
+                    0.0,
+                    0.045
+                  ],
+                  [
+                    0.0,
+                    0.06
+                  ],
+                  [
+                    0.0,
+                    0.075
+                  ],
+                  [
+                    0.0,
+                    0.09
+                  ],
+                  [
+                    0.0,
+                    0.105
+                  ],
+                  [
+                    0.0,
+                    0.12
+                  ],
+                  [
+                    0.0,
+                    0.135
+                  ],
+                  [
+                    0.0,
+                    0.15
+                  ],
+                  [
+                    0.0,
+                    0.16499999999999998
+                  ],
+                  [
+                    0.0,
+                    0.18
+                  ],
+                  [
+                    0.0,
+                    0.195
+                  ],
+                  [
+                    0.0,
+                    0.21
+                  ],
+                  [
+                    0.0,
+                    0.22499999999999998
+                  ],
+                  [
+                    0.0,
+                    0.24
+                  ]
+                ]
+              },
+              {
+                "id": 2,
+                "x_range": [
+                  0.0,
+                  0.4
+                ],
+                "y_range": [
+                  0.0,
+                  0.0
+                ],
+                "length_polyline": 0.40000000000000013,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.4,
+                    0.0
+                  ],
+                  [
+                    0.375,
+                    0.0
+                  ],
+                  [
+                    0.35000000000000003,
+                    0.0
+                  ],
+                  [
+                    0.325,
+                    0.0
+                  ],
+                  [
+                    0.30000000000000004,
+                    0.0
+                  ],
+                  [
+                    0.275,
+                    0.0
+                  ],
+                  [
+                    0.25,
+                    0.0
+                  ],
+                  [
+                    0.225,
+                    0.0
+                  ],
+                  [
+                    0.2,
+                    0.0
+                  ],
+                  [
+                    0.17500000000000002,
+                    0.0
+                  ],
+                  [
+                    0.15000000000000002,
+                    0.0
+                  ],
+                  [
+                    0.125,
+                    0.0
+                  ],
+                  [
+                    0.1,
+                    0.0
+                  ],
+                  [
+                    0.07500000000000001,
+                    0.0
+                  ],
+                  [
+                    0.05,
+                    0.0
+                  ],
+                  [
+                    0.025,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ]
+                ]
+              },
+              {
+                "id": 3,
+                "x_range": [
+                  0.0,
+                  0.4
+                ],
+                "y_range": [
+                  0.24,
+                  0.24
+                ],
+                "length_polyline": 0.4,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.0,
+                    0.24
+                  ],
+                  [
+                    0.025,
+                    0.24
+                  ],
+                  [
+                    0.05,
+                    0.24
+                  ],
+                  [
+                    0.07500000000000001,
+                    0.24
+                  ],
+                  [
+                    0.1,
+                    0.24
+                  ],
+                  [
+                    0.125,
+                    0.24
+                  ],
+                  [
+                    0.15000000000000002,
+                    0.24
+                  ],
+                  [
+                    0.17500000000000002,
+                    0.24
+                  ],
+                  [
+                    0.2,
+                    0.24
+                  ],
+                  [
+                    0.225,
+                    0.24
+                  ],
+                  [
+                    0.25,
+                    0.24
+                  ],
+                  [
+                    0.275,
+                    0.24
+                  ],
+                  [
+                    0.30000000000000004,
+                    0.24
+                  ],
+                  [
+                    0.325,
+                    0.24
+                  ],
+                  [
+                    0.35000000000000003,
+                    0.24
+                  ],
+                  [
+                    0.375,
+                    0.24
+                  ],
+                  [
+                    0.4,
+                    0.24
+                  ]
+                ]
+              },
+              {
+                "id": 4,
+                "x_range": [
+                  0.4,
+                  0.4
+                ],
+                "y_range": [
+                  0.0,
+                  0.24
+                ],
+                "length_polyline": 0.2400000000000001,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.4,
+                    0.24
+                  ],
+                  [
+                    0.4,
+                    0.22499999999999998
+                  ],
+                  [
+                    0.4,
+                    0.21
+                  ],
+                  [
+                    0.4,
+                    0.195
+                  ],
+                  [
+                    0.4,
+                    0.18
+                  ],
+                  [
+                    0.4,
+                    0.16499999999999998
+                  ],
+                  [
+                    0.4,
+                    0.15
+                  ],
+                  [
+                    0.4,
+                    0.135
+                  ],
+                  [
+                    0.4,
+                    0.12
+                  ],
+                  [
+                    0.4,
+                    0.105
+                  ],
+                  [
+                    0.4,
+                    0.09
+                  ],
+                  [
+                    0.4,
+                    0.075
+                  ],
+                  [
+                    0.4,
+                    0.06
+                  ],
+                  [
+                    0.4,
+                    0.045
+                  ],
+                  [
+                    0.4,
+                    0.03
+                  ],
+                  [
+                    0.4,
+                    0.015
+                  ],
+                  [
+                    0.4,
+                    0.0
+                  ]
+                ]
+              },
+              {
+                "id": 5,
+                "x_range": [
+                  0.095,
+                  0.1
+                ],
+                "y_range": [
+                  0.11499999999999999,
+                  0.12
+                ],
+                "length_polyline": 0.007850807486099223,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.095,
+                    0.12
+                  ],
+                  [
+                    0.09502022545693561,
+                    0.11955072781051146
+                  ],
+                  [
+                    0.09508347315791713,
+                    0.11909018473793928
+                  ],
+                  [
+                    0.09519300520906483,
+                    0.11862420892577315
+                  ],
+                  [
+                    0.09535105849468786,
+                    0.11815952645219067
+                  ],
+                  [
+                    0.09555857996585122,
+                    0.11770352703471998
+                  ],
+                  [
+                    0.09581502244390673,
+                    0.11726395123307429
+                  ],
+                  [
+                    0.0961182340621258,
+                    0.11684850936800388
+                  ],
+                  [
+                    0.09646446609406725,
+                    0.11646446609406727
+                  ],
+                  [
+                    0.09684850936800385,
+                    0.11611823406212579
+                  ],
+                  [
+                    0.09726395123307428,
+                    0.11581502244390675
+                  ],
+                  [
+                    0.09770352703471999,
+                    0.11555857996585123
+                  ],
+                  [
+                    0.09815952645219064,
+                    0.11535105849468787
+                  ],
+                  [
+                    0.09862420892577316,
+                    0.11519300520906484
+                  ],
+                  [
+                    0.09909018473793929,
+                    0.11508347315791713
+                  ],
+                  [
+                    0.09955072781051147,
+                    0.11502022545693559
+                  ],
+                  [
+                    0.1,
+                    0.11499999999999999
+                  ]
+                ]
+              },
+              {
+                "id": 6,
+                "x_range": [
+                  0.095,
+                  0.1
+                ],
+                "y_range": [
+                  0.12,
+                  0.125
+                ],
+                "length_polyline": 0.00785080748609923,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.1,
+                    0.125
+                  ],
+                  [
+                    0.09955072781051147,
+                    0.12497977454306439
+                  ],
+                  [
+                    0.09909018473793929,
+                    0.12491652684208286
+                  ],
+                  [
+                    0.09862420892577316,
+                    0.12480699479093516
+                  ],
+                  [
+                    0.09815952645219066,
+                    0.12464894150531217
+                  ],
+                  [
+                    0.09770352703471999,
+                    0.12444142003414875
+                  ],
+                  [
+                    0.09726395123307428,
+                    0.12418497755609324
+                  ],
+                  [
+                    0.09684850936800386,
+                    0.12388176593787421
+                  ],
+                  [
+                    0.09646446609406725,
+                    0.12353553390593273
+                  ],
+                  [
+                    0.0961182340621258,
+                    0.12315149063199615
+                  ],
+                  [
+                    0.09581502244390673,
+                    0.1227360487669257
+                  ],
+                  [
+                    0.09555857996585122,
+                    0.12229647296528
+                  ],
+                  [
+                    0.09535105849468785,
+                    0.12184047354780937
+                  ],
+                  [
+                    0.09519300520906485,
+                    0.12137579107422683
+                  ],
+                  [
+                    0.09508347315791713,
+                    0.12090981526206072
+                  ],
+                  [
+                    0.0950202254569356,
+                    0.1204492721894885
+                  ],
+                  [
+                    0.095,
+                    0.12
+                  ]
+                ]
+              },
+              {
+                "id": 7,
+                "x_range": [
+                  0.1,
+                  0.10500000000000001
+                ],
+                "y_range": [
+                  0.11499999999999999,
+                  0.12
+                ],
+                "length_polyline": 0.007850807486099221,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.1,
+                    0.11499999999999999
+                  ],
+                  [
+                    0.10044927218948851,
+                    0.11502022545693559
+                  ],
+                  [
+                    0.10090981526206075,
+                    0.11508347315791713
+                  ],
+                  [
+                    0.10137579107422687,
+                    0.11519300520906484
+                  ],
+                  [
+                    0.10184047354780938,
+                    0.11535105849468787
+                  ],
+                  [
+                    0.10229647296528002,
+                    0.11555857996585123
+                  ],
+                  [
+                    0.10273604876692571,
+                    0.11581502244390675
+                  ],
+                  [
+                    0.10315149063199618,
+                    0.1161182340621258
+                  ],
+                  [
+                    0.10353553390593276,
+                    0.11646446609406727
+                  ],
+                  [
+                    0.10388176593787424,
+                    0.11684850936800388
+                  ],
+                  [
+                    0.10418497755609325,
+                    0.11726395123307429
+                  ],
+                  [
+                    0.10444142003414876,
+                    0.11770352703471998
+                  ],
+                  [
+                    0.10464894150531218,
+                    0.11815952645219067
+                  ],
+                  [
+                    0.10480699479093517,
+                    0.11862420892577315
+                  ],
+                  [
+                    0.10491652684208289,
+                    0.11909018473793928
+                  ],
+                  [
+                    0.1049797745430644,
+                    0.11955072781051146
+                  ],
+                  [
+                    0.10500000000000001,
+                    0.12
+                  ]
+                ]
+              },
+              {
+                "id": 8,
+                "x_range": [
+                  0.1,
+                  0.10500000000000001
+                ],
+                "y_range": [
+                  0.12,
+                  0.125
+                ],
+                "length_polyline": 0.007850807486099233,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.10500000000000001,
+                    0.12
+                  ],
+                  [
+                    0.10497977454306441,
+                    0.1204492721894885
+                  ],
+                  [
+                    0.10491652684208289,
+                    0.12090981526206072
+                  ],
+                  [
+                    0.10480699479093517,
+                    0.12137579107422683
+                  ],
+                  [
+                    0.10464894150531219,
+                    0.12184047354780937
+                  ],
+                  [
+                    0.10444142003414876,
+                    0.12229647296528
+                  ],
+                  [
+                    0.10418497755609327,
+                    0.1227360487669257
+                  ],
+                  [
+                    0.10388176593787424,
+                    0.12315149063199615
+                  ],
+                  [
+                    0.10353553390593276,
+                    0.12353553390593273
+                  ],
+                  [
+                    0.10315149063199615,
+                    0.12388176593787423
+                  ],
+                  [
+                    0.10273604876692571,
+                    0.12418497755609324
+                  ],
+                  [
+                    0.10229647296528002,
+                    0.12444142003414875
+                  ],
+                  [
+                    0.10184047354780938,
+                    0.12464894150531217
+                  ],
+                  [
+                    0.10137579107422687,
+                    0.12480699479093517
+                  ],
+                  [
+                    0.10090981526206073,
+                    0.12491652684208288
+                  ],
+                  [
+                    0.10044927218948851,
+                    0.12497977454306439
+                  ],
+                  [
+                    0.1,
+                    0.125
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "meshes": [
+        {
+          "tag": "mesh1",
+          "sdim": 2,
+          "is_complete": true,
+          "num_elem": 34752,
+          "num_vertex": 17910,
+          "features": [
+            "size",
+            "size1",
+            "cr1",
+            "ftri1",
+            "bl1"
+          ]
+        }
+      ],
+      "physics": [
+        {
+          "tag": "spf",
+          "label": "Laminar Flow",
+          "type": "LaminarFlow",
+          "features": [
+            {
+              "tag": "fp1",
+              "label": "Fluid Properties 1",
+              "type": "FluidProperties",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "init1",
+              "label": "Initial Values 1",
+              "type": "init",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "wallbc1",
+              "label": "Wall 1",
+              "type": "WallBC",
+              "selection_entities": [
+                5,
+                6,
+                7,
+                8
+              ]
+            },
+            {
+              "tag": "grav1",
+              "label": "Gravity 1",
+              "type": "Gravity",
+              "selection_entities": []
+            },
+            {
+              "tag": "rtfr1",
+              "label": "Rotating Frame 1",
+              "type": "RotatingFrameFD",
+              "selection_entities": []
+            },
+            {
+              "tag": "dcont1",
+              "label": "Flow Continuity 1",
+              "type": "Continuity",
+              "selection_entities": []
+            },
+            {
+              "tag": "inl1",
+              "label": "Inlet 1",
+              "type": "InletBoundary",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "out1",
+              "label": "Outlet 1",
+              "type": "OutletBoundary",
+              "selection_entities": [
+                4
+              ]
+            },
+            {
+              "tag": "sym1",
+              "label": "对称 1",
+              "type": "Symmetry",
+              "selection_entities": [
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "materials": [
+        {
+          "tag": "mat1",
+          "label": "Material 1"
+        }
+      ]
+    }
+  ],
+  "studies": [
+    {
+      "tag": "std1",
+      "label": "Study 1",
+      "features": [
+        {
+          "tag": "time",
+          "label": "Time Dependent",
+          "type": "Transient",
+          "properties": {
+            "tdescr": "Time",
+            "showtlist": "on",
+            "usetunit": "on",
+            "tunit": "s",
+            "tlist": "range(0, 0.2, 200)",
+            "tlist_vector_method": "step",
+            "tlist_vector_start": "",
+            "tlist_vector_stop": "",
+            "tlist_vector_step": "",
+            "tlist_vector_numvalues": "",
+            "tlist_vector_function": "none",
+            "tlist_vector_interval": "octave",
+            "tlist_vector_freqperdec": "",
+            "initialtime": "0.0",
+            "usertol": "on",
+            "rtol": "1e-4",
+            "time_discrete": "off",
+            "geometricNonlinearity": "off",
+            "geometricNonlinearityActive": "off",
+            "updateOptimizationSettings": "off",
+            "ftplistmethod": "ignore",
+            "method": "fixed_number_of_iterations",
+            "expr": "1",
+            "rtolterm": "0.001",
+            "rtolthresh": "1",
+            "maxiter": "25",
+            "miniter": "1",
+            "atolterm": "0.001",
+            "iter": "5",
+            "outputhide": "off",
+            "plot": "off",
+            "plotgroupdummy": "Default",
+            "plotgrouparr": "pg1",
+            "plotwindowsarr": "",
+            "windowforpg": "new",
+            "plotfreq": "tout",
+            "probesel": "all",
+            "probes": "[]",
+            "probefreq": "tsteps",
+            "physselection": "",
+            "activate": "spf, on, frame:spatial1, on, frame:material1, on, comp1, on",
+            "useadvanceddisable": "off",
+            "disabledvariables": "[]",
+            "disabledcoordinatesystems": "[]",
+            "disabledcommon": "",
+            "disabledpair": "[]",
+            "disabledphysics": "",
+            "disableFrameControl": "",
+            "disabledcoupling": "",
+            "disabledreduced": "",
+            "disabledcomponent": "",
+            "discretization": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "equationform": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "shapeOrder": "comp1, component",
+            "equationform_freq": "spf, 1[kHz], frame:spatial1, 0, frame:material1, 0, comp1, 0",
+            "discretization_proxy": "physics",
+            "equationform_proxy": "physics",
+            "equationform_freq_proxy": "0",
+            "reconstructors_proxy": "none",
+            "shapeOrder_proxy": "component",
+            "multiphysicsSelection": "",
+            "activateCoupling": "",
+            "romselection": "",
+            "activaterom": "",
+            "activateimagereconstruct": "",
+            "reconstructables": "",
+            "reconstructors": "",
+            "useinitsol": "off",
+            "initmethod": "init",
+            "initstudy": "zero",
+            "initstudyhide": "on",
+            "initsol": "current",
+            "initsolhide": "on",
+            "initsoluse": "current",
+            "initsolusesolnumhide": "on",
+            "initsolusesolnum": "1",
+            "oldinitsoluse": "0",
+            "initstudystep": "",
+            "solvertype": "foo",
+            "solnumhide": "on",
+            "solnum": "auto",
+            "timeinterp": "off",
+            "t": "0",
+            "listsol": "off",
+            "listsolnum": "1",
+            "manualsol": "off",
+            "manualsolnum": "1",
+            "manualsolnum_vector_method": "step",
+            "manualsolnum_vector_start": "",
+            "manualsolnum_vector_stop": "",
+            "manualsolnum_vector_step": "",
+            "manualsolnum_vector_numvalues": "",
+            "manualsolnum_vector_function": "none",
+            "manualsolnum_vector_interval": "octave",
+            "manualsolnum_vector_freqperdec": "",
+            "usesol": "off",
+            "notsolmethod": "init",
+            "notstudy": "zero",
+            "notstudyhide": "on",
+            "notsol": "current",
+            "notsolhide": "on",
+            "notsoluse": "current",
+            "notsolusesolnumhide": "on",
+            "notsolusesolnum": "1",
+            "oldnotsoluse": "0",
+            "notstudystep": "",
+            "notsolvertype": "foo",
+            "notsolnumhide": "on",
+            "notsolnum": "auto",
+            "nottimeinterp": "off",
+            "nott": "0",
+            "notlistsol": "off",
+            "notlistsolnum": "1",
+            "notmanualsol": "off",
+            "notmanualsolnum": "1",
+            "notmanualsolnum_vector_method": "step",
+            "notmanualsolnum_vector_start": "",
+            "notmanualsolnum_vector_stop": "",
+            "notmanualsolnum_vector_step": "",
+            "notmanualsolnum_vector_numvalues": "",
+            "notmanualsolnum_vector_function": "none",
+            "notmanualsolnum_vector_interval": "octave",
+            "notmanualsolnum_vector_freqperdec": "",
+            "outputmap": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "outputselectionmap": "spf, , frame:spatial1, , frame:material1, , comp1, ",
+            "outputSelectionProxy": "",
+            "geomselection": "",
+            "mesh": "geom1, mesh1",
+            "timeadaption": "none",
+            "timeadapgeom": "geom1",
+            "tauto": "manual",
+            "rmethod": "longest",
+            "rmethodauto": "longest",
+            "adaptselection": "",
+            "auxsweepmethod": "ignore",
+            "showuseparam": "on",
+            "useparam": "off",
+            "sweeptype": "sparse",
+            "loadFile": "",
+            "saveFile": "",
+            "pname": "",
+            "plistarr": "",
+            "plistarr_vector_method": "",
+            "plistarr_vector_start": "",
+            "plistarr_vector_stop": "",
+            "plistarr_vector_step": "",
+            "plistarr_vector_numvalues": "",
+            "plistarr_vector_function": "",
+            "plistarr_vector_interval": "octave",
+            "plistarr_vector_freqperdec": "",
+            "punit": "",
+            "optimization": "off",
+            "pdistrib": "off",
+            "autoremesh": "off",
+            "autoremeshgeom": "geom1",
+            "treeSelectionKey": "",
+            "equationFormCouplingColumn": "",
+            "tableRow": "",
+            "outputInterface": ""
+          }
+        }
+      ]
+    }
+  ],
+  "solvers": [
+    {
+      "tag": "sol1",
+      "label": "Solution 1",
+      "feature_tags": [
+        "st1",
+        "v1",
+        "t1"
+      ],
+      "features": [
+        {
+          "tag": "st1",
+          "type": "StudyStep",
+          "label": "编译方程: Time Dependent",
+          "properties": {
+            "study": "std1",
+            "studystep": "time",
+            "unredstudy": "",
+            "unredstep": "",
+            "useForModelReduction": "on",
+            "splitcomplex": "off",
+            "partmethod": "parent",
+            "linsmallelem": "physicscontrolled",
+            "componentid": "",
+            "linsmallelemexpr": "geom1, 0.0",
+            "units": "",
+            "saveprevioussolution": "off",
+            "assempara": "on",
+            "useent": "all",
+            "entsel": "[]",
+            "keeplog": "off",
+            "message": "<---- Study 1/Solution 1 (sol1) 中的“编译方程: Time Dependent” -----------------------\n开始于 2026年11月5日 12:06:40。\n几何形函数: 线性拉格朗日单元\n在 Intel(R) Core(TM) i7-14700 上运行。\n在以下位置使用 1 个插槽： SR-MuZY 上（共 16 个内核）。\n可用内存：32.42 GB。\n在 Intel(R) Core(TM) i7-14700 上运行。\n在以下位置使用 1 个插槽： SR-MuZY 上（共 16 个内核）。\n可用内存：32.42 GB。\n时间：2 s。\n物理内存: 891 MB\n虚拟内存: 811 MB\n结束时间：2026年11月5日 12:06:42。\n----- Study 1/Solution 1 (sol1) 中的“编译方程: Time Dependent” ---------------------->\n",
+            "const": "",
+            "propertyDefaults": "",
+            "changedproperties": "",
+            "hiddenchangedproperties": "",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        },
+        {
+          "tag": "v1",
+          "type": "Variables",
+          "label": "Dependent Variables 1",
+          "properties": {
+            "control": "time",
+            "initmethod": "init",
+            "initsol": "zero",
+            "initsolhide": "on",
+            "initsoluse": "current",
+            "oldinitsoluse": "0",
+            "initsolusesolnumhide": "on",
+            "initsolusesolnum": "1",
+            "solvertype": "none",
+            "solnum": "auto",
+            "timeinterp": "off",
+            "t": "0",
+            "manualsol": "off",
+            "manualsolnum": "1",
+            "manualsolnum_vector_method": "step",
+            "manualsolnum_vector_start": "",
+            "manualsolnum_vector_stop": "",
+            "manualsolnum_vector_step": "",
+            "manualsolnum_vector_numvalues": "",
+            "manualsolnum_vector_function": "none",
+            "manualsolnum_vector_interval": "octave",
+            "manualsolnum_vector_freqperdec": "",
+            "listsol": "off",
+            "listsolnum": "1",
+            "scalemethod": "auto",
+            "scaleval": "1.0",
+            "resscalemethod": "auto",
+            "resscaleval": "1.0",
+            "resscalethresh": "100.0",
+            "notsolmethod": "init",
+            "notsol": "zero",
+            "notsolhide": "on",
+            "notsoluse": "current",
+            "oldnotsoluse": "0",
+            "notsolusesolnumhide": "on",
+            "notsolusesolnum": "1",
+            "notsolvertype": "none",
+            "notsolnum": "auto",
+            "nottimeinterp": "off",
+            "nott": "0",
+            "notmanualsol": "off",
+            "notmanualsolnum": "1",
+            "notmanualsolnum_vector_method": "step",
+            "notmanualsolnum_vector_start": "",
+            "notmanualsolnum_vector_stop": "",
+            "notmanualsolnum_vector_step": "",
+            "notmanualsolnum_vector_numvalues": "",
+            "notmanualsolnum_vector_function": "none",
+            "notmanualsolnum_vector_interval": "octave",
+            "notmanualsolnum_vector_freqperdec": "",
+            "notlistsol": "off",
+            "notlistsolnum": "1",
+            "initparametersmethod": "auto",
+            "clistctrl": "t1_t, t1_timestep",
+            "cname": "t, timestep",
+            "clist": "0, 0.2, 0.4, 0.6000000000000001, 0.8, 1, 1.2000000000000002, 1.4000000000000001, 1.6, 1.8, 2, 2.2, 2.4000000000000004, 2.6, 2.8000000000000003, 3, 3.2, 3.4000000000000004, 3.6, 3.8000000000000003, 4, 4.2, 4.4, 4.6000000000000005, 4.800000000000001, 5, 5.2, 5.4, 5.6000000000000005, 5.800000000000001, 6, 6.2, 6.4, 6.6000000000000005, 6.800000000000001, 7, 7.2, 7.4, 7.6000000000000005, 7.800000000000001, 8, 8.200000000000001, 8.4, 8.6, 8.8, 9, 9.200000000000001, 9.4, 9.600000000000001, 9.8, 10, 10.200000000000001, 10.4, 10.600000000000001, 10.8, 11, 11.200000000000001, 11.4, 11.600000000000001, 11.8, 12, 12.200000000000001, 12.4, 12.600000000000001, 12.8, 13, 13.200000000000001, 13.4, 13.600000000000001, 13.8, 14, 14.200000000000001, 14.4, 14.600000000000001, 14.8, 15, 15.200000000000001, 15.4, 15.600000000000001, 15.8, 16, 16.2, 16.400000000000002, 16.6, 16.8, 17, 17.2, 17.400000000000002, 17.6, 17.8, 18, 18.2, 18.400000000000002, 18.6, 18.8, 19, 19.200000000000003, 19.400000000000002, 19.6, 19.8, 20, 20.200000000000003, 20.400000000000002, 20.6, 20.8, 21, 21.200000000000003, 21.400000000000002, 21.6, 21.8, 22, 22.200000000000003, 22.400000000000002, 22.6, 22.8, 23, 23.200000000000003, 23.400000000000002, 23.6, 23.8, 24, 24.200000000000003, 24.400000000000002, 24.6, 24.8, 25, 25.200000000000003, 25.400000000000002, 25.6, 25.8, 26, 26.200000000000003, 26.400000000000002, 26.6, 26.8, 27, 27.200000000000003, 27.400000000000002, 27.6, 27.8, 28, 28.200000000000003, 28.400000000000002, 28.6, 28.8, 29, 29.200000000000003, 29.400000000000002, 29.6, 29.8, 30, 30.200000000000003, 30.400000000000002, 30.6, 30.8, 31, 31.200000000000003, 31.400000000000002, 31.6, 31.8, 32, 32.2, 32.4, 32.6, 32.800000000000004, 33, 33.2, 33.4, 33.6, 33.800000000000004, 34, 34.2, 34.4, 34.6, 34.800000000000004, 35, 35.2, 35.4, 35.6, 35.800000000000004, 36, 36.2, 36.4, 36.6, 36.800000000000004, 37, 37.2, 37.4, 37.6, 37.800000000000004, 38, 38.2, 38.400000000000006, 38.6, 38.800000000000004, 39, 39.2, 39.400000000000006, 39.6, 39.800000000000004, 40, 40.2, 40.400000000000006, 40.6, 40.800000000000004, 41, 41.2, 41.400000000000006, 41.6, 41.800000000000004, 42, 42.2, 42.400000000000006, 42.6, 42.800000000000004, 43, 43.2, 43.400000000000006, 43.6, 43.800000000000004, 44, 44.2, 44.400000000000006, 44.6, 44.800000000000004, 45, 45.2, 45.400000000000006, 45.6, 45.800000000000004, 46, 46.2, 46.400000000000006, 46.6, 46.800000000000004, 47, 47.2, 47.400000000000006, 47.6, 47.800000000000004, 48, 48.2, 48.400000000000006, 48.6, 48.800000000000004, 49, 49.2, 49.400000000000006, 49.6, 49.800000000000004, 50, 50.2, 50.400000000000006, 50.6, 50.800000000000004, 51, 51.2, 51.400000000000006, 51.6, 51.800000000000004, 52, 52.2, 52.400000000000006, 52.6, 52.800000000000004, 53, 53.2, 53.400000000000006, 53.6, 53.800000000000004, 54, 54.2, 54.400000000000006, 54.6, 54.800000000000004, 55, 55.2, 55.400000000000006, 55.6, 55.800000000000004, 56, 56.2, 56.400000000000006, 56.6, 56.800000000000004, 57, 57.2, 57.400000000000006, 57.6, 57.800000000000004, 58, 58.2, 58.400000000000006, 58.6, 58.800000000000004, 59, 59.2, 59.400000000000006, 59.6, 59.800000000000004, 60, 60.2, 60.400000000000006, 60.6, 60.800000000000004, 61, 61.2, 61.400000000000006, 61.6, 61.800000000000004, 62, 62.2, 62.400000000000006, 62.6, 62.800000000000004, 63, 63.2, 63.400000000000006, 63.6, 63.800000000000004, 64, 64.2, 64.4, 64.60000000000001, 64.8, 65, 65.2, 65.4, 65.60000000000001, 65.8, 66, 66.2, 66.4, 66.60000000000001, 66.8, 67, 67.2, 67.4, 67.60000000000001, 67.8, 68, 68.2, 68.4, 68.60000000000001, 68.8, 69, 69.2, 69.4, 69.60000000000001, 69.8, 70, 70.2, 70.4, 70.60000000000001, 70.8, 71, 71.2, 71.4, 71.60000000000001, 71.8, 72, 72.2, 72.4, 72.60000000000001, 72.8, 73, 73.2, 73.4, 73.60000000000001, 73.8, 74, 74.2, 74.4, 74.60000000000001, 74.8, 75, 75.2, 75.4, 75.60000000000001, 75.8, 76, 76.2, 76.4, 76.60000000000001, 76.80000000000001, 77, 77.2, 77.4, 77.60000000000001, 77.80000000000001, 78, 78.2, 78.4, 78.60000000000001, 78.80000000000001, 79, 79.2, 79.4, 79.60000000000001, 79.80000000000001, 80, 80.2, 80.4, 80.60000000000001, 80.80000000000001, 81, 81.2, 81.4, 81.60000000000001, 81.80000000000001, 82, 82.2, 82.4, 82.60000000000001, 82.80000000000001, 83, 83.2, 83.4, 83.60000000000001, 83.80000000000001, 84, 84.2, 84.4, 84.60000000000001, 84.80000000000001, 85, 85.2, 85.4, 85.60000000000001, 85.80000000000001, 86, 86.2, 86.4, 86.60000000000001, 86.80000000000001, 87, 87.2, 87.4, 87.60000000000001, 87.80000000000001, 88, 88.2, 88.4, 88.60000000000001, 88.80000000000001, 89, 89.2, 89.4, 89.60000000000001, 89.80000000000001, 90, 90.2, 90.4, 90.60000000000001, 90.80000000000001, 91, 91.2, 91.4, 91.60000000000001, 91.80000000000001, 92, 92.2, 92.4, 92.60000000000001, 92.80000000000001, 93, 93.2, 93.4, 93.60000000000001, 93.80000000000001, 94, 94.2, 94.4, 94.60000000000001, 94.80000000000001, 95, 95.2, 95.4, 95.60000000000001, 95.80000000000001, 96, 96.2, 96.4, 96.60000000000001, 96.80000000000001, 97, 97.2, 97.4, 97.60000000000001, 97.80000000000001, 98, 98.2, 98.4, 98.60000000000001, 98.80000000000001, 99, 99.2, 99.4, 99.60000000000001, 99.80000000000001, 100, 100.2, 100.4, 100.60000000000001, 100.80000000000001, 101, 101.2, 101.4, 101.60000000000001, 101.80000000000001, 102, 102.2, 102.4, 102.60000000000001, 102.80000000000001, 103, 103.2, 103.4, 103.60000000000001, 103.80000000000001, 104, 104.2, 104.4, 104.60000000000001, 104.80000000000001, 105, 105.2, 105.4, 105.60000000000001, 105.80000000000001, 106, 106.2, 106.4, 106.60000000000001, 106.80000000000001, 107, 107.2, 107.4, 107.60000000000001, 107.80000000000001, 108, 108.2, 108.4, 108.60000000000001, 108.80000000000001, 109, 109.2, 109.4, 109.60000000000001, 109.80000000000001, 110, 110.2, 110.4, 110.60000000000001, 110.80000000000001, 111, 111.2, 111.4, 111.60000000000001, 111.80000000000001, 112, 112.2, 112.4, 112.60000000000001, 112.80000000000001, 113, 113.2, 113.4, 113.60000000000001, 113.80000000000001, 114, 114.2, 114.4, 114.60000000000001, 114.80000000000001, 115, 115.2, 115.4, 115.60000000000001, 115.80000000000001, 116, 116.2, 116.4, 116.60000000000001, 116.80000000000001, 117, 117.2, 117.4, 117.60000000000001, 117.80000000000001, 118, 118.2, 118.4, 118.60000000000001, 118.80000000000001, 119, 119.2, 119.4, 119.60000000000001, 119.80000000000001, 120, 120.2, 120.4, 120.60000000000001, 120.80000000000001, 121, 121.2, 121.4, 121.60000000000001, 121.80000000000001, 122, 122.2, 122.4, 122.60000000000001, 122.80000000000001, 123, 123.2, 123.4, 123.60000000000001, 123.80000000000001, 124, 124.2, 124.4, 124.60000000000001, 124.80000000000001, 125, 125.2, 125.4, 125.60000000000001, 125.80000000000001, 126, 126.2, 126.4, 126.60000000000001, 126.80000000000001, 127, 127.2, 127.4, 127.60000000000001, 127.80000000000001, 128, 128.20000000000002, 128.4, 128.6, 128.8, 129, 129.20000000000002, 129.4, 129.6, 129.8, 130, 130.20000000000002, 130.4, 130.6, 130.8, 131, 131.20000000000002, 131.4, 131.6, 131.8, 132, 132.20000000000002, 132.4, 132.6, 132.8, 133, 133.20000000000002, 133.4, 133.6, 133.8, 134, 134.20000000000002, 134.4, 134.6, 134.8, 135, 135.20000000000002, 135.4, 135.6, 135.8, 136, 136.20000000000002, 136.4, 136.6, 136.8, 137, 137.20000000000002, 137.4, 137.6, 137.8, 138, 138.20000000000002, 138.4, 138.6, 138.8, 139, 139.20000000000002, 139.4, 139.6, 139.8, 140, 140.20000000000002, 140.4, 140.6, 140.8, 141, 141.20000000000002, 141.4, 141.6, 141.8, 142, 142.20000000000002, 142.4, 142.6, 142.8, 143, 143.20000000000002, 143.4, 143.6, 143.8, 144, 144.20000000000002, 144.4, 144.6, 144.8, 145, 145.20000000000002, 145.4, 145.6, 145.8, 146, 146.20000000000002, 146.4, 146.6, 146.8, 147, 147.20000000000002, 147.4, 147.6, 147.8, 148, 148.20000000000002, 148.4, 148.6, 148.8, 149, 149.20000000000002, 149.4, 149.6, 149.8, 150, 150.20000000000002, 150.4, 150.6, 150.8, 151, 151.20000000000002, 151.4, 151.6, 151.8, 152, 152.20000000000002, 152.4, 152.6, 152.8, 153, 153.20000000000002, 153.4, 153.60000000000002, 153.8, 154, 154.20000000000002, 154.4, 154.60000000000002, 154.8, 155, 155.20000000000002, 155.4, 155.60000000000002, 155.8, 156, 156.20000000000002, 156.4, 156.60000000000002, 156.8, 157, 157.20000000000002, 157.4, 157.60000000000002, 157.8, 158, 158.20000000000002, 158.4, 158.60000000000002, 158.8, 159, 159.20000000000002, 159.4, 159.60000000000002, 159.8, 160, 160.20000000000002, 160.4, 160.60000000000002, 160.8, 161, 161.20000000000002, 161.4, 161.60000000000002, 161.8, 162, 162.20000000000002, 162.4, 162.60000000000002, 162.8, 163, 163.20000000000002, 163.4, 163.60000000000002, 163.8, 164, 164.20000000000002, 164.4, 164.60000000000002, 164.8, 165, 165.20000000000002, 165.4, 165.60000000000002, 165.8, 166, 166.20000000000002, 166.4, 166.60000000000002, 166.8, 167, 167.20000000000002, 167.4, 167.60000000000002, 167.8, 168, 168.20000000000002, 168.4, 168.60000000000002, 168.8, 169, 169.20000000000002, 169.4, 169.60000000000002, 169.8, 170, 170.20000000000002, 170.4, 170.60000000000002, 170.8, 171, 171.20000000000002, 171.4, 171.60000000000002, 171.8, 172, 172.20000000000002, 172.4, 172.60000000000002, 172.8, 173, 173.20000000000002, 173.4, 173.60000000000002, 173.8, 174, 174.20000000000002, 174.4, 174.60000000000002, 174.8, 175, 175.20000000000002, 175.4, 175.60000000000002, 175.8, 176, 176.20000000000002, 176.4, 176.60000000000002, 176.8, 177, 177.20000000000002, 177.4, 177.60000000000002, 177.8, 178, 178.20000000000002, 178.4, 178.60000000000002, 178.8, 179, 179.20000000000002, 179.4, 179.60000000000002, 179.8, 180, 180.20000000000002, 180.4, 180.60000000000002, 180.8, 181, 181.20000000000002, 181.4, 181.60000000000002, 181.8, 182, 182.20000000000002, 182.4, 182.60000000000002, 182.8, 183, 183.20000000000002, 183.4, 183.60000000000002, 183.8, 184, 184.20000000000002, 184.4, 184.60000000000002, 184.8, 185, 185.20000000000002, 185.4, 185.60000000000002, 185.8, 186, 186.20000000000002, 186.4, 186.60000000000002, 186.8, 187, 187.20000000000002, 187.4, 187.60000000000002, 187.8, 188, 188.20000000000002, 188.4, 188.60000000000002, 188.8, 189, 189.20000000000002, 189.4, 189.60000000000002, 189.8, 190, 190.20000000000002, 190.4, 190.60000000000002, 190.8, 191, 191.20000000000002, 191.4, 191.60000000000002, 191.8, 192, 192.20000000000002, 192.4, 192.60000000000002, 192.8, 193, 193.20000000000002, 193.4, 193.60000000000002, 193.8, 194, 194.20000000000002, 194.4, 194.60000000000002, 194.8, 195, 195.20000000000002, 195.4, 195.60000000000002, 195.8, 196, 196.20000000000002, 196.4, 196.60000000000002, 196.8, 197, 197.20000000000002, 197.4, 197.60000000000002, 197.8, 198, 198.20000000000002, 198.4, 198.60000000000002, 198.8, 199, 199.20000000000002, 199.4, 199.60000000000002, 199.8, 200; 0.2",
+            "keeplog": "off",
+            "message": "<---- Study 1/Solution 1 (sol1) 中的“Dependent Variables 1” ----------------------\n开始于 2026年11月5日 12:06:42。\n求解时间：0 s。\n物理内存: 875 MB\n虚拟内存: 840 MB\n结束时间：2026年11月5日 12:06:42。\n----- Study 1/Solution 1 (sol1) 中的“Dependent Variables 1” --------------------->\n",
+            "const": "",
+            "storesol": "init",
+            "propertyDefaults": "",
+            "changedproperties": "Parameter name and value, clist, {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], 0.007[s]; -, cname, t, t, timestep; -, clistctrl, t1_t, t1_t, t1_timestep",
+            "hiddenchangedproperties": "",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        },
+        {
+          "tag": "t1",
+          "type": "Time",
+          "label": "Time-Dependent Solver 1",
+          "properties": {
+            "control": "time",
+            "usetunit": "on",
+            "tunit": "s",
+            "tlist": "range(0, 0.2, 200)",
+            "tlist_vector_method": "step",
+            "tlist_vector_start": "",
+            "tlist_vector_stop": "",
+            "tlist_vector_step": "",
+            "tlist_vector_numvalues": "",
+            "tlist_vector_function": "none",
+            "tlist_vector_interval": "octave",
+            "tlist_vector_freqperdec": "",
+            "tout": "tlist",
+            "tstepsstore": "1",
+            "rtol": "1e-4",
+            "atolglobalmethod": "scaled",
+            "atolglobalvaluemethod": "factor",
+            "atolglobalfactor": "0.05",
+            "tderglobalmethod": "auto",
+            "tderglobalfactor": "1",
+            "atolglobal": "0.001",
+            "ewtrescale": "on",
+            "atolmethod": "comp1_p, scaled, comp1_u, global",
+            "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+            "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+            "tdermethod": "comp1_p, auto, comp1_u, auto",
+            "tderfactor": "comp1_p, 1.0, comp1_u, 1.0",
+            "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+            "atoludot": "comp1_p, 1e-3, comp1_u, 1e-3",
+            "atolmethodAUX": "scaled",
+            "atolvaluemethodAUX": "factor",
+            "atolfactorAUX": "1",
+            "tdermethodAUX": "auto",
+            "tderfactorAUX": "1.0",
+            "atolAUX": "1e-3",
+            "atoludotAUX": "1e-3",
+            "odesolvertype": "implicit",
+            "timemethod": "bdf",
+            "tstepsbdf": "intermediate",
+            "endtimeinterpolation": "on",
+            "initialstepbdf": "0.001",
+            "initialstepbdfactive": "off",
+            "maxstepconstraintbdf": "const",
+            "maxstepbdf": "0.05",
+            "maxstepexpressionbdf": "0.1",
+            "maxorder": "2",
+            "minorder": "1",
+            "bdforder": "2",
+            "initialstepfractionbdf-1": "1",
+            "initialstepgrowthratebdf-1": "1.5",
+            "initialstepfractionbdf-2": "1",
+            "initialstepgrowthratebdf-2": "1.5",
+            "initialstepfractionbdf-3": "0.1",
+            "initialstepgrowthratebdf-3": "1.2",
+            "initialstepfractionbdf-4": "0.01",
+            "initialstepgrowthratebdf-4": "1.15",
+            "initialstepfractionbdf-5": "0.001",
+            "initialstepgrowthratebdf-5": "1.1",
+            "timestepbdf": "0.01",
+            "eventtol": "0.01",
+            "stabcntrl": "on",
+            "masssingular": "maybe",
+            "consistent": "bweuler",
+            "bwinitstepfrac": "0.01",
+            "bwinitfactor": "20",
+            "estrat": "exclude",
+            "tstepsgenalpha": "free",
+            "initialstepgenalpha": "0.001",
+            "initialstepgenalphaactive": "off",
+            "maxstepconstraintgenalpha": "auto",
+            "maxstepgenalpha": "0.1",
+            "maxstepexpressiongenalpha": "0.1",
+            "incrdelay": "15",
+            "incrdelayactive": "off",
+            "rhoinf": "0.5",
+            "predictor": "constant",
+            "timestepgenalpha": "0.01",
+            "rescaleafterinitbw": "off",
+            "timemethodexp": "rk",
+            "rkmethod": "rk34",
+            "tstepsrk34": "free",
+            "initialsteprk34": "0.001",
+            "initialsteprk34active": "off",
+            "timesteprk34": "0.01",
+            "tstepsck5": "free",
+            "initialstepck5": "0.001",
+            "initialstepck5active": "off",
+            "timestepck5": "0.01",
+            "tstepsdopri5": "free",
+            "initialstepdopri5": "0.001",
+            "initialstepdopri5active": "off",
+            "dopripicontrol": "smooth",
+            "maxstepconstraintdopri5": "auto",
+            "maxstepdopri5": "0.1",
+            "maxstepexpressiondopri5": "0.1",
+            "doprigrowmin": "0.2",
+            "doprigrowmax": "10",
+            "doprisafe": "0.9",
+            "timestepdopri5": "0.01",
+            "rkstiffcheck": "on",
+            "erkorder": "4",
+            "tstepping": "manual",
+            "rktimestep": "1.e-3",
+            "updtstep": "off",
+            "ntimestepsupdate": "10",
+            "exprs": "",
+            "mlinsolver": "dDef",
+            "algebraicsolvemethodRK": "full",
+            "algebraicsolveeverynRK": "1",
+            "algebraicsolveeverydtRK": "0",
+            "algebraicsolvemethod": "n",
+            "algebraicsolveeveryn": "1",
+            "algebraicsolveeverydt": "0",
+            "updtlvl": "off",
+            "ntimestepsupdateab3loc": "100",
+            "rtstepab3loc": "0.1",
+            "verletauxsolver": "ab2",
+            "checkvalidity": "off",
+            "exprsgeom": "",
+            "exprsgeomab3loc": "",
+            "exprsgporder": "",
+            "exprsgporderupdt": "",
+            "exprsgporderab3loc": "",
+            "plot": "off",
+            "plotgroupdummy": "Default",
+            "plotgrouparr": "pg1",
+            "plotwindowsarr": "",
+            "windowforpg": "new",
+            "plotfreq": "tout",
+            "probesel": "all",
+            "probes": "[]",
+            "probefreq": "tsteps",
+            "reacf": "on",
+            "lumpedflux": "off",
+            "storeudot": "on",
+            "eventout": "off",
+            "complex": "off",
+            "solref": "off",
+            "assumeperiodic": "off",
+            "starttime": "0",
+            "solutionperiod": "0",
+            "cosimstoressol": "off",
+            "cosim": "off",
+            "cosiminput": "",
+            "cosimoutput": "",
+            "cosimconsistent": "on",
+            "uselsqtimedata": "on",
+            "tlistlsq": "",
+            "excludelsqtimes": "on",
+            "lsqtimesout": "",
+            "clistctrl": "",
+            "cname": "",
+            "clist": "",
+            "keeplog": "off",
+            "message": "3769      184.14        0.05     9136 3772 9136     2     0      0    1e-13  6.8e-16\n3770      184.19        0.05     9138 3773 9138     2     0      0  3.6e-14  6.6e-16\n   -       184.2           - out\n3771      184.24        0.05     9140 3774 9140     2     0      0  3.4e-13  6.7e-16\n3772      184.29        0.05     9142 3775 9142     2     0      0  8.3e-13  7.5e-16\n3773      184.34        0.05     9144 3776 9144     2     0      0  2.5e-13  6.3e-16\n3774      184.39        0.05     9146 3777 9146     2     0      0  1.5e-13  6.1e-16\n   -       184.4           - out\n3775      184.44        0.05     9149 3778 9149     2     0      0  2.4e-13  5.4e-16\n3776      184.49        0.05     9152 3779 9152     2     0      0  1.3e-13  4.9e-16\n3777      184.54        0.05     9155 3780 9155     2     0      0  2.7e-13  5.3e-16\n3778      184.59        0.05     9158 3781 9158     2     0      0    2e-13  5.4e-16\n   -       184.6           - out\n3779      184.64        0.05     9161 3782 9161     2     0      0  2.2e-14  6.2e-16\n3780      184.69        0.05     9163 3783 9163     2     0      0  6.8e-14    7e-16\n3781      184.74        0.05     9165 3784 9165     2     0      0  2.7e-13  6.1e-16\n3782      184.79        0.05     9167 3785 9167     2     0      0  3.2e-13  5.5e-16\n   -       184.8           - out\n3783      184.84        0.05     9169 3786 9169     2     0      0  2.1e-13  6.8e-16\n3784      184.89        0.05     9172 3787 9172     2     0      0  5.9e-14  5.2e-16\n3785      184.94        0.05     9175 3788 9175     2     0      0  4.1e-14  4.9e-16\n3786      184.99        0.05     9178 3789 9178     2     0      0  4.1e-13  4.8e-16\n   -         185           - out\n3787      185.04        0.05     9180 3790 9180     2     0      0    3e-13    1e-15\n3788      185.09        0.05     9183 3791 9183     2     0      0  1.9e-14  8.1e-16\n3789      185.14        0.05     9185 3792 9185     2     0      0    4e-13  5.3e-16\n3790      185.19        0.05     9188 3793 9188     2     0      0    5e-14  5.8e-16\n   -       185.2           - out\n3791      185.24        0.05     9190 3794 9190     2     0      0  1.7e-13  6.8e-16\n3792      185.29        0.05     9193 3795 9193     2     0      0  2.5e-13  4.5e-16\n3793      185.34        0.05     9196 3796 9196     2     0      0  3.7e-14  5.7e-16\n3794      185.39        0.05     9199 3797 9199     2     0      0  1.5e-13  9.6e-16\n   -       185.4           - out\n3795      185.44        0.05     9202 3798 9202     2     0      0  3.7e-13  5.9e-16\n3796      185.49        0.05     9204 3799 9204     2     0      0  1.4e-13    8e-16\n3797      185.54        0.05     9207 3800 9207     2     0      0  7.2e-13  5.3e-16\n3798      185.59        0.05     9209 3801 9209     2     0      0  1.9e-13  6.3e-16\n   -       185.6           - out\n3799      185.64        0.05     9212 3802 9212     2     0      0  2.9e-13  5.2e-16\n3800      185.69        0.05     9214 3803 9214     2     0      0    3e-13  8.7e-16\n3801      185.74        0.05     9218 3804 9218     2     0      0  3.4e-13  5.6e-16\n3802      185.79        0.05     9220 3805 9220     2     0      0  2.7e-13  8.3e-16\n   -       185.8           - out\n3803      185.84        0.05     9223 3806 9223     2     0      0  1.3e-13  6.7e-16\n3804      185.89        0.05     9225 3807 9225     2     0      0  1.5e-13  5.5e-16\n3805      185.94        0.05     9228 3808 9228     2     0      0  2.9e-13  5.3e-16\n3806      185.99        0.05     9230 3809 9230     2     0      0  1.9e-13  7.8e-16\n   -         186           - out\n3807      186.04        0.05     9234 3810 9234     2     0      0  4.9e-13  6.3e-16\n3808      186.09        0.05     9236 3811 9236     2     0      0    2e-13  6.1e-16\n3809      186.14        0.05     9240 3812 9240     2     0      0  3.8e-13    4e-16\n3810      186.19        0.05     9242 3813 9242     2     0      0  3.6e-13  7.2e-16\n   -       186.2           - out\n3811      186.24        0.05     9244 3814 9244     2     0      0  1.8e-14  7.1e-16\n3812      186.29        0.05     9246 3815 9246     2     0      0  6.6e-13    7e-16\n3813      186.34        0.05     9248 3816 9248     2     0      0  4.2e-13  6.8e-16\n3814      186.39        0.05     9250 3817 9250     2     0      0  2.2e-13  5.9e-16\n   -       186.4           - out\n3815      186.44        0.05     9252 3818 9252     2     0      0  9.6e-14  7.2e-16\n3816      186.49        0.05     9255 3819 9255     2     0      0  5.7e-13  5.2e-16\n3817      186.54        0.05     9258 3820 9258     2     0      0  3.2e-13  6.2e-16\n3818      186.59        0.05     9260 3821 9260     2     0      0  2.5e-13  6.6e-16\n   -       186.6           - out\n3819      186.64        0.05     9263 3822 9263     2     0      0  1.8e-13  5.7e-16\n3820      186.69        0.05     9265 3823 9265     2     0      0  3.7e-14  6.3e-16\n3821      186.74        0.05     9267 3824 9267     2     0      0  1.8e-13  5.7e-16\n3822      186.79        0.05     9269 3825 9269     2     0      0  7.5e-14  6.3e-16\n   -       186.8           - out\n3823      186.84        0.05     9272 3826 9272     2     0      0  1.6e-13  6.1e-16\n3824      186.89        0.05     9275 3827 9275     2     0      0  3.9e-13  5.6e-16\n3825      186.94        0.05     9278 3828 9278     2     0      0  1.5e-13  5.9e-16\n3826      186.99        0.05     9280 3829 9280     2     0      0  4.4e-13  6.2e-16\n   -         187           - out\n3827      187.04        0.05     9282 3830 9282     2     0      0  4.1e-13  6.2e-16\n3828      187.09        0.05     9284 3831 9284     2     0      0  6.2e-13  6.1e-16\n3829      187.14        0.05     9286 3832 9286     2     0      0  1.1e-13  8.3e-16\n3830      187.19        0.05     9290 3833 9290     2     0      0  1.9e-13  6.2e-16\n   -       187.2           - out\n3831      187.24        0.05     9293 3834 9293     2     0      0  5.6e-14  5.5e-16\n3832      187.29        0.05     9297 3835 9297     2     0      0  1.8e-13  4.4e-16\n3833      187.34        0.05     9299 3836 9299     2     0      0  1.7e-13  7.5e-16\n3834      187.39        0.05     9302 3837 9302     2     0      0  9.8e-14  1.1e-15\n   -       187.4           - out\n3835      187.44        0.05     9305 3838 9305     2     0      0  1.4e-13  8.9e-16\n3836      187.49        0.05     9308 3839 9308     2     0      0  1.8e-13    6e-16\n3837      187.54        0.05     9310 3840 9310     2     0      0  9.8e-14  6.7e-16\n3838      187.59        0.05     9312 3841 9312     2     0      0    2e-13  6.2e-16\n   -       187.6           - out\n3839      187.64        0.05     9314 3842 9314     2     0      0  3.1e-14  7.4e-16\n3840      187.69        0.05     9318 3843 9318     2     0      0  4.8e-13  4.8e-16\n3841      187.74        0.05     9320 3844 9320     2     0      0  1.5e-13    7e-16\n3842      187.79        0.05     9324 3845 9324     2     0      0  2.6e-13  4.4e-16\n   -       187.8           - out\n3843      187.84        0.05     9327 3846 9327     2     0      0  3.9e-13  9.9e-16\n3844      187.89        0.05     9329 3847 9329     2     0      0  9.5e-14  7.6e-16\n3845      187.94        0.05     9331 3848 9331     2     0      0  1.8e-13  6.2e-16\n3846      187.99        0.05     9333 3849 9333     2     0      0  2.7e-13  8.1e-16\n   -         188           - out\n3847      188.04        0.05     9336 3850 9336     2     0      0  2.8e-13  4.9e-16\n3848      188.09        0.05     9339 3851 9339     2     0      0  1.9e-14  6.6e-16\n3849      188.14        0.05     9342 3852 9342     2     0      0  3.4e-14  1.1e-15\n3850      188.19        0.05     9346 3853 9346     2     0      0    3e-13  5.4e-16\n   -       188.2           - out\n3851      188.24        0.05     9348 3854 9348     2     0      0  1.2e-13    1e-15\n3852      188.29        0.05     9351 3855 9351     2     0      0  4.7e-14  5.3e-16\n3853      188.34        0.05     9353 3856 9353     2     0      0  3.1e-13  6.9e-16\n3854      188.39        0.05     9356 3857 9356     2     0      0  3.5e-13  4.7e-16\n   -       188.4           - out\n3855      188.44        0.05     9359 3858 9359     2     0      0  2.5e-13  5.7e-16\n3856      188.49        0.05     9362 3859 9362     2     0      0    4e-13  9.1e-16\n3857      188.54        0.05     9364 3860 9364     2     0      0  1.2e-13  9.4e-16\n3858      188.59        0.05     9367 3861 9367     2     0      0  1.9e-13  1.1e-15\n   -       188.6           - out\n3859      188.64        0.05     9369 3862 9369     2     0      0  3.3e-13    5e-16\n3860      188.69        0.05     9372 3863 9372     2     0      0  7.5e-14  5.5e-16\n3861      188.74        0.05     9374 3864 9374     2     0      0  1.2e-13  5.4e-16\n3862      188.79        0.05     9377 3865 9377     2     0      0  4.7e-13  5.4e-16\n   -       188.8           - out\n3863      188.84        0.05     9379 3866 9379     2     0      0  6.7e-13  5.1e-16\n3864      188.89        0.05     9382 3867 9382     2     0      0  2.6e-13  7.3e-16\n3865      188.94        0.05     9384 3868 9384     2     0      0  5.4e-14  5.7e-16\n3866      188.99        0.05     9387 3869 9387     2     0      0  3.6e-13    6e-16\n   -         189           - out\n3867      189.04        0.05     9389 3870 9389     2     0      0  4.7e-14  5.8e-16\n3868      189.09        0.05     9393 3871 9393     2     0      0  3.5e-14  4.5e-16\n3869      189.14        0.05     9395 3872 9395     2     0      0  4.3e-13  7.9e-16\n3870      189.19        0.05     9397 3873 9397     2     0      0  3.8e-13  6.8e-16\n   -       189.2           - out\n3871      189.24        0.05     9399 3874 9399     2     0      0    2e-13  5.2e-16\n3872      189.29        0.05     9401 3875 9401     2     0      0  3.8e-13  6.3e-16\n3873      189.34        0.05     9403 3876 9403     2     0      0  2.3e-13  5.9e-16\n3874      189.39        0.05     9405 3877 9405     2     0      0  9.7e-15  6.7e-16\n   -       189.4           - out\n3875      189.44        0.05     9407 3878 9407     2     0      0  1.7e-13    5e-16\n3876      189.49        0.05     9409 3879 9409     2     0      0  2.8e-13  5.4e-16\n3877      189.54        0.05     9412 3880 9412     2     0      0  3.1e-13  4.6e-16\n3878      189.59        0.05     9414 3881 9414     2     0      0  1.2e-13  4.8e-16\n   -       189.6           - out\n3879      189.64        0.05     9417 3882 9417     2     0      0  3.9e-13  4.4e-16\n3880      189.69        0.05     9419 3883 9419     2     0      0  7.2e-14  5.3e-16\n3881      189.74        0.05     9421 3884 9421     2     0      0    7e-13  5.7e-16\n3882      189.79        0.05     9423 3885 9423     2     0      0  2.7e-13  4.9e-16\n   -       189.8           - out\n3883      189.84        0.05     9425 3886 9425     2     0      0  4.9e-13  6.1e-16\n3884      189.89        0.05     9427 3887 9427     2     0      0  2.3e-13  5.9e-16\n3885      189.94        0.05     9429 3888 9429     2     0      0  1.4e-13  5.9e-16\n3886      189.99        0.05     9431 3889 9431     2     0      0  1.1e-13  7.4e-16\n   -         190           - out\n3887      190.04        0.05     9435 3890 9435     2     0      0    2e-13  5.5e-16\n3888      190.09        0.05     9437 3891 9437     2     0      0  1.7e-14  7.1e-16\n3889      190.14        0.05     9441 3892 9441     2     0      0  2.1e-13    5e-16\n3890      190.19        0.05     9443 3893 9443     2     0      0  4.1e-13  8.9e-16\n   -       190.2           - out\n3891      190.24        0.05     9447 3894 9447     2     0      0  1.6e-13  4.6e-16\n3892      190.29        0.05     9449 3895 9449     2     0      0  3.1e-13    1e-15\n3893      190.34        0.05     9451 3896 9451     2     0      0  3.6e-13    7e-16\n3894      190.39        0.05     9453 3897 9453     2     0      0  2.2e-13  8.6e-16\n   -       190.4           - out\n3895      190.44        0.05     9455 3898 9455     2     0      0  8.5e-13  6.8e-16\n3896      190.49        0.05     9457 3899 9457     2     0      0  1.6e-13  8.4e-16\n3897      190.54        0.05     9460 3900 9460     2     0      0    2e-13  5.4e-16\n3898      190.59        0.05     9463 3901 9463     2     0      0  5.8e-13  5.1e-16\n   -       190.6           - out\n3899      190.64        0.05     9466 3902 9466     2     0      0  1.5e-13  6.6e-16\n3900      190.69        0.05     9468 3903 9468     2     0      0  1.2e-13    1e-15\n3901      190.74        0.05     9471 3904 9471     2     0      0  6.6e-14  5.6e-16\n3902      190.79        0.05     9473 3905 9473     2     0      0  1.5e-13  5.5e-16\n   -       190.8           - out\n3903      190.84        0.05     9476 3906 9476     2     0      0  3.8e-13  6.6e-16\n3904      190.89        0.05     9478 3907 9478     2     0      0  5.6e-13  6.3e-16\n3905      190.94        0.05     9481 3908 9481     2     0      0    3e-13  6.1e-16\n3906      190.99        0.05     9483 3909 9483     2     0      0  1.8e-13  6.7e-16\n   -         191           - out\n3907      191.04        0.05     9486 3910 9486     2     0      0  2.4e-14  4.9e-16\n3908      191.09        0.05     9489 3911 9489     2     0      0  1.7e-13    5e-16\n3909      191.14        0.05     9491 3912 9491     2     0      0  1.8e-13  9.3e-16\n3910      191.19        0.05     9495 3913 9495     2     0      0  3.1e-13  4.1e-16\n   -       191.2           - out\n3911      191.24        0.05     9497 3914 9497     2     0      0  5.1e-13  5.7e-16\n3912      191.29        0.05     9500 3915 9500     2     0      0  5.3e-14    5e-16\n3913      191.34        0.05     9502 3916 9502     2     0      0  1.1e-13  6.8e-16\n3914      191.39        0.05     9505 3917 9505     2     0      0  3.4e-13  4.6e-16\n   -       191.4           - out\n3915      191.44        0.05     9508 3918 9508     2     0      0  1.3e-13  6.6e-16\n3916      191.49        0.05     9511 3919 9511     2     0      0  4.4e-13  9.2e-16\n3917      191.54        0.05     9513 3920 9513     2     0      0  3.6e-13  6.8e-16\n3918      191.59        0.05     9516 3921 9516     2     0      0  1.7e-14  4.7e-16\n   -       191.6           - out\n3919      191.64        0.05     9518 3922 9518     2     0      0  6.2e-14  6.7e-16\n3920      191.69        0.05     9521 3923 9521     2     0      0  1.5e-13  4.9e-16\n3921      191.74        0.05     9523 3924 9523     2     0      0  3.3e-14  9.7e-16\n3922      191.79        0.05     9526 3925 9526     2     0      0  7.2e-14  7.3e-16\n   -       191.8           - out\n3923      191.84        0.05     9528 3926 9528     2     0      0  1.6e-13  6.3e-16\n3924      191.89        0.05     9531 3927 9531     2     0      0  1.5e-13  6.5e-16\n3925      191.94        0.05     9533 3928 9533     2     0      0  8.6e-14  6.1e-16\n3926      191.99        0.05     9536 3929 9536     2     0      0  3.1e-13  4.8e-16\n   -         192           - out\n3927      192.04        0.05     9538 3930 9538     2     0      0  3.6e-14  8.3e-16\n3928      192.09        0.05     9540 3931 9540     2     0      0  2.6e-14  7.2e-16\n3929      192.14        0.05     9544 3932 9544     2     0      0  2.3e-13  5.9e-16\n3930      192.19        0.05     9546 3933 9546     2     0      0  2.3e-13  6.7e-16\n   -       192.2           - out\n3931      192.24        0.05     9549 3934 9549     2     0      0    1e-13  5.5e-16\n3932      192.29        0.05     9551 3935 9551     2     0      0  6.2e-14  6.4e-16\n3933      192.34        0.05     9554 3936 9554     2     0      0  4.8e-14  4.6e-16\n3934      192.39        0.05     9556 3937 9556     2     0      0  1.9e-13  7.2e-16\n   -       192.4           - out\n3935      192.44        0.05     9558 3938 9558     2     0      0  2.5e-13  5.9e-16\n3936      192.49        0.05     9560 3939 9560     2     0      0  3.7e-14  6.2e-16\n3937      192.54        0.05     9563 3940 9563     2     0      0  1.4e-13  5.1e-16\n3938      192.59        0.05     9565 3941 9565     2     0      0  3.2e-13    9e-16\n   -       192.6           - out\n3939      192.64        0.05     9568 3942 9568     2     0      0  6.1e-13  5.3e-16\n3940      192.69        0.05     9570 3943 9570     2     0      0  5.7e-13  6.3e-16\n3941      192.74        0.05     9573 3944 9573     2     0      0  3.9e-13  6.2e-16\n3942      192.79        0.05     9575 3945 9575     2     0      0  1.6e-13  5.9e-16\n   -       192.8           - out\n3943      192.84        0.05     9577 3946 9577     2     0      0  5.8e-13  6.2e-16\n3944      192.89        0.05     9580 3947 9580     2     0      0  3.5e-13  4.7e-16\n3945      192.94        0.05     9583 3948 9583     2     0      0  1.7e-13  6.5e-16\n3946      192.99        0.05     9586 3949 9586     2     0      0  1.4e-13    6e-16\n   -         193           - out\n3947      193.04        0.05     9589 3950 9589     2     0      0  7.3e-14    6e-16\n3948      193.09        0.05     9591 3951 9591     2     0      0  7.3e-13  5.5e-16\n3949      193.14        0.05     9593 3952 9593     2     0      0  5.2e-13  6.2e-16\n3950      193.19        0.05     9595 3953 9595     2     0      0  1.5e-13  6.6e-16\n   -       193.2           - out\n3951      193.24        0.05     9598 3954 9598     2     0      0  3.5e-13  5.7e-16\n3952      193.29        0.05     9601 3955 9601     2     0      0  2.2e-13  5.3e-16\n3953      193.34        0.05     9604 3956 9604     2     0      0  3.7e-14  9.9e-16\n3954      193.39        0.05     9607 3957 9607     2     0      0  2.2e-13  9.6e-16\n   -       193.4           - out\n3955      193.44        0.05     9610 3958 9610     2     0      0  2.1e-13  1.1e-15\n3956      193.49        0.05     9612 3959 9612     2     0      0  1.9e-13  6.6e-16\n3957      193.54        0.05     9615 3960 9615     2     0      0  2.9e-13  6.2e-16\n3958      193.59        0.05     9617 3961 9617     2     0      0  2.2e-13    5e-16\n   -       193.6           - out\n3959      193.64        0.05     9619 3962 9619     2     0      0  1.5e-13  6.3e-16\n3960      193.69        0.05     9621 3963 9621     2     0      0  3.8e-13  5.6e-16\n3961      193.74        0.05     9623 3964 9623     2     0      0  1.1e-13  6.3e-16\n3962      193.79        0.05     9627 3965 9627     2     0      0  1.4e-13  4.7e-16\n   -       193.8           - out\n3963      193.84        0.05     9629 3966 9629     2     0      0  3.4e-13  5.7e-16\n3964      193.89        0.05     9633 3967 9633     2     0      0  5.9e-14  4.1e-16\n3965      193.94        0.05     9637 3968 9637     2     0      0    7e-13  4.5e-16\n3966      193.99        0.05     9639 3969 9639     2     0      0  3.1e-13  9.3e-16\n   -         194           - out\n3967      194.04        0.05     9641 3970 9641     2     0      0  1.7e-13  7.1e-16\n3968      194.09        0.05     9644 3971 9644     2     0      0  4.2e-13  5.5e-16\n3969      194.14        0.05     9647 3972 9647     2     0      0  4.1e-13  5.4e-16\n3970      194.19        0.05     9651 3973 9651     2     0      0  4.4e-13  5.3e-16\n   -       194.2           - out\n3971      194.24        0.05     9655 3974 9655     2     0      0  1.1e-13  5.9e-16\n3972      194.29        0.05     9658 3975 9658     2     0      0  5.1e-14  9.3e-16\n3973      194.34        0.05     9660 3976 9660     2     0      0    3e-13  9.7e-16\n3974      194.39        0.05     9663 3977 9663     2     0      0    3e-13  4.5e-16\n   -       194.4           - out\n3975      194.44        0.05     9665 3978 9665     2     0      0  3.8e-13  6.6e-16\n3976      194.49        0.05     9668 3979 9668     2     0      0  4.1e-13  4.8e-16\n3977      194.54        0.05     9671 3980 9671     2     0      0  2.9e-13  6.5e-16\n3978      194.59        0.05     9674 3981 9674     2     0      0  1.6e-13  1.1e-15\n   -       194.6           - out\n3979      194.64        0.05     9676 3982 9676     2     0      0  4.3e-13  8.2e-16\n3980      194.69        0.05     9678 3983 9678     2     0      0  4.2e-13  8.9e-16\n3981      194.74        0.05     9680 3984 9680     2     0      0  4.6e-13  5.5e-16\n3982      194.79        0.05     9682 3985 9682     2     0      0  1.5e-13  7.4e-16\n   -       194.8           - out\n3983      194.84        0.05     9685 3986 9685     2     0      0  4.9e-13  4.9e-16\n3984      194.89        0.05     9687 3987 9687     2     0      0  1.4e-13  6.8e-16\n3985      194.94        0.05     9690 3988 9690     2     0      0  1.4e-13  4.9e-16\n3986      194.99        0.05     9692 3989 9692     2     0      0  1.4e-13  7.1e-16\n   -         195           - out\n3987      195.04        0.05     9695 3990 9695     2     0      0  1.4e-13  6.3e-16\n3988      195.09        0.05     9697 3991 9697     2     0      0  1.6e-13  5.6e-16\n3989      195.14        0.05     9701 3992 9701     2     0      0  1.6e-13  4.9e-16\n3990      195.19        0.05     9703 3993 9703     2     0      0  2.6e-13  6.3e-16\n   -       195.2           - out\n3991      195.24        0.05     9705 3994 9705     2     0      0  2.1e-13  5.5e-16\n3992      195.29        0.05     9707 3995 9707     2     0      0  3.3e-13  6.2e-16\n3993      195.34        0.05     9709 3996 9709     2     0      0  4.1e-13  5.2e-16\n3994      195.39        0.05     9711 3997 9711     2     0      0    3e-13  4.1e-16\n   -       195.4           - out\n3995      195.44        0.05     9713 3998 9713     2     0      0  1.7e-13  6.3e-16\n3996      195.49        0.05     9715 3999 9715     2     0      0    3e-13  5.5e-16\n3997      195.54        0.05     9717 4000 9717     2     0      0  1.3e-13  4.9e-16\n3998      195.59        0.05     9719 4001 9719     2     0      0  4.1e-14  5.8e-16\n   -       195.6           - out\n3999      195.64        0.05     9721 4002 9721     2     0      0  4.9e-13  6.5e-16\n4000      195.69        0.05     9724 4003 9724     2     0      0  2.3e-13  4.8e-16\n4001      195.74        0.05     9726 4004 9726     2     0      0  1.2e-13  5.1e-16\n4002      195.79        0.05     9728 4005 9728     2     0      0  1.3e-13  6.1e-16\n   -       195.8           - out\n4003      195.84        0.05     9730 4006 9730     2     0      0  3.7e-14    5e-16\n4004      195.89        0.05     9732 4007 9732     2     0      0  2.3e-14  6.5e-16\n4005      195.94        0.05     9734 4008 9734     2     0      0  2.5e-13  5.6e-16\n4006      195.99        0.05     9736 4009 9736     2     0      0  3.8e-14  5.6e-16\n   -         196           - out\n4007      196.04        0.05     9740 4010 9740     2     0      0  3.6e-13  4.9e-16\n4008      196.09        0.05     9742 4011 9742     2     0      0  3.9e-13    8e-16\n4009      196.14        0.05     9745 4012 9745     2     0      0  6.9e-13  5.4e-16\n4010      196.19        0.05     9747 4013 9747     2     0      0  2.9e-13  8.2e-16\n   -       196.2           - out\n4011      196.24        0.05     9749 4014 9749     2     0      0  6.6e-14    8e-16\n4012      196.29        0.05     9751 4015 9751     2     0      0  1.3e-13  7.3e-16\n4013      196.34        0.05     9753 4016 9753     2     0      0  1.9e-13  6.3e-16\n4014      196.39        0.05     9755 4017 9755     2     0      0  1.2e-13  7.1e-16\n   -       196.4           - out\n4015      196.44        0.05     9759 4018 9759     2     0      0  3.5e-13  5.1e-16\n4016      196.49        0.05     9761 4019 9761     2     0      0    9e-14    6e-16\n4017      196.54        0.05     9764 4020 9764     2     0      0  9.9e-14  6.4e-16\n4018      196.59        0.05     9766 4021 9766     2     0      0    1e-13  5.6e-16\n   -       196.6           - out\n4019      196.64        0.05     9769 4022 9769     2     0      0  1.3e-13    6e-16\n4020      196.69        0.05     9772 4023 9772     2     0      0  2.5e-13  5.9e-16\n4021      196.74        0.05     9775 4024 9775     2     0      0    2e-13  7.4e-16\n4022      196.79        0.05     9777 4025 9777     2     0      0  1.8e-13  9.4e-16\n   -       196.8           - out\n4023      196.84        0.05     9779 4026 9779     2     0      0  1.9e-13  7.7e-16\n4024      196.89        0.05     9781 4027 9781     2     0      0  5.7e-14  5.3e-16\n4025      196.94        0.05     9783 4028 9783     2     0      0  4.1e-13  6.4e-16\n4026      196.99        0.05     9785 4029 9785     2     0      0  2.9e-13  7.7e-16\n   -         197           - out\n4027      197.04        0.05     9788 4030 9788     2     0      0    5e-14  4.8e-16\n4028      197.09        0.05     9791 4031 9791     2     0      0  4.2e-13  4.9e-16\n4029      197.14        0.05     9794 4032 9794     2     0      0  2.8e-13  5.2e-16\n4030      197.19        0.05     9796 4033 9796     2     0      0  1.6e-13  8.2e-16\n   -       197.2           - out\n4031      197.24        0.05     9800 4034 9800     2     0      0    3e-13  4.4e-16\n4032      197.29        0.05     9802 4035 9802     2     0      0  3.2e-14    6e-16\n4033      197.34        0.05     9805 4036 9805     2     0      0  3.1e-13  5.2e-16\n4034      197.39        0.05     9807 4037 9807     2     0      0  7.6e-14  7.7e-16\n   -       197.4           - out\n4035      197.44        0.05     9810 4038 9810     2     0      0  9.7e-14  4.8e-16\n4036      197.49        0.05     9813 4039 9813     2     0      0  4.6e-13  5.7e-16\n4037      197.54        0.05     9816 4040 9816     2     0      0  3.7e-13    9e-16\n4038      197.59        0.05     9818 4041 9818     2     0      0  1.1e-13  1.1e-15\n   -       197.6           - out\n4039      197.64        0.05     9821 4042 9821     2     0      0  1.6e-13  6.2e-16\n4040      197.69        0.05     9823 4043 9823     2     0      0  5.3e-13  5.6e-16\n4041      197.74        0.05     9826 4044 9826     2     0      0  6.5e-13  4.4e-16\n4042      197.79        0.05     9828 4045 9828     2     0      0  9.2e-14  8.8e-16\n   -       197.8           - out\n4043      197.84        0.05     9831 4046 9831     2     0      0  8.8e-14  5.7e-16\n4044      197.89        0.05     9833 4047 9833     2     0      0  6.4e-14  7.6e-16\n4045      197.94        0.05     9836 4048 9836     2     0      0  1.8e-13  7.3e-16\n4046      197.99        0.05     9838 4049 9838     2     0      0  2.1e-13  5.5e-16\n   -         198           - out\n4047      198.04        0.05     9841 4050 9841     2     0      0  5.5e-13  5.5e-16\n4048      198.09        0.05     9843 4051 9843     2     0      0  1.3e-13  8.6e-16\n4049      198.14        0.05     9846 4052 9846     2     0      0  1.9e-13  6.2e-16\n4050      198.19        0.05     9848 4053 9848     2     0      0  1.3e-13    1e-15\n   -       198.2           - out\n4051      198.24        0.05     9851 4054 9851     2     0      0  2.4e-13  5.7e-16\n4052      198.29        0.05     9853 4055 9853     2     0      0  1.3e-13  6.4e-16\n4053      198.34        0.05     9856 4056 9856     2     0      0  5.9e-13  5.5e-16\n4054      198.39        0.05     9858 4057 9858     2     0      0  1.9e-13  6.4e-16\n   -       198.4           - out\n4055      198.44        0.05     9861 4058 9861     2     0      0  1.6e-13  5.7e-16\n4056      198.49        0.05     9863 4059 9863     2     0      0  3.7e-13  6.5e-16\n4057      198.54        0.05     9865 4060 9865     2     0      0    2e-13  6.3e-16\n4058      198.59        0.05     9867 4061 9867     2     0      0  3.3e-14  7.6e-16\n   -       198.6           - out\n4059      198.64        0.05     9870 4062 9870     2     0      0    4e-13  5.8e-16\n4060      198.69        0.05     9873 4063 9873     2     0      0  4.5e-14  6.4e-16\n4061      198.74        0.05     9875 4064 9875     2     0      0  2.2e-13  5.8e-16\n4062      198.79        0.05     9878 4065 9878     2     0      0  3.7e-13  6.3e-16\n   -       198.8           - out\n4063      198.84        0.05     9880 4066 9880     2     0      0  3.4e-13  6.2e-16\n4064      198.89        0.05     9882 4067 9882     2     0      0  1.1e-13  7.1e-16\n4065      198.94        0.05     9884 4068 9884     2     0      0  1.2e-13    6e-16\n4066      198.99        0.05     9887 4069 9887     2     0      0  2.7e-14  5.9e-16\n   -         199           - out\n4067      199.04        0.05     9890 4070 9890     2     0      0  1.1e-13  5.2e-16\n4068      199.09        0.05     9893 4071 9893     2     0      0  1.9e-13  6.3e-16\n4069      199.14        0.05     9895 4072 9895     2     0      0  4.1e-13    6e-16\n4070      199.19        0.05     9897 4073 9897     2     0      0  3.5e-13  5.9e-16\n   -       199.2           - out\n4071      199.24        0.05     9899 4074 9899     2     0      0  1.7e-13  5.9e-16\n4072      199.29        0.05     9901 4075 9901     2     0      0  2.8e-13  7.1e-16\n4073      199.34        0.05     9904 4076 9904     2     0      0  1.7e-13  5.4e-16\n4074      199.39        0.05     9907 4077 9907     2     0      0  7.9e-14  6.7e-16\n   -       199.4           - out\n4075      199.44        0.05     9911 4078 9911     2     0      0  3.1e-13  5.4e-16\n4076      199.49        0.05     9914 4079 9914     2     0      0  8.8e-14  8.4e-16\n4077      199.54        0.05     9917 4080 9917     2     0      0  3.5e-13  8.2e-16\n4078      199.59        0.05     9919 4081 9919     2     0      0  2.1e-13  7.3e-16\n   -       199.6           - out\n4079      199.64        0.05     9922 4082 9922     2     0      0  3.3e-14  6.5e-16\n4080      199.69        0.05     9924 4083 9924     2     0      0  3.3e-13  5.8e-16\n4081      199.74        0.05     9926 4084 9926     2     0      0  6.1e-13  6.8e-16\n4082      199.79        0.05     9928 4085 9928     2     0      0  9.9e-14  6.9e-16\n   -       199.8           - out\n4083      199.84        0.05     9930 4086 9930     2     0      0  5.9e-13  5.6e-16\n4084      199.89        0.05     9934 4087 9934     2     0      0  4.7e-13  5.2e-16\n4085      199.94        0.05     9936 4088 9936     2     0      0  2.3e-14  7.6e-16\n4086      199.99        0.05     9939 4089 9939     2     0      0  3.5e-14  4.4e-16\n   -         200           - out\n4087      200.04        0.05     9943 4090 9943     2     0      0  2.8e-13  5.4e-16\n时间步进已完成。\n求解时间：705 s。 （11 分钟，45 秒）\n物理内存: 1.37 GB\n虚拟内存: 1.52 GB\n结束时间：2026年11月5日 12:18:27。\n----- Study 1/Solution 1 (sol1) 中的“Time-Dependent Solver 1” ------------------->\n",
+            "const": "",
+            "propertyDefaults": "maxstepconstraintbdf, auto; maxstepbdf, 0.1",
+            "changedproperties": "Steps taken by solver, tstepsbdf, free, intermediate",
+            "hiddenchangedproperties": "",
+            "fieldselection": "comp1_p",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        }
+      ]
+    }
+  ],
+  "log": "*******************************************\n***COMSOL 6.4.0.429 progress output file***\n*******************************************\nThu Nov 05 21:06:07 CST 2026\n<<<JSON_START>>>\n{\n  \"status\": \"SUCCESS\",\n  \"operation\": \"inspect_model\",\n  \"model_path\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\re100_s1b2_m3_20261105_verified\\\\re100_s1b2_m3_solved.mph\",\n  \"model_tag\": \"Model\",\n  \"comsol_version\": \"COMSOL Multiphysics 6.4 (\\u5f00\\u53d1\\u7248\\u672c: 429)\",\n  \"parameters\": {\n    \"H\": {\n      \"expr\": \"0.24[m]\",\n      \"value\": 0.24,\n      \"unit\": \"m\",\n      \"description\": \"Domain height (24D)\"\n    },\n    \"L\": {\n      \"expr\": \"0.40[m]\",\n      \"value\": 0.4,\n      \"unit\": \"m\",\n      \"description\": \"Domain length (40D)\"\n    },\n    \"W\": {\n      \"expr\": \"1[m]\",\n      \"value\": 1.0,\n      \"unit\": \"m\",\n      \"description\": \"Channel width (not modeled)\"\n    },\n    \"R\": {\n      \"expr\": \"D/2\",\n      \"value\": 0.005,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder radius\"\n    },\n    \"U_mean\": {\n      \"expr\": \"U_inf\",\n      \"value\": 0.010058104588258865,\n      \"unit\": \"m/s\",\n      \"description\": \"Mean inflow velocity alias\"\n    },\n    \"D\": {\n      \"expr\": \"0.01[m]\",\n      \"value\": 0.01,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder diameter\"\n    },\n    \"x_c\": {\n      \"expr\": \"0.10[m]\",\n      \"value\": 0.1,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder center X (10D upstream distance)\"\n    },\n    \"y_c\": {\n      \"expr\": \"0.12[m]\",\n      \"value\": 0.12,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder center Y (12D lateral half-width)\"\n    },\n    \"rho_f\": {\n      \"expr\": \"998.2[kg/m^3]\",\n      \"value\": 998.2,\n      \"unit\": \"kg/m^3\",\n      \"description\": \"Water density at 20 degC\"\n    },\n    \"mu_f\": {\n      \"expr\": \"1.004e-3[Pa*s]\",\n      \"value\": 0.001004,\n      \"unit\": \"Pa*s\",\n      \"description\": \"Water dynamic viscosity at 20 degC\"\n    },\n    \"Re\": {\n      \"expr\": \"100\",\n      \"value\": 100.0,\n      \"unit\": null,\n      \"description\": \"Target Reynolds number\"\n    },\n    \"U_inf\": {\n      \"expr\": \"Re*mu_f/(rho_f*D)\",\n      \"value\": 0.010058104588258865,\n      \"unit\": \"m/s\",\n      \"description\": \"Inflow free-stream velocity\"\n    }\n  },\n  \"components\": [\n    {\n      \"tag\": \"comp1\",\n      \"label\": \"Component 1\",\n      \"geometries\": [\n        {\n          \"tag\": \"geom1\",\n          \"sdim\": 2,\n          \"features\": [\"r1\", \"c1\", \"dif1\", \"fin\"],\n          \"boundary_geometry\": {\n            \"available\": true,\n            \"source\": \"COMSOL GeomSequence live query (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX)\",\n            \"geometry_tag\": \"geom1\",\n            \"geometry_rebuilt_in_memory\": false,\n            \"n_boundaries\": 8,\n            \"n_domains\": 1,\n            \"bounding_box\": [0.0, 0.4000000000000001, 0.0, 0.24],\n            \"samples_per_boundary\": 17,\n            \"boundaries\": [\n              {\"id\": 1, \"x_range\": [0.0, 0.0], \"y_range\": [0.0, 0.24], \"length_polyline\": 0.24, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.0, 0.0], [0.0, 0.015], [0.0, 0.03], [0.0, 0.045], [0.0, 0.06], [0.0, 0.075], [0.0, 0.09], [0.0, 0.105], [0.0, 0.12], [0.0, 0.135], [0.0, 0.15], [0.0, 0.16499999999999998], [0.0, 0.18], [0.0, 0.195], [0.0, 0.21], [0.0, 0.22499999999999998], [0.0, 0.24]]},\n              {\"id\": 2, \"x_range\": [0.0, 0.4], \"y_range\": [0.0, 0.0], \"length_polyline\": 0.40000000000000013, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.4, 0.0], [0.375, 0.0], [0.35000000000000003, 0.0], [0.325, 0.0], [0.30000000000000004, 0.0], [0.275, 0.0], [0.25, 0.0], [0.225, 0.0], [0.2, 0.0], [0.17500000000000002, 0.0], [0.15000000000000002, 0.0], [0.125, 0.0], [0.1, 0.0], [0.07500000000000001, 0.0], [0.05, 0.0], [0.025, 0.0], [0.0, 0.0]]},\n              {\"id\": 3, \"x_range\": [0.0, 0.4], \"y_range\": [0.24, 0.24], \"length_polyline\": 0.4, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.0, 0.24], [0.025, 0.24], [0.05, 0.24], [0.07500000000000001, 0.24], [0.1, 0.24], [0.125, 0.24], [0.15000000000000002, 0.24], [0.17500000000000002, 0.24], [0.2, 0.24], [0.225, 0.24], [0.25, 0.24], [0.275, 0.24], [0.30000000000000004, 0.24], [0.325, 0.24], [0.35000000000000003, 0.24], [0.375, 0.24], [0.4, 0.24]]},\n              {\"id\": 4, \"x_range\": [0.4, 0.4], \"y_range\": [0.0, 0.24], \"length_polyline\": 0.2400000000000001, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.4, 0.24], [0.4, 0.22499999999999998], [0.4, 0.21], [0.4, 0.195], [0.4, 0.18], [0.4, 0.16499999999999998], [0.4, 0.15], [0.4, 0.135], [0.4, 0.12], [0.4, 0.105], [0.4, 0.09], [0.4, 0.075], [0.4, 0.06], [0.4, 0.045], [0.4, 0.03], [0.4, 0.015], [0.4, 0.0]]},\n              {\"id\": 5, \"x_range\": [0.095, 0.1], \"y_range\": [0.11499999999999999, 0.12], \"length_polyline\": 0.007850807486099223, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.095, 0.12], [0.09502022545693561, 0.11955072781051146], [0.09508347315791713, 0.11909018473793928], [0.09519300520906483, 0.11862420892577315], [0.09535105849468786, 0.11815952645219067], [0.09555857996585122, 0.11770352703471998], [0.09581502244390673, 0.11726395123307429], [0.0961182340621258, 0.11684850936800388], [0.09646446609406725, 0.11646446609406727], [0.09684850936800385, 0.11611823406212579], [0.09726395123307428, 0.11581502244390675], [0.09770352703471999, 0.11555857996585123], [0.09815952645219064, 0.11535105849468787], [0.09862420892577316, 0.11519300520906484], [0.09909018473793929, 0.11508347315791713], [0.09955072781051147, 0.11502022545693559], [0.1, 0.11499999999999999]]},\n              {\"id\": 6, \"x_range\": [0.095, 0.1], \"y_range\": [0.12, 0.125], \"length_polyline\": 0.00785080748609923, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.1, 0.125], [0.09955072781051147, 0.12497977454306439], [0.09909018473793929, 0.12491652684208286], [0.09862420892577316, 0.12480699479093516], [0.09815952645219066, 0.12464894150531217], [0.09770352703471999, 0.12444142003414875], [0.09726395123307428, 0.12418497755609324], [0.09684850936800386, 0.12388176593787421], [0.09646446609406725, 0.12353553390593273], [0.0961182340621258, 0.12315149063199615], [0.09581502244390673, 0.1227360487669257], [0.09555857996585122, 0.12229647296528], [0.09535105849468785, 0.12184047354780937], [0.09519300520906485, 0.12137579107422683], [0.09508347315791713, 0.12090981526206072], [0.0950202254569356, 0.1204492721894885], [0.095, 0.12]]},\n              {\"id\": 7, \"x_range\": [0.1, 0.10500000000000001], \"y_range\": [0.11499999999999999, 0.12], \"length_polyline\": 0.007850807486099221, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.1, 0.11499999999999999], [0.10044927218948851, 0.11502022545693559], [0.10090981526206075, 0.11508347315791713], [0.10137579107422687, 0.11519300520906484], [0.10184047354780938, 0.11535105849468787], [0.10229647296528002, 0.11555857996585123], [0.10273604876692571, 0.11581502244390675], [0.10315149063199618, 0.1161182340621258], [0.10353553390593276, 0.11646446609406727], [0.10388176593787424, 0.11684850936800388], [0.10418497755609325, 0.11726395123307429], [0.10444142003414876, 0.11770352703471998], [0.10464894150531218, 0.11815952645219067], [0.10480699479093517, 0.11862420892577315], [0.10491652684208289, 0.11909018473793928], [0.1049797745430644, 0.11955072781051146], [0.10500000000000001, 0.12]]},\n              {\"id\": 8, \"x_range\": [0.1, 0.10500000000000001], \"y_range\": [0.12, 0.125], \"length_polyline\": 0.007850807486099233, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.10500000000000001, 0.12], [0.10497977454306441, 0.1204492721894885], [0.10491652684208289, 0.12090981526206072], [0.10480699479093517, 0.12137579107422683], [0.10464894150531219, 0.12184047354780937], [0.10444142003414876, 0.12229647296528], [0.10418497755609327, 0.1227360487669257], [0.10388176593787424, 0.12315149063199615], [0.10353553390593276, 0.12353553390593273], [0.10315149063199615, 0.12388176593787423], [0.10273604876692571, 0.12418497755609324], [0.10229647296528002, 0.12444142003414875], [0.10184047354780938, 0.12464894150531217], [0.10137579107422687, 0.12480699479093517], [0.10090981526206073, 0.12491652684208288], [0.10044927218948851, 0.12497977454306439], [0.1, 0.125]]}\n            ]\n          }\n        }\n      ],\n      \"meshes\": [\n        {\n          \"tag\": \"mesh1\",\n          \"sdim\": 2,\n          \"is_complete\": true,\n          \"num_elem\": 34752,\n          \"num_vertex\": 17910,\n          \"features\": [\"size\", \"size1\", \"cr1\", \"ftri1\", \"bl1\"]\n        }\n      ],\n      \"physics\": [\n        {\n          \"tag\": \"spf\",\n          \"label\": \"Laminar Flow\",\n          \"type\": \"LaminarFlow\",\n          \"features\": [\n            {\n              \"tag\": \"fp1\",\n              \"label\": \"Fluid Properties 1\",\n              \"type\": \"FluidProperties\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"init1\",\n              \"label\": \"Initial Values 1\",\n              \"type\": \"init\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"wallbc1\",\n              \"label\": \"Wall 1\",\n              \"type\": \"WallBC\",\n              \"selection_entities\": [5, 6, 7, 8]\n            },\n            {\n              \"tag\": \"grav1\",\n              \"label\": \"Gravity 1\",\n              \"type\": \"Gravity\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"rtfr1\",\n              \"label\": \"Rotating Frame 1\",\n              \"type\": \"RotatingFrameFD\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"dcont1\",\n              \"label\": \"Flow Continuity 1\",\n              \"type\": \"Continuity\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"inl1\",\n              \"label\": \"Inlet 1\",\n              \"type\": \"InletBoundary\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"out1\",\n              \"label\": \"Outlet 1\",\n              \"type\": \"OutletBoundary\",\n              \"selection_entities\": [4]\n            },\n            {\n              \"tag\": \"sym1\",\n              \"label\": \"\\u5bf9\\u79f0 1\",\n              \"type\": \"Symmetry\",\n              \"selection_entities\": [2, 3]\n            }\n          ]\n        }\n      ],\n      \"materials\": [\n        {\n          \"tag\": \"mat1\",\n          \"label\": \"Material 1\"\n        }\n      ]\n    }\n  ],\n  \"studies\": [\n    {\n      \"tag\": \"std1\",\n      \"label\": \"Study 1\",\n      \"features\": [\n        {\n          \"tag\": \"time\",\n          \"label\": \"Time Dependent\",\n          \"type\": \"Transient\",\n          \"properties\": {\n            \"tdescr\": \"Time\",\n            \"showtlist\": \"on\",\n            \"usetunit\": \"on\",\n            \"tunit\": \"s\",\n            \"tlist\": \"range(0, 0.2, 200)\",\n            \"tlist_vector_method\": \"step\",\n            \"tlist_vector_start\": \"\",\n            \"tlist_vector_stop\": \"\",\n            \"tlist_vector_step\": \"\",\n            \"tlist_vector_numvalues\": \"\",\n            \"tlist_vector_function\": \"none\",\n            \"tlist_vector_interval\": \"octave\",\n            \"tlist_vector_freqperdec\": \"\",\n            \"initialtime\": \"0.0\",\n            \"usertol\": \"on\",\n            \"rtol\": \"1e-4\",\n            \"time_discrete\": \"off\",\n            \"geometricNonlinearity\": \"off\",\n            \"geometricNonlinearityActive\": \"off\",\n            \"updateOptimizationSettings\": \"off\",\n            \"ftplistmethod\": \"ignore\",\n            \"method\": \"fixed_number_of_iterations\",\n            \"expr\": \"1\",\n            \"rtolterm\": \"0.001\",\n            \"rtolthresh\": \"1\",\n            \"maxiter\": \"25\",\n            \"miniter\": \"1\",\n            \"atolterm\": \"0.001\",\n            \"iter\": \"5\",\n            \"outputhide\": \"off\",\n            \"plot\": \"off\",\n            \"plotgroupdummy\": \"Default\",\n            \"plotgrouparr\": \"pg1\",\n            \"plotwindowsarr\": \"\",\n            \"windowforpg\": \"new\",\n            \"plotfreq\": \"tout\",\n            \"probesel\": \"all\",\n            \"probes\": \"[]\",\n            \"probefreq\": \"tsteps\",\n            \"physselection\": \"\",\n            \"activate\": \"spf, on, frame:spatial1, on, frame:material1, on, comp1, on\",\n            \"useadvanceddisable\": \"off\",\n            \"disabledvariables\": \"[]\",\n            \"disabledcoordinatesystems\": \"[]\",\n            \"disabledcommon\": \"\",\n            \"disabledpair\": \"[]\",\n            \"disabledphysics\": \"\",\n            \"disableFrameControl\": \"\",\n            \"disabledcoupling\": \"\",\n            \"disabledreduced\": \"\",\n            \"disabledcomponent\": \"\",\n            \"discretization\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"equationform\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"shapeOrder\": \"comp1, component\",\n            \"equationform_freq\": \"spf, 1[kHz], frame:spatial1, 0, frame:material1, 0, comp1, 0\",\n            \"discretization_proxy\": \"physics\",\n            \"equationform_proxy\": \"physics\",\n            \"equationform_freq_proxy\": \"0\",\n            \"reconstructors_proxy\": \"none\",\n            \"shapeOrder_proxy\": \"component\",\n            \"multiphysicsSelection\": \"\",\n            \"activateCoupling\": \"\",\n            \"romselection\": \"\",\n            \"activaterom\": \"\",\n            \"activateimagereconstruct\": \"\",\n            \"reconstructables\": \"\",\n            \"reconstructors\": \"\",\n            \"useinitsol\": \"off\",\n            \"initmethod\": \"init\",\n            \"initstudy\": \"zero\",\n            \"initstudyhide\": \"on\",\n            \"initsol\": \"current\",\n            \"initsolhide\": \"on\",\n            \"initsoluse\": \"current\",\n            \"initsolusesolnumhide\": \"on\",\n            \"initsolusesolnum\": \"1\",\n            \"oldinitsoluse\": \"0\",\n            \"initstudystep\": \"\",\n            \"solvertype\": \"foo\",\n            \"solnumhide\": \"on\",\n            \"solnum\": \"auto\",\n            \"timeinterp\": \"off\",\n            \"t\": \"0\",\n            \"listsol\": \"off\",\n            \"listsolnum\": \"1\",\n            \"manualsol\": \"off\",\n            \"manualsolnum\": \"1\",\n            \"manualsolnum_vector_method\": \"step\",\n            \"manualsolnum_vector_start\": \"\",\n            \"manualsolnum_vector_stop\": \"\",\n            \"manualsolnum_vector_step\": \"\",\n            \"manualsolnum_vector_numvalues\": \"\",\n            \"manualsolnum_vector_function\": \"none\",\n            \"manualsolnum_vector_interval\": \"octave\",\n            \"manualsolnum_vector_freqperdec\": \"\",\n            \"usesol\": \"off\",\n            \"notsolmethod\": \"init\",\n            \"notstudy\": \"zero\",\n            \"notstudyhide\": \"on\",\n            \"notsol\": \"current\",\n            \"notsolhide\": \"on\",\n            \"notsoluse\": \"current\",\n            \"notsolusesolnumhide\": \"on\",\n            \"notsolusesolnum\": \"1\",\n            \"oldnotsoluse\": \"0\",\n            \"notstudystep\": \"\",\n            \"notsolvertype\": \"foo\",\n            \"notsolnumhide\": \"on\",\n            \"notsolnum\": \"auto\",\n            \"nottimeinterp\": \"off\",\n            \"nott\": \"0\",\n            \"notlistsol\": \"off\",\n            \"notlistsolnum\": \"1\",\n            \"notmanualsol\": \"off\",\n            \"notmanualsolnum\": \"1\",\n            \"notmanualsolnum_vector_method\": \"step\",\n            \"notmanualsolnum_vector_start\": \"\",\n            \"notmanualsolnum_vector_stop\": \"\",\n            \"notmanualsolnum_vector_step\": \"\",\n            \"notmanualsolnum_vector_numvalues\": \"\",\n            \"notmanualsolnum_vector_function\": \"none\",\n            \"notmanualsolnum_vector_interval\": \"octave\",\n            \"notmanualsolnum_vector_freqperdec\": \"\",\n            \"outputmap\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"outputselectionmap\": \"spf, , frame:spatial1, , frame:material1, , comp1, \",\n            \"outputSelectionProxy\": \"\",\n            \"geomselection\": \"\",\n            \"mesh\": \"geom1, mesh1\",\n            \"timeadaption\": \"none\",\n            \"timeadapgeom\": \"geom1\",\n            \"tauto\": \"manual\",\n            \"rmethod\": \"longest\",\n            \"rmethodauto\": \"longest\",\n            \"adaptselection\": \"\",\n            \"auxsweepmethod\": \"ignore\",\n            \"showuseparam\": \"on\",\n            \"useparam\": \"off\",\n            \"sweeptype\": \"sparse\",\n            \"loadFile\": \"\",\n            \"saveFile\": \"\",\n            \"pname\": \"\",\n            \"plistarr\": \"\",\n            \"plistarr_vector_method\": \"\",\n            \"plistarr_vector_start\": \"\",\n            \"plistarr_vector_stop\": \"\",\n            \"plistarr_vector_step\": \"\",\n            \"plistarr_vector_numvalues\": \"\",\n            \"plistarr_vector_function\": \"\",\n            \"plistarr_vector_interval\": \"octave\",\n            \"plistarr_vector_freqperdec\": \"\",\n            \"punit\": \"\",\n            \"optimization\": \"off\",\n            \"pdistrib\": \"off\",\n            \"autoremesh\": \"off\",\n            \"autoremeshgeom\": \"geom1\",\n            \"treeSelectionKey\": \"\",\n            \"equationFormCouplingColumn\": \"\",\n            \"tableRow\": \"\",\n            \"outputInterface\": \"\"\n          }\n        }\n      ]\n    }\n  ],\n  \"solvers\": [\n    {\n      \"tag\": \"sol1\",\n      \"label\": \"Solution 1\",\n      \"feature_tags\": [\"st1\", \"v1\", \"t1\"],\n      \"features\": [\n        {\n          \"tag\": \"st1\",\n          \"type\": \"StudyStep\",\n          \"label\": \"\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\",\n          \"properties\": {\n            \"study\": \"std1\",\n            \"studystep\": \"time\",\n            \"unredstudy\": \"\",\n            \"unredstep\": \"\",\n            \"useForModelReduction\": \"on\",\n            \"splitcomplex\": \"off\",\n            \"partmethod\": \"parent\",\n            \"linsmallelem\": \"physicscontrolled\",\n            \"componentid\": \"\",\n            \"linsmallelemexpr\": \"geom1, 0.0\",\n            \"units\": \"\",\n            \"saveprevioussolution\": \"off\",\n            \"assempara\": \"on\",\n            \"useent\": \"all\",\n            \"entsel\": \"[]\",\n            \"keeplog\": \"off\",\n            \"message\": \"<---- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201c\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\\u201d -----------------------\\n\\u5f00\\u59cb\\u4e8e 2026\\u5e7411\\u67085\\u65e5 12:06:40\\u3002\\n\\u51e0\\u4f55\\u5f62\\u51fd\\u6570: \\u7ebf\\u6027\\u62c9\\u683c\\u6717\\u65e5\\u5355\\u5143\\n\\u5728 Intel(R) Core(TM) i7-14700 \\u4e0a\\u8fd0\\u884c\\u3002\\n\\u5728\\u4ee5\\u4e0b\\u4f4d\\u7f6e\\u4f7f\\u7528 1 \\u4e2a\\u63d2\\u69fd\\uff1a SR-MuZY \\u4e0a\\uff08\\u5171 16 \\u4e2a\\u5185\\u6838\\uff09\\u3002\\n\\u53ef\\u7528\\u5185\\u5b58\\uff1a32.42 GB\\u3002\\n\\u5728 Intel(R) Core(TM) i7-14700 \\u4e0a\\u8fd0\\u884c\\u3002\\n\\u5728\\u4ee5\\u4e0b\\u4f4d\\u7f6e\\u4f7f\\u7528 1 \\u4e2a\\u63d2\\u69fd\\uff1a SR-MuZY \\u4e0a\\uff08\\u5171 16 \\u4e2a\\u5185\\u6838\\uff09\\u3002\\n\\u53ef\\u7528\\u5185\\u5b58\\uff1a32.42 GB\\u3002\\n\\u65f6\\u95f4\\uff1a2 s\\u3002\\n\\u7269\\u7406\\u5185\\u5b58: 891 MB\\n\\u865a\\u62df\\u5185\\u5b58: 811 MB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67085\\u65e5 12:06:42\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201c\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\\u201d ---------------------->\\n\",\n            \"const\": \"\",\n            \"propertyDefaults\": \"\",\n            \"changedproperties\": \"\",\n            \"hiddenchangedproperties\": \"\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        },\n        {\n          \"tag\": \"v1\",\n          \"type\": \"Variables\",\n          \"label\": \"Dependent Variables 1\",\n          \"properties\": {\n            \"control\": \"time\",\n            \"initmethod\": \"init\",\n            \"initsol\": \"zero\",\n            \"initsolhide\": \"on\",\n            \"initsoluse\": \"current\",\n            \"oldinitsoluse\": \"0\",\n            \"initsolusesolnumhide\": \"on\",\n            \"initsolusesolnum\": \"1\",\n            \"solvertype\": \"none\",\n            \"solnum\": \"auto\",\n            \"timeinterp\": \"off\",\n            \"t\": \"0\",\n            \"manualsol\": \"off\",\n            \"manualsolnum\": \"1\",\n            \"manualsolnum_vector_method\": \"step\",\n            \"manualsolnum_vector_start\": \"\",\n            \"manualsolnum_vector_stop\": \"\",\n            \"manualsolnum_vector_step\": \"\",\n            \"manualsolnum_vector_numvalues\": \"\",\n            \"manualsolnum_vector_function\": \"none\",\n            \"manualsolnum_vector_interval\": \"octave\",\n            \"manualsolnum_vector_freqperdec\": \"\",\n            \"listsol\": \"off\",\n            \"listsolnum\": \"1\",\n            \"scalemethod\": \"auto\",\n            \"scaleval\": \"1.0\",\n            \"resscalemethod\": \"auto\",\n            \"resscaleval\": \"1.0\",\n            \"resscalethresh\": \"100.0\",\n            \"notsolmethod\": \"init\",\n            \"notsol\": \"zero\",\n            \"notsolhide\": \"on\",\n            \"notsoluse\": \"current\",\n            \"oldnotsoluse\": \"0\",\n            \"notsolusesolnumhide\": \"on\",\n            \"notsolusesolnum\": \"1\",\n            \"notsolvertype\": \"none\",\n            \"notsolnum\": \"auto\",\n            \"nottimeinterp\": \"off\",\n            \"nott\": \"0\",\n            \"notmanualsol\": \"off\",\n            \"notmanualsolnum\": \"1\",\n            \"notmanualsolnum_vector_method\": \"step\",\n            \"notmanualsolnum_vector_start\": \"\",\n            \"notmanualsolnum_vector_stop\": \"\",\n            \"notmanualsolnum_vector_step\": \"\",\n            \"notmanualsolnum_vector_numvalues\": \"\",\n            \"notmanualsolnum_vector_function\": \"none\",\n            \"notmanualsolnum_vector_interval\": \"octave\",\n            \"notmanualsolnum_vector_freqperdec\": \"\",\n            \"notlistsol\": \"off\",\n            \"notlistsolnum\": \"1\",\n            \"initparametersmethod\": \"auto\",\n            \"clistctrl\": \"t1_t, t1_timestep\",\n            \"cname\": \"t, timestep\",\n            \"clist\": \"0, 0.2, 0.4, 0.6000000000000001, 0.8, 1, 1.2000000000000002, 1.4000000000000001, 1.6, 1.8, 2, 2.2, 2.4000000000000004, 2.6, 2.8000000000000003, 3, 3.2, 3.4000000000000004, 3.6, 3.8000000000000003, 4, 4.2, 4.4, 4.6000000000000005, 4.800000000000001, 5, 5.2, 5.4, 5.6000000000000005, 5.800000000000001, 6, 6.2, 6.4, 6.6000000000000005, 6.800000000000001, 7, 7.2, 7.4, 7.6000000000000005, 7.800000000000001, 8, 8.200000000000001, 8.4, 8.6, 8.8, 9, 9.200000000000001, 9.4, 9.600000000000001, 9.8, 10, 10.200000000000001, 10.4, 10.600000000000001, 10.8, 11, 11.200000000000001, 11.4, 11.600000000000001, 11.8, 12, 12.200000000000001, 12.4, 12.600000000000001, 12.8, 13, 13.200000000000001, 13.4, 13.600000000000001, 13.8, 14, 14.200000000000001, 14.4, 14.600000000000001, 14.8, 15, 15.200000000000001, 15.4, 15.600000000000001, 15.8, 16, 16.2, 16.400000000000002, 16.6, 16.8, 17, 17.2, 17.400000000000002, 17.6, 17.8, 18, 18.2, 18.400000000000002, 18.6, 18.8, 19, 19.200000000000003, 19.400000000000002, 19.6, 19.8, 20, 20.200000000000003, 20.400000000000002, 20.6, 20.8, 21, 21.200000000000003, 21.400000000000002, 21.6, 21.8, 22, 22.200000000000003, 22.400000000000002, 22.6, 22.8, 23, 23.200000000000003, 23.400000000000002, 23.6, 23.8, 24, 24.200000000000003, 24.400000000000002, 24.6, 24.8, 25, 25.200000000000003, 25.400000000000002, 25.6, 25.8, 26, 26.200000000000003, 26.400000000000002, 26.6, 26.8, 27, 27.200000000000003, 27.400000000000002, 27.6, 27.8, 28, 28.200000000000003, 28.400000000000002, 28.6, 28.8, 29, 29.200000000000003, 29.400000000000002, 29.6, 29.8, 30, 30.200000000000003, 30.400000000000002, 30.6, 30.8, 31, 31.200000000000003, 31.400000000000002, 31.6, 31.8, 32, 32.2, 32.4, 32.6, 32.800000000000004, 33, 33.2, 33.4, 33.6, 33.800000000000004, 34, 34.2, 34.4, 34.6, 34.800000000000004, 35, 35.2, 35.4, 35.6, 35.800000000000004, 36, 36.2, 36.4, 36.6, 36.800000000000004, 37, 37.2, 37.4, 37.6, 37.800000000000004, 38, 38.2, 38.400000000000006, 38.6, 38.800000000000004, 39, 39.2, 39.400000000000006, 39.6, 39.800000000000004, 40, 40.2, 40.400000000000006, 40.6, 40.800000000000004, 41, 41.2, 41.400000000000006, 41.6, 41.800000000000004, 42, 42.2, 42.400000000000006, 42.6, 42.800000000000004, 43, 43.2, 43.400000000000006, 43.6, 43.800000000000004, 44, 44.2, 44.400000000000006, 44.6, 44.800000000000004, 45, 45.2, 45.400000000000006, 45.6, 45.800000000000004, 46, 46.2, 46.400000000000006, 46.6, 46.800000000000004, 47, 47.2, 47.400000000000006, 47.6, 47.800000000000004, 48, 48.2, 48.400000000000006, 48.6, 48.800000000000004, 49, 49.2, 49.400000000000006, 49.6, 49.800000000000004, 50, 50.2, 50.400000000000006, 50.6, 50.800000000000004, 51, 51.2, 51.400000000000006, 51.6, 51.800000000000004, 52, 52.2, 52.400000000000006, 52.6, 52.800000000000004, 53, 53.2, 53.400000000000006, 53.6, 53.800000000000004, 54, 54.2, 54.400000000000006, 54.6, 54.800000000000004, 55, 55.2, 55.400000000000006, 55.6, 55.800000000000004, 56, 56.2, 56.400000000000006, 56.6, 56.800000000000004, 57, 57.2, 57.400000000000006, 57.6, 57.800000000000004, 58, 58.2, 58.400000000000006, 58.6, 58.800000000000004, 59, 59.2, 59.400000000000006, 59.6, 59.800000000000004, 60, 60.2, 60.400000000000006, 60.6, 60.800000000000004, 61, 61.2, 61.400000000000006, 61.6, 61.800000000000004, 62, 62.2, 62.400000000000006, 62.6, 62.800000000000004, 63, 63.2, 63.400000000000006, 63.6, 63.800000000000004, 64, 64.2, 64.4, 64.60000000000001, 64.8, 65, 65.2, 65.4, 65.60000000000001, 65.8, 66, 66.2, 66.4, 66.60000000000001, 66.8, 67, 67.2, 67.4, 67.60000000000001, 67.8, 68, 68.2, 68.4, 68.60000000000001, 68.8, 69, 69.2, 69.4, 69.60000000000001, 69.8, 70, 70.2, 70.4, 70.60000000000001, 70.8, 71, 71.2, 71.4, 71.60000000000001, 71.8, 72, 72.2, 72.4, 72.60000000000001, 72.8, 73, 73.2, 73.4, 73.60000000000001, 73.8, 74, 74.2, 74.4, 74.60000000000001, 74.8, 75, 75.2, 75.4, 75.60000000000001, 75.8, 76, 76.2, 76.4, 76.60000000000001, 76.80000000000001, 77, 77.2, 77.4, 77.60000000000001, 77.80000000000001, 78, 78.2, 78.4, 78.60000000000001, 78.80000000000001, 79, 79.2, 79.4, 79.60000000000001, 79.80000000000001, 80, 80.2, 80.4, 80.60000000000001, 80.80000000000001, 81, 81.2, 81.4, 81.60000000000001, 81.80000000000001, 82, 82.2, 82.4, 82.60000000000001, 82.80000000000001, 83, 83.2, 83.4, 83.60000000000001, 83.80000000000001, 84, 84.2, 84.4, 84.60000000000001, 84.80000000000001, 85, 85.2, 85.4, 85.60000000000001, 85.80000000000001, 86, 86.2, 86.4, 86.60000000000001, 86.80000000000001, 87, 87.2, 87.4, 87.60000000000001, 87.80000000000001, 88, 88.2, 88.4, 88.60000000000001, 88.80000000000001, 89, 89.2, 89.4, 89.60000000000001, 89.80000000000001, 90, 90.2, 90.4, 90.60000000000001, 90.80000000000001, 91, 91.2, 91.4, 91.60000000000001, 91.80000000000001, 92, 92.2, 92.4, 92.60000000000001, 92.80000000000001, 93, 93.2, 93.4, 93.60000000000001, 93.80000000000001, 94, 94.2, 94.4, 94.60000000000001, 94.80000000000001, 95, 95.2, 95.4, 95.60000000000001, 95.80000000000001, 96, 96.2, 96.4, 96.60000000000001, 96.80000000000001, 97, 97.2, 97.4, 97.60000000000001, 97.80000000000001, 98, 98.2, 98.4, 98.60000000000001, 98.80000000000001, 99, 99.2, 99.4, 99.60000000000001, 99.80000000000001, 100, 100.2, 100.4, 100.60000000000001, 100.80000000000001, 101, 101.2, 101.4, 101.60000000000001, 101.80000000000001, 102, 102.2, 102.4, 102.60000000000001, 102.80000000000001, 103, 103.2, 103.4, 103.60000000000001, 103.80000000000001, 104, 104.2, 104.4, 104.60000000000001, 104.80000000000001, 105, 105.2, 105.4, 105.60000000000001, 105.80000000000001, 106, 106.2, 106.4, 106.60000000000001, 106.80000000000001, 107, 107.2, 107.4, 107.60000000000001, 107.80000000000001, 108, 108.2, 108.4, 108.60000000000001, 108.80000000000001, 109, 109.2, 109.4, 109.60000000000001, 109.80000000000001, 110, 110.2, 110.4, 110.60000000000001, 110.80000000000001, 111, 111.2, 111.4, 111.60000000000001, 111.80000000000001, 112, 112.2, 112.4, 112.60000000000001, 112.80000000000001, 113, 113.2, 113.4, 113.60000000000001, 113.80000000000001, 114, 114.2, 114.4, 114.60000000000001, 114.80000000000001, 115, 115.2, 115.4, 115.60000000000001, 115.80000000000001, 116, 116.2, 116.4, 116.60000000000001, 116.80000000000001, 117, 117.2, 117.4, 117.60000000000001, 117.80000000000001, 118, 118.2, 118.4, 118.60000000000001, 118.80000000000001, 119, 119.2, 119.4, 119.60000000000001, 119.80000000000001, 120, 120.2, 120.4, 120.60000000000001, 120.80000000000001, 121, 121.2, 121.4, 121.60000000000001, 121.80000000000001, 122, 122.2, 122.4, 122.60000000000001, 122.80000000000001, 123, 123.2, 123.4, 123.60000000000001, 123.80000000000001, 124, 124.2, 124.4, 124.60000000000001, 124.80000000000001, 125, 125.2, 125.4, 125.60000000000001, 125.80000000000001, 126, 126.2, 126.4, 126.60000000000001, 126.80000000000001, 127, 127.2, 127.4, 127.60000000000001, 127.80000000000001, 128, 128.20000000000002, 128.4, 128.6, 128.8, 129, 129.20000000000002, 129.4, 129.6, 129.8, 130, 130.20000000000002, 130.4, 130.6, 130.8, 131, 131.20000000000002, 131.4, 131.6, 131.8, 132, 132.20000000000002, 132.4, 132.6, 132.8, 133, 133.20000000000002, 133.4, 133.6, 133.8, 134, 134.20000000000002, 134.4, 134.6, 134.8, 135, 135.20000000000002, 135.4, 135.6, 135.8, 136, 136.20000000000002, 136.4, 136.6, 136.8, 137, 137.20000000000002, 137.4, 137.6, 137.8, 138, 138.20000000000002, 138.4, 138.6, 138.8, 139, 139.20000000000002, 139.4, 139.6, 139.8, 140, 140.20000000000002, 140.4, 140.6, 140.8, 141, 141.20000000000002, 141.4, 141.6, 141.8, 142, 142.20000000000002, 142.4, 142.6, 142.8, 143, 143.20000000000002, 143.4, 143.6, 143.8, 144, 144.20000000000002, 144.4, 144.6, 144.8, 145, 145.20000000000002, 145.4, 145.6, 145.8, 146, 146.20000000000002, 146.4, 146.6, 146.8, 147, 147.20000000000002, 147.4, 147.6, 147.8, 148, 148.20000000000002, 148.4, 148.6, 148.8, 149, 149.20000000000002, 149.4, 149.6, 149.8, 150, 150.20000000000002, 150.4, 150.6, 150.8, 151, 151.20000000000002, 151.4, 151.6, 151.8, 152, 152.20000000000002, 152.4, 152.6, 152.8, 153, 153.20000000000002, 153.4, 153.60000000000002, 153.8, 154, 154.20000000000002, 154.4, 154.60000000000002, 154.8, 155, 155.20000000000002, 155.4, 155.60000000000002, 155.8, 156, 156.20000000000002, 156.4, 156.60000000000002, 156.8, 157, 157.20000000000002, 157.4, 157.60000000000002, 157.8, 158, 158.20000000000002, 158.4, 158.60000000000002, 158.8, 159, 159.20000000000002, 159.4, 159.60000000000002, 159.8, 160, 160.20000000000002, 160.4, 160.60000000000002, 160.8, 161, 161.20000000000002, 161.4, 161.60000000000002, 161.8, 162, 162.20000000000002, 162.4, 162.60000000000002, 162.8, 163, 163.20000000000002, 163.4, 163.60000000000002, 163.8, 164, 164.20000000000002, 164.4, 164.60000000000002, 164.8, 165, 165.20000000000002, 165.4, 165.60000000000002, 165.8, 166, 166.20000000000002, 166.4, 166.60000000000002, 166.8, 167, 167.20000000000002, 167.4, 167.60000000000002, 167.8, 168, 168.20000000000002, 168.4, 168.60000000000002, 168.8, 169, 169.20000000000002, 169.4, 169.60000000000002, 169.8, 170, 170.20000000000002, 170.4, 170.60000000000002, 170.8, 171, 171.20000000000002, 171.4, 171.60000000000002, 171.8, 172, 172.20000000000002, 172.4, 172.60000000000002, 172.8, 173, 173.20000000000002, 173.4, 173.60000000000002, 173.8, 174, 174.20000000000002, 174.4, 174.60000000000002, 174.8, 175, 175.20000000000002, 175.4, 175.60000000000002, 175.8, 176, 176.20000000000002, 176.4, 176.60000000000002, 176.8, 177, 177.20000000000002, 177.4, 177.60000000000002, 177.8, 178, 178.20000000000002, 178.4, 178.60000000000002, 178.8, 179, 179.20000000000002, 179.4, 179.60000000000002, 179.8, 180, 180.20000000000002, 180.4, 180.60000000000002, 180.8, 181, 181.20000000000002, 181.4, 181.60000000000002, 181.8, 182, 182.20000000000002, 182.4, 182.60000000000002, 182.8, 183, 183.20000000000002, 183.4, 183.60000000000002, 183.8, 184, 184.20000000000002, 184.4, 184.60000000000002, 184.8, 185, 185.20000000000002, 185.4, 185.60000000000002, 185.8, 186, 186.20000000000002, 186.4, 186.60000000000002, 186.8, 187, 187.20000000000002, 187.4, 187.60000000000002, 187.8, 188, 188.20000000000002, 188.4, 188.60000000000002, 188.8, 189, 189.20000000000002, 189.4, 189.60000000000002, 189.8, 190, 190.20000000000002, 190.4, 190.60000000000002, 190.8, 191, 191.20000000000002, 191.4, 191.60000000000002, 191.8, 192, 192.20000000000002, 192.4, 192.60000000000002, 192.8, 193, 193.20000000000002, 193.4, 193.60000000000002, 193.8, 194, 194.20000000000002, 194.4, 194.60000000000002, 194.8, 195, 195.20000000000002, 195.4, 195.60000000000002, 195.8, 196, 196.20000000000002, 196.4, 196.60000000000002, 196.8, 197, 197.20000000000002, 197.4, 197.60000000000002, 197.8, 198, 198.20000000000002, 198.4, 198.60000000000002, 198.8, 199, 199.20000000000002, 199.4, 199.60000000000002, 199.8, 200; 0.2\",\n            \"keeplog\": \"off\",\n            \"message\": \"<---- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cDependent Variables 1\\u201d ----------------------\\n\\u5f00\\u59cb\\u4e8e 2026\\u5e7411\\u67085\\u65e5 12:06:42\\u3002\\n\\u6c42\\u89e3\\u65f6\\u95f4\\uff1a0 s\\u3002\\n\\u7269\\u7406\\u5185\\u5b58: 875 MB\\n\\u865a\\u62df\\u5185\\u5b58: 840 MB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67085\\u65e5 12:06:42\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cDependent Variables 1\\u201d --------------------->\\n\",\n            \"const\": \"\",\n            \"storesol\": \"init\",\n            \"propertyDefaults\": \"\",\n            \"changedproperties\": \"Parameter name and value, clist, {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], 0.007[s]; -, cname, t, t, timestep; -, clistctrl, t1_t, t1_t, t1_timestep\",\n            \"hiddenchangedproperties\": \"\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        },\n        {\n          \"tag\": \"t1\",\n          \"type\": \"Time\",\n          \"label\": \"Time-Dependent Solver 1\",\n          \"properties\": {\n            \"control\": \"time\",\n            \"usetunit\": \"on\",\n            \"tunit\": \"s\",\n            \"tlist\": \"range(0, 0.2, 200)\",\n            \"tlist_vector_method\": \"step\",\n            \"tlist_vector_start\": \"\",\n            \"tlist_vector_stop\": \"\",\n            \"tlist_vector_step\": \"\",\n            \"tlist_vector_numvalues\": \"\",\n            \"tlist_vector_function\": \"none\",\n            \"tlist_vector_interval\": \"octave\",\n            \"tlist_vector_freqperdec\": \"\",\n            \"tout\": \"tlist\",\n            \"tstepsstore\": \"1\",\n            \"rtol\": \"1e-4\",\n            \"atolglobalmethod\": \"scaled\",\n            \"atolglobalvaluemethod\": \"factor\",\n            \"atolglobalfactor\": \"0.05\",\n            \"tderglobalmethod\": \"auto\",\n            \"tderglobalfactor\": \"1\",\n            \"atolglobal\": \"0.001\",\n            \"ewtrescale\": \"on\",\n            \"atolmethod\": \"comp1_p, scaled, comp1_u, global\",\n            \"atolvaluemethod\": \"comp1_p, factor, comp1_u, factor\",\n            \"atolfactor\": \"comp1_p, 1, comp1_u, 0.1\",\n            \"tdermethod\": \"comp1_p, auto, comp1_u, auto\",\n            \"tderfactor\": \"comp1_p, 1.0, comp1_u, 1.0\",\n            \"atol\": \"comp1_p, 1e-3, comp1_u, 1e-3\",\n            \"atoludot\": \"comp1_p, 1e-3, comp1_u, 1e-3\",\n            \"atolmethodAUX\": \"scaled\",\n            \"atolvaluemethodAUX\": \"factor\",\n            \"atolfactorAUX\": \"1\",\n            \"tdermethodAUX\": \"auto\",\n            \"tderfactorAUX\": \"1.0\",\n            \"atolAUX\": \"1e-3\",\n            \"atoludotAUX\": \"1e-3\",\n            \"odesolvertype\": \"implicit\",\n            \"timemethod\": \"bdf\",\n            \"tstepsbdf\": \"intermediate\",\n            \"endtimeinterpolation\": \"on\",\n            \"initialstepbdf\": \"0.001\",\n            \"initialstepbdfactive\": \"off\",\n            \"maxstepconstraintbdf\": \"const\",\n            \"maxstepbdf\": \"0.05\",\n            \"maxstepexpressionbdf\": \"0.1\",\n            \"maxorder\": \"2\",\n            \"minorder\": \"1\",\n            \"bdforder\": \"2\",\n            \"initialstepfractionbdf-1\": \"1\",\n            \"initialstepgrowthratebdf-1\": \"1.5\",\n            \"initialstepfractionbdf-2\": \"1\",\n            \"initialstepgrowthratebdf-2\": \"1.5\",\n            \"initialstepfractionbdf-3\": \"0.1\",\n            \"initialstepgrowthratebdf-3\": \"1.2\",\n            \"initialstepfractionbdf-4\": \"0.01\",\n            \"initialstepgrowthratebdf-4\": \"1.15\",\n            \"initialstepfractionbdf-5\": \"0.001\",\n            \"initialstepgrowthratebdf-5\": \"1.1\",\n            \"timestepbdf\": \"0.01\",\n            \"eventtol\": \"0.01\",\n            \"stabcntrl\": \"on\",\n            \"masssingular\": \"maybe\",\n            \"consistent\": \"bweuler\",\n            \"bwinitstepfrac\": \"0.01\",\n            \"bwinitfactor\": \"20\",\n            \"estrat\": \"exclude\",\n            \"tstepsgenalpha\": \"free\",\n            \"initialstepgenalpha\": \"0.001\",\n            \"initialstepgenalphaactive\": \"off\",\n            \"maxstepconstraintgenalpha\": \"auto\",\n            \"maxstepgenalpha\": \"0.1\",\n            \"maxstepexpressiongenalpha\": \"0.1\",\n            \"incrdelay\": \"15\",\n            \"incrdelayactive\": \"off\",\n            \"rhoinf\": \"0.5\",\n            \"predictor\": \"constant\",\n            \"timestepgenalpha\": \"0.01\",\n            \"rescaleafterinitbw\": \"off\",\n            \"timemethodexp\": \"rk\",\n            \"rkmethod\": \"rk34\",\n            \"tstepsrk34\": \"free\",\n            \"initialsteprk34\": \"0.001\",\n            \"initialsteprk34active\": \"off\",\n            \"timesteprk34\": \"0.01\",\n            \"tstepsck5\": \"free\",\n            \"initialstepck5\": \"0.001\",\n            \"initialstepck5active\": \"off\",\n            \"timestepck5\": \"0.01\",\n            \"tstepsdopri5\": \"free\",\n            \"initialstepdopri5\": \"0.001\",\n            \"initialstepdopri5active\": \"off\",\n            \"dopripicontrol\": \"smooth\",\n            \"maxstepconstraintdopri5\": \"auto\",\n            \"maxstepdopri5\": \"0.1\",\n            \"maxstepexpressiondopri5\": \"0.1\",\n            \"doprigrowmin\": \"0.2\",\n            \"doprigrowmax\": \"10\",\n            \"doprisafe\": \"0.9\",\n            \"timestepdopri5\": \"0.01\",\n            \"rkstiffcheck\": \"on\",\n            \"erkorder\": \"4\",\n            \"tstepping\": \"manual\",\n            \"rktimestep\": \"1.e-3\",\n            \"updtstep\": \"off\",\n            \"ntimestepsupdate\": \"10\",\n            \"exprs\": \"\",\n            \"mlinsolver\": \"dDef\",\n            \"algebraicsolvemethodRK\": \"full\",\n            \"algebraicsolveeverynRK\": \"1\",\n            \"algebraicsolveeverydtRK\": \"0\",\n            \"algebraicsolvemethod\": \"n\",\n            \"algebraicsolveeveryn\": \"1\",\n            \"algebraicsolveeverydt\": \"0\",\n            \"updtlvl\": \"off\",\n            \"ntimestepsupdateab3loc\": \"100\",\n            \"rtstepab3loc\": \"0.1\",\n            \"verletauxsolver\": \"ab2\",\n            \"checkvalidity\": \"off\",\n            \"exprsgeom\": \"\",\n            \"exprsgeomab3loc\": \"\",\n            \"exprsgporder\": \"\",\n            \"exprsgporderupdt\": \"\",\n            \"exprsgporderab3loc\": \"\",\n            \"plot\": \"off\",\n            \"plotgroupdummy\": \"Default\",\n            \"plotgrouparr\": \"pg1\",\n            \"plotwindowsarr\": \"\",\n            \"windowforpg\": \"new\",\n            \"plotfreq\": \"tout\",\n            \"probesel\": \"all\",\n            \"probes\": \"[]\",\n            \"probefreq\": \"tsteps\",\n            \"reacf\": \"on\",\n            \"lumpedflux\": \"off\",\n            \"storeudot\": \"on\",\n            \"eventout\": \"off\",\n            \"complex\": \"off\",\n            \"solref\": \"off\",\n            \"assumeperiodic\": \"off\",\n            \"starttime\": \"0\",\n            \"solutionperiod\": \"0\",\n            \"cosimstoressol\": \"off\",\n            \"cosim\": \"off\",\n            \"cosiminput\": \"\",\n            \"cosimoutput\": \"\",\n            \"cosimconsistent\": \"on\",\n            \"uselsqtimedata\": \"on\",\n            \"tlistlsq\": \"\",\n            \"excludelsqtimes\": \"on\",\n            \"lsqtimesout\": \"\",\n            \"clistctrl\": \"\",\n            \"cname\": \"\",\n            \"clist\": \"\",\n            \"keeplog\": \"off\",\n            \"message\": \"3769      184.14        0.05     9136 3772 9136     2     0      0    1e-13  6.8e-16\\n3770      184.19        0.05     9138 3773 9138     2     0      0  3.6e-14  6.6e-16\\n   -       184.2           - out\\n3771      184.24        0.05     9140 3774 9140     2     0      0  3.4e-13  6.7e-16\\n3772      184.29        0.05     9142 3775 9142     2     0      0  8.3e-13  7.5e-16\\n3773      184.34        0.05     9144 3776 9144     2     0      0  2.5e-13  6.3e-16\\n3774      184.39        0.05     9146 3777 9146     2     0      0  1.5e-13  6.1e-16\\n   -       184.4           - out\\n3775      184.44        0.05     9149 3778 9149     2     0      0  2.4e-13  5.4e-16\\n3776      184.49        0.05     9152 3779 9152     2     0      0  1.3e-13  4.9e-16\\n3777      184.54        0.05     9155 3780 9155     2     0      0  2.7e-13  5.3e-16\\n3778      184.59        0.05     9158 3781 9158     2     0      0    2e-13  5.4e-16\\n   -       184.6           - out\\n3779      184.64        0.05     9161 3782 9161     2     0      0  2.2e-14  6.2e-16\\n3780      184.69        0.05     9163 3783 9163     2     0      0  6.8e-14    7e-16\\n3781      184.74        0.05     9165 3784 9165     2     0      0  2.7e-13  6.1e-16\\n3782      184.79        0.05     9167 3785 9167     2     0      0  3.2e-13  5.5e-16\\n   -       184.8           - out\\n3783      184.84        0.05     9169 3786 9169     2     0      0  2.1e-13  6.8e-16\\n3784      184.89        0.05     9172 3787 9172     2     0      0  5.9e-14  5.2e-16\\n3785      184.94        0.05     9175 3788 9175     2     0      0  4.1e-14  4.9e-16\\n3786      184.99        0.05     9178 3789 9178     2     0      0  4.1e-13  4.8e-16\\n   -         185           - out\\n3787      185.04        0.05     9180 3790 9180     2     0      0    3e-13    1e-15\\n3788      185.09        0.05     9183 3791 9183     2     0      0  1.9e-14  8.1e-16\\n3789      185.14        0.05     9185 3792 9185     2     0      0    4e-13  5.3e-16\\n3790      185.19        0.05     9188 3793 9188     2     0      0    5e-14  5.8e-16\\n   -       185.2           - out\\n3791      185.24        0.05     9190 3794 9190     2     0      0  1.7e-13  6.8e-16\\n3792      185.29        0.05     9193 3795 9193     2     0      0  2.5e-13  4.5e-16\\n3793      185.34        0.05     9196 3796 9196     2     0      0  3.7e-14  5.7e-16\\n3794      185.39        0.05     9199 3797 9199     2     0      0  1.5e-13  9.6e-16\\n   -       185.4           - out\\n3795      185.44        0.05     9202 3798 9202     2     0      0  3.7e-13  5.9e-16\\n3796      185.49        0.05     9204 3799 9204     2     0      0  1.4e-13    8e-16\\n3797      185.54        0.05     9207 3800 9207     2     0      0  7.2e-13  5.3e-16\\n3798      185.59        0.05     9209 3801 9209     2     0      0  1.9e-13  6.3e-16\\n   -       185.6           - out\\n3799      185.64        0.05     9212 3802 9212     2     0      0  2.9e-13  5.2e-16\\n3800      185.69        0.05     9214 3803 9214     2     0      0    3e-13  8.7e-16\\n3801      185.74        0.05     9218 3804 9218     2     0      0  3.4e-13  5.6e-16\\n3802      185.79        0.05     9220 3805 9220     2     0      0  2.7e-13  8.3e-16\\n   -       185.8           - out\\n3803      185.84        0.05     9223 3806 9223     2     0      0  1.3e-13  6.7e-16\\n3804      185.89        0.05     9225 3807 9225     2     0      0  1.5e-13  5.5e-16\\n3805      185.94        0.05     9228 3808 9228     2     0      0  2.9e-13  5.3e-16\\n3806      185.99        0.05     9230 3809 9230     2     0      0  1.9e-13  7.8e-16\\n   -         186           - out\\n3807      186.04        0.05     9234 3810 9234     2     0      0  4.9e-13  6.3e-16\\n3808      186.09        0.05     9236 3811 9236     2     0      0    2e-13  6.1e-16\\n3809      186.14        0.05     9240 3812 9240     2     0      0  3.8e-13    4e-16\\n3810      186.19        0.05     9242 3813 9242     2     0      0  3.6e-13  7.2e-16\\n   -       186.2           - out\\n3811      186.24        0.05     9244 3814 9244     2     0      0  1.8e-14  7.1e-16\\n3812      186.29        0.05     9246 3815 9246     2     0      0  6.6e-13    7e-16\\n3813      186.34        0.05     9248 3816 9248     2     0      0  4.2e-13  6.8e-16\\n3814      186.39        0.05     9250 3817 9250     2     0      0  2.2e-13  5.9e-16\\n   -       186.4           - out\\n3815      186.44        0.05     9252 3818 9252     2     0      0  9.6e-14  7.2e-16\\n3816      186.49        0.05     9255 3819 9255     2     0      0  5.7e-13  5.2e-16\\n3817      186.54        0.05     9258 3820 9258     2     0      0  3.2e-13  6.2e-16\\n3818      186.59        0.05     9260 3821 9260     2     0      0  2.5e-13  6.6e-16\\n   -       186.6           - out\\n3819      186.64        0.05     9263 3822 9263     2     0      0  1.8e-13  5.7e-16\\n3820      186.69        0.05     9265 3823 9265     2     0      0  3.7e-14  6.3e-16\\n3821      186.74        0.05     9267 3824 9267     2     0      0  1.8e-13  5.7e-16\\n3822      186.79        0.05     9269 3825 9269     2     0      0  7.5e-14  6.3e-16\\n   -       186.8           - out\\n3823      186.84        0.05     9272 3826 9272     2     0      0  1.6e-13  6.1e-16\\n3824      186.89        0.05     9275 3827 9275     2     0      0  3.9e-13  5.6e-16\\n3825      186.94        0.05     9278 3828 9278     2     0      0  1.5e-13  5.9e-16\\n3826      186.99        0.05     9280 3829 9280     2     0      0  4.4e-13  6.2e-16\\n   -         187           - out\\n3827      187.04        0.05     9282 3830 9282     2     0      0  4.1e-13  6.2e-16\\n3828      187.09        0.05     9284 3831 9284     2     0      0  6.2e-13  6.1e-16\\n3829      187.14        0.05     9286 3832 9286     2     0      0  1.1e-13  8.3e-16\\n3830      187.19        0.05     9290 3833 9290     2     0      0  1.9e-13  6.2e-16\\n   -       187.2           - out\\n3831      187.24        0.05     9293 3834 9293     2     0      0  5.6e-14  5.5e-16\\n3832      187.29        0.05     9297 3835 9297     2     0      0  1.8e-13  4.4e-16\\n3833      187.34        0.05     9299 3836 9299     2     0      0  1.7e-13  7.5e-16\\n3834      187.39        0.05     9302 3837 9302     2     0      0  9.8e-14  1.1e-15\\n   -       187.4           - out\\n3835      187.44        0.05     9305 3838 9305     2     0      0  1.4e-13  8.9e-16\\n3836      187.49        0.05     9308 3839 9308     2     0      0  1.8e-13    6e-16\\n3837      187.54        0.05     9310 3840 9310     2     0      0  9.8e-14  6.7e-16\\n3838      187.59        0.05     9312 3841 9312     2     0      0    2e-13  6.2e-16\\n   -       187.6           - out\\n3839      187.64        0.05     9314 3842 9314     2     0      0  3.1e-14  7.4e-16\\n3840      187.69        0.05     9318 3843 9318     2     0      0  4.8e-13  4.8e-16\\n3841      187.74        0.05     9320 3844 9320     2     0      0  1.5e-13    7e-16\\n3842      187.79        0.05     9324 3845 9324     2     0      0  2.6e-13  4.4e-16\\n   -       187.8           - out\\n3843      187.84        0.05     9327 3846 9327     2     0      0  3.9e-13  9.9e-16\\n3844      187.89        0.05     9329 3847 9329     2     0      0  9.5e-14  7.6e-16\\n3845      187.94        0.05     9331 3848 9331     2     0      0  1.8e-13  6.2e-16\\n3846      187.99        0.05     9333 3849 9333     2     0      0  2.7e-13  8.1e-16\\n   -         188           - out\\n3847      188.04        0.05     9336 3850 9336     2     0      0  2.8e-13  4.9e-16\\n3848      188.09        0.05     9339 3851 9339     2     0      0  1.9e-14  6.6e-16\\n3849      188.14        0.05     9342 3852 9342     2     0      0  3.4e-14  1.1e-15\\n3850      188.19        0.05     9346 3853 9346     2     0      0    3e-13  5.4e-16\\n   -       188.2           - out\\n3851      188.24        0.05     9348 3854 9348     2     0      0  1.2e-13    1e-15\\n3852      188.29        0.05     9351 3855 9351     2     0      0  4.7e-14  5.3e-16\\n3853      188.34        0.05     9353 3856 9353     2     0      0  3.1e-13  6.9e-16\\n3854      188.39        0.05     9356 3857 9356     2     0      0  3.5e-13  4.7e-16\\n   -       188.4           - out\\n3855      188.44        0.05     9359 3858 9359     2     0      0  2.5e-13  5.7e-16\\n3856      188.49        0.05     9362 3859 9362     2     0      0    4e-13  9.1e-16\\n3857      188.54        0.05     9364 3860 9364     2     0      0  1.2e-13  9.4e-16\\n3858      188.59        0.05     9367 3861 9367     2     0      0  1.9e-13  1.1e-15\\n   -       188.6           - out\\n3859      188.64        0.05     9369 3862 9369     2     0      0  3.3e-13    5e-16\\n3860      188.69        0.05     9372 3863 9372     2     0      0  7.5e-14  5.5e-16\\n3861      188.74        0.05     9374 3864 9374     2     0      0  1.2e-13  5.4e-16\\n3862      188.79        0.05     9377 3865 9377     2     0      0  4.7e-13  5.4e-16\\n   -       188.8           - out\\n3863      188.84        0.05     9379 3866 9379     2     0      0  6.7e-13  5.1e-16\\n3864      188.89        0.05     9382 3867 9382     2     0      0  2.6e-13  7.3e-16\\n3865      188.94        0.05     9384 3868 9384     2     0      0  5.4e-14  5.7e-16\\n3866      188.99        0.05     9387 3869 9387     2     0      0  3.6e-13    6e-16\\n   -         189           - out\\n3867      189.04        0.05     9389 3870 9389     2     0      0  4.7e-14  5.8e-16\\n3868      189.09        0.05     9393 3871 9393     2     0      0  3.5e-14  4.5e-16\\n3869      189.14        0.05     9395 3872 9395     2     0      0  4.3e-13  7.9e-16\\n3870      189.19        0.05     9397 3873 9397     2     0      0  3.8e-13  6.8e-16\\n   -       189.2           - out\\n3871      189.24        0.05     9399 3874 9399     2     0      0    2e-13  5.2e-16\\n3872      189.29        0.05     9401 3875 9401     2     0      0  3.8e-13  6.3e-16\\n3873      189.34        0.05     9403 3876 9403     2     0      0  2.3e-13  5.9e-16\\n3874      189.39        0.05     9405 3877 9405     2     0      0  9.7e-15  6.7e-16\\n   -       189.4           - out\\n3875      189.44        0.05     9407 3878 9407     2     0      0  1.7e-13    5e-16\\n3876      189.49        0.05     9409 3879 9409     2     0      0  2.8e-13  5.4e-16\\n3877      189.54        0.05     9412 3880 9412     2     0      0  3.1e-13  4.6e-16\\n3878      189.59        0.05     9414 3881 9414     2     0      0  1.2e-13  4.8e-16\\n   -       189.6           - out\\n3879      189.64        0.05     9417 3882 9417     2     0      0  3.9e-13  4.4e-16\\n3880      189.69        0.05     9419 3883 9419     2     0      0  7.2e-14  5.3e-16\\n3881      189.74        0.05     9421 3884 9421     2     0      0    7e-13  5.7e-16\\n3882      189.79        0.05     9423 3885 9423     2     0      0  2.7e-13  4.9e-16\\n   -       189.8           - out\\n3883      189.84        0.05     9425 3886 9425     2     0      0  4.9e-13  6.1e-16\\n3884      189.89        0.05     9427 3887 9427     2     0      0  2.3e-13  5.9e-16\\n3885      189.94        0.05     9429 3888 9429     2     0      0  1.4e-13  5.9e-16\\n3886      189.99        0.05     9431 3889 9431     2     0      0  1.1e-13  7.4e-16\\n   -         190           - out\\n3887      190.04        0.05     9435 3890 9435     2     0      0    2e-13  5.5e-16\\n3888      190.09        0.05     9437 3891 9437     2     0      0  1.7e-14  7.1e-16\\n3889      190.14        0.05     9441 3892 9441     2     0      0  2.1e-13    5e-16\\n3890      190.19        0.05     9443 3893 9443     2     0      0  4.1e-13  8.9e-16\\n   -       190.2           - out\\n3891      190.24        0.05     9447 3894 9447     2     0      0  1.6e-13  4.6e-16\\n3892      190.29        0.05     9449 3895 9449     2     0      0  3.1e-13    1e-15\\n3893      190.34        0.05     9451 3896 9451     2     0      0  3.6e-13    7e-16\\n3894      190.39        0.05     9453 3897 9453     2     0      0  2.2e-13  8.6e-16\\n   -       190.4           - out\\n3895      190.44        0.05     9455 3898 9455     2     0      0  8.5e-13  6.8e-16\\n3896      190.49        0.05     9457 3899 9457     2     0      0  1.6e-13  8.4e-16\\n3897      190.54        0.05     9460 3900 9460     2     0      0    2e-13  5.4e-16\\n3898      190.59        0.05     9463 3901 9463     2     0      0  5.8e-13  5.1e-16\\n   -       190.6           - out\\n3899      190.64        0.05     9466 3902 9466     2     0      0  1.5e-13  6.6e-16\\n3900      190.69        0.05     9468 3903 9468     2     0      0  1.2e-13    1e-15\\n3901      190.74        0.05     9471 3904 9471     2     0      0  6.6e-14  5.6e-16\\n3902      190.79        0.05     9473 3905 9473     2     0      0  1.5e-13  5.5e-16\\n   -       190.8           - out\\n3903      190.84        0.05     9476 3906 9476     2     0      0  3.8e-13  6.6e-16\\n3904      190.89        0.05     9478 3907 9478     2     0      0  5.6e-13  6.3e-16\\n3905      190.94        0.05     9481 3908 9481     2     0      0    3e-13  6.1e-16\\n3906      190.99        0.05     9483 3909 9483     2     0      0  1.8e-13  6.7e-16\\n   -         191           - out\\n3907      191.04        0.05     9486 3910 9486     2     0      0  2.4e-14  4.9e-16\\n3908      191.09        0.05     9489 3911 9489     2     0      0  1.7e-13    5e-16\\n3909      191.14        0.05     9491 3912 9491     2     0      0  1.8e-13  9.3e-16\\n3910      191.19        0.05     9495 3913 9495     2     0      0  3.1e-13  4.1e-16\\n   -       191.2           - out\\n3911      191.24        0.05     9497 3914 9497     2     0      0  5.1e-13  5.7e-16\\n3912      191.29        0.05     9500 3915 9500     2     0      0  5.3e-14    5e-16\\n3913      191.34        0.05     9502 3916 9502     2     0      0  1.1e-13  6.8e-16\\n3914      191.39        0.05     9505 3917 9505     2     0      0  3.4e-13  4.6e-16\\n   -       191.4           - out\\n3915      191.44        0.05     9508 3918 9508     2     0      0  1.3e-13  6.6e-16\\n3916      191.49        0.05     9511 3919 9511     2     0      0  4.4e-13  9.2e-16\\n3917      191.54        0.05     9513 3920 9513     2     0      0  3.6e-13  6.8e-16\\n3918      191.59        0.05     9516 3921 9516     2     0      0  1.7e-14  4.7e-16\\n   -       191.6           - out\\n3919      191.64        0.05     9518 3922 9518     2     0      0  6.2e-14  6.7e-16\\n3920      191.69        0.05     9521 3923 9521     2     0      0  1.5e-13  4.9e-16\\n3921      191.74        0.05     9523 3924 9523     2     0      0  3.3e-14  9.7e-16\\n3922      191.79        0.05     9526 3925 9526     2     0      0  7.2e-14  7.3e-16\\n   -       191.8           - out\\n3923      191.84        0.05     9528 3926 9528     2     0      0  1.6e-13  6.3e-16\\n3924      191.89        0.05     9531 3927 9531     2     0      0  1.5e-13  6.5e-16\\n3925      191.94        0.05     9533 3928 9533     2     0      0  8.6e-14  6.1e-16\\n3926      191.99        0.05     9536 3929 9536     2     0      0  3.1e-13  4.8e-16\\n   -         192           - out\\n3927      192.04        0.05     9538 3930 9538     2     0      0  3.6e-14  8.3e-16\\n3928      192.09        0.05     9540 3931 9540     2     0      0  2.6e-14  7.2e-16\\n3929      192.14        0.05     9544 3932 9544     2     0      0  2.3e-13  5.9e-16\\n3930      192.19        0.05     9546 3933 9546     2     0      0  2.3e-13  6.7e-16\\n   -       192.2           - out\\n3931      192.24        0.05     9549 3934 9549     2     0      0    1e-13  5.5e-16\\n3932      192.29        0.05     9551 3935 9551     2     0      0  6.2e-14  6.4e-16\\n3933      192.34        0.05     9554 3936 9554     2     0      0  4.8e-14  4.6e-16\\n3934      192.39        0.05     9556 3937 9556     2     0      0  1.9e-13  7.2e-16\\n   -       192.4           - out\\n3935      192.44        0.05     9558 3938 9558     2     0      0  2.5e-13  5.9e-16\\n3936      192.49        0.05     9560 3939 9560     2     0      0  3.7e-14  6.2e-16\\n3937      192.54        0.05     9563 3940 9563     2     0      0  1.4e-13  5.1e-16\\n3938      192.59        0.05     9565 3941 9565     2     0      0  3.2e-13    9e-16\\n   -       192.6           - out\\n3939      192.64        0.05     9568 3942 9568     2     0      0  6.1e-13  5.3e-16\\n3940      192.69        0.05     9570 3943 9570     2     0      0  5.7e-13  6.3e-16\\n3941      192.74        0.05     9573 3944 9573     2     0      0  3.9e-13  6.2e-16\\n3942      192.79        0.05     9575 3945 9575     2     0      0  1.6e-13  5.9e-16\\n   -       192.8           - out\\n3943      192.84        0.05     9577 3946 9577     2     0      0  5.8e-13  6.2e-16\\n3944      192.89        0.05     9580 3947 9580     2     0      0  3.5e-13  4.7e-16\\n3945      192.94        0.05     9583 3948 9583     2     0      0  1.7e-13  6.5e-16\\n3946      192.99        0.05     9586 3949 9586     2     0      0  1.4e-13    6e-16\\n   -         193           - out\\n3947      193.04        0.05     9589 3950 9589     2     0      0  7.3e-14    6e-16\\n3948      193.09        0.05     9591 3951 9591     2     0      0  7.3e-13  5.5e-16\\n3949      193.14        0.05     9593 3952 9593     2     0      0  5.2e-13  6.2e-16\\n3950      193.19        0.05     9595 3953 9595     2     0      0  1.5e-13  6.6e-16\\n   -       193.2           - out\\n3951      193.24        0.05     9598 3954 9598     2     0      0  3.5e-13  5.7e-16\\n3952      193.29        0.05     9601 3955 9601     2     0      0  2.2e-13  5.3e-16\\n3953      193.34        0.05     9604 3956 9604     2     0      0  3.7e-14  9.9e-16\\n3954      193.39        0.05     9607 3957 9607     2     0      0  2.2e-13  9.6e-16\\n   -       193.4           - out\\n3955      193.44        0.05     9610 3958 9610     2     0      0  2.1e-13  1.1e-15\\n3956      193.49        0.05     9612 3959 9612     2     0      0  1.9e-13  6.6e-16\\n3957      193.54        0.05     9615 3960 9615     2     0      0  2.9e-13  6.2e-16\\n3958      193.59        0.05     9617 3961 9617     2     0      0  2.2e-13    5e-16\\n   -       193.6           - out\\n3959      193.64        0.05     9619 3962 9619     2     0      0  1.5e-13  6.3e-16\\n3960      193.69        0.05     9621 3963 9621     2     0      0  3.8e-13  5.6e-16\\n3961      193.74        0.05     9623 3964 9623     2     0      0  1.1e-13  6.3e-16\\n3962      193.79        0.05     9627 3965 9627     2     0      0  1.4e-13  4.7e-16\\n   -       193.8           - out\\n3963      193.84        0.05     9629 3966 9629     2     0      0  3.4e-13  5.7e-16\\n3964      193.89        0.05     9633 3967 9633     2     0      0  5.9e-14  4.1e-16\\n3965      193.94        0.05     9637 3968 9637     2     0      0    7e-13  4.5e-16\\n3966      193.99        0.05     9639 3969 9639     2     0      0  3.1e-13  9.3e-16\\n   -         194           - out\\n3967      194.04        0.05     9641 3970 9641     2     0      0  1.7e-13  7.1e-16\\n3968      194.09        0.05     9644 3971 9644     2     0      0  4.2e-13  5.5e-16\\n3969      194.14        0.05     9647 3972 9647     2     0      0  4.1e-13  5.4e-16\\n3970      194.19        0.05     9651 3973 9651     2     0      0  4.4e-13  5.3e-16\\n   -       194.2           - out\\n3971      194.24        0.05     9655 3974 9655     2     0      0  1.1e-13  5.9e-16\\n3972      194.29        0.05     9658 3975 9658     2     0      0  5.1e-14  9.3e-16\\n3973      194.34        0.05     9660 3976 9660     2     0      0    3e-13  9.7e-16\\n3974      194.39        0.05     9663 3977 9663     2     0      0    3e-13  4.5e-16\\n   -       194.4           - out\\n3975      194.44        0.05     9665 3978 9665     2     0      0  3.8e-13  6.6e-16\\n3976      194.49        0.05     9668 3979 9668     2     0      0  4.1e-13  4.8e-16\\n3977      194.54        0.05     9671 3980 9671     2     0      0  2.9e-13  6.5e-16\\n3978      194.59        0.05     9674 3981 9674     2     0      0  1.6e-13  1.1e-15\\n   -       194.6           - out\\n3979      194.64        0.05     9676 3982 9676     2     0      0  4.3e-13  8.2e-16\\n3980      194.69        0.05     9678 3983 9678     2     0      0  4.2e-13  8.9e-16\\n3981      194.74        0.05     9680 3984 9680     2     0      0  4.6e-13  5.5e-16\\n3982      194.79        0.05     9682 3985 9682     2     0      0  1.5e-13  7.4e-16\\n   -       194.8           - out\\n3983      194.84        0.05     9685 3986 9685     2     0      0  4.9e-13  4.9e-16\\n3984      194.89        0.05     9687 3987 9687     2     0      0  1.4e-13  6.8e-16\\n3985      194.94        0.05     9690 3988 9690     2     0      0  1.4e-13  4.9e-16\\n3986      194.99        0.05     9692 3989 9692     2     0      0  1.4e-13  7.1e-16\\n   -         195           - out\\n3987      195.04        0.05     9695 3990 9695     2     0      0  1.4e-13  6.3e-16\\n3988      195.09        0.05     9697 3991 9697     2     0      0  1.6e-13  5.6e-16\\n3989      195.14        0.05     9701 3992 9701     2     0      0  1.6e-13  4.9e-16\\n3990      195.19        0.05     9703 3993 9703     2     0      0  2.6e-13  6.3e-16\\n   -       195.2           - out\\n3991      195.24        0.05     9705 3994 9705     2     0      0  2.1e-13  5.5e-16\\n3992      195.29        0.05     9707 3995 9707     2     0      0  3.3e-13  6.2e-16\\n3993      195.34        0.05     9709 3996 9709     2     0      0  4.1e-13  5.2e-16\\n3994      195.39        0.05     9711 3997 9711     2     0      0    3e-13  4.1e-16\\n   -       195.4           - out\\n3995      195.44        0.05     9713 3998 9713     2     0      0  1.7e-13  6.3e-16\\n3996      195.49        0.05     9715 3999 9715     2     0      0    3e-13  5.5e-16\\n3997      195.54        0.05     9717 4000 9717     2     0      0  1.3e-13  4.9e-16\\n3998      195.59        0.05     9719 4001 9719     2     0      0  4.1e-14  5.8e-16\\n   -       195.6           - out\\n3999      195.64        0.05     9721 4002 9721     2     0      0  4.9e-13  6.5e-16\\n4000      195.69        0.05     9724 4003 9724     2     0      0  2.3e-13  4.8e-16\\n4001      195.74        0.05     9726 4004 9726     2     0      0  1.2e-13  5.1e-16\\n4002      195.79        0.05     9728 4005 9728     2     0      0  1.3e-13  6.1e-16\\n   -       195.8           - out\\n4003      195.84        0.05     9730 4006 9730     2     0      0  3.7e-14    5e-16\\n4004      195.89        0.05     9732 4007 9732     2     0      0  2.3e-14  6.5e-16\\n4005      195.94        0.05     9734 4008 9734     2     0      0  2.5e-13  5.6e-16\\n4006      195.99        0.05     9736 4009 9736     2     0      0  3.8e-14  5.6e-16\\n   -         196           - out\\n4007      196.04        0.05     9740 4010 9740     2     0      0  3.6e-13  4.9e-16\\n4008      196.09        0.05     9742 4011 9742     2     0      0  3.9e-13    8e-16\\n4009      196.14        0.05     9745 4012 9745     2     0      0  6.9e-13  5.4e-16\\n4010      196.19        0.05     9747 4013 9747     2     0      0  2.9e-13  8.2e-16\\n   -       196.2           - out\\n4011      196.24        0.05     9749 4014 9749     2     0      0  6.6e-14    8e-16\\n4012      196.29        0.05     9751 4015 9751     2     0      0  1.3e-13  7.3e-16\\n4013      196.34        0.05     9753 4016 9753     2     0      0  1.9e-13  6.3e-16\\n4014      196.39        0.05     9755 4017 9755     2     0      0  1.2e-13  7.1e-16\\n   -       196.4           - out\\n4015      196.44        0.05     9759 4018 9759     2     0      0  3.5e-13  5.1e-16\\n4016      196.49        0.05     9761 4019 9761     2     0      0    9e-14    6e-16\\n4017      196.54        0.05     9764 4020 9764     2     0      0  9.9e-14  6.4e-16\\n4018      196.59        0.05     9766 4021 9766     2     0      0    1e-13  5.6e-16\\n   -       196.6           - out\\n4019      196.64        0.05     9769 4022 9769     2     0      0  1.3e-13    6e-16\\n4020      196.69        0.05     9772 4023 9772     2     0      0  2.5e-13  5.9e-16\\n4021      196.74        0.05     9775 4024 9775     2     0      0    2e-13  7.4e-16\\n4022      196.79        0.05     9777 4025 9777     2     0      0  1.8e-13  9.4e-16\\n   -       196.8           - out\\n4023      196.84        0.05     9779 4026 9779     2     0      0  1.9e-13  7.7e-16\\n4024      196.89        0.05     9781 4027 9781     2     0      0  5.7e-14  5.3e-16\\n4025      196.94        0.05     9783 4028 9783     2     0      0  4.1e-13  6.4e-16\\n4026      196.99        0.05     9785 4029 9785     2     0      0  2.9e-13  7.7e-16\\n   -         197           - out\\n4027      197.04        0.05     9788 4030 9788     2     0      0    5e-14  4.8e-16\\n4028      197.09        0.05     9791 4031 9791     2     0      0  4.2e-13  4.9e-16\\n4029      197.14        0.05     9794 4032 9794     2     0      0  2.8e-13  5.2e-16\\n4030      197.19        0.05     9796 4033 9796     2     0      0  1.6e-13  8.2e-16\\n   -       197.2           - out\\n4031      197.24        0.05     9800 4034 9800     2     0      0    3e-13  4.4e-16\\n4032      197.29        0.05     9802 4035 9802     2     0      0  3.2e-14    6e-16\\n4033      197.34        0.05     9805 4036 9805     2     0      0  3.1e-13  5.2e-16\\n4034      197.39        0.05     9807 4037 9807     2     0      0  7.6e-14  7.7e-16\\n   -       197.4           - out\\n4035      197.44        0.05     9810 4038 9810     2     0      0  9.7e-14  4.8e-16\\n4036      197.49        0.05     9813 4039 9813     2     0      0  4.6e-13  5.7e-16\\n4037      197.54        0.05     9816 4040 9816     2     0      0  3.7e-13    9e-16\\n4038      197.59        0.05     9818 4041 9818     2     0      0  1.1e-13  1.1e-15\\n   -       197.6           - out\\n4039      197.64        0.05     9821 4042 9821     2     0      0  1.6e-13  6.2e-16\\n4040      197.69        0.05     9823 4043 9823     2     0      0  5.3e-13  5.6e-16\\n4041      197.74        0.05     9826 4044 9826     2     0      0  6.5e-13  4.4e-16\\n4042      197.79        0.05     9828 4045 9828     2     0      0  9.2e-14  8.8e-16\\n   -       197.8           - out\\n4043      197.84        0.05     9831 4046 9831     2     0      0  8.8e-14  5.7e-16\\n4044      197.89        0.05     9833 4047 9833     2     0      0  6.4e-14  7.6e-16\\n4045      197.94        0.05     9836 4048 9836     2     0      0  1.8e-13  7.3e-16\\n4046      197.99        0.05     9838 4049 9838     2     0      0  2.1e-13  5.5e-16\\n   -         198           - out\\n4047      198.04        0.05     9841 4050 9841     2     0      0  5.5e-13  5.5e-16\\n4048      198.09        0.05     9843 4051 9843     2     0      0  1.3e-13  8.6e-16\\n4049      198.14        0.05     9846 4052 9846     2     0      0  1.9e-13  6.2e-16\\n4050      198.19        0.05     9848 4053 9848     2     0      0  1.3e-13    1e-15\\n   -       198.2           - out\\n4051      198.24        0.05     9851 4054 9851     2     0      0  2.4e-13  5.7e-16\\n4052      198.29        0.05     9853 4055 9853     2     0      0  1.3e-13  6.4e-16\\n4053      198.34        0.05     9856 4056 9856     2     0      0  5.9e-13  5.5e-16\\n4054      198.39        0.05     9858 4057 9858     2     0      0  1.9e-13  6.4e-16\\n   -       198.4           - out\\n4055      198.44        0.05     9861 4058 9861     2     0      0  1.6e-13  5.7e-16\\n4056      198.49        0.05     9863 4059 9863     2     0      0  3.7e-13  6.5e-16\\n4057      198.54        0.05     9865 4060 9865     2     0      0    2e-13  6.3e-16\\n4058      198.59        0.05     9867 4061 9867     2     0      0  3.3e-14  7.6e-16\\n   -       198.6           - out\\n4059      198.64        0.05     9870 4062 9870     2     0      0    4e-13  5.8e-16\\n4060      198.69        0.05     9873 4063 9873     2     0      0  4.5e-14  6.4e-16\\n4061      198.74        0.05     9875 4064 9875     2     0      0  2.2e-13  5.8e-16\\n4062      198.79        0.05     9878 4065 9878     2     0      0  3.7e-13  6.3e-16\\n   -       198.8           - out\\n4063      198.84        0.05     9880 4066 9880     2     0      0  3.4e-13  6.2e-16\\n4064      198.89        0.05     9882 4067 9882     2     0      0  1.1e-13  7.1e-16\\n4065      198.94        0.05     9884 4068 9884     2     0      0  1.2e-13    6e-16\\n4066      198.99        0.05     9887 4069 9887     2     0      0  2.7e-14  5.9e-16\\n   -         199           - out\\n4067      199.04        0.05     9890 4070 9890     2     0      0  1.1e-13  5.2e-16\\n4068      199.09        0.05     9893 4071 9893     2     0      0  1.9e-13  6.3e-16\\n4069      199.14        0.05     9895 4072 9895     2     0      0  4.1e-13    6e-16\\n4070      199.19        0.05     9897 4073 9897     2     0      0  3.5e-13  5.9e-16\\n   -       199.2           - out\\n4071      199.24        0.05     9899 4074 9899     2     0      0  1.7e-13  5.9e-16\\n4072      199.29        0.05     9901 4075 9901     2     0      0  2.8e-13  7.1e-16\\n4073      199.34        0.05     9904 4076 9904     2     0      0  1.7e-13  5.4e-16\\n4074      199.39        0.05     9907 4077 9907     2     0      0  7.9e-14  6.7e-16\\n   -       199.4           - out\\n4075      199.44        0.05     9911 4078 9911     2     0      0  3.1e-13  5.4e-16\\n4076      199.49        0.05     9914 4079 9914     2     0      0  8.8e-14  8.4e-16\\n4077      199.54        0.05     9917 4080 9917     2     0      0  3.5e-13  8.2e-16\\n4078      199.59        0.05     9919 4081 9919     2     0      0  2.1e-13  7.3e-16\\n   -       199.6           - out\\n4079      199.64        0.05     9922 4082 9922     2     0      0  3.3e-14  6.5e-16\\n4080      199.69        0.05     9924 4083 9924     2     0      0  3.3e-13  5.8e-16\\n4081      199.74        0.05     9926 4084 9926     2     0      0  6.1e-13  6.8e-16\\n4082      199.79        0.05     9928 4085 9928     2     0      0  9.9e-14  6.9e-16\\n   -       199.8           - out\\n4083      199.84        0.05     9930 4086 9930     2     0      0  5.9e-13  5.6e-16\\n4084      199.89        0.05     9934 4087 9934     2     0      0  4.7e-13  5.2e-16\\n4085      199.94        0.05     9936 4088 9936     2     0      0  2.3e-14  7.6e-16\\n4086      199.99        0.05     9939 4089 9939     2     0      0  3.5e-14  4.4e-16\\n   -         200           - out\\n4087      200.04        0.05     9943 4090 9943     2     0      0  2.8e-13  5.4e-16\\n\\u65f6\\u95f4\\u6b65\\u8fdb\\u5df2\\u5b8c\\u6210\\u3002\\n\\u6c42\\u89e3\\u65f6\\u95f4\\uff1a705 s\\u3002 \\uff0811 \\u5206\\u949f\\uff0c45 \\u79d2\\uff09\\n\\u7269\\u7406\\u5185\\u5b58: 1.37 GB\\n\\u865a\\u62df\\u5185\\u5b58: 1.52 GB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67085\\u65e5 12:18:27\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cTime-Dependent Solver 1\\u201d ------------------->\\n\",\n            \"const\": \"\",\n            \"propertyDefaults\": \"maxstepconstraintbdf, auto; maxstepbdf, 0.1\",\n            \"changedproperties\": \"Steps taken by solver, tstepsbdf, free, intermediate\",\n            \"hiddenchangedproperties\": \"\",\n            \"fieldselection\": \"comp1_p\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        }\n      ]\n    }\n  ]\n}\n\n<<<JSON_END>>>\n",
+  "launch_mode": "standalone_java_api",
+  "batch_startup_failure": {
+    "stdout": "\nERROR: Failed to start COMSOL. For details, see the log file C:\\Users\\Administrator\\.comsol\\v64\\logs\\batch1.log\nERROR: Additional information: com/comsol/nativejni/FlNativeException\n",
+    "stderr": "",
+    "returncode": 0
+  },
+  "sha256": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4"
+}
