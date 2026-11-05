@@ -1,2 +1,10 @@
-# Enforce LF line endings for evidence artifacts across all platforms
-docs/evidence/** text eol=lf
+# Preserve evidence bytes by default.
+docs/evidence/** -text
+
+# Normalize only explicitly supported text formats.
+docs/evidence/**/*.txt text eol=lf
+docs/evidence/**/*.json text eol=lf
+docs/evidence/**/*.xml text eol=lf
+docs/evidence/**/*.log text eol=lf
+docs/evidence/**/*.md text eol=lf
+docs/evidence/**/*.py text eol=lf
