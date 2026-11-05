@@ -980,6 +980,49 @@ def test_four_mesh_comparison_passes_adjacent_gate_when_m2_m3_within_one_percent
     assert result["four_mesh_trends"]["Cl_amp"]["direction"] == "monotonic"
 
 
+def test_four_mesh_comparison_distinguishes_relative_diff_from_absolute_delta_reduction():
+    """Verify that all_primary_deltas_reduced strictly tracks absolute increments |Delta_23| < |Delta_12|,
+    not relative percent difference |r_23| < |r_12|.
+
+    Counterexample:
+      Q1 = 1.00000, Q2 = 1.00900, Q3 = 1.01805
+      Delta_12 = 0.00900, Delta_23 = 0.00905 (|Delta_23| > |Delta_12| -> absolute increment increased)
+      r_12 = 0.9000%, r_23 = 0.00905 / 1.00900 = 0.8969% (|r_23| < |r_12| -> relative difference decreased)
+    Under this condition:
+      - all_primary_rel_diffs_reduced is True
+      - all_primary_deltas_reduced MUST be False
+      - grid_independence_phase_can_close MUST be False
+    """
+    m0, m1, m2, m3 = _stable_stats("M0"), _stable_stats("M1"), _stable_stats("M2"), _stable_stats("M3")
+    for metric in ["Cd_mean", "Cl_amp_mean", "Cl_demeaned_rms"]:
+        m1[metric] = m0[metric] + 0.0050
+        m2[metric] = m1[metric] + 0.0030
+        m3[metric] = m2[metric] + 0.0010
+
+    m0["St_zc_mean"] = 0.991
+    m1["St_zc_mean"] = 1.0
+    m2["St_zc_mean"] = 1.009
+    m3["St_zc_mean"] = 1.01805
+
+    result = mesh_run.classify_four_mesh_comparison(m0, m1, m2, m3)
+
+    st_trend = result["four_mesh_trends"]["St_zc"]
+    assert st_trend["abs_rel_diff_reduced"] is True
+    assert st_trend["abs_delta_reduced"] is False
+    assert result["all_primary_rel_diffs_reduced"] is True
+    assert result["all_primary_deltas_reduced"] is False
+    assert result["adjacent_m2_m3_within_1pct"] is True
+    assert result["grid_independence_phase_can_close"] is False
+
+    # Now fix St_zc_mean to have actual absolute delta reduction: Delta_23 = 0.0085 < 0.0090
+    m3["St_zc_mean"] = 1.009 + 0.0085
+    result_fixed = mesh_run.classify_four_mesh_comparison(m0, m1, m2, m3)
+    assert result_fixed["four_mesh_trends"]["St_zc"]["abs_delta_reduced"] is True
+    assert result_fixed["all_primary_deltas_reduced"] is True
+    assert result_fixed["grid_independence_phase_can_close"] is True
+
+
+
 @pytest.mark.parametrize("case_index", [0, 1, 2, 3], ids=["M0", "M1", "M2", "M3"])
 @pytest.mark.parametrize("fault", ["unstable", "four_cycles"])
 def test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes(case_index, fault):

@@ -459,10 +459,10 @@ def classify_comparison(stats_m0: dict, stats_m1: dict) -> dict:
         }
         acceptance = "INSUFFICIENT_CYCLES"
     elif not stats_m0.get("is_stable", False) or not stats_m1.get("is_stable", False):
-        comparison = compare_cases(stats_m0, stats_m1)
+        comparison = compare_cases(stats_m0, stats_m1, study_type="mesh")
         acceptance = "UNSTABLE"
     else:
-        comparison = compare_cases(stats_m0, stats_m1)
+        comparison = compare_cases(stats_m0, stats_m1, study_type="mesh")
         acceptance = "PASS" if comparison["conclusion"] == "INSENSITIVE_WITHIN_TESTED_RANGE" else "SENSITIVE"
     comparison["acceptance_status"] = acceptance
     comparison["mesh_independence_established"] = False
@@ -501,7 +501,7 @@ def classify_three_mesh_comparison(stats_m0: dict, stats_m1: dict, stats_m2: dic
             ),
         }
     if not all(stats.get("is_stable", False) for stats in meshes):
-        primary = compare_cases(stats_m1, stats_m2)
+        primary = compare_cases(stats_m1, stats_m2, study_type="mesh")
         primary.update(
             can_compare=False,
             conclusion="UNSTABLE",
@@ -512,6 +512,7 @@ def classify_three_mesh_comparison(stats_m0: dict, stats_m1: dict, stats_m2: dic
             case_m2=stats_m2,
             adjacent_m1_m2_within_1pct=False,
             all_primary_deltas_reduced=False,
+            all_primary_rel_diffs_reduced=False,
             mesh_independence_established=False,
             grid_independence_phase_can_close=False,
             scientific_summary=(
@@ -520,9 +521,9 @@ def classify_three_mesh_comparison(stats_m0: dict, stats_m1: dict, stats_m2: dic
         )
         return primary
 
-    m0_vs_m1 = compare_cases(stats_m0, stats_m1)
-    m1_vs_m2 = compare_cases(stats_m1, stats_m2)
-    m0_vs_m2 = compare_cases(stats_m0, stats_m2)
+    m0_vs_m1 = compare_cases(stats_m0, stats_m1, study_type="mesh")
+    m1_vs_m2 = compare_cases(stats_m1, stats_m2, study_type="mesh")
+    m0_vs_m2 = compare_cases(stats_m0, stats_m2, study_type="mesh")
     metric_fields = {
         "St_zc": ("St_zc_mean", "st_tol_pct"),
         "Cd_mean": ("Cd_mean", "cd_tol_pct"),
@@ -564,7 +565,8 @@ def classify_three_mesh_comparison(stats_m0: dict, stats_m1: dict, stats_m2: dic
             "within_1pct_m1_m2": abs(r12) <= tol_pct,
         }
     adjacent_ok = m1_vs_m2["conclusion"] == "INSENSITIVE_WITHIN_TESTED_RANGE"
-    all_reduced = all(item["abs_rel_diff_reduced"] for item in trends.values())
+    all_reduced = all(item["abs_delta_reduced"] for item in trends.values())
+    all_rel_reduced = all(item["abs_rel_diff_reduced"] for item in trends.values())
     acceptance = "PASS" if adjacent_ok else "SENSITIVE"
     result = deepcopy(m1_vs_m2)
     result.update(
@@ -579,6 +581,7 @@ def classify_three_mesh_comparison(stats_m0: dict, stats_m1: dict, stats_m2: dic
         three_mesh_trends=trends,
         adjacent_m1_m2_within_1pct=adjacent_ok,
         all_primary_deltas_reduced=all_reduced,
+        all_primary_rel_diffs_reduced=all_rel_reduced,
         mesh_independence_established=False,
         grid_independence_phase_can_close=bool(adjacent_ok and all_reduced),
         scientific_summary=(
@@ -620,7 +623,7 @@ def classify_four_mesh_comparison(
             ),
         }
     if not all(stats.get("is_stable", False) for stats in meshes):
-        primary = compare_cases(stats_m2, stats_m3)
+        primary = compare_cases(stats_m2, stats_m3, study_type="mesh")
         primary.update(
             can_compare=False,
             conclusion="UNSTABLE",
@@ -632,6 +635,7 @@ def classify_four_mesh_comparison(
             case_m3=stats_m3,
             adjacent_m2_m3_within_1pct=False,
             all_primary_deltas_reduced=False,
+            all_primary_rel_diffs_reduced=False,
             mesh_independence_established=False,
             grid_independence_phase_can_close=False,
             scientific_summary=(
@@ -640,10 +644,10 @@ def classify_four_mesh_comparison(
         )
         return primary
 
-    m0_vs_m1 = compare_cases(stats_m0, stats_m1)
-    m1_vs_m2 = compare_cases(stats_m1, stats_m2)
-    m2_vs_m3 = compare_cases(stats_m2, stats_m3)
-    m0_vs_m3 = compare_cases(stats_m0, stats_m3)
+    m0_vs_m1 = compare_cases(stats_m0, stats_m1, study_type="mesh")
+    m1_vs_m2 = compare_cases(stats_m1, stats_m2, study_type="mesh")
+    m2_vs_m3 = compare_cases(stats_m2, stats_m3, study_type="mesh")
+    m0_vs_m3 = compare_cases(stats_m0, stats_m3, study_type="mesh")
     metric_fields = {
         "St_zc": ("St_zc_mean", "st_tol_pct"),
         "Cd_mean": ("Cd_mean", "cd_tol_pct"),
@@ -697,7 +701,8 @@ def classify_four_mesh_comparison(
             "within_1pct_m2_m3": abs(r23) <= tol_pct,
         }
     adjacent_ok = m2_vs_m3["conclusion"] == "INSENSITIVE_WITHIN_TESTED_RANGE"
-    all_reduced = all(item["abs_rel_diff_reduced"] for item in trends.values())
+    all_reduced = all(item["abs_delta_reduced"] for item in trends.values())
+    all_rel_reduced = all(item["abs_rel_diff_reduced"] for item in trends.values())
     acceptance = "PASS" if adjacent_ok else "SENSITIVE"
     result = deepcopy(m2_vs_m3)
     result.update(
@@ -714,6 +719,7 @@ def classify_four_mesh_comparison(
         four_mesh_trends=trends,
         adjacent_m2_m3_within_1pct=adjacent_ok,
         all_primary_deltas_reduced=all_reduced,
+        all_primary_rel_diffs_reduced=all_rel_reduced,
         mesh_independence_established=False,
         grid_independence_phase_can_close=bool(adjacent_ok and all_reduced),
         scientific_summary=(

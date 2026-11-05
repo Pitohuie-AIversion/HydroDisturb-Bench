@@ -329,6 +329,7 @@ def compare_cases(
     cd_tol_pct: float = 1.0,
     amp_tol_pct: float = 1.0,
     rms_tol_pct: float = 1.0,
+    study_type: str = "tolerance",
 ) -> dict[str, Any]:
     """Compare Case A and Case B results dynamically without hardcoded conclusions.
 
@@ -401,8 +402,23 @@ def compare_cases(
     step_ratio_str = f"{steps_b / steps_a:.2f}x" if isinstance(steps_a, (int, float)) and isinstance(steps_b, (int, float)) else "N/A"
     time_ratio_str = f"{float(time_b) / float(time_a):.2f}x" if isinstance(time_a, (int, float)) and isinstance(time_b, (int, float)) else "N/A"
 
+    if study_type == "mesh":
+        name_a = res_a.get("name", "Case A")
+        name_b = res_b.get("name", "Case B")
+        action_str = f"Refining native mesh from {name_a} to {name_b} at unchanged rtol=1e-4 and const maximum internal time step 0.05 s"
+        qualification_str = (
+            "Note: Insensitivity within this tested mesh pair does NOT imply an exact-solution error bound "
+            "or formal asymptotic GCI; multi-level trends are evaluated directly."
+        )
+    else:
+        action_str = "Tightening solver tolerance strategy by 10x (rtol 1e-3 -> 1e-4)"
+        qualification_str = (
+            "Note: Insensitivity within this tested tolerance range does NOT imply full time-step independence or grid independence; "
+            "subsequent tests must evaluate explicit internal step constraints."
+        )
+
     scientific_summary = (
-        f"Tightening solver tolerance strategy by 10x (rtol 1e-3 -> 1e-4) resulted in "
+        f"{action_str} resulted in "
         f"{step_ratio_str} internal steps ({steps_b} vs {steps_a}) and {time_ratio_str} compute time ({time_b}s vs {time_a}s). "
         f"Over the last 5 verified stable cycles, all 4 physical indicators changed by: "
         f"St: {rel_diff_st:+.4f}% (tol {st_tol_pct}%), "
@@ -410,8 +426,7 @@ def compare_cases(
         f"Lift Amplitude: {rel_diff_amp:+.4f}% (tol {amp_tol_pct}%), "
         f"De-meaned RMS: {rel_diff_rms:+.4f}% (tol {rms_tol_pct}%). "
         f"Overall Conclusion: {conclusion} (Sensitive reasons: {sensitive_reasons if sensitive_reasons else 'None'}). "
-        f"Note: Insensitivity within this tested tolerance range does NOT imply full time-step independence or grid independence; "
-        f"subsequent tests must evaluate explicit internal step constraints."
+        f"{qualification_str}"
     )
 
     return {

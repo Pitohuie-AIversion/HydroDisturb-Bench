@@ -11,7 +11,7 @@
     "M0, M1, and M2 lift amplitude and RMS changes exceeded the 1.0% threshold (M0->M1: +2.71%, M1->M2: +1.85%).",
     "M2->M3 adjacent relative changes are ALL strictly within 1.0%: St: +0.790%, Cd: +0.335%, Cl_amp: +0.685%, Cl_rms: +0.704%.",
     "Increments |Delta_{23}| < |Delta_{12}| across all four metrics; lift fluctuation increments shrunk by >62% in the latest step.",
-    "Degrees of freedom: M0=19,326, M1=30,651, M2=51,108, M3=88,485."
+    "Degrees of freedom: M0=19,326, M1=30,651, M2=51,108, M3=88,483."
   ],
   "four_mesh_metrics": {
     "M0": {
@@ -40,7 +40,7 @@
     },
     "M3": {
       "elements": 34752,
-      "dofs": 88485,
+      "dofs": 88483,
       "St": 0.1637,
       "Cd": 1.365101,
       "Cl_amp": 0.329649,
