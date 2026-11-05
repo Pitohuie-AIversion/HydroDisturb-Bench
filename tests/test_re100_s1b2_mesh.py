@@ -839,3 +839,325 @@ def test_m2_entry_solves_only_isolated_m2_from_m0_and_preserves_m0_and_m1(
     assert m0_source.read_bytes() == b"accepted Case C source"
     assert m1_model.read_bytes() == b"accepted M1 solved model"
     assert set(report["wake_comparison"]["windows"].keys()) == {"m0", "m1", "m2"}
+
+
+def _m3_plan_for_source(source_sha256: str) -> dict:
+    plan = json.loads(mesh_run.M3_PLAN.read_text(encoding="utf-8"))
+    plan["source_sha256"] = source_sha256
+    return plan
+
+
+def test_m3_config_binds_to_m0_at_h0_over_2744_and_checks_m2_count_ordering(native_readbacks):
+    before_m0, after_m1, _ = native_readbacks
+    plan_m2 = _m2_plan_for_source(before_m0["sha256"])
+    after_m2 = deepcopy(before_m0)
+    after_m2["sha256"] = "D" * 64
+    after_m2["components"][0]["meshes"][0] = _square_mesh(3)
+    mesh_m2 = after_m2["components"][0]["meshes"][0]
+    mesh_m2["features"][0]["properties"]["custom"] = "on"
+    for change in plan_m2["changes"]:
+        if change["property"] in {"hmax", "hmin"}:
+            tag = change["feature_path"][0]
+            feature = next(item for item in mesh_m2["features"] if item["tag"] == tag)
+            feature["properties"][change["property"]] = change["after"]
+
+    plan_m3 = _m3_plan_for_source(before_m0["sha256"])
+    after_m3 = deepcopy(before_m0)
+    after_m3["sha256"] = "E" * 64
+    after_m3["components"][0]["meshes"][0] = _square_mesh(4)
+    mesh_m3 = after_m3["components"][0]["meshes"][0]
+    mesh_m3["features"][0]["properties"]["custom"] = "on"
+    for change in plan_m3["changes"]:
+        if change["property"] in {"hmax", "hmin"}:
+            tag = change["feature_path"][0]
+            feature = next(item for item in mesh_m3["features"] if item["tag"] == tag)
+            feature["properties"][change["property"]] = change["after"]
+
+    result = mesh_run.check_mesh_refinement(before_m0, after_m3, plan_m3, prior_refined=after_m2)
+
+    assert result["status"] == "PASS"
+    assert result["mesh_level"] == "M3"
+    assert result["m3"]["num_elem"] > result["m2"]["num_elem"] > result["m0"]["num_elem"]
+    assert result["m2_to_m3_element_count_ratio"] == pytest.approx(32 / 18)
+
+
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "double_applied_from_m2_sizes",
+        "source_case_is_m2",
+        "source_model_is_already_m2",
+        "mismatched_level_and_factor",
+        "m3_not_finer_than_m2",
+    ],
+)
+def test_m3_validation_rejects_cumulative_refinement_and_non_monotonic_counts(native_readbacks, fault):
+    before_m0, after_m1, _ = native_readbacks
+    plan_m2 = _m2_plan_for_source(before_m0["sha256"])
+    after_m2 = deepcopy(before_m0)
+    after_m2["sha256"] = "D" * 64
+    after_m2["components"][0]["meshes"][0] = _square_mesh(3)
+    mesh_m2 = after_m2["components"][0]["meshes"][0]
+    mesh_m2["features"][0]["properties"]["custom"] = "on"
+    for change in plan_m2["changes"]:
+        if change["property"] in {"hmax", "hmin"}:
+            tag = change["feature_path"][0]
+            feature = next(item for item in mesh_m2["features"] if item["tag"] == tag)
+            feature["properties"][change["property"]] = change["after"]
+
+    plan_m3 = _m3_plan_for_source(before_m0["sha256"])
+    after_m3 = deepcopy(before_m0)
+    after_m3["sha256"] = "E" * 64
+    after_m3["components"][0]["meshes"][0] = _square_mesh(4)
+    mesh_m3 = after_m3["components"][0]["meshes"][0]
+    mesh_m3["features"][0]["properties"]["custom"] = "on"
+    for change in plan_m3["changes"]:
+        if change["property"] in {"hmax", "hmin"}:
+            tag = change["feature_path"][0]
+            feature = next(item for item in mesh_m3["features"] if item["tag"] == tag)
+            feature["properties"][change["property"]] = change["after"]
+
+    if fault == "double_applied_from_m2_sizes":
+        plan_m3["changes"][1]["after"] = (0.0084 / 1.96) / 2.744
+        mesh_m3["features"][0]["properties"]["hmax"] = plan_m3["changes"][1]["after"]
+    elif fault == "source_case_is_m2":
+        plan_m3["source_case"] = "S1-B2 M2"
+    elif fault == "source_model_is_already_m2":
+        before_m0 = after_m2
+        plan_m3["source_sha256"] = after_m2["sha256"]
+    elif fault == "mismatched_level_and_factor":
+        plan_m3["refinement_factor"] = 1.96
+    elif fault == "m3_not_finer_than_m2":
+        after_m3["components"][0]["meshes"][0] = deepcopy(after_m2["components"][0]["meshes"][0])
+        for change in plan_m3["changes"]:
+            if change["property"] in {"hmax", "hmin"}:
+                tag = change["feature_path"][0]
+                feature = next(item for item in after_m3["components"][0]["meshes"][0]["features"] if item["tag"] == tag)
+                feature["properties"][change["property"]] = change["after"]
+
+    with pytest.raises((RuntimeError, ValueError)):
+        mesh_run.check_mesh_refinement(before_m0, after_m3, plan_m3, prior_refined=after_m2)
+
+
+@pytest.mark.parametrize("metric", ["St_zc_mean", "Cd_mean", "Cl_amp_mean", "Cl_demeaned_rms"])
+def test_four_mesh_comparison_returns_sensitive_when_any_m2_m3_metric_exceeds_one_percent(metric):
+    m0, m1, m2, m3 = _stable_stats("M0"), _stable_stats("M1"), _stable_stats("M2"), _stable_stats("M3")
+    m1[metric] *= 1.03
+    m2[metric] = m1[metric] * 1.018
+    m3[metric] = m2[metric] * 1.015  # +1.5% relative to M2 (> 1% threshold)
+
+    result = mesh_run.classify_four_mesh_comparison(m0, m1, m2, m3)
+
+    assert result["primary_pair"] == "M2_vs_M3"
+    assert result["acceptance_status"] == "SENSITIVE"
+    assert result["adjacent_m2_m3_within_1pct"] is False
+    assert result["grid_independence_phase_can_close"] is False
+    assert result["mesh_independence_established"] is False
+
+
+def test_four_mesh_comparison_passes_adjacent_gate_when_m2_m3_within_one_percent_and_deltas_reduce():
+    m0, m1, m2, m3 = _stable_stats("M0"), _stable_stats("M1"), _stable_stats("M2"), _stable_stats("M3")
+    # Simulate decreasing deltas across all four levels with M2 -> M3 < 1%
+    for metric, delta01, delta12, delta23 in [
+        ("St_zc_mean", 0.0014, 0.0010, 0.0004),
+        ("Cd_mean", 0.0065, 0.0040, 0.0015),
+        ("Cl_amp_mean", 0.0084, 0.0059, 0.0020),
+        ("Cl_demeaned_rms", 0.0060, 0.0043, 0.0014),
+    ]:
+        m1[metric] = m0[metric] + delta01
+        m2[metric] = m1[metric] + delta12
+        m3[metric] = m2[metric] + delta23
+
+    result = mesh_run.classify_four_mesh_comparison(m0, m1, m2, m3)
+
+    assert result["acceptance_status"] == "PASS"
+    assert result["adjacent_m2_m3_within_1pct"] is True
+    assert result["all_primary_deltas_reduced"] is True
+    assert result["grid_independence_phase_can_close"] is True
+    assert result["mesh_independence_established"] is False
+    assert result["four_mesh_trends"]["Cl_amp"]["within_1pct_m2_m3"] is True
+    assert result["four_mesh_trends"]["Cl_amp"]["all_deltas_monotonically_reduced"] is True
+    assert result["four_mesh_trends"]["Cl_amp"]["direction"] == "monotonic"
+
+
+@pytest.mark.parametrize("case_index", [0, 1, 2, 3], ids=["M0", "M1", "M2", "M3"])
+@pytest.mark.parametrize("fault", ["unstable", "four_cycles"])
+def test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes(case_index, fault):
+    cases = [_stable_stats("M0"), _stable_stats("M1"), _stable_stats("M2"), _stable_stats("M3")]
+    if fault == "unstable":
+        cases[case_index]["is_stable"] = False
+        expected = "UNSTABLE"
+    else:
+        cases[case_index]["num_cycles"] = 4
+        expected = "INSUFFICIENT_CYCLES"
+
+    result = mesh_run.classify_four_mesh_comparison(*cases)
+
+    assert result["can_compare"] is False
+    assert result["acceptance_status"] == expected
+    assert result["grid_independence_phase_can_close"] is False
+
+
+def test_compare_four_wake_statistics():
+    time = np.linspace(0.0, 12.0, 61)
+    wakes = []
+    for shift in (0.001, 0.002, 0.003, 0.004):
+        w = {
+            "window": [0.137, 10.137],
+            "u_inf_m_s": 0.01,
+            "channels": {
+                "u": {"mean_m_s": shift, "demeaned_rms_m_s": 0.0001, "mean_over_u_inf": shift / 0.01, "rms_over_u_inf": 0.01},
+                "v": {"mean_m_s": 0.0, "demeaned_rms_m_s": 0.0002, "mean_over_u_inf": 0.0, "rms_over_u_inf": 0.02},
+            },
+        }
+        wakes.append(w)
+
+    result = mesh_run.compare_four_wake_statistics(*wakes)
+
+    assert result["normalization"] == "U_inf"
+    assert result["diagnostic_only"] is True
+    assert set(result["windows"].keys()) == {"m0", "m1", "m2", "m3"}
+    assert result["channels"]["u"]["delta_23_mean_over_u_inf"] == pytest.approx(0.1)
+
+
+@pytest.mark.parametrize("lift_scale,expected_status", [(1.0, "PASS"), (1.015, "SENSITIVE")])
+def test_m3_entry_solves_only_isolated_m3_from_m0_and_preserves_m0_m1_m2(
+    offline_mesh_run, tmp_path, monkeypatch, lift_scale, expected_status,
+):
+    state = offline_mesh_run
+    m0_source = state["source"]
+
+    # M1 reference mock
+    m1_dir = tmp_path / "accepted_m1"
+    m1_dir.mkdir()
+    m1_model = m1_dir / "re100_s1b2_m1_solved.mph"
+    m1_model.write_bytes(b"accepted M1 solved model")
+    _write_case_diagnostics(m1_dir)
+    m1_hash = mesh_run.compute_file_hash(m1_model)
+    (m1_dir / "solve_response.json").write_text(json.dumps({
+        "output_sha256": m1_hash,
+        "solution_stats": {
+            "num_dofs": 150, "num_timesteps": 1001, "time_min": 0.0,
+            "time_max": 200.0, "has_nan_or_inf": False, "has_physical_field": True,
+        },
+    }), encoding="utf-8")
+
+    # M2 reference mock
+    m2_dir = tmp_path / "accepted_m2"
+    m2_dir.mkdir()
+    m2_model = m2_dir / "re100_s1b2_m2_solved.mph"
+    m2_model.write_bytes(b"accepted M2 solved model")
+    _write_case_diagnostics(m2_dir)
+    m2_hash = mesh_run.compute_file_hash(m2_model)
+    (m2_dir / "solve_response.json").write_text(json.dumps({
+        "output_sha256": m2_hash,
+        "solution_stats": {
+            "num_dofs": 200, "num_timesteps": 1001, "time_min": 0.0,
+            "time_max": 200.0, "has_nan_or_inf": False, "has_physical_field": True,
+        },
+    }), encoding="utf-8")
+
+    native_m0 = state["native_before"]
+    native_m1 = state["native_after"]
+    native_m1["sha256"] = m1_hash
+
+    plan_m2 = _m2_plan_for_source(native_m0["sha256"])
+    native_m2 = deepcopy(native_m0)
+    native_m2["sha256"] = m2_hash
+    native_m2["components"][0]["meshes"][0] = _square_mesh(3)
+    mesh_m2 = native_m2["components"][0]["meshes"][0]
+    mesh_m2["features"][0]["properties"]["custom"] = "on"
+    for change in plan_m2["changes"]:
+        if change["property"] in {"hmax", "hmin"}:
+            tag = change["feature_path"][0]
+            feature = next(item for item in mesh_m2["features"] if item["tag"] == tag)
+            feature["properties"][change["property"]] = change["after"]
+    _add_cylinder_wall_quads(mesh_m2, 12)
+
+    plan_m3 = _m3_plan_for_source(native_m0["sha256"])
+    native_m3 = deepcopy(native_m0)
+    native_m3["components"][0]["meshes"][0] = _square_mesh(4)
+    mesh_m3 = native_m3["components"][0]["meshes"][0]
+    mesh_m3["features"][0]["properties"]["custom"] = "on"
+    for change in plan_m3["changes"]:
+        if change["property"] in {"hmax", "hmin"}:
+            tag = change["feature_path"][0]
+            feature = next(item for item in mesh_m3["features"] if item["tag"] == tag)
+            feature["properties"][change["property"]] = change["after"]
+    _add_cylinder_wall_quads(mesh_m3, 16)
+
+    monkeypatch.setattr(mesh_run, "M1_DIR", m1_dir)
+    monkeypatch.setattr(mesh_run, "M1_MODEL", m1_model)
+    monkeypatch.setattr(mesh_run, "M2_DIR", m2_dir)
+    monkeypatch.setattr(mesh_run, "M2_MODEL", m2_model)
+    monkeypatch.setattr(mesh_run, "PROTECTED_PATHS", (state["source"].parent, m1_dir, m2_dir, state["historical"]))
+
+    m1_plan_file = tmp_path / "m1_plan.json"
+    m1_plan_file.write_text(json.dumps(state["plan"]), encoding="utf-8")
+    monkeypatch.setattr(mesh_run, "DEFAULT_PLAN", m1_plan_file)
+
+    m2_plan_file = tmp_path / "m2_plan.json"
+    m2_plan_file.write_text(json.dumps(plan_m2), encoding="utf-8")
+    monkeypatch.setattr(mesh_run, "M2_PLAN", m2_plan_file)
+
+    def inspect_native_m3(model_path):
+        if model_path == m0_source:
+            response = deepcopy(native_m0)
+        elif model_path == m1_model:
+            response = deepcopy(native_m1)
+        elif model_path == m2_model:
+            response = deepcopy(native_m2)
+        else:
+            response = deepcopy(native_m3)
+        response["sha256"] = mesh_run.compute_file_hash(model_path)
+        return response
+
+    def export_m3(**kwargs):
+        _write_case_diagnostics(kwargs["output_dir"])
+        lift_path = kwargs["output_dir"] / "lift_coeff.txt"
+        values = np.loadtxt(lift_path, comments="%")
+        values[:, 1] *= lift_scale
+        np.savetxt(lift_path, values, header="Time (s) coefficient (1)", comments="% ")
+        return {"status": "SUCCESS"}
+
+    def solve_m3(**kwargs):
+        kwargs["output_path"].write_bytes(b"M3 new solution")
+        return {
+            "status": "SUCCESS", "source_sha256": mesh_run.compute_file_hash(kwargs["model_path"]),
+            "output_sha256": mesh_run.compute_file_hash(kwargs["output_path"]),
+            "solution_stats": {"num_dofs": 300, "num_timesteps": 1001, "time_min": 0.0, "time_max": 200.0, "has_nan_or_inf": False, "has_physical_field": True},
+            "log": "\n".join(f"{i} {0.05 * i:.8f} 0.05 2 1 2 2 0 0" for i in range(1, 4001)),
+        }
+
+    state["inspect_native_mesh"].side_effect = inspect_native_m3
+    state["export_s1_diagnostics"].side_effect = export_m3
+    state["run_study"].side_effect = solve_m3
+
+    output_m3 = tmp_path / "new_m3"
+    report = mesh_run.run_mesh_m3(output_m3, plan_m3)
+
+    state["refine_native_mesh"].assert_called_once_with(
+        model_path=m0_source,
+        output_path=output_m3 / "re100_s1b2_m3_mesh.mph",
+        plan=plan_m3,
+        allow_overwrite=False,
+    )
+    state["run_study"].assert_called_once_with(
+        model_path=output_m3 / "re100_s1b2_m3_mesh.mph",
+        output_path=output_m3 / "re100_s1b2_m3_solved.mph",
+        study_tag="transient_only",
+        allow_overwrite=False,
+    )
+    assert report["mesh_level"] == "M3"
+    assert report["status"] == expected_status
+    assert report["physical_comparison"]["primary_pair"] == "M2_vs_M3"
+    assert report["physical_comparison"]["acceptance_status"] == expected_status
+    assert report["m0_mesh_summary"]["cylinder_boundary"]["edge_count"] == 4
+    assert report["m1_mesh_summary"]["cylinder_boundary"]["edge_count"] == 8
+    assert report["m2_mesh_summary"]["cylinder_boundary"]["edge_count"] == 12
+    assert report["m3_mesh_summary"]["cylinder_boundary"]["edge_count"] == 16
+    assert report["protected_files_unchanged"] is True
+    assert m0_source.read_bytes() == b"accepted Case C source"
+    assert m1_model.read_bytes() == b"accepted M1 solved model"
+    assert m2_model.read_bytes() == b"accepted M2 solved model"
+    assert set(report["wake_comparison"]["windows"].keys()) == {"m0", "m1", "m2", "m3"}

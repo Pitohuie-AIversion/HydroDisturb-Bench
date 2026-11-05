@@ -1,0 +1,279 @@
+{
+  "precheck_a_wake_probe": {
+    "is_valid": true,
+    "status": "PASS",
+    "errors": [],
+    "probe_coordinates_m": [
+      0.15,
+      0.12
+    ],
+    "expressions": [
+      "u",
+      "v"
+    ],
+    "unit": "m/s",
+    "unit_source": "comsol_model_export_node",
+    "units": {
+      "u": "m/s",
+      "v": "m/s"
+    },
+    "unit_sources": {
+      "u": "comsol_model_export_node",
+      "v": "comsol_model_export_node"
+    },
+    "dataset": "dset1",
+    "dataset_verified": true,
+    "time_alignment_verified": true,
+    "raw_metadata_verified": true,
+    "num_steps": 1001,
+    "comparison_table": [
+      {
+        "t": 180.0,
+        "target_t": 180.0,
+        "actual_t": 180.0,
+        "txt_t": 180.0,
+        "coords": [
+          0.15,
+          0.12
+        ],
+        "expr_u": "u",
+        "expr_v": "v",
+        "unit": "m/s",
+        "unit_source": "comsol_model_export_node",
+        "unit_v": "m/s",
+        "unit_source_v": "comsol_model_export_node",
+        "u": {
+          "direct": 0.007204610420598989,
+          "txt": 0.007204610420598989,
+          "diff": 0.0,
+          "match": true
+        },
+        "v": {
+          "direct": -0.004245028949482065,
+          "txt": -0.004245028949482065,
+          "diff": 0.0,
+          "match": true
+        }
+      },
+      {
+        "t": 185.0,
+        "target_t": 185.0,
+        "actual_t": 185.0,
+        "txt_t": 185.0,
+        "coords": [
+          0.15,
+          0.12
+        ],
+        "expr_u": "u",
+        "expr_v": "v",
+        "unit": "m/s",
+        "unit_source": "comsol_model_export_node",
+        "unit_v": "m/s",
+        "unit_source_v": "comsol_model_export_node",
+        "u": {
+          "direct": 0.006231926809120909,
+          "txt": 0.006231926809120909,
+          "diff": 0.0,
+          "match": true
+        },
+        "v": {
+          "direct": -0.003035141943882891,
+          "txt": -0.003035141943882891,
+          "diff": 0.0,
+          "match": true
+        }
+      },
+      {
+        "t": 190.0,
+        "target_t": 190.0,
+        "actual_t": 190.0,
+        "txt_t": 190.0,
+        "coords": [
+          0.15,
+          0.12
+        ],
+        "expr_u": "u",
+        "expr_v": "v",
+        "unit": "m/s",
+        "unit_source": "comsol_model_export_node",
+        "unit_v": "m/s",
+        "unit_source_v": "comsol_model_export_node",
+        "u": {
+          "direct": 0.00678347532683028,
+          "txt": 0.00678347532683028,
+          "diff": 0.0,
+          "match": true
+        },
+        "v": {
+          "direct": 0.0025540535162928363,
+          "txt": 0.0025540535162928363,
+          "diff": 0.0,
+          "match": true
+        }
+      },
+      {
+        "t": 195.0,
+        "target_t": 195.0,
+        "actual_t": 195.0,
+        "txt_t": 195.0,
+        "coords": [
+          0.15,
+          0.12
+        ],
+        "expr_u": "u",
+        "expr_v": "v",
+        "unit": "m/s",
+        "unit_source": "comsol_model_export_node",
+        "unit_v": "m/s",
+        "unit_source_v": "comsol_model_export_node",
+        "u": {
+          "direct": 0.006949182055954734,
+          "txt": 0.006949182055954734,
+          "diff": 0.0,
+          "match": true
+        },
+        "v": {
+          "direct": 0.004205673205733763,
+          "txt": 0.004205673205733763,
+          "diff": 0.0,
+          "match": true
+        }
+      },
+      {
+        "t": 200.0,
+        "target_t": 200.0,
+        "actual_t": 200.0,
+        "txt_t": 200.0,
+        "coords": [
+          0.15,
+          0.12
+        ],
+        "expr_u": "u",
+        "expr_v": "v",
+        "unit": "m/s",
+        "unit_source": "comsol_model_export_node",
+        "unit_v": "m/s",
+        "unit_source_v": "comsol_model_export_node",
+        "u": {
+          "direct": 0.006092602138447374,
+          "txt": 0.006092602138447374,
+          "diff": 0.0,
+          "match": true
+        },
+        "v": {
+          "direct": 0.001817121800323242,
+          "txt": 0.001817121800323242,
+          "diff": 0.0,
+          "match": true
+        }
+      }
+    ],
+    "export_associations": {
+      "u": {
+        "historical_file": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m2_20261105_verified\\wake_u.txt",
+        "historical_sha256": "F72BA10DCF1102BF3695AB145780F7BA7A82641B6182672F4BF9E7567DD6FBDB",
+        "fresh_export_evidence": {
+          "component": "u",
+          "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m2_20261105_verified\\re100_s1b2_m2_solved.mph",
+          "model_tag": "Model",
+          "export_tag": "exp_unit_u",
+          "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b2_m3_20261105_verified/precheck_m2/probe_export/wake_u.txt",
+          "plotgroup_tag": "pg_unit_u",
+          "feature_tags": [
+            "point"
+          ],
+          "feature_tag": "point",
+          "expression": "u",
+          "unit": "m/s",
+          "feature_data": "parent",
+          "dataset_tag": "cpt_unit_evidence",
+          "dataset_type": "CutPoint2D",
+          "point_x": "0.15",
+          "point_y": "0.12",
+          "solution_dataset": "dset1",
+          "solution_type": "Solution",
+          "solution_tag": "sol1",
+          "file_sha256": "C4DF5136BF50F8EBE90CB3A2543E3CF83C32D70CC0A4173497F93C9CC9C7800A",
+          "model_sha256": "5CA522D529AD9B250D4B5681B420C0938E88146C9B53904221D4649AC1EDF903"
+        },
+        "all_samples_equal_within": 1e-12
+      },
+      "v": {
+        "historical_file": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m2_20261105_verified\\wake_v.txt",
+        "historical_sha256": "034818CC81322AD59D927383FDC14527CA2BB4934A5E4B0C6FAB23F07A98338F",
+        "fresh_export_evidence": {
+          "component": "v",
+          "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m2_20261105_verified\\re100_s1b2_m2_solved.mph",
+          "model_tag": "Model",
+          "export_tag": "exp_unit_v",
+          "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b2_m3_20261105_verified/precheck_m2/probe_export/wake_v.txt",
+          "plotgroup_tag": "pg_unit_v",
+          "feature_tags": [
+            "point"
+          ],
+          "feature_tag": "point",
+          "expression": "v",
+          "unit": "m/s",
+          "feature_data": "parent",
+          "dataset_tag": "cpt_unit_evidence",
+          "dataset_type": "CutPoint2D",
+          "point_x": "0.15",
+          "point_y": "0.12",
+          "solution_dataset": "dset1",
+          "solution_type": "Solution",
+          "solution_tag": "sol1",
+          "file_sha256": "CC2B7C8F1964CB0FC28D2B931DCDE14D60EB14929E8AFB47B817BFD6BB392F00",
+          "model_sha256": "5CA522D529AD9B250D4B5681B420C0938E88146C9B53904221D4649AC1EDF903"
+        },
+        "all_samples_equal_within": 1e-12
+      }
+    }
+  },
+  "precheck_b_solver_model": {
+    "status": "READ_BACK",
+    "solver_details": {
+      "timemethod": "bdf",
+      "tstepsbdf": "intermediate",
+      "maxorder": "2",
+      "minorder": "1",
+      "rtol": "1e-4",
+      "atolmethod": "comp1_p, scaled, comp1_u, global",
+      "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+      "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+      "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+      "atolglobal": "0.001",
+      "atolglobalfactor": "0.05",
+      "atolglobalmethod": "scaled",
+      "atolglobalvaluemethod": "factor",
+      "maxstepconstraintbdf": "const",
+      "maxstepbdf": "0.05",
+      "initialstepbdf": "0.001",
+      "initialstepbdfactive": "off",
+      "tlist": "range(0, 0.2, 200)"
+    },
+    "mesh_details": {
+      "num_elem": 19982,
+      "num_vertex": 10375,
+      "sdim": 2,
+      "is_complete": true,
+      "features": [
+        "size",
+        "size1",
+        "cr1",
+        "ftri1",
+        "bl1"
+      ]
+    },
+    "physics_details": {
+      "shape_order": "1",
+      "initial_conditions": {
+        "u": "0",
+        "v": "UNOBTAINED",
+        "p": "UNOBTAINED"
+      }
+    },
+    "tolerance_coupling_noted": "comp1_u absolute tolerance is tied to rtol with factor 0.1 and global atol (atolglobalfactor=0.05, method=scaled)"
+  },
+  "overall_prechecks_status": "PASS",
+  "report_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\precheck_m2\\report.json"
+}

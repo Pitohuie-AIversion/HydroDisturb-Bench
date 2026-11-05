@@ -1,0 +1,52 @@
+{
+  "case_id": "S1-B2 M3",
+  "solve_duration_sec": 728.1032565999922,
+  "comsol_elapsed_ms": 707467,
+  "solve_duration_scope": "run_study call wall clock",
+  "source_model": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_mesh.mph",
+  "source_sha256": "77D9CF3299EDDD76053DA3D2BF3B5946D28C6311928F3D588E752A19C91E7516",
+  "solved_model_sha256": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4",
+  "status": "READ_BACK",
+  "solver_details": {
+    "timemethod": "bdf",
+    "tstepsbdf": "intermediate",
+    "maxorder": "2",
+    "minorder": "1",
+    "rtol": "1e-4",
+    "atolmethod": "comp1_p, scaled, comp1_u, global",
+    "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+    "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+    "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+    "atolglobal": "0.001",
+    "atolglobalfactor": "0.05",
+    "atolglobalmethod": "scaled",
+    "atolglobalvaluemethod": "factor",
+    "maxstepconstraintbdf": "const",
+    "maxstepbdf": "0.05",
+    "initialstepbdf": "0.001",
+    "initialstepbdfactive": "off",
+    "tlist": "range(0, 0.2, 200)"
+  },
+  "mesh_details": {
+    "num_elem": 34752,
+    "num_vertex": 17910,
+    "sdim": 2,
+    "is_complete": true,
+    "features": [
+      "size",
+      "size1",
+      "cr1",
+      "ftri1",
+      "bl1"
+    ]
+  },
+  "physics_details": {
+    "shape_order": "1",
+    "initial_conditions": {
+      "u": "0",
+      "v": "UNOBTAINED",
+      "p": "UNOBTAINED"
+    }
+  },
+  "tolerance_coupling_noted": "comp1_u absolute tolerance is tied to rtol with factor 0.1 and global atol (atolglobalfactor=0.05, method=scaled)"
+}

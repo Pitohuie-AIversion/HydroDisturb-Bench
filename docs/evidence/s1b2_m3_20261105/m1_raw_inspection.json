@@ -1,0 +1,261 @@
+{
+  "status": "SUCCESS",
+  "operation": "inspect_probe_and_solver",
+  "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified\\re100_s1b2_m1_solved.mph",
+  "probe_coords": {
+    "x": "0.15",
+    "y": "0.12"
+  },
+  "probe_exports": [
+    {
+      "component": "u",
+      "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified\\re100_s1b2_m1_solved.mph",
+      "model_tag": "Model",
+      "export_tag": "exp_unit_u",
+      "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b2_m3_20261105_verified/precheck_m1/probe_export/wake_u.txt",
+      "plotgroup_tag": "pg_unit_u",
+      "feature_tags": [
+        "point"
+      ],
+      "feature_tag": "point",
+      "expression": "u",
+      "unit": "m/s",
+      "feature_data": "parent",
+      "dataset_tag": "cpt_unit_evidence",
+      "dataset_type": "CutPoint2D",
+      "point_x": "0.15",
+      "point_y": "0.12",
+      "solution_dataset": "dset1",
+      "solution_type": "Solution",
+      "solution_tag": "sol1",
+      "file_sha256": "D238153F8AC56D0D08519666097BB7A0E4240717E9C4B2E053B4864FC01691C3",
+      "model_sha256": "1003693AEBA77F293B51EFE3D943B46D4149D8396391FA15F27225778DB52F8B"
+    },
+    {
+      "component": "v",
+      "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified\\re100_s1b2_m1_solved.mph",
+      "model_tag": "Model",
+      "export_tag": "exp_unit_v",
+      "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b2_m3_20261105_verified/precheck_m1/probe_export/wake_v.txt",
+      "plotgroup_tag": "pg_unit_v",
+      "feature_tags": [
+        "point"
+      ],
+      "feature_tag": "point",
+      "expression": "v",
+      "unit": "m/s",
+      "feature_data": "parent",
+      "dataset_tag": "cpt_unit_evidence",
+      "dataset_type": "CutPoint2D",
+      "point_x": "0.15",
+      "point_y": "0.12",
+      "solution_dataset": "dset1",
+      "solution_type": "Solution",
+      "solution_tag": "sol1",
+      "file_sha256": "09B2C091E9DC9C809D0F05AF54842DAC9F3911ABCE8ED1DFFC1182FB971CD154",
+      "model_sha256": "1003693AEBA77F293B51EFE3D943B46D4149D8396391FA15F27225778DB52F8B"
+    }
+  ],
+  "datasets": [
+    {
+      "tag": "dset1",
+      "type": "Solution",
+      "data_source": "",
+      "pointx": "",
+      "pointy": ""
+    },
+    {
+      "tag": "int1",
+      "type": "Integral",
+      "data_source": "dset1",
+      "pointx": "",
+      "pointy": ""
+    },
+    {
+      "tag": "cpt_unit_evidence",
+      "type": "CutPoint2D",
+      "data_source": "dset1",
+      "pointx": "0.15",
+      "pointy": "0.12"
+    }
+  ],
+  "plotgroups": [
+    {
+      "tag": "pg1",
+      "type": "PlotGroup2D",
+      "data": "dset1",
+      "features": [
+        {
+          "tag": "surf1",
+          "type": "Surface",
+          "expr": "spf.U",
+          "unit": "m/s",
+          "descr": "速度大小"
+        },
+        {
+          "tag": "ptr1",
+          "type": "ParticleMass",
+          "expr": "",
+          "unit": "",
+          "descr": "Drag-driven particle movement"
+        }
+      ]
+    },
+    {
+      "tag": "pg2",
+      "type": "PlotGroup2D",
+      "data": "dset1",
+      "features": [
+        {
+          "tag": "surf1",
+          "type": "Surface",
+          "expr": "p",
+          "unit": "Pa",
+          "descr": "压力"
+        }
+      ]
+    },
+    {
+      "tag": "pg3",
+      "type": "PlotGroup1D",
+      "data": "int1",
+      "features": [
+        {
+          "tag": "ptgr1",
+          "type": "PointGraph",
+          "expr": "-2*reacf(v)[N/m^2]*W/(spf.rho*U_mean^2*(2*R*W))",
+          "unit": "1",
+          "descr": "Lift coefficient"
+        }
+      ]
+    },
+    {
+      "tag": "pg4",
+      "type": "PlotGroup1D",
+      "data": "int1",
+      "features": [
+        {
+          "tag": "ptgr1",
+          "type": "PointGraph",
+          "expr": "-2*reacf(u)[N/m^2]*W/(spf.rho*U_mean^2*(2*R*W))",
+          "unit": "1",
+          "descr": "Drag coefficient"
+        }
+      ]
+    },
+    {
+      "tag": "pg_unit_u",
+      "type": "PlotGroup1D",
+      "data": "cpt_unit_evidence",
+      "features": [
+        {
+          "tag": "point",
+          "type": "PointGraph",
+          "expr": "u",
+          "unit": "m/s",
+          "descr": "速度场，x 分量"
+        }
+      ]
+    },
+    {
+      "tag": "pg_unit_v",
+      "type": "PlotGroup1D",
+      "data": "cpt_unit_evidence",
+      "features": [
+        {
+          "tag": "point",
+          "type": "PointGraph",
+          "expr": "v",
+          "unit": "m/s",
+          "descr": "速度场，y 分量"
+        }
+      ]
+    }
+  ],
+  "direct_evaluations": [
+    {
+      "target_t": 180.0,
+      "actual_t": 180.0,
+      "point_x": "0.15",
+      "point_y": "0.12",
+      "u_direct": 0.006898422090122021,
+      "v_direct": 0.0036737363685730925
+    },
+    {
+      "target_t": 185.0,
+      "actual_t": 185.0,
+      "point_x": "0.15",
+      "point_y": "0.12",
+      "u_direct": 0.006267781413395346,
+      "v_direct": 0.001756575645852959
+    },
+    {
+      "target_t": 190.0,
+      "actual_t": 190.0,
+      "point_x": "0.15",
+      "point_y": "0.12",
+      "u_direct": 0.0066671326060353964,
+      "v_direct": -0.002677993759346608
+    },
+    {
+      "target_t": 195.0,
+      "actual_t": 195.0,
+      "point_x": "0.15",
+      "point_y": "0.12",
+      "u_direct": 0.006524628313784458,
+      "v_direct": -0.0034409552837367232
+    },
+    {
+      "target_t": 200.0,
+      "actual_t": 200.0,
+      "point_x": "0.15",
+      "point_y": "0.12",
+      "u_direct": 0.006134334885251449,
+      "v_direct": 1.2639863232340696e-06
+    }
+  ],
+  "mesh_details": {
+    "num_elem": 11930,
+    "num_vertex": 6240,
+    "sdim": 2,
+    "is_complete": true,
+    "features": [
+      "size",
+      "size1",
+      "cr1",
+      "ftri1",
+      "bl1"
+    ]
+  },
+  "physics_details": {
+    "shape_order": "1",
+    "initial_conditions": {
+      "u": "0",
+      "v": "UNOBTAINED",
+      "p": "UNOBTAINED"
+    }
+  },
+  "solver_details": {
+    "timemethod": "bdf",
+    "tstepsbdf": "intermediate",
+    "maxorder": "2",
+    "minorder": "1",
+    "rtol": "1e-4",
+    "atolmethod": "comp1_p, scaled, comp1_u, global",
+    "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+    "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+    "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+    "atolglobal": "0.001",
+    "atolglobalfactor": "0.05",
+    "atolglobalmethod": "scaled",
+    "atolglobalvaluemethod": "factor",
+    "maxstepconstraintbdf": "const",
+    "maxstepbdf": "0.05",
+    "initialstepbdf": "0.001",
+    "initialstepbdfactive": "off",
+    "tlist": "range(0, 0.2, 200)"
+  },
+  "log": "*******************************************\n***COMSOL 6.4.0.429 progress output file***\n*******************************************\nThu Nov 05 12:04:42 CST 2026\nCOMSOL Multiphysics 6.4 (�����汾: 429) ��������ģʽ������\n��������: D:\\? 01_Workspaces (�����빤����)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\ComsolBridge.class\n           ��ǰ����:   0 % - \nMemory: 841/845 756/758\n-          ��ǰ����:  12 % - ���ڼ���\nMemory: 964/964 892/892\n-          ��ǰ����:  16 % - ���ڼ���\nMemory: 1100/1100 1047/1047\n--         ��ǰ����:  21 % - ���ڼ���\nMemory: 1268/1268 1235/1235\n--         ��ǰ����:  23 % - ���ڼ���\nMemory: 1307/1307 1279/1279\n----       ��ǰ����:  47 % - ���ڼ���\nMemory: 1309/1309 1281/1281\n           ��ǰ����:   0 % - \n--         ��ǰ����:  23 % - ���ڼ���\nMemory: 1315/1316 1287/1289\n----       ��ǰ����:  47 % - ���ڼ���\n           ��ǰ����:   0 % - \n--------   ��ǰ����:  81 % - ���ڼ���\nMemory: 1283/1316 1268/1289\n---------  ��ǰ����:  90 % - ���ڼ���\n<<<JSON_START>>>\n{\n  \"status\": \"SUCCESS\",\n  \"operation\": \"inspect_probe_and_solver\",\n  \"model_path\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\re100_s1b2_m1_20261105_verified\\\\re100_s1b2_m1_solved.mph\",\n  \"probe_coords\": {\"x\": \"0.15\", \"y\": \"0.12\"},\n  \"probe_exports\": [\n    {\n      \"component\": \"u\",\n      \"model_path\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\re100_s1b2_m1_20261105_verified\\\\re100_s1b2_m1_solved.mph\",\n      \"model_tag\": \"Model\",\n      \"export_tag\": \"exp_unit_u\",\n      \"filename\": \"D:/\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)/HydroDisturb-Bench/runs/re100_s1b2_m3_20261105_verified/precheck_m1/probe_export/wake_u.txt\",\n      \"plotgroup_tag\": \"pg_unit_u\",\n      \"feature_tags\": [\"point\"],\n      \"feature_tag\": \"point\",\n      \"expression\": \"u\",\n      \"unit\": \"m/s\",\n      \"feature_data\": \"parent\",\n      \"dataset_tag\": \"cpt_unit_evidence\",\n      \"dataset_type\": \"CutPoint2D\",\n      \"point_x\": \"0.15\",\n      \"point_y\": \"0.12\",\n      \"solution_dataset\": \"dset1\",\n      \"solution_type\": \"Solution\",\n      \"solution_tag\": \"sol1\"\n    },\n    {\n      \"component\": \"v\",\n      \"model_path\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\re100_s1b2_m1_20261105_verified\\\\re100_s1b2_m1_solved.mph\",\n      \"model_tag\": \"Model\",\n      \"export_tag\": \"exp_unit_v\",\n      \"filename\": \"D:/\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)/HydroDisturb-Bench/runs/re100_s1b2_m3_20261105_verified/precheck_m1/probe_export/wake_v.txt\",\n      \"plotgroup_tag\": \"pg_unit_v\",\n      \"feature_tags\": [\"point\"],\n      \"feature_tag\": \"point\",\n      \"expression\": \"v\",\n      \"unit\": \"m/s\",\n      \"feature_data\": \"parent\",\n      \"dataset_tag\": \"cpt_unit_evidence\",\n      \"dataset_type\": \"CutPoint2D\",\n      \"point_x\": \"0.15\",\n      \"point_y\": \"0.12\",\n      \"solution_dataset\": \"dset1\",\n      \"solution_type\": \"Solution\",\n      \"solution_tag\": \"sol1\"\n    }\n  ],\n  \"datasets\": [\n    {\n      \"tag\": \"dset1\",\n      \"type\": \"Solution\",\n      \"data_source\": \"\",\n      \"pointx\": \"\",\n      \"pointy\": \"\"\n    },\n    {\n      \"tag\": \"int1\",\n      \"type\": \"Integral\",\n      \"data_source\": \"dset1\",\n      \"pointx\": \"\",\n      \"pointy\": \"\"\n    },\n    {\n      \"tag\": \"cpt_unit_evidence\",\n      \"type\": \"CutPoint2D\",\n      \"data_source\": \"dset1\",\n      \"pointx\": \"0.15\",\n      \"pointy\": \"0.12\"\n    }\n  ],\n  \"plotgroups\": [\n    {\n      \"tag\": \"pg1\",\n      \"type\": \"PlotGroup2D\",\n      \"data\": \"dset1\",\n      \"features\": [\n        {\n          \"tag\": \"surf1\",\n          \"type\": \"Surface\",\n          \"expr\": \"spf.U\",\n          \"unit\": \"m/s\",\n          \"descr\": \"\\u901f\\u5ea6\\u5927\\u5c0f\"\n        },\n        {\n          \"tag\": \"ptr1\",\n          \"type\": \"ParticleMass\",\n          \"expr\": \"\",\n          \"unit\": \"\",\n          \"descr\": \"Drag-driven particle movement\"\n        }\n      ]\n    },\n    {\n      \"tag\": \"pg2\",\n      \"type\": \"PlotGroup2D\",\n      \"data\": \"dset1\",\n      \"features\": [\n        {\n          \"tag\": \"surf1\",\n          \"type\": \"Surface\",\n          \"expr\": \"p\",\n          \"unit\": \"Pa\",\n          \"descr\": \"\\u538b\\u529b\"\n        }\n      ]\n    },\n    {\n      \"tag\": \"pg3\",\n      \"type\": \"PlotGroup1D\",\n      \"data\": \"int1\",\n      \"features\": [\n        {\n          \"tag\": \"ptgr1\",\n          \"type\": \"PointGraph\",\n          \"expr\": \"-2*reacf(v)[N/m^2]*W/(spf.rho*U_mean^2*(2*R*W))\",\n          \"unit\": \"1\",\n          \"descr\": \"Lift coefficient\"\n        }\n      ]\n    },\n    {\n      \"tag\": \"pg4\",\n      \"type\": \"PlotGroup1D\",\n      \"data\": \"int1\",\n      \"features\": [\n        {\n          \"tag\": \"ptgr1\",\n          \"type\": \"PointGraph\",\n          \"expr\": \"-2*reacf(u)[N/m^2]*W/(spf.rho*U_mean^2*(2*R*W))\",\n          \"unit\": \"1\",\n          \"descr\": \"Drag coefficient\"\n        }\n      ]\n    },\n    {\n      \"tag\": \"pg_unit_u\",\n      \"type\": \"PlotGroup1D\",\n      \"data\": \"cpt_unit_evidence\",\n      \"features\": [\n        {\n          \"tag\": \"point\",\n          \"type\": \"PointGraph\",\n          \"expr\": \"u\",\n          \"unit\": \"m/s\",\n          \"descr\": \"\\u901f\\u5ea6\\u573a\\uff0cx \\u5206\\u91cf\"\n        }\n      ]\n    },\n    {\n      \"tag\": \"pg_unit_v\",\n      \"type\": \"PlotGroup1D\",\n      \"data\": \"cpt_unit_evidence\",\n      \"features\": [\n        {\n          \"tag\": \"point\",\n          \"type\": \"PointGraph\",\n          \"expr\": \"v\",\n          \"unit\": \"m/s\",\n          \"descr\": \"\\u901f\\u5ea6\\u573a\\uff0cy \\u5206\\u91cf\"\n        }\n      ]\n    }\n  ],\n  \"direct_evaluations\": [\n    {\n      \"target_t\": 180.0,\n      \"actual_t\": 180.0,\n      \"point_x\": \"0.15\",\n      \"point_y\": \"0.12\",\n      \"u_direct\": 0.006898422090122021,\n      \"v_direct\": 0.0036737363685730925\n    },\n    {\n      \"target_t\": 185.0,\n      \"actual_t\": 185.0,\n      \"point_x\": \"0.15\",\n      \"point_y\": \"0.12\",\n      \"u_direct\": 0.006267781413395346,\n      \"v_direct\": 0.001756575645852959\n    },\n    {\n      \"target_t\": 190.0,\n      \"actual_t\": 190.0,\n      \"point_x\": \"0.15\",\n      \"point_y\": \"0.12\",\n      \"u_direct\": 0.0066671326060353964,\n      \"v_direct\": -0.002677993759346608\n    },\n    {\n      \"target_t\": 195.0,\n      \"actual_t\": 195.0,\n      \"point_x\": \"0.15\",\n      \"point_y\": \"0.12\",\n      \"u_direct\": 0.006524628313784458,\n      \"v_direct\": -0.0034409552837367232\n    },\n    {\n      \"target_t\": 200.0,\n      \"actual_t\": 200.0,\n      \"point_x\": \"0.15\",\n      \"point_y\": \"0.12\",\n      \"u_direct\": 0.006134334885251449,\n      \"v_direct\": 1.2639863232340696E-6\n    }\n  ],\n  \"mesh_details\": {\n    \"num_elem\": 11930,\n    \"num_vertex\": 6240,\n    \"sdim\": 2,\n    \"is_complete\": true,\n    \"features\": [\"size\", \"size1\", \"cr1\", \"ftri1\", \"bl1\"]\n  },\n  \"physics_details\": {\n    \"shape_order\": \"1\",\n    \"initial_conditions\": {\n      \"u\": \"0\",\n      \"v\": \"UNOBTAINED\",\n      \"p\": \"UNOBTAINED\"\n    }\n  },\n  \"solver_details\": {\n    \"timemethod\": \"bdf\",\n    \"tstepsbdf\": \"intermediate\",\n    \"maxorder\": \"2\",\n    \"minorder\": \"1\",\n    \"rtol\": \"1e-4\",\n    \"atolmethod\": \"comp1_p, scaled, comp1_u, global\",\n    \"atolfactor\": \"comp1_p, 1, comp1_u, 0.1\",\n    \"atol\": \"comp1_p, 1e-3, comp1_u, 1e-3\",\n    \"atolvaluemethod\": \"comp1_p, factor, comp1_u, factor\",\n    \"atolglobal\": \"0.001\",\n    \"atolglobalfactor\": \"0.05\",\n    \"atolglobalmethod\": \"scaled\",\n    \"atolglobalvaluemethod\": \"factor\",\n    \"maxstepconstraintbdf\": \"const\",\n    \"maxstepbdf\": \"0.05\",\n    \"initialstepbdf\": \"0.001\",\n    \"initialstepbdfactive\": \"off\",\n    \"tlist\": \"range(0, 0.2, 200)\"\n  }\n}\n\n<<<JSON_END>>>\n������ʱ: 13 s.\n��ʱ��: 13 s.\n",
+  "launch_mode": "comsolbatch",
+  "sha256": "1003693AEBA77F293B51EFE3D943B46D4149D8396391FA15F27225778DB52F8B"
+}

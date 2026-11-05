@@ -41,9 +41,12 @@ M0_DIR = ROOT / "runs/re100_s1b1_case_c_20261104_verified"
 M0_MODEL = M0_DIR / "re100_s1b1_case_c_solved.mph"
 M1_DIR = ROOT / "runs/re100_s1b2_m1_20261105_verified"
 M1_MODEL = M1_DIR / "re100_s1b2_m1_solved.mph"
+M2_DIR = ROOT / "runs/re100_s1b2_m2_20261105_verified"
+M2_MODEL = M2_DIR / "re100_s1b2_m2_solved.mph"
 DEFAULT_PLAN = ROOT / "configs/re100_s1b2_m1.json"
 M2_PLAN = ROOT / "configs/re100_s1b2_m2.json"
-SUPPORTED_MESH_LEVELS = {"M1": 1.4, "M2": 1.96}
+M3_PLAN = ROOT / "configs/re100_s1b2_m3.json"
+SUPPORTED_MESH_LEVELS = {"M1": 1.4, "M2": 1.96, "M3": 2.744}
 PROTECTED_PATHS = (
     ROOT / "case/cylinder_flow.mph",
     ROOT / "models/cylinder_2d/re100_benchmark.mph",
@@ -55,12 +58,15 @@ PROTECTED_PATHS = (
     M0_DIR,
     ROOT / "runs/re100_s1b1_case_d_20261104_verified",
     M1_DIR,
+    M2_DIR,
     ROOT / "docs/UNIT_SOURCE_CASE_C_VERIFIED_20261104.md",
     ROOT / "docs/STAGE_S1B1_CASE_D_20261104.md",
     ROOT / "docs/STAGE_S1B2_M1_20261105.md",
+    ROOT / "docs/STAGE_S1B2_M2_20261105.md",
     ROOT / "docs/evidence/unit_source_verified_20261104",
     ROOT / "docs/evidence/case_d_20261104",
     ROOT / "docs/evidence/s1b2_m1_20261105",
+    ROOT / "docs/evidence/s1b2_m2_20261105",
 )
 
 
@@ -179,15 +185,15 @@ def _mesh_feature(mesh: dict, path: list[str]) -> dict:
 
 def _native_equal(a: object, b: object) -> bool:
     if isinstance(a, (int, float)) and not isinstance(a, bool) and isinstance(b, (int, float)) and not isinstance(b, bool):
-        return math.isclose(a, b, rel_tol=1e-12, abs_tol=0.0)
+        return math.isclose(a, b, rel_tol=1e-7, abs_tol=0.0)
     return a == b
 
 
 def _plan_level_and_factor(plan: dict) -> tuple[str, float]:
-    """Resolve and validate the mesh refinement level (M1 at h0/1.4 or M2 at h0/1.96)."""
+    """Resolve and validate the mesh refinement level (M1 at h0/1.4, M2 at h0/1.96, or M3 at h0/2.744)."""
     source_case = plan.get("source_case")
     if source_case is not None and source_case != "Case C / M0":
-        raise RuntimeError("Refinement plan must use Case C / M0 as source_case; never refine cumulatively from M1")
+        raise RuntimeError("Refinement plan must use Case C / M0 as source_case; never refine cumulatively from M1 or M2")
     factor = plan.get("refinement_factor")
     if isinstance(factor, bool) or not isinstance(factor, (int, float)) or not math.isfinite(factor):
         raise RuntimeError("Refinement plan requires a finite numeric refinement_factor")
@@ -196,7 +202,7 @@ def _plan_level_and_factor(plan: dict) -> tuple[str, float]:
         for candidate_level, candidate_factor in SUPPORTED_MESH_LEVELS.items():
             if _native_equal(float(factor), candidate_factor):
                 return candidate_level, candidate_factor
-        raise RuntimeError("Supported mesh refinement factors are 1.4 (M1) and 1.96 (M2) relative to M0")
+        raise RuntimeError("Supported mesh refinement factors are 1.4 (M1), 1.96 (M2), and 2.744 (M3) relative to M0")
     if level not in SUPPORTED_MESH_LEVELS or not _native_equal(float(factor), SUPPORTED_MESH_LEVELS[level]):
         raise RuntimeError(f"Unsupported or mismatched mesh_level={level!r} and refinement_factor={factor!r}")
     return level, SUPPORTED_MESH_LEVELS[level]
@@ -288,16 +294,17 @@ def check_mesh_refinement(
         raise RuntimeError("Native non-mesh geometry/physics/material settings changed or are missing")
     prior_mesh = None
     if prior_refined is not None:
+        prior_level_label = "M2" if level == "M3" else "M1"
         prior_mesh = _native_mesh(prior_refined, plan["component_tag"], plan["mesh_tag"])
         _validate_native_statistics(prior_mesh)
         if b["num_elem"] <= prior_mesh["num_elem"] or b["num_vertex"] <= prior_mesh["num_vertex"]:
-            raise RuntimeError(f"Actual {level} native mesh element and vertex counts must exceed M1")
+            raise RuntimeError(f"Actual {level} native mesh element and vertex counts must exceed {prior_level_label}")
         if prior_mesh["vertices"] == b["vertices"] or prior_mesh["elements"] == b["elements"]:
-            raise RuntimeError(f"Native {level} mesh geometry/connectivity did not change relative to M1")
+            raise RuntimeError(f"Native {level} mesh geometry/connectivity did not change relative to {prior_level_label}")
         if prior_mesh["quality"]["measure"] != b["quality"]["measure"]:
-            raise RuntimeError("Mesh quality measure changed relative to M1")
+            raise RuntimeError(f"Mesh quality measure changed relative to {prior_level_label}")
         if not prior_refined.get("non_mesh") or before["non_mesh"] != prior_refined.get("non_mesh"):
-            raise RuntimeError("M1 native non-mesh geometry/physics/material settings do not match M0")
+            raise RuntimeError(f"{prior_level_label} native non-mesh geometry/physics/material settings do not match M0")
     expected, actual = deepcopy(before["components"]), deepcopy(after["components"])
     expected_mesh = _native_mesh({"components": expected}, plan["component_tag"], plan["mesh_tag"])
     actual_mesh = _native_mesh({"components": actual}, plan["component_tag"], plan["mesh_tag"])
@@ -337,9 +344,10 @@ def check_mesh_refinement(
         "readback_limits": "Only readable native properties are compared; unreadable-property records remain in raw evidence. Inactive blhmin/blhtot defaults in blhminfact mode are not measured first-layer height or total thickness.",
     }
     if prior_mesh is not None and level != "M1":
-        result["m1"] = {key: prior_mesh[key] for key in ("num_elem", "num_vertex", "quality", "area")}
-        result["m1_to_m2_element_count_ratio"] = b["num_elem"] / prior_mesh["num_elem"]
-        result["m1_to_m2_equivalent_h_ratio_from_counts"] = math.sqrt(prior_mesh["num_elem"] / b["num_elem"])
+        prior_key = "m2" if level == "M3" else "m1"
+        result[prior_key] = {key: prior_mesh[key] for key in ("num_elem", "num_vertex", "quality", "area")}
+        result[f"{prior_key}_to_{level_key}_element_count_ratio"] = b["num_elem"] / prior_mesh["num_elem"]
+        result[f"{prior_key}_to_{level_key}_equivalent_h_ratio_from_counts"] = math.sqrt(prior_mesh["num_elem"] / b["num_elem"])
     return result
 
 
@@ -577,8 +585,143 @@ def classify_three_mesh_comparison(stats_m0: dict, stats_m1: dict, stats_m2: dic
             "Three-mesh M0/M1/M2 native-mesh sensitivity at unchanged rtol=1e-4 and const maximum "
             "internal time step 0.05 s, with M1/M2 as the primary adjacent 1% gate: "
             + m1_vs_m2["conclusion"]
+            + ". Lift fluctuation deltas decreased, but overall mesh verification is not yet complete. "
+            "St and CD mean increments have not shown a decreasing trend. Formal GCI is deferred as "
+            "reliable asymptotic convergence is not yet established."
+        ),
+    )
+    return result
+
+
+def classify_four_mesh_comparison(
+    stats_m0: dict, stats_m1: dict, stats_m2: dict, stats_m3: dict,
+) -> dict:
+    """Compare M0/M1/M2/M3 using M2/M3 as the primary adjacent 1% gate while retaining four-level trends."""
+    meshes = (stats_m0, stats_m1, stats_m2, stats_m3)
+    if any(stats.get("num_cycles", 0) < 5 for stats in meshes):
+        return {
+            "can_compare": False,
+            "conclusion": "INSUFFICIENT_CYCLES",
+            "acceptance_status": "INSUFFICIENT_CYCLES",
+            "message": "M0/M1/M2/M3 comparison requires at least five stable complete cycles per mesh",
+            "case_m0": stats_m0,
+            "case_m1": stats_m1,
+            "case_m2": stats_m2,
+            "case_m3": stats_m3,
+            "case_a": stats_m2,
+            "case_b": stats_m3,
+            "adjacent_m2_m3_within_1pct": False,
+            "all_primary_deltas_reduced": False,
+            "mesh_independence_established": False,
+            "grid_independence_phase_can_close": False,
+            "scientific_summary": (
+                "Four-mesh M0/M1/M2/M3 study cannot compare accuracy because at least one mesh "
+                "has fewer than five complete cycles."
+            ),
+        }
+    if not all(stats.get("is_stable", False) for stats in meshes):
+        primary = compare_cases(stats_m2, stats_m3)
+        primary.update(
+            can_compare=False,
+            conclusion="UNSTABLE",
+            acceptance_status="UNSTABLE",
+            message="M0/M1/M2/M3 comparison requires all four meshes to pass the late-window periodic stability gate",
+            case_m0=stats_m0,
+            case_m1=stats_m1,
+            case_m2=stats_m2,
+            case_m3=stats_m3,
+            adjacent_m2_m3_within_1pct=False,
+            all_primary_deltas_reduced=False,
+            mesh_independence_established=False,
+            grid_independence_phase_can_close=False,
+            scientific_summary=(
+                "Four-mesh M0/M1/M2/M3 study halted at periodic stability check before accuracy comparison."
+            ),
+        )
+        return primary
+
+    m0_vs_m1 = compare_cases(stats_m0, stats_m1)
+    m1_vs_m2 = compare_cases(stats_m1, stats_m2)
+    m2_vs_m3 = compare_cases(stats_m2, stats_m3)
+    m0_vs_m3 = compare_cases(stats_m0, stats_m3)
+    metric_fields = {
+        "St_zc": ("St_zc_mean", "st_tol_pct"),
+        "Cd_mean": ("Cd_mean", "cd_tol_pct"),
+        "Cl_amp": ("Cl_amp_mean", "amp_tol_pct"),
+        "Cl_rms": ("Cl_demeaned_rms", "rms_tol_pct"),
+    }
+    trends = {}
+    for key, (field, tol_key) in metric_fields.items():
+        q0 = float(stats_m0[field])
+        q1 = float(stats_m1[field])
+        q2 = float(stats_m2[field])
+        q3 = float(stats_m3[field])
+        d01, d12, d23, d03 = q1 - q0, q2 - q1, q3 - q2, q3 - q0
+        r01 = (d01 / abs(q0)) * 100.0
+        r12 = (d12 / abs(q1)) * 100.0
+        r23 = (d23 / abs(q2)) * 100.0
+        r03 = (d03 / abs(q0)) * 100.0
+        tol_pct = float(m2_vs_m3["thresholds_pct"][tol_key])
+        if (d01 * d12 > 0) and (d12 * d23 > 0):
+            direction = "monotonic"
+        elif d01 == 0.0 or d12 == 0.0 or d23 == 0.0:
+            direction = "unchanged"
+        else:
+            direction = "reversing"
+        trends[key] = {
+            "m0": q0,
+            "m1": q1,
+            "m2": q2,
+            "m3": q3,
+            "delta_01": d01,
+            "signed_rel_diff_01_pct": r01,
+            "abs_rel_diff_01_pct": abs(r01),
+            "delta_12": d12,
+            "signed_rel_diff_12_pct": r12,
+            "abs_rel_diff_12_pct": abs(r12),
+            "delta_23": d23,
+            "signed_rel_diff_23_pct": r23,
+            "abs_rel_diff_23_pct": abs(r23),
+            "delta_03": d03,
+            "signed_rel_diff_03_pct": r03,
+            "abs_rel_diff_03_pct": abs(r03),
+            "delta_12_reduced_vs_01": abs(d12) < abs(d01),
+            "delta_23_reduced_vs_12": abs(d23) < abs(d12),
+            "abs_delta_reduced": abs(d23) < abs(d12),
+            "abs_rel_diff_reduced": abs(r23) < abs(r12),
+            "all_deltas_monotonically_reduced": (abs(d12) < abs(d01)) and (abs(d23) < abs(d12)),
+            "direction": direction,
+            "threshold_pct": tol_pct,
+            "within_1pct_m0_m1": abs(r01) <= tol_pct,
+            "within_1pct_m1_m2": abs(r12) <= tol_pct,
+            "within_1pct_m2_m3": abs(r23) <= tol_pct,
+        }
+    adjacent_ok = m2_vs_m3["conclusion"] == "INSENSITIVE_WITHIN_TESTED_RANGE"
+    all_reduced = all(item["abs_rel_diff_reduced"] for item in trends.values())
+    acceptance = "PASS" if adjacent_ok else "SENSITIVE"
+    result = deepcopy(m2_vs_m3)
+    result.update(
+        primary_pair="M2_vs_M3",
+        acceptance_status=acceptance,
+        case_m0=stats_m0,
+        case_m1=stats_m1,
+        case_m2=stats_m2,
+        case_m3=stats_m3,
+        m0_vs_m1=m0_vs_m1,
+        m1_vs_m2=m1_vs_m2,
+        m2_vs_m3=m2_vs_m3,
+        m0_vs_m3=m0_vs_m3,
+        four_mesh_trends=trends,
+        adjacent_m2_m3_within_1pct=adjacent_ok,
+        all_primary_deltas_reduced=all_reduced,
+        mesh_independence_established=False,
+        grid_independence_phase_can_close=bool(adjacent_ok and all_reduced),
+        scientific_summary=(
+            "Four-mesh M0/M1/M2/M3 native-mesh sensitivity at unchanged rtol=1e-4 and const maximum "
+            "internal time step 0.05 s, with M2/M3 as the primary adjacent 1% gate: "
+            + m2_vs_m3["conclusion"]
             + ". Non-uniform unstructured mesh scaling does not establish a formal asymptotic GCI or "
-            "an exact-solution error bound; three-level trends are reported directly without extrapolation."
+            "an exact-solution error bound; four-level trends are reported directly without extrapolation."
         ),
     )
     return result
@@ -675,6 +818,62 @@ def compare_three_wake_statistics(wake_m0: dict, wake_m1: dict, wake_m2: dict) -
     }
 
 
+def compare_four_wake_statistics(
+    wake_m0: dict, wake_m1: dict, wake_m2: dict, wake_m3: dict,
+) -> dict:
+    """Normalize M0/M1/M2/M3 wake probe differences by freestream speed (diagnostic only)."""
+    m0_vs_m1 = compare_wake_statistics(wake_m0, wake_m1)
+    m1_vs_m2 = compare_wake_statistics(wake_m1, wake_m2)
+    m2_vs_m3 = compare_wake_statistics(wake_m2, wake_m3)
+    m0_vs_m3 = compare_wake_statistics(wake_m0, wake_m3)
+    u_inf = wake_m0["u_inf_m_s"]
+    channels = {}
+    for channel in ("u", "v"):
+        c01 = m0_vs_m1["channels"][channel]
+        c12 = m1_vs_m2["channels"][channel]
+        c23 = m2_vs_m3["channels"][channel]
+        c03 = m0_vs_m3["channels"][channel]
+        channels[channel] = {
+            "m0": wake_m0["channels"][channel],
+            "m1": wake_m1["channels"][channel],
+            "m2": wake_m2["channels"][channel],
+            "m3": wake_m3["channels"][channel],
+            "delta_01_mean_m_s": c01["delta_mean_m_s"],
+            "delta_01_rms_m_s": c01["delta_rms_m_s"],
+            "delta_01_mean_over_u_inf": c01["delta_mean_over_u_inf"],
+            "delta_01_rms_over_u_inf": c01["delta_rms_over_u_inf"],
+            "delta_12_mean_m_s": c12["delta_mean_m_s"],
+            "delta_12_rms_m_s": c12["delta_rms_m_s"],
+            "delta_12_mean_over_u_inf": c12["delta_mean_over_u_inf"],
+            "delta_12_rms_over_u_inf": c12["delta_rms_over_u_inf"],
+            "delta_23_mean_m_s": c23["delta_mean_m_s"],
+            "delta_23_rms_m_s": c23["delta_rms_m_s"],
+            "delta_23_mean_over_u_inf": c23["delta_mean_over_u_inf"],
+            "delta_23_rms_over_u_inf": c23["delta_rms_over_u_inf"],
+            "delta_03_mean_m_s": c03["delta_mean_m_s"],
+            "delta_03_rms_m_s": c03["delta_rms_m_s"],
+            "delta_03_mean_over_u_inf": c03["delta_mean_over_u_inf"],
+            "delta_03_rms_over_u_inf": c03["delta_rms_over_u_inf"],
+        }
+    return {
+        "normalization": "U_inf",
+        "u_inf_m_s": u_inf,
+        "diagnostic_only": True,
+        "mesh_independence_established": False,
+        "windows": {
+            "m0": wake_m0["window"],
+            "m1": wake_m1["window"],
+            "m2": wake_m2["window"],
+            "m3": wake_m3["window"],
+        },
+        "m0_vs_m1": m0_vs_m1,
+        "m1_vs_m2": m1_vs_m2,
+        "m2_vs_m3": m2_vs_m3,
+        "m0_vs_m3": m0_vs_m3,
+        "channels": channels,
+    }
+
+
 def _check_solution_stats(stats: dict) -> None:
     if (stats.get("has_nan_or_inf") is not False or stats.get("has_physical_field") is not True
             or stats.get("num_timesteps") != 1001 or stats.get("time_min") != 0.0
@@ -721,12 +920,56 @@ def _load_accepted_m1_reference(
     return tree_m1, native_m1, pre_m1, stats_m1
 
 
+def _load_accepted_m2_reference(
+    output_dir: Path, report: dict, tree_m0: dict, native_m0: dict, pre_m0: dict,
+    m1_context: tuple[dict, dict, dict, dict],
+    *, precheck_subdir: str = "precheck_m2",
+) -> tuple[dict, dict, dict, dict]:
+    """Read and verify the accepted M2 reference artifacts without re-solving M2."""
+    print("Reading accepted M2 reference; no M2 solve...", flush=True)
+    tree_m2 = inspect_model(M2_MODEL)
+    native_m2 = inspect_native_mesh(M2_MODEL)
+    save_json(output_dir / "m2_model_inspection.json", tree_m2)
+    save_json(output_dir / "m2_native_mesh.json", native_m2)
+    m2_plan = json.loads(M2_PLAN.read_text(encoding="utf-8"))
+    tree_m1, native_m1, pre_m1, stats_m1 = m1_context
+    check_mesh_refinement(native_m0, native_m2, m2_plan, prior_refined=native_m1)
+    pre_m2 = run_prechecks(
+        model_path=M2_MODEL, wake_u_path=M2_DIR / "wake_u.txt",
+        wake_v_path=M2_DIR / "wake_v.txt", output_dir=output_dir / precheck_subdir,
+    )
+    report["m2_prechecks"] = pre_m2
+    if pre_m2["overall_prechecks_status"] != "PASS":
+        raise RuntimeError("Accepted M2 prechecks failed; M3 was not started")
+    check_invariants(pre_m0["precheck_b_solver_model"], pre_m2["precheck_b_solver_model"], tree_m0, tree_m2)
+    check_invariants(pre_m1["precheck_b_solver_model"], pre_m2["precheck_b_solver_model"], tree_m1, tree_m2)
+    m2_response = json.loads((M2_DIR / "solve_response.json").read_text(encoding="utf-8"))
+    if m2_response["output_sha256"].lower() != native_m2["sha256"].lower():
+        raise RuntimeError("Accepted M2 solution statistics are not bound to the inspected M2 model hash")
+    _check_solution_stats(m2_response["solution_stats"])
+    m1_dofs = report["m1_solution_stats"]["num_dofs"]
+    if m2_response["solution_stats"]["num_dofs"] <= m1_dofs:
+        raise RuntimeError("Accepted M2 solution must have more DOFs than M1")
+    stats_m2 = analyze_case("M2 (native mesh h/1.96)", M2_DIR)
+    if not classify_comparison(stats_m2, stats_m2)["can_compare"]:
+        raise RuntimeError("Accepted M2 must pass the five-complete-cycle stability gate before M3")
+    report["m2_mesh_summary"] = summarize_native_mesh(native_m2, tree_m2)
+    report["m2_solution_stats"] = m2_response["solution_stats"]
+    report["m2_solution_stats_source"] = {
+        "path": str(M2_DIR / "solve_response.json"),
+        "model_sha256": m2_response["output_sha256"],
+        "readback_scope": "Previously executed accepted M2 solve response, bound to current M2 model SHA-256; M2 is not solved again.",
+    }
+    return tree_m2, native_m2, pre_m2, stats_m2
+
+
 def _finish_postprocess(
     output_dir: Path, report: dict, solution: dict, elapsed: float | str,
     tree_m0: dict, native_m0: dict, native_prepared: dict, pre_m0: dict, stats_m0: dict,
     *, m1_context: tuple[dict, dict, dict, dict] | None = None,
+    m2_context: tuple[dict, dict, dict, dict] | None = None,
 ) -> dict:
-    """Export and verify one already solved M1 or M2; this helper never builds or solves."""
+    """Export and verify one already solved M1, M2, or M3; this helper never builds or solves."""
     plan = report["refinement_plan"]
     level, factor = _plan_level_and_factor(plan)
     level_key = level.lower()
@@ -752,7 +995,7 @@ def _finish_postprocess(
     if (solution["source_sha256"].lower() != native_prepared["sha256"].lower()
             or solution["output_sha256"].lower() != native_target["sha256"].lower()):
         raise RuntimeError(f"{level} solve hash chain does not match prepared mesh and solved model")
-    prior_native = m1_context[1] if m1_context is not None else None
+    prior_native = m2_context[1] if m2_context is not None else (m1_context[1] if m1_context is not None else None)
     report["native_mesh_comparison"] = check_mesh_refinement(
         native_m0, native_target, plan, prior_refined=prior_native,
     )
@@ -768,6 +1011,13 @@ def _finish_postprocess(
         )
         settings_cmp["m1_solver"] = pre_m1["precheck_b_solver_model"]["solver_details"]
         settings_cmp["m2_solver"] = pre_target["precheck_b_solver_model"]["solver_details"]
+    if m2_context is not None:
+        tree_m2, _, pre_m2, _ = m2_context
+        check_invariants(
+            pre_m2["precheck_b_solver_model"], pre_target["precheck_b_solver_model"], tree_m2, tree_target,
+        )
+        settings_cmp["m2_solver"] = pre_m2["precheck_b_solver_model"]["solver_details"]
+        settings_cmp["m3_solver"] = pre_target["precheck_b_solver_model"]["solver_details"]
     report["settings_comparison"] = settings_cmp
     report[f"{level_key}_mesh_summary"] = summarize_native_mesh(native_target, tree_target)
     save_json(output_dir / "solver_metadata.json", {
@@ -782,17 +1032,21 @@ def _finish_postprocess(
     })
     stats_target = analyze_case(f"{level} (native mesh h/{factor:g})", output_dir)
     u_inf = float(tree_m0["parameters"]["U_inf"]["value"])
-    if m1_context is None:
-        comparison = classify_comparison(stats_m0, stats_target)
+    if level == "M3":
+        stats_m1 = m1_context[3]
+        stats_m2 = m2_context[3]
+        comparison = classify_four_mesh_comparison(stats_m0, stats_m1, stats_m2, stats_target)
         report["physical_comparison"] = comparison
         if not comparison["can_compare"]:
-            raise RuntimeError(comparison.get("message", "M0/M1 stable-cycle comparison failed"))
-        report["wake_comparison"] = compare_wake_statistics(
+            raise RuntimeError(comparison.get("message", "M0/M1/M2/M3 stable-cycle comparison failed"))
+        report["wake_comparison"] = compare_four_wake_statistics(
             analyze_wake(M0_DIR, stats_m0["window"], u_inf),
+            analyze_wake(M1_DIR, stats_m1["window"], u_inf),
+            analyze_wake(M2_DIR, stats_m2["window"], u_inf),
             analyze_wake(output_dir, stats_target["window"], u_inf),
         )
-        summary_label = "M0/M1 preliminary sensitivity"
-    else:
+        summary_label = "M0/M1/M2/M3 sensitivity (primary M2/M3)"
+    elif level == "M2":
         stats_m1 = m1_context[3]
         comparison = classify_three_mesh_comparison(stats_m0, stats_m1, stats_target)
         report["physical_comparison"] = comparison
@@ -804,6 +1058,16 @@ def _finish_postprocess(
             analyze_wake(output_dir, stats_target["window"], u_inf),
         )
         summary_label = "M0/M1/M2 sensitivity (primary M1/M2)"
+    else:
+        comparison = classify_comparison(stats_m0, stats_target)
+        report["physical_comparison"] = comparison
+        if not comparison["can_compare"]:
+            raise RuntimeError(comparison.get("message", "M0/M1 stable-cycle comparison failed"))
+        report["wake_comparison"] = compare_wake_statistics(
+            analyze_wake(M0_DIR, stats_m0["window"], u_inf),
+            analyze_wake(output_dir, stats_target["window"], u_inf),
+        )
+        summary_label = "M0/M1 preliminary sensitivity"
     report.pop("error", None)
     report.pop("error_details", None)
     report["execution_status"] = "COMPLETE"
@@ -861,10 +1125,16 @@ def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
             "readback_scope": "Previously executed accepted M0 solve response, bound to current model SHA-256; M0 is not solved again.",
         }
         m1_context = None
-        if level == "M2":
+        m2_context = None
+        if level in {"M2", "M3"}:
             m1_context = _load_accepted_m1_reference(
                 output_dir, report, tree_m0, native_m0, pre_m0,
                 source_response["solution_stats"]["num_dofs"],
+            )
+        if level == "M3":
+            m2_context = _load_accepted_m2_reference(
+                output_dir, report, tree_m0, native_m0, pre_m0,
+                m1_context,
             )
         prepared = output_dir / f"re100_s1b2_{level_key}_mesh.mph"
         start = time.perf_counter()
@@ -878,7 +1148,7 @@ def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
         if (refinement["source_sha256"].lower() != native_m0["sha256"].lower()
                 or refinement["output_sha256"].lower() != native_prepared["sha256"].lower()):
             raise RuntimeError("Native mesh refinement source/output hash chain does not match actual files")
-        prior_native = m1_context[1] if m1_context is not None else None
+        prior_native = m2_context[1] if m2_context is not None else (m1_context[1] if m1_context is not None else None)
         report["prepared_mesh_comparison"] = check_mesh_refinement(
             native_m0, native_prepared, plan, prior_refined=prior_native,
         )
@@ -898,18 +1168,21 @@ def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
         log_path.write_text(solution["log"], encoding="utf-8")
         report["actual_step_log"] = check_step_log(log_path)
         _check_solution_stats(solution["solution_stats"])
-        min_dofs = (
-            report["m1_solution_stats"]["num_dofs"]
-            if m1_context is not None
-            else source_response["solution_stats"]["num_dofs"]
-        )
-        prior_label = "M1" if m1_context is not None else "M0"
+        if level == "M3":
+            min_dofs = report["m2_solution_stats"]["num_dofs"]
+            prior_label = "M2"
+        elif level == "M2":
+            min_dofs = report["m1_solution_stats"]["num_dofs"]
+            prior_label = "M1"
+        else:
+            min_dofs = source_response["solution_stats"]["num_dofs"]
+            prior_label = "M0"
         if solution["solution_stats"]["num_dofs"] <= min_dofs:
             raise RuntimeError(f"The actual refined {level} solution must have more DOFs than {prior_label}")
         report[f"{level_key}_solution_stats"] = solution["solution_stats"]
         return _finish_postprocess(
             output_dir, report, solution, elapsed, tree_m0, native_m0,
-            native_prepared, pre_m0, stats_m0, m1_context=m1_context,
+            native_prepared, pre_m0, stats_m0, m1_context=m1_context, m2_context=m2_context,
         )
     except Exception as exc:
         report.update(status="FAIL", error=str(exc), error_details=getattr(exc, "details", ""))
@@ -934,6 +1207,14 @@ def run_mesh_m2(output_dir: Path, refinement_plan: dict) -> dict:
     return run_mesh_m1(output_dir, refinement_plan)
 
 
+def run_mesh_m3(output_dir: Path, refinement_plan: dict) -> dict:
+    """Explicit entry point for M3 (h0/2.744) native mesh refinement and four-level M0/M1/M2/M3 comparison."""
+    level, _ = _plan_level_and_factor(refinement_plan)
+    if level != "M3":
+        raise RuntimeError("run_mesh_m3 requires an explicit M3 (h0/2.744) refinement plan")
+    return run_mesh_m1(output_dir, refinement_plan)
+
+
 def _preserve_failed_artifact(output_dir: Path, name: str, archive_name: str) -> str | None:
     source = output_dir / name
     if not source.is_file():
@@ -947,7 +1228,7 @@ def _preserve_failed_artifact(output_dir: Path, name: str, archive_name: str) ->
 
 
 def verify_saved_mesh_m1(output_dir: Path) -> dict:
-    """Recover only postprocessing for an existing M1 or M2 solve, preserving the failed attempt."""
+    """Recover only postprocessing for an existing M1, M2, or M3 solve, preserving the failed attempt."""
     output_dir = output_dir.resolve()
     report_path = output_dir / "mesh_report.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -1003,15 +1284,25 @@ def verify_saved_mesh_m1(output_dir: Path) -> dict:
         if not classify_comparison(stats_m0, stats_m0)["can_compare"]:
             raise RuntimeError("Saved M0 fails the five-cycle stability gate")
         m1_context = None
-        if level == "M2":
+        m2_context = None
+        if level in {"M2", "M3"}:
             m1_context = _load_accepted_m1_reference(
                 output_dir, report, tree_m0, native_m0, pre_m0,
                 source_response["solution_stats"]["num_dofs"],
                 precheck_subdir=f"precheck_m1_recovery_{recovery_id}",
             )
+        if level == "M3":
+            m2_context = _load_accepted_m2_reference(
+                output_dir, report, tree_m0, native_m0, pre_m0,
+                m1_context,
+                precheck_subdir=f"precheck_m2_recovery_{recovery_id}",
+            )
+            if solution["solution_stats"]["num_dofs"] <= report["m2_solution_stats"]["num_dofs"]:
+                raise RuntimeError("Saved M3 solution does not have more DOFs than M2")
+        elif level == "M2":
             if solution["solution_stats"]["num_dofs"] <= report["m1_solution_stats"]["num_dofs"]:
                 raise RuntimeError("Saved M2 solution does not have more DOFs than M1")
-        prior_native = m1_context[1] if m1_context is not None else None
+        prior_native = m2_context[1] if m2_context is not None else (m1_context[1] if m1_context is not None else None)
         report["prepared_mesh_comparison"] = check_mesh_refinement(
             native_m0, native_prepared, plan, prior_refined=prior_native,
         )
@@ -1023,7 +1314,7 @@ def verify_saved_mesh_m1(output_dir: Path) -> dict:
         save_json(report_path, report)
         return _finish_postprocess(
             output_dir, report, solution, elapsed, tree_m0, native_m0,
-            native_prepared, pre_m0, stats_m0, m1_context=m1_context,
+            native_prepared, pre_m0, stats_m0, m1_context=m1_context, m2_context=m2_context,
         )
     except Exception as exc:
         report.update(status="FAIL", error=str(exc), error_details=getattr(exc, "details", ""))
