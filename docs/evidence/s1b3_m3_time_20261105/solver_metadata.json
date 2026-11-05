@@ -1,0 +1,50 @@
+{
+  "case_id": "M3 (maxstep=0.025 s)",
+  "solve_duration_sec": 1516.3019457999908,
+  "source_model": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_mesh.mph",
+  "source_sha256": "77D9CF3299EDDD76053DA3D2BF3B5946D28C6311928F3D588E752A19C91E7516",
+  "solved_model_sha256": "0D668DD286B08654F90C5EE4EC52E29D4DD2F5DA8BE2FB60D656F88A0BC29CEF",
+  "status": "READ_BACK",
+  "solver_details": {
+    "timemethod": "bdf",
+    "tstepsbdf": "intermediate",
+    "maxorder": "2",
+    "minorder": "1",
+    "rtol": "1e-4",
+    "atolmethod": "comp1_p, scaled, comp1_u, global",
+    "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+    "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+    "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+    "atolglobal": "0.001",
+    "atolglobalfactor": "0.05",
+    "atolglobalmethod": "scaled",
+    "atolglobalvaluemethod": "factor",
+    "maxstepconstraintbdf": "const",
+    "maxstepbdf": "0.025",
+    "initialstepbdf": "0.001",
+    "initialstepbdfactive": "off",
+    "tlist": "range(0, 0.2, 200)"
+  },
+  "mesh_details": {
+    "num_elem": 34752,
+    "num_vertex": 17910,
+    "sdim": 2,
+    "is_complete": true,
+    "features": [
+      "size",
+      "size1",
+      "cr1",
+      "ftri1",
+      "bl1"
+    ]
+  },
+  "physics_details": {
+    "shape_order": "1",
+    "initial_conditions": {
+      "u": "0",
+      "v": "UNOBTAINED",
+      "p": "UNOBTAINED"
+    }
+  },
+  "tolerance_coupling_noted": "comp1_u absolute tolerance is tied to rtol with factor 0.1 and global atol (atolglobalfactor=0.05, method=scaled)"
+}

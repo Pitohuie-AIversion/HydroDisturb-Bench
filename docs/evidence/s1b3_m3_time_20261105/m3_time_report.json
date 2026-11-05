@@ -1,0 +1,882 @@
+{
+  "status": "PASS",
+  "output_dir": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified",
+  "baseline_dir": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified",
+  "maxstep_target": 0.025,
+  "protected_hashes_before": {
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\case\\cylinder_flow.mph": "CE72D06EB181ACA2D152505A138F472B7EF424FE7A2CC20C900C670002F00A7A",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\models\\cylinder_2d\\re100_benchmark.mph": "3087119AF52A8B59DBBA4500F370A46044E71BC17CDD031A53710A74FBA0BEB0",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1a_trial\\re100_s1a_solved.mph": "0BB3354255DA95F60622DAFDFDA11EB131383ECD3F9BA113B980D363CB0520DC",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1a2_trial\\re100_s1a2_solved.mph": "9FB19CEE90F994470D22ED825F975B24FA4D41BE96B5EDA28070A2BA34EB4A8B",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_trial\\re100_s1b1_solved.mph": "43E8D15360DEBF77B63ABA814281802185547257282B539FF7AE3BD31AA36C86",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_c_20261104_verified\\re100_s1b1_case_c_solved.mph": "D29F8A55695B42B2FC2B351512FBE85FBE1042BDF380700F44FAB402B695C5C2",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_d_20261104_verified\\re100_s1b1_case_d_solved.mph": "75183E3B4BE7AAAF1A2EEC9F09079F5AE0497ABA5B868268DE0EBA782525EDAB",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified\\re100_s1b2_m1_solved.mph": "1003693AEBA77F293B51EFE3D943B46D4149D8396391FA15F27225778DB52F8B",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m2_20261105_verified\\re100_s1b2_m2_solved.mph": "5CA522D529AD9B250D4B5681B420C0938E88146C9B53904221D4649AC1EDF903",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_solved.mph": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_mesh.mph": "77D9CF3299EDDD76053DA3D2BF3B5946D28C6311928F3D588E752A19C91E7516"
+  },
+  "baseline_m3_prechecks": {
+    "precheck_a_wake_probe": {
+      "is_valid": true,
+      "status": "PASS",
+      "errors": [],
+      "probe_coordinates_m": [
+        0.15,
+        0.12
+      ],
+      "expressions": [
+        "u",
+        "v"
+      ],
+      "unit": "m/s",
+      "unit_source": "comsol_model_export_node",
+      "units": {
+        "u": "m/s",
+        "v": "m/s"
+      },
+      "unit_sources": {
+        "u": "comsol_model_export_node",
+        "v": "comsol_model_export_node"
+      },
+      "dataset": "dset1",
+      "dataset_verified": true,
+      "time_alignment_verified": true,
+      "raw_metadata_verified": true,
+      "num_steps": 1001,
+      "comparison_table": [
+        {
+          "t": 180.0,
+          "target_t": 180.0,
+          "actual_t": 180.0,
+          "txt_t": 180.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.00628737827687513,
+            "txt": 0.00628737827687513,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": 0.00019685332047855665,
+            "txt": 0.00019685332047855665,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 185.0,
+          "target_t": 185.0,
+          "actual_t": 185.0,
+          "txt_t": 185.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.007488050605372828,
+            "txt": 0.007488050605372828,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": -0.004376558077424252,
+            "txt": -0.004376558077424252,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 190.0,
+          "target_t": 190.0,
+          "actual_t": 190.0,
+          "txt_t": 190.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.006555739873180449,
+            "txt": 0.006555739873180449,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": -0.004086392593110647,
+            "txt": -0.004086392593110647,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 195.0,
+          "target_t": 195.0,
+          "actual_t": 195.0,
+          "txt_t": 195.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.006704949445606725,
+            "txt": 0.006704949445606725,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": 0.0011491272903917313,
+            "txt": 0.0011491272903917313,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 200.0,
+          "target_t": 200.0,
+          "actual_t": 200.0,
+          "txt_t": 200.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.007474499080590174,
+            "txt": 0.007474499080590174,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": 0.004503470976812362,
+            "txt": 0.004503470976812362,
+            "diff": 0.0,
+            "match": true
+          }
+        }
+      ],
+      "export_associations": {
+        "u": {
+          "historical_file": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\wake_u.txt",
+          "historical_sha256": "90FECF2562C0BC2172D8274373C521D87F5B8AD79CE506E9BD6F72F4A2AA3BBB",
+          "fresh_export_evidence": {
+            "component": "u",
+            "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_solved.mph",
+            "model_tag": "Model",
+            "export_tag": "exp_unit_u",
+            "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/precheck_baseline_m3/probe_export/wake_u.txt",
+            "plotgroup_tag": "pg_unit_u",
+            "feature_tags": [
+              "point"
+            ],
+            "feature_tag": "point",
+            "expression": "u",
+            "unit": "m/s",
+            "feature_data": "parent",
+            "dataset_tag": "cpt_unit_evidence",
+            "dataset_type": "CutPoint2D",
+            "point_x": "0.15",
+            "point_y": "0.12",
+            "solution_dataset": "dset1",
+            "solution_type": "Solution",
+            "solution_tag": "sol1",
+            "file_sha256": "6A6B1E5E1F79B50C7990FA8D38D4B2F5BA7B73D88CF82A1C8BE1D51E53B28E54",
+            "model_sha256": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4"
+          },
+          "all_samples_equal_within": 1e-12
+        },
+        "v": {
+          "historical_file": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\wake_v.txt",
+          "historical_sha256": "55359D928D467F9BCF79B6A5016226A83C96080FE595EB3A02D47940F88997A1",
+          "fresh_export_evidence": {
+            "component": "v",
+            "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_solved.mph",
+            "model_tag": "Model",
+            "export_tag": "exp_unit_v",
+            "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/precheck_baseline_m3/probe_export/wake_v.txt",
+            "plotgroup_tag": "pg_unit_v",
+            "feature_tags": [
+              "point"
+            ],
+            "feature_tag": "point",
+            "expression": "v",
+            "unit": "m/s",
+            "feature_data": "parent",
+            "dataset_tag": "cpt_unit_evidence",
+            "dataset_type": "CutPoint2D",
+            "point_x": "0.15",
+            "point_y": "0.12",
+            "solution_dataset": "dset1",
+            "solution_type": "Solution",
+            "solution_tag": "sol1",
+            "file_sha256": "1A1D095A1878115AB62D0E8664ED18DE2F44E6D0992FF3636C719FDEA6E904D5",
+            "model_sha256": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4"
+          },
+          "all_samples_equal_within": 1e-12
+        }
+      }
+    },
+    "precheck_b_solver_model": {
+      "status": "READ_BACK",
+      "solver_details": {
+        "timemethod": "bdf",
+        "tstepsbdf": "intermediate",
+        "maxorder": "2",
+        "minorder": "1",
+        "rtol": "1e-4",
+        "atolmethod": "comp1_p, scaled, comp1_u, global",
+        "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+        "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+        "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+        "atolglobal": "0.001",
+        "atolglobalfactor": "0.05",
+        "atolglobalmethod": "scaled",
+        "atolglobalvaluemethod": "factor",
+        "maxstepconstraintbdf": "const",
+        "maxstepbdf": "0.05",
+        "initialstepbdf": "0.001",
+        "initialstepbdfactive": "off",
+        "tlist": "range(0, 0.2, 200)"
+      },
+      "mesh_details": {
+        "num_elem": 34752,
+        "num_vertex": 17910,
+        "sdim": 2,
+        "is_complete": true,
+        "features": [
+          "size",
+          "size1",
+          "cr1",
+          "ftri1",
+          "bl1"
+        ]
+      },
+      "physics_details": {
+        "shape_order": "1",
+        "initial_conditions": {
+          "u": "0",
+          "v": "UNOBTAINED",
+          "p": "UNOBTAINED"
+        }
+      },
+      "tolerance_coupling_noted": "comp1_u absolute tolerance is tied to rtol with factor 0.1 and global atol (atolglobalfactor=0.05, method=scaled)"
+    },
+    "overall_prechecks_status": "PASS",
+    "report_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified\\precheck_baseline_m3\\report.json"
+  },
+  "actual_step_log": {
+    "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified\\solver_run.log",
+    "logged_rows": 8065,
+    "last_step_number": 8065,
+    "last_logged_time": 200.01,
+    "all_dt_range": [
+      0.0017311,
+      0.025
+    ],
+    "late_dt_range": [
+      0.025,
+      0.025
+    ],
+    "late_dt_mean": 0.02499999999999925,
+    "sequential_unique_step_ids": true,
+    "strictly_increasing_time": true,
+    "cap_verified": true
+  },
+  "halved_m3_prechecks": {
+    "precheck_a_wake_probe": {
+      "is_valid": true,
+      "status": "PASS",
+      "errors": [],
+      "probe_coordinates_m": [
+        0.15,
+        0.12
+      ],
+      "expressions": [
+        "u",
+        "v"
+      ],
+      "unit": "m/s",
+      "unit_source": "comsol_model_export_node",
+      "units": {
+        "u": "m/s",
+        "v": "m/s"
+      },
+      "unit_sources": {
+        "u": "comsol_model_export_node",
+        "v": "comsol_model_export_node"
+      },
+      "dataset": "dset1",
+      "dataset_verified": true,
+      "time_alignment_verified": true,
+      "raw_metadata_verified": true,
+      "num_steps": 1001,
+      "comparison_table": [
+        {
+          "t": 180.0,
+          "target_t": 180.0,
+          "actual_t": 180.0,
+          "txt_t": 180.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.006130369633766003,
+            "txt": 0.006130369633766003,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": 0.0011080515418129269,
+            "txt": 0.0011080515418129269,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 185.0,
+          "target_t": 185.0,
+          "actual_t": 185.0,
+          "txt_t": 185.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.0074665816676641825,
+            "txt": 0.0074665816676641825,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": -0.0042370242388325915,
+            "txt": -0.0042370242388325915,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 190.0,
+          "target_t": 190.0,
+          "actual_t": 190.0,
+          "txt_t": 190.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.006718550268000081,
+            "txt": 0.006718550268000081,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": -0.004228829315996549,
+            "txt": -0.004228829315996549,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 195.0,
+          "target_t": 195.0,
+          "actual_t": 195.0,
+          "txt_t": 195.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.006462003748512695,
+            "txt": 0.006462003748512695,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": 0.00013308752683688482,
+            "txt": 0.00013308752683688482,
+            "diff": 0.0,
+            "match": true
+          }
+        },
+        {
+          "t": 200.0,
+          "target_t": 200.0,
+          "actual_t": 200.0,
+          "txt_t": 200.0,
+          "coords": [
+            0.15,
+            0.12
+          ],
+          "expr_u": "u",
+          "expr_v": "v",
+          "unit": "m/s",
+          "unit_source": "comsol_model_export_node",
+          "unit_v": "m/s",
+          "unit_source_v": "comsol_model_export_node",
+          "u": {
+            "direct": 0.0075217390322874075,
+            "txt": 0.0075217390322874075,
+            "diff": 0.0,
+            "match": true
+          },
+          "v": {
+            "direct": 0.004449704792244461,
+            "txt": 0.004449704792244461,
+            "diff": 0.0,
+            "match": true
+          }
+        }
+      ],
+      "export_associations": {
+        "u": {
+          "historical_file": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified\\wake_u.txt",
+          "historical_sha256": "48E75DEA331A725F449F44F99F01A164FE92D2C4BBF69EF87A9C91C6ACB89DDC",
+          "fresh_export_evidence": {
+            "component": "u",
+            "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified\\re100_s1b3_m3_dt025_solved.mph",
+            "model_tag": "Model",
+            "export_tag": "exp_unit_u",
+            "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/precheck_halved_m3/probe_export/wake_u.txt",
+            "plotgroup_tag": "pg_unit_u",
+            "feature_tags": [
+              "point"
+            ],
+            "feature_tag": "point",
+            "expression": "u",
+            "unit": "m/s",
+            "feature_data": "parent",
+            "dataset_tag": "cpt_unit_evidence",
+            "dataset_type": "CutPoint2D",
+            "point_x": "0.15",
+            "point_y": "0.12",
+            "solution_dataset": "dset1",
+            "solution_type": "Solution",
+            "solution_tag": "sol1",
+            "file_sha256": "9CB068DFC46B60C64AC4D1FDAFD647FF3CB4DCAC0A3C90AC87388E0E9556A2B5",
+            "model_sha256": "0D668DD286B08654F90C5EE4EC52E29D4DD2F5DA8BE2FB60D656F88A0BC29CEF"
+          },
+          "all_samples_equal_within": 1e-12
+        },
+        "v": {
+          "historical_file": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified\\wake_v.txt",
+          "historical_sha256": "B66772EC09D49614589DEEE6D0A75D8D8553ECED08AAF2F306F4D6C5943ABB88",
+          "fresh_export_evidence": {
+            "component": "v",
+            "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified\\re100_s1b3_m3_dt025_solved.mph",
+            "model_tag": "Model",
+            "export_tag": "exp_unit_v",
+            "filename": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/precheck_halved_m3/probe_export/wake_v.txt",
+            "plotgroup_tag": "pg_unit_v",
+            "feature_tags": [
+              "point"
+            ],
+            "feature_tag": "point",
+            "expression": "v",
+            "unit": "m/s",
+            "feature_data": "parent",
+            "dataset_tag": "cpt_unit_evidence",
+            "dataset_type": "CutPoint2D",
+            "point_x": "0.15",
+            "point_y": "0.12",
+            "solution_dataset": "dset1",
+            "solution_type": "Solution",
+            "solution_tag": "sol1",
+            "file_sha256": "4EA2A4088962FDEF406BA3F144C3B477FA76CE8438420AC77EE08F831E7B2688",
+            "model_sha256": "0D668DD286B08654F90C5EE4EC52E29D4DD2F5DA8BE2FB60D656F88A0BC29CEF"
+          },
+          "all_samples_equal_within": 1e-12
+        }
+      }
+    },
+    "precheck_b_solver_model": {
+      "status": "READ_BACK",
+      "solver_details": {
+        "timemethod": "bdf",
+        "tstepsbdf": "intermediate",
+        "maxorder": "2",
+        "minorder": "1",
+        "rtol": "1e-4",
+        "atolmethod": "comp1_p, scaled, comp1_u, global",
+        "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+        "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+        "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+        "atolglobal": "0.001",
+        "atolglobalfactor": "0.05",
+        "atolglobalmethod": "scaled",
+        "atolglobalvaluemethod": "factor",
+        "maxstepconstraintbdf": "const",
+        "maxstepbdf": "0.025",
+        "initialstepbdf": "0.001",
+        "initialstepbdfactive": "off",
+        "tlist": "range(0, 0.2, 200)"
+      },
+      "mesh_details": {
+        "num_elem": 34752,
+        "num_vertex": 17910,
+        "sdim": 2,
+        "is_complete": true,
+        "features": [
+          "size",
+          "size1",
+          "cr1",
+          "ftri1",
+          "bl1"
+        ]
+      },
+      "physics_details": {
+        "shape_order": "1",
+        "initial_conditions": {
+          "u": "0",
+          "v": "UNOBTAINED",
+          "p": "UNOBTAINED"
+        }
+      },
+      "tolerance_coupling_noted": "comp1_u absolute tolerance is tied to rtol with factor 0.1 and global atol (atolglobalfactor=0.05, method=scaled)"
+    },
+    "overall_prechecks_status": "PASS",
+    "report_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified\\precheck_halved_m3\\report.json"
+  },
+  "settings_comparison": {
+    "status": "PASS",
+    "baseline_solver": {
+      "timemethod": "bdf",
+      "tstepsbdf": "intermediate",
+      "maxorder": "2",
+      "minorder": "1",
+      "rtol": "1e-4",
+      "atolmethod": "comp1_p, scaled, comp1_u, global",
+      "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+      "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+      "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+      "atolglobal": "0.001",
+      "atolglobalfactor": "0.05",
+      "atolglobalmethod": "scaled",
+      "atolglobalvaluemethod": "factor",
+      "maxstepconstraintbdf": "const",
+      "maxstepbdf": "0.05",
+      "initialstepbdf": "0.001",
+      "initialstepbdfactive": "off",
+      "tlist": "range(0, 0.2, 200)"
+    },
+    "halved_solver": {
+      "timemethod": "bdf",
+      "tstepsbdf": "intermediate",
+      "maxorder": "2",
+      "minorder": "1",
+      "rtol": "1e-4",
+      "atolmethod": "comp1_p, scaled, comp1_u, global",
+      "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+      "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+      "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+      "atolglobal": "0.001",
+      "atolglobalfactor": "0.05",
+      "atolglobalmethod": "scaled",
+      "atolglobalvaluemethod": "factor",
+      "maxstepconstraintbdf": "const",
+      "maxstepbdf": "0.025",
+      "initialstepbdf": "0.001",
+      "initialstepbdfactive": "off",
+      "tlist": "range(0, 0.2, 200)"
+    },
+    "equal_readbacks": [
+      "non-target solver fields",
+      "mesh_details",
+      "physics_details",
+      "parameters",
+      "components"
+    ],
+    "mesh_invariance_verified": true,
+    "preservation_method": "Loaded M3 mesh model directly; run_study applies only maxstep=0.025 override"
+  },
+  "physical_comparison": {
+    "can_compare": true,
+    "conclusion": "INSENSITIVE_WITHIN_TESTED_RANGE",
+    "scientific_summary": "M3 internal time-step halving study on identical M3 native mesh (34,752 elements, 88,483 DOFs) at unchanged rtol=1e-4; max internal step cap halved from const 0.05 s to const 0.025 s. Internal steps increased by 1.97x (8065 vs 4087), solve time 2.08x (1516.3019457999908s vs 728.1032565999922s). Over the last 5 verified stable cycles, all 4 physical metrics changed by: St: +0.0635% (tol 1.0%), Mean Cd: -0.0002% (tol 1.0%), Lift Amplitude: +0.0506% (tol 1.0%), De-meaned RMS: +0.0532% (tol 1.0%). Overall Conclusion: INSENSITIVE_WITHIN_TESTED_RANGE (Sensitive reasons: None). These differences represent sensitivity to internal time discretization on the M3 mesh, not an exact-solution error bound.",
+    "participating_metrics": [
+      "St_zc",
+      "Cd_mean",
+      "Cl_amp",
+      "Cl_rms"
+    ],
+    "thresholds_pct": {
+      "st_tol_pct": 1.0,
+      "cd_tol_pct": 1.0,
+      "amp_tol_pct": 1.0,
+      "rms_tol_pct": 1.0
+    },
+    "sensitive_reasons": [],
+    "comparisons": {
+      "St_zc": {
+        "case_a": 0.16369975529891434,
+        "case_b": 0.16380372159259254,
+        "rel_diff_pct": 0.0635103537499871
+      },
+      "St_peaks": {
+        "case_a": 0.1637002378140951,
+        "case_b": 0.16380641458136574,
+        "rel_diff_pct": 0.06486048443694267
+      },
+      "Cd_mean": {
+        "case_a": 1.365101445498798,
+        "case_b": 1.3650986163991972,
+        "rel_diff_pct": -0.0002072446417911336
+      },
+      "Cl_amp": {
+        "case_a": 0.3296492055067858,
+        "case_b": 0.329816073023831,
+        "rel_diff_pct": 0.05061972371165459
+      },
+      "Cl_rms": {
+        "case_a": 0.23355200252440572,
+        "case_b": 0.23367635753772495,
+        "rel_diff_pct": 0.05324510686061551
+      }
+    },
+    "case_a": {
+      "name": "M3 dt=0.05s (baseline)",
+      "trial_dir": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified",
+      "status": "STABLE",
+      "is_stable": true,
+      "stability_message": "Stable",
+      "window": [
+        165.69802182588023,
+        196.06529717540357
+      ],
+      "duration_sec": 30.36727534952334,
+      "num_cycles": 5,
+      "St_zc_mean": 0.16369975529891434,
+      "St_zc_range": [
+        0.1636912602220588,
+        0.16370770587005015
+      ],
+      "St_peaks_mean": 0.1637002378140951,
+      "St_peaks_range": [
+        0.1636887544109968,
+        0.1637082055623043
+      ],
+      "Cd_mean": 1.365101445498798,
+      "cycle_cds": [
+        1.3651029940871862,
+        1.3650992183707342,
+        1.3651005667387255,
+        1.3651037953594702,
+        1.3651006530365892
+      ],
+      "Cl_amp_mean": 0.3296492055067858,
+      "cycle_amps": [
+        0.3300678865006387,
+        0.3290944853996153,
+        0.3301158659443214,
+        0.3297940080430998,
+        0.32917378164625394
+      ],
+      "Cl_demeaned_rms": 0.23355200252440572,
+      "sinusoidal_ratio": 1.0019511771054788,
+      "stability_drifts": {
+        "st_drift_pct": 0.010046259804080759,
+        "amp_drift_pct": 0.3098386186418716,
+        "cd_drift_pct": 0.0003352856119991339
+      },
+      "step_info": {
+        "step_count": 4087,
+        "late_dt_mean": 0.049999999999999996,
+        "late_dt_range": [
+          0.05,
+          0.05
+        ]
+      },
+      "solve_wall_clock_sec": 728.1032565999922
+    },
+    "case_b": {
+      "name": "M3 dt=0.025s (halved)",
+      "trial_dir": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b3_m3_dt025_20261105_verified",
+      "status": "STABLE",
+      "is_stable": true,
+      "stability_message": "Stable",
+      "window": [
+        165.58286658359873,
+        195.9308678113178
+      ],
+      "duration_sec": 30.348001227719067,
+      "num_cycles": 5,
+      "St_zc_mean": 0.16380372159259254,
+      "St_zc_range": [
+        0.16379743625874427,
+        0.16381062629564677
+      ],
+      "St_peaks_mean": 0.16380641458136574,
+      "St_peaks_range": [
+        0.16377842587114386,
+        0.16381980003651242
+      ],
+      "Cd_mean": 1.3650986163991972,
+      "cycle_cds": [
+        1.3650991508392083,
+        1.365098423484234,
+        1.3650981911841653,
+        1.3650995982517515,
+        1.3650977181500292
+      ],
+      "Cl_amp_mean": 0.329816073023831,
+      "cycle_amps": [
+        0.32920051070290585,
+        0.33032021678730505,
+        0.32990356088501116,
+        0.32929494894325484,
+        0.3303611278006782
+      ],
+      "Cl_demeaned_rms": 0.23367635753772495,
+      "sinusoidal_ratio": 1.0019774688540328,
+      "stability_drifts": {
+        "st_drift_pct": 0.0080523121856159,
+        "amp_drift_pct": 0.35189828292222597,
+        "cd_drift_pct": 0.00013772643966851385
+      },
+      "step_info": {
+        "step_count": 8065,
+        "late_dt_mean": 0.024999999999999998,
+        "late_dt_range": [
+          0.025,
+          0.025
+        ]
+      },
+      "solve_wall_clock_sec": 1516.3019457999908
+    },
+    "computational_cost": {
+      "steps_a": 4087,
+      "steps_b": 8065,
+      "step_ratio": "1.97x",
+      "time_a_sec": 728.1032565999922,
+      "time_b_sec": 1516.3019457999908,
+      "time_ratio": "2.08x"
+    },
+    "acceptance_status": "PASS",
+    "phase_can_close": true
+  },
+  "wake_comparison": {
+    "normalization": "U_inf",
+    "u_inf_m_s": 0.010058104588258865,
+    "diagnostic_only": true,
+    "mesh_independence_established": false,
+    "windows": {
+      "m0": [
+        165.69802182588023,
+        196.06529717540357
+      ],
+      "m1": [
+        165.58286658359873,
+        195.9308678113178
+      ]
+    },
+    "channels": {
+      "u": {
+        "m0": {
+          "mean_m_s": 0.006853484298843714,
+          "demeaned_rms_m_s": 0.0005039950781970746,
+          "mean_over_u_inf": 0.6813892457276689,
+          "rms_over_u_inf": 0.05010835528449401
+        },
+        "m1": {
+          "mean_m_s": 0.006852055966360978,
+          "demeaned_rms_m_s": 0.0005033513438001354,
+          "mean_over_u_inf": 0.6812472376117061,
+          "rms_over_u_inf": 0.05004435372323657
+        },
+        "delta_mean_m_s": -1.4283324827352867e-06,
+        "delta_rms_m_s": -6.437343969392445e-07,
+        "delta_mean_over_u_inf": -0.0001420081159627852,
+        "delta_rms_over_u_inf": -6.40015612574456e-05
+      },
+      "v": {
+        "m0": {
+          "mean_m_s": 5.292204678422498e-06,
+          "demeaned_rms_m_s": 0.003569502448202218,
+          "mean_over_u_inf": 0.0005261632181276232,
+          "rms_over_u_inf": 0.3548881816529337
+        },
+        "m1": {
+          "mean_m_s": 5.230339677335364e-06,
+          "demeaned_rms_m_s": 0.0035709267762051035,
+          "mean_over_u_inf": 0.0005200124567645579,
+          "rms_over_u_inf": 0.3550297916342564
+        },
+        "delta_mean_m_s": -6.186500108713405e-08,
+        "delta_rms_m_s": 1.4243280028855727e-06,
+        "delta_mean_over_u_inf": -6.15076136306546e-06,
+        "delta_rms_over_u_inf": 0.0001416099813227469
+      }
+    }
+  },
+  "execution_status": "COMPLETE",
+  "time_sensitivity_phase_can_close": true,
+  "protected_hashes_after": {
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\case\\cylinder_flow.mph": "CE72D06EB181ACA2D152505A138F472B7EF424FE7A2CC20C900C670002F00A7A",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\models\\cylinder_2d\\re100_benchmark.mph": "3087119AF52A8B59DBBA4500F370A46044E71BC17CDD031A53710A74FBA0BEB0",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1a_trial\\re100_s1a_solved.mph": "0BB3354255DA95F60622DAFDFDA11EB131383ECD3F9BA113B980D363CB0520DC",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1a2_trial\\re100_s1a2_solved.mph": "9FB19CEE90F994470D22ED825F975B24FA4D41BE96B5EDA28070A2BA34EB4A8B",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_trial\\re100_s1b1_solved.mph": "43E8D15360DEBF77B63ABA814281802185547257282B539FF7AE3BD31AA36C86",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_c_20261104_verified\\re100_s1b1_case_c_solved.mph": "D29F8A55695B42B2FC2B351512FBE85FBE1042BDF380700F44FAB402B695C5C2",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b1_case_d_20261104_verified\\re100_s1b1_case_d_solved.mph": "75183E3B4BE7AAAF1A2EEC9F09079F5AE0497ABA5B868268DE0EBA782525EDAB",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified\\re100_s1b2_m1_solved.mph": "1003693AEBA77F293B51EFE3D943B46D4149D8396391FA15F27225778DB52F8B",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m2_20261105_verified\\re100_s1b2_m2_solved.mph": "5CA522D529AD9B250D4B5681B420C0938E88146C9B53904221D4649AC1EDF903",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_solved.mph": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m3_20261105_verified\\re100_s1b2_m3_mesh.mph": "77D9CF3299EDDD76053DA3D2BF3B5946D28C6311928F3D588E752A19C91E7516"
+  },
+  "protected_models_unchanged": true
+}

@@ -3,8 +3,8 @@
   "description": "S1-B2 M3 native simulation evidence, verification logs, and four-mesh comparison data",
   "files": {
     "artifact_audit.json": {
-      "archive_sha256": "48779a3f2ad44456690be98da9cd60ad08e7f888c66fa0587ded2a38006935f5",
-      "archive_bytes": 2993,
+      "archive_sha256": "3d0af8bf8e358dcca9f42eff1c0e467a89f6fec1c89ea0d1995f8b9c5be8437f",
+      "archive_bytes": 2892,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -192,11 +192,11 @@
       "original_bytes": null
     },
     "mesh_report.json": {
-      "archive_sha256": "b6bdcb9638b9aa8512984fc27e3cd25eadc8ce024e63f677d9d834154977b428",
-      "archive_bytes": 308977,
+      "archive_sha256": "13b7e9915df17afcb5d5313e227ef0c1efbd8dbbd2f3e903a7980ce833265b85",
+      "archive_bytes": 330310,
       "original_path": "runs/re100_s1b2_m3_20261105_verified/mesh_report.json",
-      "original_sha256": "b6bdcb9638b9aa8512984fc27e3cd25eadc8ce024e63f677d9d834154977b428",
-      "original_bytes": 308977
+      "original_sha256": "13b7e9915df17afcb5d5313e227ef0c1efbd8dbbd2f3e903a7980ce833265b85",
+      "original_bytes": 330310
     },
     "mesh_tests.txt": {
       "archive_sha256": "d847026e3eb49d8233bb659e80b5d2f3caf46f433ba6ae04316adcc5c3bdc127",

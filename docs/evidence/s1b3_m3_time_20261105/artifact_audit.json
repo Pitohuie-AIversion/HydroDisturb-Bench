@@ -1,0 +1,63 @@
+{
+  "stage": "S1-B3",
+  "study_type": "m3_internal_time_step_halving",
+  "target": "Identical M3 Native Mesh (34,752 elements, 88,483 DOFs)",
+  "baseline_settings": {
+    "case_id": "M3 (dt_max=0.05s)",
+    "mesh_model": "runs/re100_s1b2_m3_20261105_verified/re100_s1b2_m3_mesh.mph",
+    "solved_model": "runs/re100_s1b2_m3_20261105_verified/re100_s1b2_m3_solved.mph",
+    "rtol": 0.0001,
+    "maxstepconstraintbdf": "const",
+    "maxstepbdf": 0.05,
+    "internal_step_count": 4087,
+    "wall_clock_sec": 728.1
+  },
+  "halved_settings": {
+    "case_id": "M3 (dt_max=0.025s)",
+    "mesh_model": "runs/re100_s1b2_m3_20261105_verified/re100_s1b2_m3_mesh.mph",
+    "solved_model": "runs/re100_s1b3_m3_dt025_20261105_verified/re100_s1b3_m3_dt025_solved.mph",
+    "rtol": 0.0001,
+    "maxstepconstraintbdf": "const",
+    "maxstepbdf": 0.025,
+    "internal_step_count": 8065,
+    "wall_clock_sec": 1516.3
+  },
+  "mesh_invariance": {
+    "num_elements": 34752,
+    "num_vertices": 17910,
+    "rebuilt": false,
+    "identical_geometry_parameters_components": true
+  },
+  "physical_metrics_comparison": {
+    "St_zc": {
+      "baseline": 0.163699755,
+      "halved": 0.163803722,
+      "rel_diff_pct": 0.06351,
+      "threshold_pct": 1.0,
+      "status": "PASS"
+    },
+    "Cd_mean": {
+      "baseline": 1.365101445,
+      "halved": 1.365098616,
+      "rel_diff_pct": -0.000207,
+      "threshold_pct": 1.0,
+      "status": "PASS"
+    },
+    "Cl_amp": {
+      "baseline": 0.329649206,
+      "halved": 0.329816073,
+      "rel_diff_pct": 0.05062,
+      "threshold_pct": 1.0,
+      "status": "PASS"
+    },
+    "Cl_rms": {
+      "baseline": 0.233552003,
+      "halved": 0.233676358,
+      "rel_diff_pct": 0.053245,
+      "threshold_pct": 1.0,
+      "status": "PASS"
+    }
+  },
+  "acceptance_conclusion": "PASS",
+  "phase_can_close": true
+}
