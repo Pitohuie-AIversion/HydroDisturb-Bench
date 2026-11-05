@@ -116,29 +116,32 @@ Normalized by inflow velocity $U_\infty = 0.0100581\,\mathrm{m/s}$:
 
 ---
 
-## 6. Closure of Previous P2 Evidence Management Items
+## 6. Closure of Evidence Management Items (P1 & P2 Resolutions)
 
 1. **Manifest and File Hash Synchronization**:
    - Normalized text files in [`docs/evidence/s1b2_m3_20261105/`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b2_m3_20261105) to LF.
    - Updated `artifact_audit.json` (2,892 bytes, SHA-256 `3d0af8bf8e358dcca9f42eff1c0e467a89f6fec1c89ea0d1995f8b9c5be8437f`).
    - Updated `mesh_report.json` (330,310 bytes, SHA-256 `13b7e9915df17afcb5d5313e227ef0c1efbd8dbbd2f3e903a7980ce833265b85`).
    - Re-verified all 45 files against `evidence_manifest.json`: **0 mismatches (100% PASS)**.
-2. **Correct Test Markings & Evidence Separation**:
-   - Established that unit regression excluding live COMSOL tests strictly uses:
-     ```powershell
-     python -m pytest -q -m "not integration"
-     ```
-     Result: **245 passed, 30 deselected in 15.78s**.
-   - Live COMSOL integration tests verified via:
-     ```powershell
-     python -m pytest -v -m integration tests/test_comsol_integration.py
-     ```
-     Result: **4 passed in 119.14s**.
-   - Full test suite verified via:
-     ```powershell
-     python -m pytest -q
-     ```
-     Result: **275 passed in 311.83s**.
-   - Archived S1-B3 full regression log into [`docs/evidence/s1b3_m3_time_20261105/full_regression.txt`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/full_regression.txt) and unit regression into `unit_regression.txt`, keeping S1-B2 and S1-B3 test logs completely separated.
-3. **Protected Models Immutability**:
+   - S1-B3 primary manifest [`docs/evidence/s1b3_m3_time_20261105/evidence_manifest.json`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/evidence_manifest.json): **All 27 items 100% PASS**.
+
+2. **Raw Test Execution Outputs Recovered & Clarified**:
+   - Explicitly clarified that `full_regression.txt` and `unit_regression.txt` in `docs/evidence/s1b3_m3_time_20261105/` are structured summary overviews (annotated with `# [REVISED NOTE]`), rather than raw process stdout.
+   - Recovered exact stdout/stderr from background tasks directly into:
+     - [`docs/evidence/s1b3_m3_time_20261105/raw_task_6195_full_regression_stdout.txt`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/raw_task_6195_full_regression_stdout.txt) (Exit code 0, 275 passed in 311.83s).
+     - [`docs/evidence/s1b3_m3_time_20261105/raw_task_6153_unit_regression_stdout.txt`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/raw_task_6153_unit_regression_stdout.txt) (Exit code 0, 245 passed, 30 deselected in 15.78s).
+     - [`docs/evidence/s1b3_m3_time_20261105/raw_task_6160_comsol_integration_stdout.txt`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/raw_task_6160_comsol_integration_stdout.txt) (Exit code 0, 4 passed in 119.14s).
+   - In addition, executed the independent recapture protocol into a dedicated new directory:
+     [`docs/evidence/s1b3_tests_recaptured_20261105_153742/`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_tests_recaptured_20261105_153742)
+     Capturing real-time `Tee-Object` stdout, JUnit XML test suite reports (`full_regression.xml`, `m3_time.xml`, `related_modules.xml`), and exact `$LASTEXITCODE` files (`*.exitcode.txt` = `0`).
+
+3. **COMSOL Solver Log Extracted from JSON**:
+   - Because `*.log` is gitignored, the solver output was extracted directly from [`runs/re100_s1b3_m3_dt025_20261105_verified/solve_response.json`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/solve_response.json) into:
+     [`docs/evidence/s1b3_m3_time_20261105/solver_run.txt`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/solver_run.txt) (1,134,154 bytes, 16,720 lines of progress output).
+   - Explicitly noted as an exported copy of `solve_response.json["log"]`.
+
+4. **Audit Nature Disclaimer**:
+   - `artifact_audit.json` updated with an explicit disclaimer confirming it is an agent-compiled summary artifact of the stage execution, and that acceptance relies directly on `m3_time_report.json` and raw solver data.
+
+5. **Protected Models Immutability**:
    - SHA-256 hashes of all 11 baseline and historical `.mph` models were verified before and after execution: **100% unchanged**.

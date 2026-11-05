@@ -4,8 +4,8 @@
   "description": "S1-B3 M3 internal time-step halving cross-check evidence and verification logs",
   "files": {
     "artifact_audit.json": {
-      "archive_sha256": "4c8018924bd3252bbe00ba609ef68cfb3a0f7737d8959e07d0cd7735d66fa898",
-      "archive_bytes": 1825,
+      "archive_sha256": "a0dfb99b834f220f698301a2429bbbe791f2f368eb4cb3f46739f7cae40bf783",
+      "archive_bytes": 2114,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -13,27 +13,27 @@
     "baseline_m3_model_inspection.json": {
       "archive_sha256": "3d355fe0037aae70eb10ea37ef400fd26104cf5f9bdf28bce4c057f64132a3f3",
       "archive_bytes": 156103,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/baseline_m3_model_inspection.json",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/baseline_m3_model_inspection.json",
       "original_sha256": "0ffd9175969f837406be15a29ac8f8fe164dc207d205186c115560591fae294e",
       "original_bytes": 157452
     },
     "drag_coeff.txt": {
       "archive_sha256": "6eec8c37f680ffa927a8e5a075115559881d28707ab5a0b03ef3c6c26e77f2aa",
       "archive_bytes": 45073,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/drag_coeff.txt",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/drag_coeff.txt",
       "original_sha256": "5196b512f554b97ddbacbb6d01b9fd2d7f9fb2395b69989325874d9e224902ea",
       "original_bytes": 46082
     },
     "export_response.json": {
       "archive_sha256": "1202581cfb98edbdca20c4333a02d94dd57b01c705dc6c8de41c5fa09ac0b7f1",
       "archive_bytes": 20700,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/export_response.json",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/export_response.json",
       "original_sha256": "5db4dc1e322c2674bbb6d24e55b14c63a23d6079b7274d56680ca06532ab8b99",
       "original_bytes": 20847
     },
     "full_regression.txt": {
-      "archive_sha256": "3414806c1779e14244adb83459fe7e07d55874a96e1116ba6d6f1dfacd4f0bc8",
-      "archive_bytes": 634,
+      "archive_sha256": "fea0186356cd42dd0166568b5fe1ee01b2653c428516aa853ea3c07f4d5ef7c1",
+      "archive_bytes": 882,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -41,76 +41,104 @@
     "halved_m3_model_inspection.json": {
       "archive_sha256": "f053538e5d380b7afd24953bcb5e3ed3e2f5122d673f179fcb83aee544efb509",
       "archive_bytes": 156132,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/halved_m3_model_inspection.json",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/halved_m3_model_inspection.json",
       "original_sha256": "dc5ca0f2ce3cd90f499a7db7988d1f900f1f7d879c6d7b9ae6351a92900d92d0",
       "original_bytes": 157481
     },
     "inlet_p.txt": {
       "archive_sha256": "7876c5beaa6395d99bffd33420b3bf82b45ba6e718fc5369a5b8adf72f4fdb62",
       "archive_bytes": 47468,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/inlet_p.txt",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/inlet_p.txt",
       "original_sha256": "9fc10b32ae1fd781b701e2c7a574faa838648b065dd9619192b9c97314c97fae",
       "original_bytes": 48477
     },
     "inlet_u.txt": {
       "archive_sha256": "51a0016155d5bbcea137508efac99542e5e700208c57a0cc838ca0ec40baf26a",
       "archive_bytes": 47323,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/inlet_u.txt",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/inlet_u.txt",
       "original_sha256": "1a8f410f6bee244e4f27bb6d71fdf488014236b02898b522e8633c617b3785e1",
       "original_bytes": 48332
     },
     "lift_coeff.txt": {
       "archive_sha256": "2d062a580697f10c669bad6f97c8ca1fbcb88734a99995a583ef05e43d0555f6",
       "archive_bytes": 46884,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/lift_coeff.txt",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/lift_coeff.txt",
       "original_sha256": "98c0b9ad0028b34e26e7a4a5d0b5ea419d45b4277abffa47fdd66e49bfc040e3",
       "original_bytes": 47893
     },
     "m3_time_lift_drag_overlay.png": {
       "archive_sha256": "155ebddacfda8e6ab867ded850dda003fa11030a91164513b22709306370be68",
       "archive_bytes": 358780,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/m3_time_lift_drag_overlay.png",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/m3_time_lift_drag_overlay.png",
       "original_sha256": "155ebddacfda8e6ab867ded850dda003fa11030a91164513b22709306370be68",
       "original_bytes": 358780
     },
     "m3_time_report.json": {
       "archive_sha256": "b000f7860d63aa9f3be3ea13aad1daa6c2447b1dae5bfa56249607134c224593",
       "archive_bytes": 32189,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/m3_time_report.json",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/m3_time_report.json",
       "original_sha256": "11ca70d173980609efc07df07715f64dde3389179c2d3724668d3497ea8fe093",
       "original_bytes": 33070
     },
     "m3_time_wake_overlay.png": {
       "archive_sha256": "146a5a43e6e39824c6a7204afc4174322a90f5038e9ff01c5571e26d8762355f",
       "archive_bytes": 372117,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/m3_time_wake_overlay.png",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/m3_time_wake_overlay.png",
       "original_sha256": "146a5a43e6e39824c6a7204afc4174322a90f5038e9ff01c5571e26d8762355f",
       "original_bytes": 372117
+    },
+    "raw_task_6153_unit_regression_stdout.txt": {
+      "archive_sha256": "5548e3a8f8f3e7d60a6ed55b6640c0433791ec588a7a1babbb7fdd86e164886a",
+      "archive_bytes": 595,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
+    },
+    "raw_task_6160_comsol_integration_stdout.txt": {
+      "archive_sha256": "936330d4d993e8839c198b41e11f24b4e361783bbb583ec33e205e894cb14420",
+      "archive_bytes": 1103,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
+    },
+    "raw_task_6195_full_regression_stdout.txt": {
+      "archive_sha256": "4c7f26f28c026c34d11a72adf293d9171b48e66fa30fe4b7ff34a5f944300abb",
+      "archive_bytes": 570,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "solve_response.json": {
       "archive_sha256": "ec213080c7099b515ed0950fe568f51e544366c8bb048be1f3153c2d82bfe088",
       "archive_bytes": 1135187,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/solve_response.json",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/solve_response.json",
       "original_sha256": "5b61c070b14709bfb9baf99dcfc41939cb2d6101e8f100eae2f6dd8f31db2029",
       "original_bytes": 1135220
     },
     "solver_metadata.json": {
       "archive_sha256": "ca75277593fcd46c05f6db3cc68356b8f3dbe724fccd8f4e64f60086bd29016e",
       "archive_bytes": 1586,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/solver_metadata.json",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/solver_metadata.json",
       "original_sha256": "3f03e1c8d401834b35091709669a1ec9f7976f641109236427c80bb5893812b6",
       "original_bytes": 1635
+    },
+    "solver_run.txt": {
+      "archive_sha256": "4db39451e064d4929c187c0dddecba46d5af44fb0bfe7d03f82846879487fdd6",
+      "archive_bytes": 1134154,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "stag_p.txt": {
       "archive_sha256": "ea3ed3aacb1a16cdac477228e3cb1a2f5ce5e64fbb402d6a02af6f0cb87f20a1",
       "archive_bytes": 46523,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/stag_p.txt",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/stag_p.txt",
       "original_sha256": "a6241187274de17f7a06abbf8e3811e29b97f41112b0882a979e7fafeccefe23",
       "original_bytes": 47532
     },
     "unit_regression.txt": {
-      "archive_sha256": "faf43c11655d1ad9d98e03f5531ac699d1de9bf5484d17558040371ed0971e12",
-      "archive_bytes": 669,
+      "archive_sha256": "e512693272f04cca4dd6eabac445d40459c22f8986ee3b77e7a0a010e008c2e7",
+      "archive_bytes": 928,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -118,49 +146,49 @@
     "vorticity_t100s_comsol.png": {
       "archive_sha256": "fd2b9c3cfdf5d86fb70917885f13b46b0d208e58931ea8b6006b8e595f29ab62",
       "archive_bytes": 196235,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t100s_comsol.png",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t100s_comsol.png",
       "original_sha256": "fd2b9c3cfdf5d86fb70917885f13b46b0d208e58931ea8b6006b8e595f29ab62",
       "original_bytes": 196235
     },
     "vorticity_t10s_comsol.png": {
       "archive_sha256": "04d57335cd23556e588597d9bf065dbbba957998cfa62ee90d17ab80c36cf5e9",
       "archive_bytes": 79434,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t10s_comsol.png",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t10s_comsol.png",
       "original_sha256": "04d57335cd23556e588597d9bf065dbbba957998cfa62ee90d17ab80c36cf5e9",
       "original_bytes": 79434
     },
     "vorticity_t195s_comsol.png": {
       "archive_sha256": "72a65e03bc6c574c43f38f1b248be7e27dda0c917265b99d214844491f3a70f3",
       "archive_bytes": 196288,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t195s_comsol.png",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t195s_comsol.png",
       "original_sha256": "72a65e03bc6c574c43f38f1b248be7e27dda0c917265b99d214844491f3a70f3",
       "original_bytes": 196288
     },
     "vorticity_t200s_comsol.png": {
       "archive_sha256": "fc1a0fef4150143c4accca597c7a399e81b82e1130cfbeed32aa96cc539202bc",
       "archive_bytes": 196025,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t200s_comsol.png",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t200s_comsol.png",
       "original_sha256": "fc1a0fef4150143c4accca597c7a399e81b82e1130cfbeed32aa96cc539202bc",
       "original_bytes": 196025
     },
     "vorticity_t40s_comsol.png": {
       "archive_sha256": "27817acebbdab3ac88af1cd7ee481c9f3d01fea3703ec6bd5323e5d2da1ab57b",
       "archive_bytes": 161206,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t40s_comsol.png",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/vorticity_t40s_comsol.png",
       "original_sha256": "27817acebbdab3ac88af1cd7ee481c9f3d01fea3703ec6bd5323e5d2da1ab57b",
       "original_bytes": 161206
     },
     "wake_u.txt": {
       "archive_sha256": "73d5b2f44a2ede3279e96fde649c0cb394e67026dce16ae89e53533536efb59b",
       "archive_bytes": 47484,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/wake_u.txt",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/wake_u.txt",
       "original_sha256": "48e75dea331a725f449f44f99f01a164fe92d2c4bbf69ef87a9c91c6acb89ddc",
       "original_bytes": 48493
     },
     "wake_v.txt": {
       "archive_sha256": "8bb80be480cb2197d13ff163bf81c66c98bf50f62da10b579310125b641173f2",
       "archive_bytes": 48096,
-      "original_path": "runs/re100_s1b3_m3_dt025_20261105_verified/wake_v.txt",
+      "original_path": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/wake_v.txt",
       "original_sha256": "b66772ec09d49614589deee6d0a75d8d8553eced08aaf2f306f4d6c5943abb88",
       "original_bytes": 49105
     }

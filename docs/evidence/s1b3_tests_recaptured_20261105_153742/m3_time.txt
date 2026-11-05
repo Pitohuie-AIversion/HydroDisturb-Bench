@@ -1,0 +1,24 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 13 items
+
+tests/test_re100_s1b3_m3_time.py::test_m3_time_check_step_log_accepts_valid_log PASSED [  7%]
+tests/test_re100_s1b3_m3_time.py::test_m3_time_check_step_log_rejects_faults[exceed_cap] PASSED [ 15%]
+tests/test_re100_s1b3_m3_time.py::test_m3_time_check_step_log_rejects_faults[gap_id] PASSED [ 23%]
+tests/test_re100_s1b3_m3_time.py::test_m3_time_check_step_log_rejects_faults[duplicate_id] PASSED [ 30%]
+tests/test_re100_s1b3_m3_time.py::test_m3_time_check_step_log_rejects_faults[time_reversal] PASSED [ 38%]
+tests/test_re100_s1b3_m3_time.py::test_m3_time_check_step_log_rejects_faults[early_stop] PASSED [ 46%]
+tests/test_re100_s1b3_m3_time.py::test_classify_m3_time_comparison_passes_when_within_one_percent PASSED [ 53%]
+tests/test_re100_s1b3_m3_time.py::test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[St_zc_mean] PASSED [ 61%]
+tests/test_re100_s1b3_m3_time.py::test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[Cd_mean] PASSED [ 69%]
+tests/test_re100_s1b3_m3_time.py::test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[Cl_amp_mean] PASSED [ 76%]
+tests/test_re100_s1b3_m3_time.py::test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[Cl_demeaned_rms] PASSED [ 84%]
+tests/test_re100_s1b3_m3_time.py::test_classify_m3_time_comparison_requires_at_least_five_cycles PASSED [ 92%]
+tests/test_re100_s1b3_m3_time.py::test_check_settings_verifies_m3_mesh_and_rtol_invariance PASSED [100%]
+
+- generated xml file: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\s1b3_tests_recaptured_20261105_153742\\m3_time.xml -
+============================= 13 passed in 1.06s ==============================

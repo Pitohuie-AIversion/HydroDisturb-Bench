@@ -59,5 +59,6 @@
     }
   },
   "acceptance_conclusion": "PASS",
-  "phase_can_close": true
+  "phase_can_close": true,
+  "audit_nature_disclaimer": "This document is an agent-compiled summary artifact of the stage execution, not an independent re-audit. Acceptance and conclusions rely directly on m3_time_report.json and raw solver outputs."
 }
