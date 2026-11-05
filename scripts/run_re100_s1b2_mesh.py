@@ -1,7 +1,7 @@
-"""Compare accepted Case C (M0) with one native COMSOL mesh refinement (M1).
+"""Compare accepted Case C (M0) with native COMSOL mesh refinements (M1 at h0/1.4, M2 at h0/1.96).
 
-M0 is read only. The comparison is preliminary mesh sensitivity and cannot
-establish grid independence from two meshes.
+M0 and M1 are read only when running M2. Each refinement is built directly from M0
+in an isolated copy without double-applying the refinement factor onto M1.
 """
 
 from __future__ import annotations
@@ -39,7 +39,11 @@ from scripts.verify_s1b1_prechecks import run_prechecks
 
 M0_DIR = ROOT / "runs/re100_s1b1_case_c_20261104_verified"
 M0_MODEL = M0_DIR / "re100_s1b1_case_c_solved.mph"
+M1_DIR = ROOT / "runs/re100_s1b2_m1_20261105_verified"
+M1_MODEL = M1_DIR / "re100_s1b2_m1_solved.mph"
 DEFAULT_PLAN = ROOT / "configs/re100_s1b2_m1.json"
+M2_PLAN = ROOT / "configs/re100_s1b2_m2.json"
+SUPPORTED_MESH_LEVELS = {"M1": 1.4, "M2": 1.96}
 PROTECTED_PATHS = (
     ROOT / "case/cylinder_flow.mph",
     ROOT / "models/cylinder_2d/re100_benchmark.mph",
@@ -50,10 +54,13 @@ PROTECTED_PATHS = (
     ROOT / "runs/re100_s1b1_dt005_tol1e4",
     M0_DIR,
     ROOT / "runs/re100_s1b1_case_d_20261104_verified",
+    M1_DIR,
     ROOT / "docs/UNIT_SOURCE_CASE_C_VERIFIED_20261104.md",
     ROOT / "docs/STAGE_S1B1_CASE_D_20261104.md",
+    ROOT / "docs/STAGE_S1B2_M1_20261105.md",
     ROOT / "docs/evidence/unit_source_verified_20261104",
     ROOT / "docs/evidence/case_d_20261104",
+    ROOT / "docs/evidence/s1b2_m1_20261105",
 )
 
 
@@ -176,12 +183,32 @@ def _native_equal(a: object, b: object) -> bool:
     return a == b
 
 
+def _plan_level_and_factor(plan: dict) -> tuple[str, float]:
+    """Resolve and validate the mesh refinement level (M1 at h0/1.4 or M2 at h0/1.96)."""
+    source_case = plan.get("source_case")
+    if source_case is not None and source_case != "Case C / M0":
+        raise RuntimeError("Refinement plan must use Case C / M0 as source_case; never refine cumulatively from M1")
+    factor = plan.get("refinement_factor")
+    if isinstance(factor, bool) or not isinstance(factor, (int, float)) or not math.isfinite(factor):
+        raise RuntimeError("Refinement plan requires a finite numeric refinement_factor")
+    level = plan.get("mesh_level")
+    if level is None:
+        for candidate_level, candidate_factor in SUPPORTED_MESH_LEVELS.items():
+            if _native_equal(float(factor), candidate_factor):
+                return candidate_level, candidate_factor
+        raise RuntimeError("Supported mesh refinement factors are 1.4 (M1) and 1.96 (M2) relative to M0")
+    if level not in SUPPORTED_MESH_LEVELS or not _native_equal(float(factor), SUPPORTED_MESH_LEVELS[level]):
+        raise RuntimeError(f"Unsupported or mismatched mesh_level={level!r} and refinement_factor={factor!r}")
+    return level, SUPPORTED_MESH_LEVELS[level]
+
+
 def validate_refinement_plan(before: dict, plan: dict) -> dict:
-    """Bind the explicit Size-only h/1.4 plan to the measured source model and controls."""
+    """Bind the explicit Size-only h0/factor plan to the measured M0 source model and controls."""
     if not plan.get("source_sha256") or plan["source_sha256"].lower() != before["sha256"].lower():
         raise RuntimeError("Refinement plan source SHA-256 does not match the inspected M0 model")
-    if plan.get("refinement_factor") != 1.4 or not plan.get("changes"):
-        raise RuntimeError("M1 requires an explicit nonempty h/1.4 refinement plan")
+    level, factor = _plan_level_and_factor(plan)
+    if not plan.get("changes"):
+        raise RuntimeError(f"{level} requires an explicit nonempty h/{factor:g} refinement plan")
     mesh = _native_mesh(before, plan["component_tag"], plan["mesh_tag"])
     seen, length_changes = set(), 0
     for change in plan["changes"]:
@@ -202,8 +229,8 @@ def validate_refinement_plan(before: dict, plan: dict) -> dict:
             old, new = change["before"], change["after"]
             if isinstance(old, bool) or isinstance(new, bool) or not isinstance(old, (int, float)) or not isinstance(new, (int, float)):
                 raise RuntimeError("Native Size lengths must be numeric SI readbacks")
-            if not math.isfinite(old) or not math.isfinite(new) or old <= 0 or new <= 0 or not _native_equal(new, old / 1.4):
-                raise RuntimeError("Size length change must equal the measured length divided by 1.4")
+            if not math.isfinite(old) or not math.isfinite(new) or old <= 0 or new <= 0 or not _native_equal(new, old / factor):
+                raise RuntimeError(f"Size length change must equal the measured length divided by {factor:g}")
             length_changes += 1
     if not length_changes:
         raise RuntimeError("A refinement plan must change native mesh lengths")
@@ -241,8 +268,12 @@ def _validate_native_statistics(mesh: dict) -> None:
             raise RuntimeError("Invalid actual native element connectivity")
 
 
-def check_mesh_refinement(before: dict, after: dict, plan: dict) -> dict:
+def check_mesh_refinement(
+    before: dict, after: dict, plan: dict, *, prior_refined: dict | None = None,
+) -> dict:
     """Verify the actual rebuilt mesh and all readable controls against the explicit plan."""
+    level, _ = _plan_level_and_factor(plan)
+    level_key = level.lower()
     a = validate_refinement_plan(before, plan)
     b = _native_mesh(after, plan["component_tag"], plan["mesh_tag"])
     for mesh in (a, b):
@@ -255,6 +286,18 @@ def check_mesh_refinement(before: dict, after: dict, plan: dict) -> dict:
         raise RuntimeError("Mesh quality measure changed")
     if not before.get("non_mesh") or before["non_mesh"] != after.get("non_mesh"):
         raise RuntimeError("Native non-mesh geometry/physics/material settings changed or are missing")
+    prior_mesh = None
+    if prior_refined is not None:
+        prior_mesh = _native_mesh(prior_refined, plan["component_tag"], plan["mesh_tag"])
+        _validate_native_statistics(prior_mesh)
+        if b["num_elem"] <= prior_mesh["num_elem"] or b["num_vertex"] <= prior_mesh["num_vertex"]:
+            raise RuntimeError(f"Actual {level} native mesh element and vertex counts must exceed M1")
+        if prior_mesh["vertices"] == b["vertices"] or prior_mesh["elements"] == b["elements"]:
+            raise RuntimeError(f"Native {level} mesh geometry/connectivity did not change relative to M1")
+        if prior_mesh["quality"]["measure"] != b["quality"]["measure"]:
+            raise RuntimeError("Mesh quality measure changed relative to M1")
+        if not prior_refined.get("non_mesh") or before["non_mesh"] != prior_refined.get("non_mesh"):
+            raise RuntimeError("M1 native non-mesh geometry/physics/material settings do not match M0")
     expected, actual = deepcopy(before["components"]), deepcopy(after["components"])
     expected_mesh = _native_mesh({"components": expected}, plan["component_tag"], plan["mesh_tag"])
     actual_mesh = _native_mesh({"components": actual}, plan["component_tag"], plan["mesh_tag"])
@@ -276,16 +319,16 @@ def check_mesh_refinement(before: dict, after: dict, plan: dict) -> dict:
                 derived.append({"mesh": mesh_label, "path": node["path"], "inactive_defaults": values})
             remove_generated(node.get("features", []), mesh_label)
 
-    for mesh, label in ((expected_mesh, "m0"), (actual_mesh, "m1")):
+    for mesh, label in ((expected_mesh, "m0"), (actual_mesh, level_key)):
         for key in ("num_elem", "num_vertex", "quality", "area", "vertices", "elements"):
             mesh.pop(key)
         remove_generated(mesh["features"], label)
     if expected != actual:
         raise RuntimeError("Unplanned native mesh control, selection or feature change")
-    return {
-        "status": "PASS", "source_sha256": before["sha256"], "plan": plan,
+    result = {
+        "status": "PASS", "mesh_level": level, "source_sha256": before["sha256"], "plan": plan,
         "m0": {key: a[key] for key in ("num_elem", "num_vertex", "quality", "area")},
-        "m1": {key: b[key] for key in ("num_elem", "num_vertex", "quality", "area")},
+        level_key: {key: b[key] for key in ("num_elem", "num_vertex", "quality", "area")},
         "element_count_ratio": b["num_elem"] / a["num_elem"],
         "equivalent_h_ratio_from_counts": math.sqrt(a["num_elem"] / b["num_elem"]),
         "native_non_mesh_equal": True,
@@ -293,6 +336,11 @@ def check_mesh_refinement(before: dict, after: dict, plan: dict) -> dict:
         "derived_inactive_defaults": derived,
         "readback_limits": "Only readable native properties are compared; unreadable-property records remain in raw evidence. Inactive blhmin/blhtot defaults in blhminfact mode are not measured first-layer height or total thickness.",
     }
+    if prior_mesh is not None and level != "M1":
+        result["m1"] = {key: prior_mesh[key] for key in ("num_elem", "num_vertex", "quality", "area")}
+        result["m1_to_m2_element_count_ratio"] = b["num_elem"] / prior_mesh["num_elem"]
+        result["m1_to_m2_equivalent_h_ratio_from_counts"] = math.sqrt(prior_mesh["num_elem"] / b["num_elem"])
+    return result
 
 
 def _distribution(values: list[float] | np.ndarray) -> dict | None:
@@ -421,6 +469,121 @@ def classify_comparison(stats_m0: dict, stats_m1: dict) -> dict:
     return comparison
 
 
+def classify_three_mesh_comparison(stats_m0: dict, stats_m1: dict, stats_m2: dict) -> dict:
+    """Compare M0/M1/M2 using M1/M2 as the primary adjacent 1% gate while retaining three-level trends."""
+    meshes = (stats_m0, stats_m1, stats_m2)
+    if any(stats.get("num_cycles", 0) < 5 for stats in meshes):
+        return {
+            "can_compare": False,
+            "conclusion": "INSUFFICIENT_CYCLES",
+            "acceptance_status": "INSUFFICIENT_CYCLES",
+            "message": "M0/M1/M2 comparison requires at least five stable complete cycles per mesh",
+            "case_m0": stats_m0,
+            "case_m1": stats_m1,
+            "case_m2": stats_m2,
+            "case_a": stats_m1,
+            "case_b": stats_m2,
+            "adjacent_m1_m2_within_1pct": False,
+            "all_primary_deltas_reduced": False,
+            "mesh_independence_established": False,
+            "grid_independence_phase_can_close": False,
+            "scientific_summary": (
+                "Three-mesh M0/M1/M2 study cannot compare accuracy because at least one mesh "
+                "has fewer than five complete cycles."
+            ),
+        }
+    if not all(stats.get("is_stable", False) for stats in meshes):
+        primary = compare_cases(stats_m1, stats_m2)
+        primary.update(
+            can_compare=False,
+            conclusion="UNSTABLE",
+            acceptance_status="UNSTABLE",
+            message="M0/M1/M2 comparison requires all three meshes to pass the late-window periodic stability gate",
+            case_m0=stats_m0,
+            case_m1=stats_m1,
+            case_m2=stats_m2,
+            adjacent_m1_m2_within_1pct=False,
+            all_primary_deltas_reduced=False,
+            mesh_independence_established=False,
+            grid_independence_phase_can_close=False,
+            scientific_summary=(
+                "Three-mesh M0/M1/M2 study halted at periodic stability check before accuracy comparison."
+            ),
+        )
+        return primary
+
+    m0_vs_m1 = compare_cases(stats_m0, stats_m1)
+    m1_vs_m2 = compare_cases(stats_m1, stats_m2)
+    m0_vs_m2 = compare_cases(stats_m0, stats_m2)
+    metric_fields = {
+        "St_zc": ("St_zc_mean", "st_tol_pct"),
+        "Cd_mean": ("Cd_mean", "cd_tol_pct"),
+        "Cl_amp": ("Cl_amp_mean", "amp_tol_pct"),
+        "Cl_rms": ("Cl_demeaned_rms", "rms_tol_pct"),
+    }
+    trends = {}
+    for key, (field, tol_key) in metric_fields.items():
+        q0, q1, q2 = float(stats_m0[field]), float(stats_m1[field]), float(stats_m2[field])
+        d01, d12, d02 = q1 - q0, q2 - q1, q2 - q0
+        r01 = (d01 / abs(q0)) * 100.0
+        r12 = (d12 / abs(q1)) * 100.0
+        r02 = (d02 / abs(q0)) * 100.0
+        tol_pct = float(m1_vs_m2["thresholds_pct"][tol_key])
+        if d01 * d12 > 0:
+            direction = "monotonic"
+        elif d01 == 0.0 or d12 == 0.0:
+            direction = "unchanged"
+        else:
+            direction = "reversing"
+        trends[key] = {
+            "m0": q0,
+            "m1": q1,
+            "m2": q2,
+            "delta_01": d01,
+            "signed_rel_diff_01_pct": r01,
+            "abs_rel_diff_01_pct": abs(r01),
+            "delta_12": d12,
+            "signed_rel_diff_12_pct": r12,
+            "abs_rel_diff_12_pct": abs(r12),
+            "delta_02": d02,
+            "signed_rel_diff_02_pct": r02,
+            "abs_rel_diff_02_pct": abs(r02),
+            "abs_delta_reduced": abs(d12) < abs(d01),
+            "abs_rel_diff_reduced": abs(r12) < abs(r01),
+            "direction": direction,
+            "threshold_pct": tol_pct,
+            "within_1pct_m0_m1": abs(r01) <= tol_pct,
+            "within_1pct_m1_m2": abs(r12) <= tol_pct,
+        }
+    adjacent_ok = m1_vs_m2["conclusion"] == "INSENSITIVE_WITHIN_TESTED_RANGE"
+    all_reduced = all(item["abs_rel_diff_reduced"] for item in trends.values())
+    acceptance = "PASS" if adjacent_ok else "SENSITIVE"
+    result = deepcopy(m1_vs_m2)
+    result.update(
+        primary_pair="M1_vs_M2",
+        acceptance_status=acceptance,
+        case_m0=stats_m0,
+        case_m1=stats_m1,
+        case_m2=stats_m2,
+        m0_vs_m1=m0_vs_m1,
+        m1_vs_m2=m1_vs_m2,
+        m0_vs_m2=m0_vs_m2,
+        three_mesh_trends=trends,
+        adjacent_m1_m2_within_1pct=adjacent_ok,
+        all_primary_deltas_reduced=all_reduced,
+        mesh_independence_established=False,
+        grid_independence_phase_can_close=bool(adjacent_ok and all_reduced),
+        scientific_summary=(
+            "Three-mesh M0/M1/M2 native-mesh sensitivity at unchanged rtol=1e-4 and const maximum "
+            "internal time step 0.05 s, with M1/M2 as the primary adjacent 1% gate: "
+            + m1_vs_m2["conclusion"]
+            + ". Non-uniform unstructured mesh scaling does not establish a formal asymptotic GCI or "
+            "an exact-solution error bound; three-level trends are reported directly without extrapolation."
+        ),
+    )
+    return result
+
+
 def analyze_wake(trial_dir: Path, window: list[float], u_inf: float) -> dict:
     """Integrate verified SI probe channels over the same case's exact lift-cycle window."""
     if not math.isfinite(u_inf) or u_inf <= 0:
@@ -471,6 +634,47 @@ def compare_wake_statistics(wake_m0: dict, wake_m1: dict) -> dict:
     return result
 
 
+def compare_three_wake_statistics(wake_m0: dict, wake_m1: dict, wake_m2: dict) -> dict:
+    """Normalize M0/M1/M2 wake probe differences by freestream speed (diagnostic only)."""
+    m0_vs_m1 = compare_wake_statistics(wake_m0, wake_m1)
+    m1_vs_m2 = compare_wake_statistics(wake_m1, wake_m2)
+    m0_vs_m2 = compare_wake_statistics(wake_m0, wake_m2)
+    u_inf = wake_m0["u_inf_m_s"]
+    channels = {}
+    for channel in ("u", "v"):
+        c01 = m0_vs_m1["channels"][channel]
+        c12 = m1_vs_m2["channels"][channel]
+        c02 = m0_vs_m2["channels"][channel]
+        channels[channel] = {
+            "m0": wake_m0["channels"][channel],
+            "m1": wake_m1["channels"][channel],
+            "m2": wake_m2["channels"][channel],
+            "delta_01_mean_m_s": c01["delta_mean_m_s"],
+            "delta_01_rms_m_s": c01["delta_rms_m_s"],
+            "delta_01_mean_over_u_inf": c01["delta_mean_over_u_inf"],
+            "delta_01_rms_over_u_inf": c01["delta_rms_over_u_inf"],
+            "delta_12_mean_m_s": c12["delta_mean_m_s"],
+            "delta_12_rms_m_s": c12["delta_rms_m_s"],
+            "delta_12_mean_over_u_inf": c12["delta_mean_over_u_inf"],
+            "delta_12_rms_over_u_inf": c12["delta_rms_over_u_inf"],
+            "delta_02_mean_m_s": c02["delta_mean_m_s"],
+            "delta_02_rms_m_s": c02["delta_rms_m_s"],
+            "delta_02_mean_over_u_inf": c02["delta_mean_over_u_inf"],
+            "delta_02_rms_over_u_inf": c02["delta_rms_over_u_inf"],
+        }
+    return {
+        "normalization": "U_inf",
+        "u_inf_m_s": u_inf,
+        "diagnostic_only": True,
+        "mesh_independence_established": False,
+        "windows": {"m0": wake_m0["window"], "m1": wake_m1["window"], "m2": wake_m2["window"]},
+        "m0_vs_m1": m0_vs_m1,
+        "m1_vs_m2": m1_vs_m2,
+        "m0_vs_m2": m0_vs_m2,
+        "channels": channels,
+    }
+
+
 def _check_solution_stats(stats: dict) -> None:
     if (stats.get("has_nan_or_inf") is not False or stats.get("has_physical_field") is not True
             or stats.get("num_timesteps") != 1001 or stats.get("time_min") != 0.0
@@ -478,66 +682,150 @@ def _check_solution_stats(stats: dict) -> None:
         raise RuntimeError("Solution must contain finite physical fields and 1001 output times over 0–200 s")
 
 
+def _load_accepted_m1_reference(
+    output_dir: Path, report: dict, tree_m0: dict, native_m0: dict, pre_m0: dict, m0_dofs: int,
+    *, precheck_subdir: str = "precheck_m1",
+) -> tuple[dict, dict, dict, dict]:
+    """Read and verify the accepted M1 reference artifacts without re-solving M1."""
+    print("Reading accepted M1 reference; no M1 solve...", flush=True)
+    tree_m1 = inspect_model(M1_MODEL)
+    native_m1 = inspect_native_mesh(M1_MODEL)
+    save_json(output_dir / "m1_model_inspection.json", tree_m1)
+    save_json(output_dir / "m1_native_mesh.json", native_m1)
+    m1_plan = json.loads(DEFAULT_PLAN.read_text(encoding="utf-8"))
+    check_mesh_refinement(native_m0, native_m1, m1_plan)
+    pre_m1 = run_prechecks(
+        model_path=M1_MODEL, wake_u_path=M1_DIR / "wake_u.txt",
+        wake_v_path=M1_DIR / "wake_v.txt", output_dir=output_dir / precheck_subdir,
+    )
+    report["m1_prechecks"] = pre_m1
+    if pre_m1["overall_prechecks_status"] != "PASS":
+        raise RuntimeError("Accepted M1 prechecks failed; M2 was not started")
+    check_invariants(pre_m0["precheck_b_solver_model"], pre_m1["precheck_b_solver_model"], tree_m0, tree_m1)
+    m1_response = json.loads((M1_DIR / "solve_response.json").read_text(encoding="utf-8"))
+    if m1_response["output_sha256"].lower() != native_m1["sha256"].lower():
+        raise RuntimeError("Accepted M1 solution statistics are not bound to the inspected M1 model hash")
+    _check_solution_stats(m1_response["solution_stats"])
+    if m1_response["solution_stats"]["num_dofs"] <= m0_dofs:
+        raise RuntimeError("Accepted M1 solution must have more DOFs than M0")
+    stats_m1 = analyze_case("M1 (native mesh h/1.4)", M1_DIR)
+    if not classify_comparison(stats_m1, stats_m1)["can_compare"]:
+        raise RuntimeError("Accepted M1 must pass the five-complete-cycle stability gate before M2")
+    report["m1_mesh_summary"] = summarize_native_mesh(native_m1, tree_m1)
+    report["m1_solution_stats"] = m1_response["solution_stats"]
+    report["m1_solution_stats_source"] = {
+        "path": str(M1_DIR / "solve_response.json"),
+        "model_sha256": m1_response["output_sha256"],
+        "readback_scope": "Previously executed accepted M1 solve response, bound to current M1 model SHA-256; M1 is not solved again.",
+    }
+    return tree_m1, native_m1, pre_m1, stats_m1
+
+
 def _finish_postprocess(
     output_dir: Path, report: dict, solution: dict, elapsed: float | str,
     tree_m0: dict, native_m0: dict, native_prepared: dict, pre_m0: dict, stats_m0: dict,
+    *, m1_context: tuple[dict, dict, dict, dict] | None = None,
 ) -> dict:
-    """Export and verify one already solved M1; this helper never builds or solves."""
+    """Export and verify one already solved M1 or M2; this helper never builds or solves."""
     plan = report["refinement_plan"]
-    prepared = output_dir / "re100_s1b2_m1_mesh.mph"
-    solved = output_dir / "re100_s1b2_m1_solved.mph"
-    export_response = export_s1_diagnostics(model_path=solved, output_dir=output_dir,
+    level, factor = _plan_level_and_factor(plan)
+    level_key = level.lower()
+    prepared = output_dir / f"re100_s1b2_{level_key}_mesh.mph"
+    solved = output_dir / f"re100_s1b2_{level_key}_solved.mph"
+    export_response = export_s1_diagnostics(
+        model_path=solved, output_dir=output_dir,
         expected_steps=1001, expected_dt=0.20, expected_t_final=200.0,
-        snapshot_times=[10.0, 40.0, 100.0, 195.0, 200.0], allow_overwrite=False)
+        snapshot_times=[10.0, 40.0, 100.0, 195.0, 200.0], allow_overwrite=False,
+    )
     save_json(output_dir / "export_response.json", export_response)
-    pre_m1 = run_prechecks(model_path=solved, wake_u_path=output_dir / "wake_u.txt",
-                          wake_v_path=output_dir / "wake_v.txt", output_dir=output_dir / "precheck_m1")
-    report["m1_prechecks"] = pre_m1
-    if pre_m1["overall_prechecks_status"] != "PASS":
-        raise RuntimeError("M1 strict unit/probe prechecks failed")
-    tree_m1 = inspect_model(solved)
-    native_m1 = inspect_native_mesh(solved)
-    save_json(output_dir / "m1_model_inspection.json", tree_m1)
-    save_json(output_dir / "m1_native_mesh.json", native_m1)
+    pre_target = run_prechecks(
+        model_path=solved, wake_u_path=output_dir / "wake_u.txt",
+        wake_v_path=output_dir / "wake_v.txt", output_dir=output_dir / f"precheck_{level_key}",
+    )
+    report[f"{level_key}_prechecks"] = pre_target
+    if pre_target["overall_prechecks_status"] != "PASS":
+        raise RuntimeError(f"{level} strict unit/probe prechecks failed")
+    tree_target = inspect_model(solved)
+    native_target = inspect_native_mesh(solved)
+    save_json(output_dir / f"{level_key}_model_inspection.json", tree_target)
+    save_json(output_dir / f"{level_key}_native_mesh.json", native_target)
     if (solution["source_sha256"].lower() != native_prepared["sha256"].lower()
-            or solution["output_sha256"].lower() != native_m1["sha256"].lower()):
-        raise RuntimeError("M1 solve hash chain does not match prepared mesh and solved model")
-    report["native_mesh_comparison"] = check_mesh_refinement(native_m0, native_m1, plan)
-    if native_prepared["components"] != native_m1["components"]:
-        raise RuntimeError("M1 native mesh changed between preparation and solve")
-    report["settings_comparison"] = check_invariants(pre_m0["precheck_b_solver_model"],
-                                                    pre_m1["precheck_b_solver_model"], tree_m0, tree_m1)
-    report["m1_mesh_summary"] = summarize_native_mesh(native_m1, tree_m1)
-    save_json(output_dir / "solver_metadata.json", {"case_id": "S1-B2 M1", "solve_duration_sec": elapsed,
+            or solution["output_sha256"].lower() != native_target["sha256"].lower()):
+        raise RuntimeError(f"{level} solve hash chain does not match prepared mesh and solved model")
+    prior_native = m1_context[1] if m1_context is not None else None
+    report["native_mesh_comparison"] = check_mesh_refinement(
+        native_m0, native_target, plan, prior_refined=prior_native,
+    )
+    if native_prepared["components"] != native_target["components"]:
+        raise RuntimeError(f"{level} native mesh changed between preparation and solve")
+    settings_cmp = check_invariants(
+        pre_m0["precheck_b_solver_model"], pre_target["precheck_b_solver_model"], tree_m0, tree_target,
+    )
+    if m1_context is not None:
+        tree_m1, _, pre_m1, _ = m1_context
+        check_invariants(
+            pre_m1["precheck_b_solver_model"], pre_target["precheck_b_solver_model"], tree_m1, tree_target,
+        )
+        settings_cmp["m1_solver"] = pre_m1["precheck_b_solver_model"]["solver_details"]
+        settings_cmp["m2_solver"] = pre_target["precheck_b_solver_model"]["solver_details"]
+    report["settings_comparison"] = settings_cmp
+    report[f"{level_key}_mesh_summary"] = summarize_native_mesh(native_target, tree_target)
+    save_json(output_dir / "solver_metadata.json", {
+        "case_id": f"S1-B2 {level}",
+        "solve_duration_sec": elapsed,
         "comsol_elapsed_ms": solution.get("elapsed_ms", "UNOBTAINED"),
         "solve_duration_scope": "run_study call wall clock" if isinstance(elapsed, (int, float)) else "UNOBTAINED: original call wall clock was not saved before export failed",
-        "source_model": str(prepared), "source_sha256": solution["source_sha256"],
-        "solved_model_sha256": solution["output_sha256"], **pre_m1["precheck_b_solver_model"]})
-    stats_m1 = analyze_case("M1 (native mesh h/1.4)", output_dir)
-    comparison = classify_comparison(stats_m0, stats_m1)
-    report["physical_comparison"] = comparison
-    if not comparison["can_compare"]:
-        raise RuntimeError(comparison.get("message", "M0/M1 stable-cycle comparison failed"))
+        "source_model": str(prepared),
+        "source_sha256": solution["source_sha256"],
+        "solved_model_sha256": solution["output_sha256"],
+        **pre_target["precheck_b_solver_model"],
+    })
+    stats_target = analyze_case(f"{level} (native mesh h/{factor:g})", output_dir)
     u_inf = float(tree_m0["parameters"]["U_inf"]["value"])
-    report["wake_comparison"] = compare_wake_statistics(
-        analyze_wake(M0_DIR, stats_m0["window"], u_inf), analyze_wake(output_dir, stats_m1["window"], u_inf))
+    if m1_context is None:
+        comparison = classify_comparison(stats_m0, stats_target)
+        report["physical_comparison"] = comparison
+        if not comparison["can_compare"]:
+            raise RuntimeError(comparison.get("message", "M0/M1 stable-cycle comparison failed"))
+        report["wake_comparison"] = compare_wake_statistics(
+            analyze_wake(M0_DIR, stats_m0["window"], u_inf),
+            analyze_wake(output_dir, stats_target["window"], u_inf),
+        )
+        summary_label = "M0/M1 preliminary sensitivity"
+    else:
+        stats_m1 = m1_context[3]
+        comparison = classify_three_mesh_comparison(stats_m0, stats_m1, stats_target)
+        report["physical_comparison"] = comparison
+        if not comparison["can_compare"]:
+            raise RuntimeError(comparison.get("message", "M0/M1/M2 stable-cycle comparison failed"))
+        report["wake_comparison"] = compare_three_wake_statistics(
+            analyze_wake(M0_DIR, stats_m0["window"], u_inf),
+            analyze_wake(M1_DIR, stats_m1["window"], u_inf),
+            analyze_wake(output_dir, stats_target["window"], u_inf),
+        )
+        summary_label = "M0/M1/M2 sensitivity (primary M1/M2)"
     report.pop("error", None)
     report.pop("error_details", None)
     report["execution_status"] = "COMPLETE"
     report["status"] = comparison["acceptance_status"]
     print(json.dumps(comparison["comparisons"], indent=2), flush=True)
-    print(f"M0/M1 preliminary sensitivity: {report['status']}; grid independence not established", flush=True)
+    print(f"{summary_label}: {report['status']}; grid independence not established", flush=True)
     return report
 
 
 def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
-    """Read M0, rebuild a separate M1 native mesh, solve M1 once, and compare saved evidence."""
+    """Read M0 (and M1 for M2 plans), rebuild a separate native mesh from M0, solve once, and compare."""
     output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=False)
     plan = deepcopy(refinement_plan)
+    level, factor = _plan_level_and_factor(plan)
+    level_key = level.lower()
     hashes_before = snapshot_protected_files()
-    report = {"status": "RUNNING", "output_dir": str(output_dir), "refinement_plan": plan,
-              "mesh_independence_established": False, "protected_hashes_before": hashes_before}
+    report = {
+        "status": "RUNNING", "mesh_level": level, "output_dir": str(output_dir),
+        "refinement_plan": plan, "mesh_independence_established": False,
+        "protected_hashes_before": hashes_before,
+    }
     save_json(output_dir / "mesh_report.json", report)
     try:
         tree_m0 = inspect_model(M0_MODEL)
@@ -550,11 +838,13 @@ def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
         if len(transient_studies) != 1:
             raise RuntimeError(f"Expected one transient study; found {transient_studies}")
         print("Reading accepted Case C/M0; no M0 solve...", flush=True)
-        pre_m0 = run_prechecks(model_path=M0_MODEL, wake_u_path=M0_DIR / "wake_u.txt",
-                              wake_v_path=M0_DIR / "wake_v.txt", output_dir=output_dir / "precheck_m0")
+        pre_m0 = run_prechecks(
+            model_path=M0_MODEL, wake_u_path=M0_DIR / "wake_u.txt",
+            wake_v_path=M0_DIR / "wake_v.txt", output_dir=output_dir / "precheck_m0",
+        )
         report["m0_prechecks"] = pre_m0
         if pre_m0["overall_prechecks_status"] != "PASS":
-            raise RuntimeError("M0 prechecks failed; M1 was not started")
+            raise RuntimeError(f"M0 prechecks failed; {level} was not started")
         check_time_policy(pre_m0["precheck_b_solver_model"]["solver_details"])
         source_response = json.loads((M0_DIR / "solve_response.json").read_text(encoding="utf-8"))
         if source_response["output_sha256"].lower() != native_m0["sha256"].lower():
@@ -562,29 +852,43 @@ def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
         _check_solution_stats(source_response["solution_stats"])
         stats_m0 = analyze_case("M0 (accepted Case C native mesh)", M0_DIR)
         if not classify_comparison(stats_m0, stats_m0)["can_compare"]:
-            raise RuntimeError("M0 must pass the existing five-complete-cycle stability gate before M1")
+            raise RuntimeError(f"M0 must pass the existing five-complete-cycle stability gate before {level}")
         report["m0_mesh_summary"] = summarize_native_mesh(native_m0, tree_m0)
         report["m0_solution_stats"] = source_response["solution_stats"]
-        report["m0_solution_stats_source"] = {"path": str(M0_DIR / "solve_response.json"),
-            "model_sha256": source_response["output_sha256"], "readback_scope": "Previously executed accepted M0 solve response, bound to current model SHA-256; M0 is not solved again."}
-        prepared = output_dir / "re100_s1b2_m1_mesh.mph"
+        report["m0_solution_stats_source"] = {
+            "path": str(M0_DIR / "solve_response.json"),
+            "model_sha256": source_response["output_sha256"],
+            "readback_scope": "Previously executed accepted M0 solve response, bound to current model SHA-256; M0 is not solved again.",
+        }
+        m1_context = None
+        if level == "M2":
+            m1_context = _load_accepted_m1_reference(
+                output_dir, report, tree_m0, native_m0, pre_m0,
+                source_response["solution_stats"]["num_dofs"],
+            )
+        prepared = output_dir / f"re100_s1b2_{level_key}_mesh.mph"
         start = time.perf_counter()
         refinement = refine_native_mesh(model_path=M0_MODEL, output_path=prepared, plan=plan, allow_overwrite=False)
         report["mesh_rebuild_duration_sec"] = time.perf_counter() - start
         save_json(output_dir / "native_refinement_response.json", refinement)
         if refinement.get("stored_solution_data_empty") is not True:
-            raise RuntimeError("M1 mesh preparation must clear inherited solution data in its isolated copy")
+            raise RuntimeError(f"{level} mesh preparation must clear inherited solution data in its isolated copy")
         native_prepared = inspect_native_mesh(prepared)
-        save_json(output_dir / "m1_prepared_native_mesh.json", native_prepared)
+        save_json(output_dir / f"{level_key}_prepared_native_mesh.json", native_prepared)
         if (refinement["source_sha256"].lower() != native_m0["sha256"].lower()
                 or refinement["output_sha256"].lower() != native_prepared["sha256"].lower()):
             raise RuntimeError("Native mesh refinement source/output hash chain does not match actual files")
-        report["prepared_mesh_comparison"] = check_mesh_refinement(native_m0, native_prepared, plan)
-        solved = output_dir / "re100_s1b2_m1_solved.mph"
-        print("Solving only M1 on the native refined mesh, with unchanged accepted C time settings...", flush=True)
+        prior_native = m1_context[1] if m1_context is not None else None
+        report["prepared_mesh_comparison"] = check_mesh_refinement(
+            native_m0, native_prepared, plan, prior_refined=prior_native,
+        )
+        solved = output_dir / f"re100_s1b2_{level_key}_solved.mph"
+        print(f"Solving only {level} (h0/{factor:g}) on the native refined mesh, with unchanged accepted C time settings...", flush=True)
         start = time.perf_counter()
-        solution = run_study(model_path=prepared, output_path=solved,
-                             study_tag=transient_studies[0], allow_overwrite=False)
+        solution = run_study(
+            model_path=prepared, output_path=solved,
+            study_tag=transient_studies[0], allow_overwrite=False,
+        )
         elapsed = time.perf_counter() - start
         report["solve_duration_sec"] = elapsed
         report["comsol_elapsed_ms"] = solution.get("elapsed_ms", "UNOBTAINED")
@@ -594,11 +898,19 @@ def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
         log_path.write_text(solution["log"], encoding="utf-8")
         report["actual_step_log"] = check_step_log(log_path)
         _check_solution_stats(solution["solution_stats"])
-        if solution["solution_stats"]["num_dofs"] <= source_response["solution_stats"]["num_dofs"]:
-            raise RuntimeError("The actual refined M1 solution must have more DOFs than M0")
-        report["m1_solution_stats"] = solution["solution_stats"]
-        return _finish_postprocess(output_dir, report, solution, elapsed, tree_m0, native_m0,
-                                   native_prepared, pre_m0, stats_m0)
+        min_dofs = (
+            report["m1_solution_stats"]["num_dofs"]
+            if m1_context is not None
+            else source_response["solution_stats"]["num_dofs"]
+        )
+        prior_label = "M1" if m1_context is not None else "M0"
+        if solution["solution_stats"]["num_dofs"] <= min_dofs:
+            raise RuntimeError(f"The actual refined {level} solution must have more DOFs than {prior_label}")
+        report[f"{level_key}_solution_stats"] = solution["solution_stats"]
+        return _finish_postprocess(
+            output_dir, report, solution, elapsed, tree_m0, native_m0,
+            native_prepared, pre_m0, stats_m0, m1_context=m1_context,
+        )
     except Exception as exc:
         report.update(status="FAIL", error=str(exc), error_details=getattr(exc, "details", ""))
         (output_dir / "failure.log").write_text(traceback.format_exc() + "\n" + report["error_details"], encoding="utf-8")
@@ -614,6 +926,14 @@ def run_mesh_m1(output_dir: Path, refinement_plan: dict) -> dict:
             raise RuntimeError("A protected historical file changed")
 
 
+def run_mesh_m2(output_dir: Path, refinement_plan: dict) -> dict:
+    """Explicit entry point for M2 (h0/1.96) native mesh refinement and three-level M0/M1/M2 comparison."""
+    level, _ = _plan_level_and_factor(refinement_plan)
+    if level != "M2":
+        raise RuntimeError("run_mesh_m2 requires an explicit M2 (h0/1.96) refinement plan")
+    return run_mesh_m1(output_dir, refinement_plan)
+
+
 def _preserve_failed_artifact(output_dir: Path, name: str, archive_name: str) -> str | None:
     source = output_dir / name
     if not source.is_file():
@@ -627,12 +947,15 @@ def _preserve_failed_artifact(output_dir: Path, name: str, archive_name: str) ->
 
 
 def verify_saved_mesh_m1(output_dir: Path) -> dict:
-    """Recover only postprocessing for an existing M1 solve, preserving the failed attempt."""
+    """Recover only postprocessing for an existing M1 or M2 solve, preserving the failed attempt."""
     output_dir = output_dir.resolve()
     report_path = output_dir / "mesh_report.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
+    plan = report["refinement_plan"]
+    level, _ = _plan_level_and_factor(plan)
+    level_key = level.lower()
     if report.get("execution_status") == "COMPLETE":
-        raise RuntimeError("M1 postprocessing is already complete; no recovery is needed")
+        raise RuntimeError(f"{level} postprocessing is already complete; no recovery is needed")
     preserved_report = _preserve_failed_artifact(output_dir, "mesh_report.json", "mesh_report_initial_export_failure.json")
     preserved_failure = _preserve_failed_artifact(output_dir, "failure.log", "failure_initial_export_failure.log")
     recovery_id = uuid.uuid4().hex[:8]
@@ -644,10 +967,9 @@ def verify_saved_mesh_m1(output_dir: Path) -> dict:
     hashes_before = report["protected_hashes_before"]
     try:
         if snapshot_protected_files() != hashes_before:
-            raise RuntimeError("A protected historical file differs from the original M1 run")
-        plan = report["refinement_plan"]
-        prepared = output_dir / "re100_s1b2_m1_mesh.mph"
-        solved = output_dir / "re100_s1b2_m1_solved.mph"
+            raise RuntimeError(f"A protected historical file differs from the original {level} run")
+        prepared = output_dir / f"re100_s1b2_{level_key}_mesh.mph"
+        solved = output_dir / f"re100_s1b2_{level_key}_solved.mph"
         solution = json.loads((output_dir / "solve_response.json").read_text(encoding="utf-8"))
         refinement = json.loads((output_dir / "native_refinement_response.json").read_text(encoding="utf-8"))
         source_response = json.loads((M0_DIR / "solve_response.json").read_text(encoding="utf-8"))
@@ -658,35 +980,51 @@ def verify_saved_mesh_m1(output_dir: Path) -> dict:
                 or actual_prepared != refinement["output_sha256"].lower()
                 or actual_prepared != solution["source_sha256"].lower()
                 or actual_solved != solution["output_sha256"].lower()):
-            raise RuntimeError("Saved M0/prepared M1/solved M1 hash chain failed before export")
+            raise RuntimeError(f"Saved M0/prepared {level}/solved {level} hash chain failed before export")
         if refinement.get("stored_solution_data_empty") is not True:
-            raise RuntimeError("Saved refinement evidence does not confirm isolated M1 solution clearing")
+            raise RuntimeError(f"Saved refinement evidence does not confirm isolated {level} solution clearing")
         _check_solution_stats(source_response["solution_stats"])
         _check_solution_stats(solution["solution_stats"])
         if solution["solution_stats"]["num_dofs"] <= source_response["solution_stats"]["num_dofs"]:
-            raise RuntimeError("Saved M1 solution has no actual DOF increase")
+            raise RuntimeError(f"Saved {level} solution has no actual DOF increase")
         report["actual_step_log"] = check_step_log(output_dir / "solver_run.log")
         tree_m0, native_m0 = inspect_model(M0_MODEL), inspect_native_mesh(M0_MODEL)
         native_prepared = inspect_native_mesh(prepared)
         validate_refinement_plan(native_m0, plan)
-        report["prepared_mesh_comparison"] = check_mesh_refinement(native_m0, native_prepared, plan)
-        pre_m0 = run_prechecks(model_path=M0_MODEL, wake_u_path=M0_DIR / "wake_u.txt",
-                              wake_v_path=M0_DIR / "wake_v.txt", output_dir=output_dir / f"precheck_m0_recovery_{recovery_id}")
+        pre_m0 = run_prechecks(
+            model_path=M0_MODEL, wake_u_path=M0_DIR / "wake_u.txt",
+            wake_v_path=M0_DIR / "wake_v.txt", output_dir=output_dir / f"precheck_m0_recovery_{recovery_id}",
+        )
         if pre_m0["overall_prechecks_status"] != "PASS":
-            raise RuntimeError("M0 recovery readback failed before M1 export")
+            raise RuntimeError(f"M0 recovery readback failed before {level} export")
         check_time_policy(pre_m0["precheck_b_solver_model"]["solver_details"])
         report["m0_prechecks"] = pre_m0
         stats_m0 = analyze_case("M0 (accepted Case C native mesh)", M0_DIR)
         if not classify_comparison(stats_m0, stats_m0)["can_compare"]:
             raise RuntimeError("Saved M0 fails the five-cycle stability gate")
+        m1_context = None
+        if level == "M2":
+            m1_context = _load_accepted_m1_reference(
+                output_dir, report, tree_m0, native_m0, pre_m0,
+                source_response["solution_stats"]["num_dofs"],
+                precheck_subdir=f"precheck_m1_recovery_{recovery_id}",
+            )
+            if solution["solution_stats"]["num_dofs"] <= report["m1_solution_stats"]["num_dofs"]:
+                raise RuntimeError("Saved M2 solution does not have more DOFs than M1")
+        prior_native = m1_context[1] if m1_context is not None else None
+        report["prepared_mesh_comparison"] = check_mesh_refinement(
+            native_m0, native_prepared, plan, prior_refined=prior_native,
+        )
         elapsed = report.get("solve_duration_sec", "UNOBTAINED")
         if elapsed != "UNOBTAINED" and (not isinstance(elapsed, (int, float)) or not math.isfinite(elapsed) or elapsed < 0):
             raise RuntimeError("Invalid saved solve call duration")
         report["comsol_elapsed_ms"] = solution.get("elapsed_ms", "UNOBTAINED")
         report["status"] = "POSTPROCESS_RECOVERY"
         save_json(report_path, report)
-        return _finish_postprocess(output_dir, report, solution, elapsed, tree_m0, native_m0,
-                                   native_prepared, pre_m0, stats_m0)
+        return _finish_postprocess(
+            output_dir, report, solution, elapsed, tree_m0, native_m0,
+            native_prepared, pre_m0, stats_m0, m1_context=m1_context,
+        )
     except Exception as exc:
         report.update(status="FAIL", error=str(exc), error_details=getattr(exc, "details", ""))
         recovery_log = output_dir / f"postprocess_recovery_failure_{recovery_id}.log"
@@ -708,7 +1046,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
-    parser.add_argument("--verify-saved", type=Path, help="Finish exports/checks for an already solved M1; never rebuild or solve")
+    parser.add_argument("--verify-saved", type=Path, help="Finish exports/checks for an already solved M1/M2; never rebuild or solve")
     args = parser.parse_args()
     if args.verify_saved is not None:
         if args.output_dir is not None:
@@ -716,9 +1054,10 @@ def main() -> int:
         report = verify_saved_mesh_m1(args.verify_saved)
         return 0 if report["status"] == "PASS" else 2
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
+    level, _ = _plan_level_and_factor(plan)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    output_dir = args.output_dir or ROOT / "runs" / f"re100_s1b2_m1_{stamp}_{uuid.uuid4().hex[:8]}"
-    print(f"M1 output: {output_dir}", flush=True)
+    output_dir = args.output_dir or ROOT / "runs" / f"re100_s1b2_{level.lower()}_{stamp}_{uuid.uuid4().hex[:8]}"
+    print(f"{level} output: {output_dir}", flush=True)
     report = run_mesh_m1(output_dir, plan)
     return 0 if report["status"] == "PASS" else 2
 

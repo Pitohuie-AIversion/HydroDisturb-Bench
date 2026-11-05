@@ -287,27 +287,35 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
         raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
 
     class_file = ensure_bridge_compiled(root)
-    cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
 
-    proc = subprocess.run(
-        cmd,
-        cwd=str(class_file.parent),
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-
-    # Retry only an identified startup failure, before any bridge command ran.
-    # Never retry solver/model errors or a process that emitted bridge JSON.
-    launch_mode = "comsolbatch"
-    startup_failure = None
-    if (sys.platform == "win32" and "<<<JSON_START>>>" not in (proc.stdout or "")
-            and "Failed to start COMSOL" in (proc.stdout or "")
-            and "FlNativeException" in (proc.stdout or "")):
-        startup_failure = {"stdout": proc.stdout, "stderr": proc.stderr, "returncode": proc.returncode}
+    # On Windows, image export requires headless software rendering and isolated preferences
+    # via the standalone Java launcher. comsolbatch without a display skips PNG rendering.
+    if sys.platform == "win32" and args and args[0] == "export-s1-diagnostics":
         proc = _run_standalone(root, class_file, args)
         launch_mode = "standalone_java_api"
+        startup_failure = None
+    else:
+        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+
+        proc = subprocess.run(
+            cmd,
+            cwd=str(class_file.parent),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        # Retry only an identified startup failure, before any bridge command ran.
+        # Never retry solver/model errors or a process that emitted bridge JSON.
+        launch_mode = "comsolbatch"
+        startup_failure = None
+        if (sys.platform == "win32" and "<<<JSON_START>>>" not in (proc.stdout or "")
+                and "Failed to start COMSOL" in (proc.stdout or "")
+                and "FlNativeException" in (proc.stdout or "")):
+            startup_failure = {"stdout": proc.stdout, "stderr": proc.stderr, "returncode": proc.returncode}
+            proc = _run_standalone(root, class_file, args)
+            launch_mode = "standalone_java_api"
 
     # Clean up comsolbatch status file if created in the directory
     status_file = class_file.with_name(f"{class_file.name}.status")

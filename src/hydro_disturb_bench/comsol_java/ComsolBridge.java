@@ -1210,9 +1210,11 @@ public class ComsolBridge {
                     // Do not set unit: COMSOL resolves it from this expression and dataset.
                     ExportFeature exporter = model.result().export().create("exp_unit_" + component, "Plot");
                     exporter.set("plotgroup", pg.tag());
-                    java.io.File target = new java.io.File(probeOutputDir, "wake_" + component + ".txt");
-                    if (target.exists()) throw new IllegalArgumentException("Refusing to overwrite probe export: " + target);
-                    exporter.set("filename", target.getAbsolutePath());
+                    String baseProbeDir = probeOutputDir.replace('\\', '/');
+                    if (!baseProbeDir.endsWith("/")) {
+                        baseProbeDir = baseProbeDir + "/";
+                    }
+                    exporter.set("filename", baseProbeDir + "wake_" + component + ".txt");
                     exporter.run();
 
                     ResultFeature actualPg = model.result(exporter.getString("plotgroup"));

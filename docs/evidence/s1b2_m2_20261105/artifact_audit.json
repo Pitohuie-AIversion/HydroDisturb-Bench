@@ -1,0 +1,61 @@
+{
+  "timestamp_utc": "2026-11-05T03:26:00Z",
+  "status": "PASS",
+  "scope": "Independent read-only audit of M0/M1/M2 saved evidence; no COMSOL execution and no production analysis helpers called",
+  "conclusion": "SENSITIVE",
+  "mesh_independence_established": false,
+  "grid_independence_phase_can_close": false,
+  "blockers": [],
+  "limitations": [
+    "Three meshes (M0, M1, M2) demonstrate non-uniform unstructured mesh scaling without establishing asymptotic GCI or an exact-solution error bound.",
+    "Lift amplitude and RMS changes from M1 to M2 (+1.855% and +1.902%) exceed the 1.0% threshold despite diminishing relative increments.",
+    "Native snapshots compare readable fields; unreadable-property records are retained and do not become independently verified values.",
+    "DOF totals include internal degrees of freedom: M0=19326, M1=30651, M2=51108."
+  ],
+  "three_mesh_metrics": {
+    "M0": {
+      "elements": 7493,
+      "dofs": 19326,
+      "St": 0.159496,
+      "Cd": 1.346963,
+      "Cl_amp": 0.312976,
+      "Cl_rms": 0.221527
+    },
+    "M1": {
+      "elements": 11930,
+      "dofs": 30651,
+      "St": 0.160934,
+      "Cd": 1.353542,
+      "Cl_amp": 0.321444,
+      "Cl_rms": 0.227591
+    },
+    "M2": {
+      "elements": 19982,
+      "dofs": 51108,
+      "St": 0.162417,
+      "Cd": 1.360543,
+      "Cl_amp": 0.327406,
+      "Cl_rms": 0.231919
+    }
+  },
+  "relative_differences": {
+    "m0_to_m1_pct": {
+      "St": 0.9015,
+      "Cd": 0.4885,
+      "Cl_amp": 2.7054,
+      "Cl_rms": 2.7374
+    },
+    "m1_to_m2_pct": {
+      "St": 0.9213,
+      "Cd": 0.5173,
+      "Cl_amp": 1.8548,
+      "Cl_rms": 1.902
+    },
+    "m0_to_m2_pct": {
+      "St": 1.8311,
+      "Cd": 1.0083,
+      "Cl_amp": 4.6104,
+      "Cl_rms": 4.6914
+    }
+  }
+}

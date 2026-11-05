@@ -1,0 +1,29 @@
+{
+  "mesh_level": "M2",
+  "source_case": "Case C / M0",
+  "source_sha256": "D29F8A55695B42B2FC2B351512FBE85FBE1042BDF380700F44FAB402B695C5C2",
+  "component_tag": "comp1",
+  "mesh_tag": "mesh1",
+  "refinement_factor": 1.96,
+  "description": "M2: divide the live M0 global and cylinder-boundary maximum/minimum size controls by 1.4^2 = 1.96. Retain the free-triangle/corner/boundary-layer sequence, growth and curvature controls, selections, and automatic boundary-layer thickness factor. Rebuild the actual COMSOL mesh from M0 in an isolated copy; no postprocessing grid substitution and no double-application onto M1.",
+  "changes": [
+    {"feature_path": ["size"], "property": "custom", "before": "off", "after": "on"},
+    {"feature_path": ["size"], "property": "hmax", "before": 0.0084, "after": 0.004285714285714286},
+    {"feature_path": ["size"], "property": "hmin", "before": 0.00024, "after": 0.00012244897959183673},
+    {"feature_path": ["size1"], "property": "hmax", "before": 0.0004, "after": 0.00020408163265306123},
+    {"feature_path": ["size1"], "property": "hmin", "before": 0.00005, "after": 0.000025510204081632654}
+  ],
+  "boundary_layer_rule": {
+    "feature_path": ["bl1", "blp1"],
+    "inittype": "blhminfact",
+    "blhminfact": 5.0,
+    "blnlayers": 2.0,
+    "blstretch": 1.2,
+    "description": "Preserve the existing automatic layer-generation rule. Active first-layer thickness follows the refined adjacent mesh. Read actual wall-adjacent quadrilateral heights from native connectivity; inactive blhmin/blhtot defaults are not actual wall thickness measurements."
+  },
+  "mesh_series": {
+    "m0": "Accepted Case C native mesh; reuse its solved data",
+    "m1": "Accepted M1 native mesh (lengths h0/1.4); reuse its solved data",
+    "m2": "Only level executed in this task; lengths h0/(1.4^2) = h0/1.96 relative to M0"
+  }
+}
