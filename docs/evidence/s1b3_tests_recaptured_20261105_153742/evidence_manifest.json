@@ -4,44 +4,74 @@
   "description": "Recaptured live pytest execution stdout, junit XML reports, and exit codes",
   "files": {
     "commit.txt": {
-      "archive_sha256": "f33a7a08fbca34a69c2d141e3fc8b504c701f590b951f42360b864382364f63d",
-      "archive_bytes": 42
+      "archive_sha256": "c4697476c97bef0cbc1e52829be6c500a3b7c9481ee16456be5ea34099a66ef6",
+      "archive_bytes": 41,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "full_regression.exitcode.txt": {
-      "archive_sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
-      "archive_bytes": 3
+      "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "archive_bytes": 2,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "full_regression.txt": {
-      "archive_sha256": "0dc41ff705a95ccc89ac42c3d0d5a33fec2bf2675920618cd3392f77023ed263",
-      "archive_bytes": 360
+      "archive_sha256": "6394d76e677029bfa11838117412f098759283d2f8a4c35e945667d709631980",
+      "archive_bytes": 355,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "full_regression.xml": {
       "archive_sha256": "74fac48090e8378cf6e7d56ae8484455d0deaa61163dbbb23f84caeb67a6e8d5",
-      "archive_bytes": 38528
+      "archive_bytes": 38528,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "m3_time.exitcode.txt": {
-      "archive_sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
-      "archive_bytes": 3
+      "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "archive_bytes": 2,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "m3_time.txt": {
-      "archive_sha256": "59dc2f478e5894b8152351393281423ee67be036723a0fcec352d4018aa43b2c",
-      "archive_bytes": 2160
+      "archive_sha256": "12962ac738db1804bd7110ebeca8c29fd0b2fce2f3567d42f771b20a8dc3194f",
+      "archive_bytes": 2136,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "m3_time.xml": {
       "archive_sha256": "e5212dcea38a416ac04e48c0006ff0b27fce8d45ab0579c6beeefc63b21da402",
-      "archive_bytes": 2055
+      "archive_bytes": 2055,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "related_modules.exitcode.txt": {
-      "archive_sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
-      "archive_bytes": 3
+      "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "archive_bytes": 2,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "related_modules.txt": {
-      "archive_sha256": "faa60bde4f7230ac4006e34e428274f91b6e30ae60399a45d95df2277ec80ebb",
-      "archive_bytes": 186
+      "archive_sha256": "90a2be71ba00958d0a76e891bf708d84f0a40437a422d80943093b0141ac2a51",
+      "archive_bytes": 183,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     },
     "related_modules.xml": {
       "archive_sha256": "29624f57401241ca76dcfcf10cbe01ba3095deb595673fb56d181bd82511fe52",
-      "archive_bytes": 17588
+      "archive_bytes": 17588,
+      "original_path": null,
+      "original_sha256": null,
+      "original_bytes": null
     }
   }
 }

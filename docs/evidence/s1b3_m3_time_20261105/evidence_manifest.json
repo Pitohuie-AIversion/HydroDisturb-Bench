@@ -4,8 +4,8 @@
   "description": "S1-B3 M3 internal time-step halving cross-check evidence and verification logs",
   "files": {
     "artifact_audit.json": {
-      "archive_sha256": "a0dfb99b834f220f698301a2429bbbe791f2f368eb4cb3f46739f7cae40bf783",
-      "archive_bytes": 2114,
+      "archive_sha256": "aea71affd628401cd950ee020e13e490422506092ae7d1e4c8e091f0e4017055",
+      "archive_bytes": 2050,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -32,8 +32,8 @@
       "original_bytes": 20847
     },
     "full_regression.txt": {
-      "archive_sha256": "fea0186356cd42dd0166568b5fe1ee01b2653c428516aa853ea3c07f4d5ef7c1",
-      "archive_bytes": 882,
+      "archive_sha256": "b148ca7bb368d269547c2e51120187395c70abc538d699d32729c5d17544f396",
+      "archive_bytes": 867,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -88,22 +88,22 @@
       "original_bytes": 372117
     },
     "raw_task_6153_unit_regression_stdout.txt": {
-      "archive_sha256": "5548e3a8f8f3e7d60a6ed55b6640c0433791ec588a7a1babbb7fdd86e164886a",
-      "archive_bytes": 595,
+      "archive_sha256": "8051fbaeb2a4cd53a723860c2a9f3e5a7d4bbbaf77529e22ccc09abddcdb2527",
+      "archive_bytes": 585,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
     },
     "raw_task_6160_comsol_integration_stdout.txt": {
-      "archive_sha256": "936330d4d993e8839c198b41e11f24b4e361783bbb583ec33e205e894cb14420",
-      "archive_bytes": 1103,
+      "archive_sha256": "eb251c2e2b8a3aad64198f079cb613ad47f54303b14f8abcaa05bbf84cad9680",
+      "archive_bytes": 1084,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
     },
     "raw_task_6195_full_regression_stdout.txt": {
-      "archive_sha256": "4c7f26f28c026c34d11a72adf293d9171b48e66fa30fe4b7ff34a5f944300abb",
-      "archive_bytes": 570,
+      "archive_sha256": "808f87b60f19ebf9389a54f7c03f822612568ec5febcbae640227cfd07276607",
+      "archive_bytes": 560,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -123,8 +123,8 @@
       "original_bytes": 1635
     },
     "solver_run.txt": {
-      "archive_sha256": "4db39451e064d4929c187c0dddecba46d5af44fb0bfe7d03f82846879487fdd6",
-      "archive_bytes": 1134154,
+      "archive_sha256": "26fbb02a7541c0aad6b540ee37d9d35d494c711c76a70900e4c9e3105e202921",
+      "archive_bytes": 1117430,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null
@@ -137,8 +137,8 @@
       "original_bytes": 47532
     },
     "unit_regression.txt": {
-      "archive_sha256": "e512693272f04cca4dd6eabac445d40459c22f8986ee3b77e7a0a010e008c2e7",
-      "archive_bytes": 928,
+      "archive_sha256": "732cbcd491d535720a383a2dea941025790f62180d102a51ebc611e57b0b1e3e",
+      "archive_bytes": 913,
       "original_path": null,
       "original_sha256": null,
       "original_bytes": null

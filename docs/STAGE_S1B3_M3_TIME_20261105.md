@@ -118,12 +118,14 @@ Normalized by inflow velocity $U_\infty = 0.0100581\,\mathrm{m/s}$:
 
 ## 6. Closure of Evidence Management Items (P1 & P2 Resolutions)
 
-1. **Manifest and File Hash Synchronization**:
-   - Normalized text files in [`docs/evidence/s1b2_m3_20261105/`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b2_m3_20261105) to LF.
-   - Updated `artifact_audit.json` (2,892 bytes, SHA-256 `3d0af8bf8e358dcca9f42eff1c0e467a89f6fec1c89ea0d1995f8b9c5be8437f`).
-   - Updated `mesh_report.json` (330,310 bytes, SHA-256 `13b7e9915df17afcb5d5313e227ef0c1efbd8dbbd2f3e903a7980ce833265b85`).
-   - Re-verified all 45 files against `evidence_manifest.json`: **0 mismatches (100% PASS)**.
-   - S1-B3 primary manifest [`docs/evidence/s1b3_m3_time_20261105/evidence_manifest.json`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/evidence_manifest.json): **All 27 items 100% PASS**.
+1. **Manifest and Git Blob Byte Synchronization (P2 Closure)**:
+   - **Root Cause Eliminated**: Windows text-mode writing (`write_text()`) previously converted `\n` to `\r\n` (CRLF) locally, causing manifest records to mismatch the LF bytes stored in Git blobs. All evidence writers were switched to strict binary writing (`write_bytes(normalized.encode("utf-8"))`).
+   - **Platform-Independent EOL Enforcement**: Added `.gitattributes` configuring `docs/evidence/** text eol=lf` to prevent line-ending translation across platforms.
+   - **Git Blob Verification**: Verified using `git cat-file blob` on all 82 files across all three evidence manifests:
+     * `docs/evidence/s1b2_m3_20261105/`: 45/45 items **100% MATCH**.
+     * `docs/evidence/s1b3_m3_time_20261105/`: 27/27 items **100% MATCH**.
+     * `docs/evidence/s1b3_tests_recaptured_20261105_153742/`: 10/10 items **100% MATCH**.
+     * **Total Mismatches**: **0 / 82**.
 
 2. **Raw Test Execution Outputs Recovered & Clarified**:
    - Explicitly clarified that `full_regression.txt` and `unit_regression.txt` in `docs/evidence/s1b3_m3_time_20261105/` are structured summary overviews (annotated with `# [REVISED NOTE]`), rather than raw process stdout.
@@ -137,7 +139,7 @@ Normalized by inflow velocity $U_\infty = 0.0100581\,\mathrm{m/s}$:
 
 3. **COMSOL Solver Log Extracted from JSON**:
    - Because `*.log` is gitignored, the solver output was extracted directly from [`runs/re100_s1b3_m3_dt025_20261105_verified/solve_response.json`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/runs/re100_s1b3_m3_dt025_20261105_verified/solve_response.json) into:
-     [`docs/evidence/s1b3_m3_time_20261105/solver_run.txt`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/solver_run.txt) (1,134,154 bytes, 16,720 lines of progress output).
+     [`docs/evidence/s1b3_m3_time_20261105/solver_run.txt`](file:///d:/%F0%9F%93%81%2001_Workspaces%20%28%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%BA%29/HydroDisturb-Bench/docs/evidence/s1b3_m3_time_20261105/solver_run.txt) (1,117,430 bytes, 16,720 lines of progress output).
    - Explicitly noted as an exported copy of `solve_response.json["log"]`.
 
 4. **Audit Nature Disclaimer**:

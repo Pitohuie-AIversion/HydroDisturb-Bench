@@ -1,0 +1,2 @@
+# Enforce LF line endings for evidence artifacts across all platforms
+docs/evidence/** text eol=lf

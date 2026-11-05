@@ -1,4 +1,4 @@
-"""Recover actual process outputs, extract solver log from JSON, and rebuild evidence manifest."""
+"""Recover actual process outputs, extract solver log from JSON, and rebuild evidence manifest using strict LF binary writes."""
 
 from __future__ import annotations
 
@@ -12,6 +12,12 @@ SRC_DIR = ROOT / "runs/re100_s1b3_m3_dt025_20261105_verified"
 TASK_DIR = Path(r"C:\Users\Administrator\.gemini\antigravity-ide\brain\78e0afb2-6233-4e38-b94c-b25dc49b4926\.system_generated\tasks")
 
 
+def write_lf_bytes(path: Path, text: str) -> None:
+    """Write text as UTF-8 encoded bytes with strict LF line endings."""
+    normalized = text.replace("\r\n", "\n")
+    path.write_bytes(normalized.encode("utf-8"))
+
+
 def main() -> None:
     # 1. Extract solver_run.txt from solve_response.json
     resp_path = EV_DIR / "solve_response.json"
@@ -22,8 +28,8 @@ def main() -> None:
         "# Source: runs/re100_s1b3_m3_dt025_20261105_verified/re100_s1b3_m3_dt025_solved.mph\n"
         "# Target maxstep: 0.025 s (const), rtol: 1e-4\n\n"
     )
-    solver_run_txt = (header + raw_log).replace("\r\n", "\n")
-    (EV_DIR / "solver_run.txt").write_text(solver_run_txt, encoding="utf-8")
+    solver_run_txt = header + raw_log
+    write_lf_bytes(EV_DIR / "solver_run.txt", solver_run_txt)
     print(f"Extracted solver_run.txt: {(EV_DIR / 'solver_run.txt').stat().st_size} bytes")
 
     # 2. Recover raw task logs
@@ -35,8 +41,8 @@ def main() -> None:
             "# Exit code: 0\n"
             "# Timestamp: 2026-11-05T15:10:07+08:00 to 2026-11-05T15:15:21+08:00\n\n"
         )
-        content_6195 = (header_6195 + t6195.read_text(encoding="utf-8", errors="replace")).replace("\r\n", "\n")
-        (EV_DIR / "raw_task_6195_full_regression_stdout.txt").write_text(content_6195, encoding="utf-8")
+        content_6195 = header_6195 + t6195.read_text(encoding="utf-8", errors="replace")
+        write_lf_bytes(EV_DIR / "raw_task_6195_full_regression_stdout.txt", content_6195)
         print("Wrote raw_task_6195_full_regression_stdout.txt")
 
     t6153 = TASK_DIR / "task-6153.log"
@@ -47,8 +53,8 @@ def main() -> None:
             "# Exit code: 0\n"
             "# Timestamp: 2026-11-05T15:07:36+08:00 to 2026-11-05T15:07:54+08:00\n\n"
         )
-        content_6153 = (header_6153 + t6153.read_text(encoding="utf-8", errors="replace")).replace("\r\n", "\n")
-        (EV_DIR / "raw_task_6153_unit_regression_stdout.txt").write_text(content_6153, encoding="utf-8")
+        content_6153 = header_6153 + t6153.read_text(encoding="utf-8", errors="replace")
+        write_lf_bytes(EV_DIR / "raw_task_6153_unit_regression_stdout.txt", content_6153)
         print("Wrote raw_task_6153_unit_regression_stdout.txt")
 
     t6160 = TASK_DIR / "task-6160.log"
@@ -59,8 +65,8 @@ def main() -> None:
             "# Exit code: 0\n"
             "# Timestamp: 2026-11-05T15:08:01+08:00 to 2026-11-05T15:10:01+08:00\n\n"
         )
-        content_6160 = (header_6160 + t6160.read_text(encoding="utf-8", errors="replace")).replace("\r\n", "\n")
-        (EV_DIR / "raw_task_6160_comsol_integration_stdout.txt").write_text(content_6160, encoding="utf-8")
+        content_6160 = header_6160 + t6160.read_text(encoding="utf-8", errors="replace")
+        write_lf_bytes(EV_DIR / "raw_task_6160_comsol_integration_stdout.txt", content_6160)
         print("Wrote raw_task_6160_comsol_integration_stdout.txt")
 
     # 3. Annotate full_regression.txt and unit_regression.txt
@@ -68,23 +74,23 @@ def main() -> None:
     if full_reg.exists():
         orig_text = full_reg.read_text(encoding="utf-8")
         if "# [REVISED NOTE]" not in orig_text:
-            new_text = (
+            orig_text = (
                 "# [REVISED NOTE]: This file is an agent-compiled summary overview of the full regression run, not raw process stdout.\n"
                 "# For raw process stdout directly captured from the pytest process, see raw_task_6195_full_regression_stdout.txt.\n\n"
                 + orig_text
             )
-            full_reg.write_text(new_text.replace("\r\n", "\n"), encoding="utf-8")
+        write_lf_bytes(full_reg, orig_text)
 
     unit_reg = EV_DIR / "unit_regression.txt"
     if unit_reg.exists():
         orig_text = unit_reg.read_text(encoding="utf-8")
         if "# [REVISED NOTE]" not in orig_text:
-            new_text = (
+            orig_text = (
                 "# [REVISED NOTE]: This file is an agent-compiled summary overview of the non-integration regression run, not raw process stdout.\n"
                 "# For raw process stdout directly captured from the pytest process, see raw_task_6153_unit_regression_stdout.txt.\n\n"
                 + orig_text
             )
-            unit_reg.write_text(new_text.replace("\r\n", "\n"), encoding="utf-8")
+        write_lf_bytes(unit_reg, orig_text)
 
     # 4. Update artifact_audit.json disclaimer
     audit_path = EV_DIR / "artifact_audit.json"
@@ -93,9 +99,18 @@ def main() -> None:
         "This document is an agent-compiled summary artifact of the stage execution, not an independent re-audit. "
         "Acceptance and conclusions rely directly on m3_time_report.json and raw solver outputs."
     )
-    audit_path.write_text(json.dumps(audit_data, indent=2, ensure_ascii=False).replace("\r\n", "\n") + "\n", encoding="utf-8")
+    write_lf_bytes(audit_path, json.dumps(audit_data, indent=2, ensure_ascii=False) + "\n")
 
-    # 5. Rebuild evidence_manifest.json
+    # 5. Normalize all files in EV_DIR to strict LF bytes
+    for item in sorted(EV_DIR.iterdir()):
+        if not item.is_file() or item.name == "evidence_manifest.json":
+            continue
+        if item.suffix in (".txt", ".json", ".xml", ".log"):
+            raw = item.read_bytes()
+            if b"\r\n" in raw:
+                item.write_bytes(raw.replace(b"\r\n", b"\n"))
+
+    # 6. Rebuild evidence_manifest.json with LF byte length and SHA-256
     manifest = {
         "version": "1.0.0",
         "stage": "S1-B3",
@@ -128,8 +143,8 @@ def main() -> None:
             "original_bytes": orig_bytes,
         }
 
-    manifest_text = json.dumps(manifest, indent=2, ensure_ascii=False).replace("\r\n", "\n") + "\n"
-    (EV_DIR / "evidence_manifest.json").write_bytes(manifest_text.encode("utf-8"))
+    manifest_bytes = (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    (EV_DIR / "evidence_manifest.json").write_bytes(manifest_bytes)
     print(f"Rebuilt S1-B3 manifest. Total files: {len(manifest['files'])}")
 
 
