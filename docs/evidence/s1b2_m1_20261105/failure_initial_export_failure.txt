@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\comsol_java\bridge.py", line 1700, in export_s1_diagnostics
+    val_summary = validate_s1_diagnostics(
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\io.py", line 902, in validate_s1_diagnostics
+    raise ComsolExportValidationError(f"Required S1 vorticity snapshot missing: {img_name}")
+hydro_disturb_bench.io.ComsolExportValidationError: Required S1 vorticity snapshot missing: vorticity_t10s_comsol.png
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_re100_s1b2_mesh.py", line 545, in run_mesh_m1
+    export_response = export_s1_diagnostics(model_path=solved, output_dir=output_dir,
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\comsol_java\bridge.py", line 1710, in export_s1_diagnostics
+    raise ModelValidationError(
+hydro_disturb_bench.comsol_java.bridge.ModelValidationError: [MODEL_VALIDATION_FAILED] Staging diagnostics failed data contract validation; outputs were NOT published: Required S1 vorticity snapshot missing: vorticity_t10s_comsol.png

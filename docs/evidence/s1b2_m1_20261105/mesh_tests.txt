@@ -1,0 +1,57 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 47 items
+
+tests/test_re100_s1b2_mesh.py::test_mesh_experiment_rejects_time_policy_other_than_case_c[changed_tolerance] PASSED [  2%]
+tests/test_re100_s1b2_mesh.py::test_mesh_experiment_rejects_time_policy_other_than_case_c[automatic_step_cap] PASSED [  4%]
+tests/test_re100_s1b2_mesh.py::test_mesh_experiment_rejects_time_policy_other_than_case_c[case_d_time_policy] PASSED [  6%]
+tests/test_re100_s1b2_mesh.py::test_invariants_allow_changed_mesh_counts_with_same_time_and_physics PASSED [  8%]
+tests/test_re100_s1b2_mesh.py::test_mesh_study_rejects_non_target_solver_and_physics_changes[absolute_tolerance] PASSED [ 10%]
+tests/test_re100_s1b2_mesh.py::test_mesh_study_rejects_non_target_solver_and_physics_changes[output_schedule] PASSED [ 12%]
+tests/test_re100_s1b2_mesh.py::test_mesh_study_rejects_non_target_solver_and_physics_changes[element_order] PASSED [ 14%]
+tests/test_re100_s1b2_mesh.py::test_mesh_study_rejects_non_target_solver_and_physics_changes[initial_condition] PASSED [ 17%]
+tests/test_re100_s1b2_mesh.py::test_native_refinement_requires_real_rebuilt_mesh_and_actual_scale_readbacks PASSED [ 19%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[sampling_only] PASSED [ 21%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[wrong_size_readback] PASSED [ 23%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[missing_quality] PASSED [ 25%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[stale_source_hash] PASSED [ 27%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[wrong_refinement_factor] PASSED [ 29%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[changed_boundary_layer] PASSED [ 31%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[geometry] PASSED [ 34%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[stabilization] PASSED [ 36%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[boundary_condition] PASSED [ 38%]
+tests/test_re100_s1b2_mesh.py::test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[initial_condition] PASSED [ 40%]
+tests/test_re100_s1b2_mesh.py::test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[fresh_mesh] PASSED [ 42%]
+tests/test_re100_s1b2_mesh.py::test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[changed_source] PASSED [ 44%]
+tests/test_re100_s1b2_mesh.py::test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[stale_cfd_solution] PASSED [ 46%]
+tests/test_re100_s1b2_mesh.py::test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[missing_empty_readback] PASSED [ 48%]
+tests/test_re100_s1b2_mesh.py::test_native_bridge_rejects_source_hash_mismatch_before_external_call PASSED [ 51%]
+tests/test_re100_s1b2_mesh.py::test_entry_solves_only_isolated_refined_m1_and_keeps_comparison_preliminary[1.0-PASS] PASSED [ 53%]
+tests/test_re100_s1b2_mesh.py::test_entry_solves_only_isolated_refined_m1_and_keeps_comparison_preliminary[1.02-SENSITIVE] PASSED [ 55%]
+tests/test_re100_s1b2_mesh.py::test_entry_refuses_existing_output_before_external_operations PASSED [ 57%]
+tests/test_re100_s1b2_mesh.py::test_entry_does_not_solve_when_native_mesh_did_not_refine PASSED [ 59%]
+tests/test_re100_s1b2_mesh.py::test_postprocess_recovery_uses_saved_solution_without_refining_or_solving PASSED [ 61%]
+tests/test_re100_s1b2_mesh.py::test_postprocess_recovery_rejects_tampered_solution_before_export PASSED [ 63%]
+tests/test_re100_s1b2_mesh.py::test_postprocess_recovery_preserves_failure_and_does_not_invent_missing_wall_clock PASSED [ 65%]
+tests/test_re100_s1b2_mesh.py::test_two_mesh_agreement_is_only_preliminary_not_mesh_independence PASSED [ 68%]
+tests/test_re100_s1b2_mesh.py::test_each_primary_metric_retains_one_percent_sensitivity_gate[St_zc_mean] PASSED [ 70%]
+tests/test_re100_s1b2_mesh.py::test_each_primary_metric_retains_one_percent_sensitivity_gate[Cd_mean] PASSED [ 72%]
+tests/test_re100_s1b2_mesh.py::test_each_primary_metric_retains_one_percent_sensitivity_gate[Cl_amp_mean] PASSED [ 74%]
+tests/test_re100_s1b2_mesh.py::test_each_primary_metric_retains_one_percent_sensitivity_gate[Cl_demeaned_rms] PASSED [ 76%]
+tests/test_re100_s1b2_mesh.py::test_both_meshes_require_five_stable_complete_cycles[unstable-M0] PASSED [ 78%]
+tests/test_re100_s1b2_mesh.py::test_both_meshes_require_five_stable_complete_cycles[unstable-M1] PASSED [ 80%]
+tests/test_re100_s1b2_mesh.py::test_both_meshes_require_five_stable_complete_cycles[four_cycles-M0] PASSED [ 82%]
+tests/test_re100_s1b2_mesh.py::test_both_meshes_require_five_stable_complete_cycles[four_cycles-M1] PASSED [ 85%]
+tests/test_re100_s1b2_mesh.py::test_wake_constant_mean_and_demeaned_rms_on_non_grid_window PASSED [ 87%]
+tests/test_re100_s1b2_mesh.py::test_wake_offset_sine_uses_exact_five_cycle_window_and_removes_mean PASSED [ 89%]
+tests/test_re100_s1b2_mesh.py::test_wake_statistics_reject_invalid_normalization_or_series[uncovered_window] PASSED [ 91%]
+tests/test_re100_s1b2_mesh.py::test_wake_statistics_reject_invalid_normalization_or_series[zero_u_inf] PASSED [ 93%]
+tests/test_re100_s1b2_mesh.py::test_wake_statistics_reject_invalid_normalization_or_series[nonfinite_sample] PASSED [ 95%]
+tests/test_re100_s1b2_mesh.py::test_wake_statistics_reject_invalid_normalization_or_series[time_reversal] PASSED [ 97%]
+tests/test_re100_s1b2_mesh.py::test_near_zero_wake_mean_difference_uses_u_inf_not_local_mean PASSED [100%]
+
+============================= 47 passed in 1.92s ==============================

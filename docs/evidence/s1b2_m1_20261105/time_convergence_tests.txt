@@ -1,0 +1,35 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 25 items
+
+tests/test_re100_s1b1_time_convergence.py::test_all_baseline_and_prior_models_immutability PASSED [  4%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_mismatch_rejection_logic PASSED [  8%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_production_validation PASSED [ 12%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_rejects_actual_metadata_errors PASSED [ 16%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_rejects_actual_time_mismatches PASSED [ 20%]
+tests/test_re100_s1b1_time_convergence.py::test_verify_probe_metadata_rejects_unspecified_units_and_missing_actual_t PASSED [ 24%]
+tests/test_re100_s1b1_time_convergence.py::test_solver_requested_vs_readback_consistency PASSED [ 28%]
+tests/test_re100_s1b1_time_convergence.py::test_case_a_and_b_non_target_settings_strictly_identical PASSED [ 32%]
+tests/test_re100_s1b1_time_convergence.py::test_exact_window_integration_constant_signal_arbitrary_window PASSED [ 36%]
+tests/test_re100_s1b1_time_convergence.py::test_exact_window_integration_linear_signal_arbitrary_endpoints PASSED [ 40%]
+tests/test_re100_s1b1_time_convergence.py::test_demeaned_rms_synthetic_sine_non_zero_mean_and_arbitrary_phase PASSED [ 44%]
+tests/test_re100_s1b1_time_convergence.py::test_production_evaluate_limit_cycle_stability PASSED [ 48%]
+tests/test_re100_s1b1_time_convergence.py::test_analyze_case_and_compare_cases_reject_unstable_signals PASSED [ 52%]
+tests/test_re100_s1b1_time_convergence.py::test_compare_cases_sensitive_when_lift_amplitude_or_rms_exceeds_threshold PASSED [ 56%]
+tests/test_re100_s1b1_time_convergence.py::test_case_a_and_b_real_cfd_production_analysis PASSED [ 60%]
+tests/test_re100_s1b1_time_convergence.py::test_s1b1_diagnostics_completeness_and_manifest PASSED [ 64%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[missing] PASSED [ 68%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[cm/s] PASSED [ 72%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[m/s] PASSED [ 76%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[read_failure] PASSED [ 80%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[wrong_file] PASSED [ 84%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[wrong_dataset] PASSED [ 88%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[ft/s_header] PASSED [ 92%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[unbound_label] PASSED [ 96%]
+tests/test_re100_s1b1_time_convergence.py::test_probe_run_prechecks_unit_provenance_entry[feature_override] PASSED [100%]
+
+============================= 25 passed in 1.24s ==============================

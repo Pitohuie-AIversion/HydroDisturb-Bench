@@ -1081,3 +1081,107 @@ def test_standalone_launcher_preserves_unicode_arguments(tmp_path, monkeypatch):
     assert all(arg.isascii() for arg in launch_args)
     # A fresh temporary class directory must not outlive the single JVM call.
     assert not runner.call_args_list[1].kwargs["cwd"].exists()
+
+
+@pytest.mark.parametrize(
+    "renderer_lines,verified,directory_matches",
+    [
+        ("COMSOL_GRAPHICS_RENDERER_READBACK=sw\n", True, True),
+        ("", False, True),
+        ("COMSOL_GRAPHICS_RENDERER_READBACK=ogl\n", False, True),
+        ("COMSOL_GRAPHICS_RENDERER_READBACK=sw\nCOMSOL_GRAPHICS_RENDERER_READBACK=sw\n", False, True),
+        ("COMSOL_GRAPHICS_RENDERER_READBACK=sw\n", False, False),
+    ],
+    ids=["actual_software_readback", "missing_readback", "wrong_renderer", "ambiguous_readback", "unbound_preferences_directory"],
+)
+def test_standalone_image_export_requires_one_software_renderer_readback(tmp_path, monkeypatch, renderer_lines, verified, directory_matches):
+    import base64
+    from hydro_disturb_bench.comsol_java import bridge
+
+    _make_fake_comsolbatch(tmp_path)
+    class_file = tmp_path / "ComsolBridge.class"
+    class_file.write_bytes(b"mock compiled class")
+    startup = subprocess.CompletedProcess([], 0,
+        stdout="ERROR: Failed to start COMSOL\ncom/comsol/nativejni/FlNativeException\n", stderr="")
+    payload = {"status": "SUCCESS", "operation": "export_s1_diagnostics"}
+    preference_dir = str(tmp_path / "isolated_preferences")
+    directory_line = "COMSOL_GRAPHICS_PREFSDIR_READBACK=" + base64.b64encode(preference_dir.encode("utf-8")).decode("ascii") + "\n"
+    exported = subprocess.CompletedProcess([], 0,
+        stdout=renderer_lines + directory_line + "<<<JSON_START>>>\n" + json.dumps(payload) + "\n<<<JSON_END>>>", stderr="")
+    exported.graphics_preferences_dir = preference_dir if directory_matches else str(tmp_path / "other_preferences")
+    exported.graphics_preference_seed_hashes = {"comsol.prefs": "a" * 64, "comsolserver.prefs": "b" * 64}
+    monkeypatch.setattr(bridge, "get_comsol_bin_dir", lambda root: tmp_path)
+    monkeypatch.setattr(bridge, "ensure_bridge_compiled", lambda root: class_file)
+    monkeypatch.setattr(bridge.subprocess, "run", MagicMock(return_value=startup))
+    fallback = MagicMock(return_value=exported)
+    monkeypatch.setattr(bridge, "_run_standalone", fallback)
+    monkeypatch.setattr(bridge.sys, "platform", "win32")
+    arguments = ["export-s1-diagnostics", "saved_m1.mph", "new_export"]
+
+    if verified:
+        result = bridge._run_bridge(arguments, root=tmp_path)
+        assert result["graphics_renderer"] == {
+            "source": "ModelUtil.getPreference", "preference": "graphics.rendering.3drend",
+            "value": "sw", "scope": "export_process_only",
+            "preferences_directory": preference_dir,
+            "preferences_directory_source": "pre-init cs.prefsdir system property readback matched to launcher",
+            "seed_preferences_sha256": exported.graphics_preference_seed_hashes,
+        }
+    else:
+        with pytest.raises(ComsolConnectionError, match="software-renderer" if directory_matches else "preference directory"):
+            bridge._run_bridge(arguments, root=tmp_path)
+    fallback.assert_called_once_with(tmp_path, class_file, arguments)
+
+
+@pytest.mark.parametrize("operation", ["export-s1-diagnostics", "inspect-api"])
+def test_standalone_software_graphics_options_are_preinit_and_export_only(tmp_path, monkeypatch, operation):
+    import hashlib
+    from hydro_disturb_bench.comsol_java import bridge
+
+    class_file = tmp_path / "ComsolBridge.class"
+    class_file.write_bytes(b"mock compiled class")
+    installation = tmp_path / "COMSOL"
+    ini = installation / "bin" / "win64" / "comsolbatch.ini"
+    ini.parent.mkdir(parents=True)
+    ini.write_text("-Dcs.prefsdir=@user.home/.comsol/v64/\n", encoding="utf-8")
+    user_home = tmp_path / "synthetic_user"
+    seed_dir = user_home / ".comsol" / "v64"
+    seed_dir.mkdir(parents=True)
+    seeds = {"comsol.prefs": b"client profile resource paths", "comsolserver.prefs": b"server profile resource paths"}
+    for name, contents in seeds.items():
+        (seed_dir / name).write_bytes(contents)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: user_home))
+    launch = {}
+
+    def process(command, **kwargs):
+        if "ComsolStandalone" in command:
+            launch["command"] = command
+            launch["work"] = Path(kwargs["cwd"])
+            preference_args = [arg for arg in command if arg.startswith("-Dcs.prefsdir=")]
+            if operation == "export-s1-diagnostics":
+                assert len(preference_args) == 1
+                preferences = Path(preference_args[0].split("=", 1)[1])
+                assert preferences.is_dir()
+                assert preferences.parent == launch["work"]
+                assert command.index("-Dcs.3drend=sw") < command.index("ComsolStandalone")
+                assert command.index(preference_args[0]) < command.index("ComsolStandalone")
+                for name, contents in seeds.items():
+                    assert (preferences / name).read_bytes() == contents
+                    (preferences / name).write_bytes(b"simulated export-process preference autosave")
+                launch["preferences"] = preferences
+            else:
+                assert not preference_args
+                assert not any(arg.startswith("-Dcs.3drend=") for arg in command)
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(bridge.subprocess, "run", process)
+    result = bridge._run_standalone(installation, class_file, [operation])
+
+    assert not launch["work"].exists()
+    if operation == "export-s1-diagnostics":
+        assert result.graphics_preferences_dir == str(launch["preferences"])
+        assert result.graphics_preference_seed_hashes == {name: hashlib.sha256(contents).hexdigest() for name, contents in seeds.items()}
+        assert not launch["preferences"].exists()
+    else:
+        assert not hasattr(result, "graphics_preferences_dir")
+    assert {name: (seed_dir / name).read_bytes() for name in seeds} == seeds

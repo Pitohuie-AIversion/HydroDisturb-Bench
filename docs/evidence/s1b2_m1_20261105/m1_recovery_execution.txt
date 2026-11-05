@@ -1,0 +1,61 @@
+Stage S1-B1 prechecks: D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\runs\re100_s1b1_case_c_20261104_verified\re100_s1b1_case_c_solved.mph -> D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\runs\re100_s1b2_m1_20261105_verified\precheck_m0_recovery_f3ab1654
+
+[PRE-CHECK A: Wake Probe Direct Evaluation vs TXT Comparison Table]
+Target t (s) | Actual t (s) | TXT t (s)  | Expr  | Unit  | Unit Source              | Direct Eval (m/s)      | TXT Eval (m/s)         | Diff (m/s) | Status
+-------------------------------------------------------------------------------------------------------------------------------------------------
+180.0        | 180.0        | 180.0      | u     | m/s   | comsol_model_export_node | 0.006154234505332086   | 6.1542345053320858e-03 | 0.00e+00   | MATCH
+180.0        | 180.0        | 180.0      | v     | m/s   | comsol_model_export_node | -0.0013388424006496222 | -1.3388424006496222e-03 | 0.00e+00   | MATCH
+185.0        | 185.0        | 185.0      | u     | m/s   | comsol_model_export_node | 0.006856532618414952   | 6.8565326184149523e-03 | 0.00e+00   | MATCH
+185.0        | 185.0        | 185.0      | v     | m/s   | comsol_model_export_node | 0.003184480339566564   | 3.1844803395665641e-03 | 0.00e+00   | MATCH
+190.0        | 190.0        | 190.0      | u     | m/s   | comsol_model_export_node | 0.006440844081529877   | 6.4408440815298769e-03 | 0.00e+00   | MATCH
+190.0        | 190.0        | 190.0      | v     | m/s   | comsol_model_export_node | 0.003036347545956046   | 3.0363475459560460e-03 | 0.00e+00   | MATCH
+195.0        | 195.0        | 195.0      | u     | m/s   | comsol_model_export_node | 0.006353151410513746   | 6.3531514105137459e-03 | 0.00e+00   | MATCH
+195.0        | 195.0        | 195.0      | v     | m/s   | comsol_model_export_node | -0.0010905198032891705 | -1.0905198032891705e-03 | 0.00e+00   | MATCH
+200.0        | 200.0        | 200.0      | u     | m/s   | comsol_model_export_node | 0.00681995421559874    | 6.8199542155987398e-03 | 0.00e+00   | MATCH
+200.0        | 200.0        | 200.0      | v     | m/s   | comsol_model_export_node | -0.0035519338534658346 | -3.5519338534658346e-03 | 0.00e+00   | MATCH
+
+[PRE-CHECK B: Solver & Model Consistency Readback]
+  BDF Method:                  bdf
+  Time stepping policy:        intermediate
+  Order range:                 min=1, max=2
+  Relative tolerance (rtol):   1e-4
+  Absolute tolerance method:   comp1_p, scaled, comp1_u, global
+  Absolute tolerance factor:   comp1_p, 1, comp1_u, 0.1
+  Absolute tolerance atol:     comp1_p, 1e-3, comp1_u, 1e-3
+  Global atol:                 0.001
+  Global atol factor:          0.05
+  Global atol method:          scaled
+  Global atol value method:    factor
+  Max step constraint mode:    const
+  Max step value setting:      0.05
+  Initial step setting:        0.001
+  Initial step active mode:    off
+  Output schedule (tlist):     range(0, 0.2, 200)
+  Mesh Elements:               7493
+  Mesh Vertices:               3944
+  Mesh Features:               ['size', 'size1', 'cr1', 'ftri1', 'bl1']
+  Physics Discretization:      Shape order=1
+  Initial Conditions:          {'u': '0', 'v': 'UNOBTAINED', 'p': 'UNOBTAINED'}
+
+Pre-checks complete! Saved report to D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\runs\re100_s1b2_m1_20261105_verified\precheck_m0_recovery_f3ab1654\report.json
+Traceback (most recent call last):
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\comsol_java\bridge.py", line 1710, in export_s1_diagnostics
+    val_summary = validate_s1_diagnostics(
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\io.py", line 902, in validate_s1_diagnostics
+    raise ComsolExportValidationError(f"Required S1 vorticity snapshot missing: {img_name}")
+hydro_disturb_bench.io.ComsolExportValidationError: Required S1 vorticity snapshot missing: vorticity_t10s_comsol.png
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_re100_s1b2_mesh.py", line 729, in <module>
+    sys.exit(main())
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_re100_s1b2_mesh.py", line 716, in main
+    report = verify_saved_mesh_m1(args.verify_saved)
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_re100_s1b2_mesh.py", line 688, in verify_saved_mesh_m1
+    return _finish_postprocess(output_dir, report, solution, elapsed, tree_m0, native_m0,
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_re100_s1b2_mesh.py", line 489, in _finish_postprocess
+    export_response = export_s1_diagnostics(model_path=solved, output_dir=output_dir,
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\comsol_java\bridge.py", line 1720, in export_s1_diagnostics
+    raise ModelValidationError(
+hydro_disturb_bench.comsol_java.bridge.ModelValidationError: [MODEL_VALIDATION_FAILED] Staging diagnostics failed data contract validation; outputs were NOT published: Required S1 vorticity snapshot missing: vorticity_t10s_comsol.png

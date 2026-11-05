@@ -1,0 +1,30 @@
+{
+  "returncode": 0,
+  "requested_preference_directory": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydrobench_seeded_probe_lsq8fwbh\\preferences",
+  "global_preferences_before": {
+    "comsol.prefs": "c75a2168eaf856d2a17df7fd870ee6327a34b66a5b6be3a299896de03586893b",
+    "comsolserver.prefs": "09c8a56f7d07eb01a2e946e83ddcb4e2e41de75d2b505eb99418e1b45aa4ffd0"
+  },
+  "global_preferences_after": {
+    "comsol.prefs": "c75a2168eaf856d2a17df7fd870ee6327a34b66a5b6be3a299896de03586893b",
+    "comsolserver.prefs": "09c8a56f7d07eb01a2e946e83ddcb4e2e41de75d2b505eb99418e1b45aa4ffd0"
+  },
+  "model_sha256_before": "1003693aeba77f293b51efe3d943b46d4149d8396391fa15f27225778db52f8b",
+  "model_sha256_after": "1003693aeba77f293b51efe3d943b46d4149d8396391fa15f27225778db52f8b",
+  "output_files": [
+    "drag_coeff.txt",
+    "inlet_p.txt",
+    "inlet_u.txt",
+    "lift_coeff.txt",
+    "stag_p.txt",
+    "vorticity_grid_t10s.txt",
+    "vorticity_t10s_comsol.png",
+    "wake_u.txt",
+    "wake_v.txt"
+  ],
+  "isolated_preference_files": [
+    "comsol.prefs",
+    "comsolserver.prefs"
+  ],
+  "raw_log": "software_seeded_probe_raw.txt"
+}

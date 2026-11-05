@@ -1,0 +1,10 @@
+{
+  "scope": "Restore only rendering key changed by unsuccessful runtime-preference export attempt; no claim of whole-file immutability",
+  "pre_attempt_observed_sha256": "e3f55b1a01d4d076c0146404a7c5506be37cae1d368240ecd52ff7c50b6978d1",
+  "before_restore_sha256": "30a15a3e04b1900272f0c12a71e3e324ee2c7df388cd04dee1c30909018c484f",
+  "after_restore_sha256": "c75a2168eaf856d2a17df7fd870ee6327a34b66a5b6be3a299896de03586893b",
+  "renderer_before_attempt": "ogl",
+  "renderer_after_unsuccessful_attempt": "sw",
+  "renderer_restored": "ogl",
+  "only_replacement_verified": true
+}

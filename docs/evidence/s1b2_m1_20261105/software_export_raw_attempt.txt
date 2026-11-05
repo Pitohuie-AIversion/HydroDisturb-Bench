@@ -1,0 +1,17 @@
+COMSOL_GRAPHICS_RENDERER_READBACK=sw
+COMSOL_GRAPHICS_PREFSDIR_READBACK=QzpcVXNlcnNcQWRtaW5pc3RyYXRvclxBcHBEYXRhXExvY2FsXFRlbXBcaHlkcm9iZW5jaF9jb21zb2xfMjFieHZkbXBccHJlZmVyZW5jZXM=
+*******************************************
+***COMSOL 6.4.0.429 progress output file***
+*******************************************
+Thu Nov 05 09:52:42 CST 2026
+<<<JSON_START>>>
+{
+  "status": "ERROR",
+  "error_code": "COMSOL_CONNECTION_FAILED",
+  "message": "Failed to load model for diagnostic export: java.lang.IllegalStateException: java.io.IOException: \u7cfb\u7edf\u627e\u4e0d\u5230\u6307\u5b9a\u7684\u8def\u5f84\u3002",
+  "details": "Exception:\r\n\tcom.comsol.util.exceptions.UnexpectedServerException: java.lang.IllegalStateException: java.io.IOException: \u7cfb\u7edf\u627e\u4e0d\u5230\u6307\u5b9a\u7684\u8def\u5f84\u3002\n\t(rethrown as com.comsol.util.exceptions.FlException)\r\nMessages:\r\n\tjava.lang.IllegalStateException: java.io.IOException: \u7cfb\u7edf\u627e\u4e0d\u5230\u6307\u5b9a\u7684\u8def\u5f84\u3002\r\n\r\nStack trace:\r\nat com.comsol.bridge.command.b.a(SourceFile:173)\r\n\tat com.comsol.bridge.command.c.run(SourceFile:63)\r\n\tat com.comsol.bridge.command.k.c(SourceFile:232)\r\n\tat com.comsol.bridge.command.k$1.run(SourceFile:105)\r\n\tat com.comsol.util.thread.SuspendableTasks$1.run(SourceFile:111)\r\n\tat java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)\r\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)\r\n\tat java.lang.Thread.run(Unknown Source)"
+}
+
+<<<JSON_END>>>
+
+STDERR

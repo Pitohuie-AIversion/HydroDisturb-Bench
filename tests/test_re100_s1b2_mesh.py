@@ -1,0 +1,616 @@
+"""Offline admission tests for the single M0/M1 native-mesh experiment.
+
+Synthetic readbacks exercise production gates; they are not COMSOL integration
+evidence. Wake tests use actual exported-text parsing and analytical signals.
+"""
+
+from __future__ import annotations
+
+from copy import deepcopy
+import json
+from pathlib import Path
+import sys
+from unittest.mock import Mock
+
+import numpy as np
+import pytest
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+for location in (ROOT_DIR, ROOT_DIR / "src"):
+    if str(location) not in sys.path:
+        sys.path.insert(0, str(location))
+
+from scripts import run_re100_s1b2_mesh as mesh_run
+from hydro_disturb_bench.comsol_java import bridge as comsol_bridge
+
+
+def _time_policy():
+    return {
+        "rtol": "1e-4",
+        "maxstepconstraintbdf": "const",
+        "maxstepbdf": "0.05",
+        "atolmethod": "scaled",
+        "atolfactor": "0.1",
+        "tlist": "range(0, 0.2, 200)",
+        "timemethod": "bdf",
+    }
+
+
+@pytest.mark.parametrize(
+    "key,value",
+    [("rtol", "1e-3"), ("maxstepconstraintbdf", "auto"), ("maxstepbdf", "0.025")],
+    ids=["changed_tolerance", "automatic_step_cap", "case_d_time_policy"],
+)
+def test_mesh_experiment_rejects_time_policy_other_than_case_c(key, value):
+    settings = _time_policy()
+    settings[key] = value
+    with pytest.raises((RuntimeError, ValueError)):
+        mesh_run.check_time_policy(settings)
+
+
+@pytest.fixture
+def invariant_readbacks():
+    before = {
+        "solver_details": _time_policy(),
+        "physics_details": {"shape_order": "1", "initial_conditions": {"u": "0"}},
+        "mesh_details": {
+            "sdim": 2, "is_complete": True,
+            "features": ["size", "size1", "cr1", "ftri1", "bl1"],
+            "num_elem": 100, "num_vertex": 70,
+        },
+    }
+    after = deepcopy(before)
+    after["mesh_details"].update(num_elem=196, num_vertex=120)
+    tree = {
+        "parameters": {"U_inf": "0.01[m/s]", "rho": "1000[kg/m^3]"},
+        "studies": [{"tag": "transient_only", "features": [{"type": "Transient"}]}],
+        "components": [{"tag": "comp1", "meshes": [{"tag": "mesh1", "num_elem": 100}]}],
+    }
+    new_tree = deepcopy(tree)
+    new_tree["components"][0]["meshes"][0]["num_elem"] = 196
+    return before, after, tree, new_tree
+
+
+def test_invariants_allow_changed_mesh_counts_with_same_time_and_physics(invariant_readbacks):
+    assert mesh_run.check_invariants(*invariant_readbacks)["status"] == "PASS"
+
+
+@pytest.mark.parametrize("fault", ["absolute_tolerance", "output_schedule", "element_order", "initial_condition"])
+def test_mesh_study_rejects_non_target_solver_and_physics_changes(invariant_readbacks, fault):
+    after = invariant_readbacks[1]
+    if fault == "absolute_tolerance":
+        after["solver_details"]["atolfactor"] = "1"
+    elif fault == "output_schedule":
+        after["solver_details"]["tlist"] = "range(0, 0.1, 200)"
+    elif fault == "element_order":
+        after["physics_details"]["shape_order"] = "2"
+    else:
+        after["physics_details"]["initial_conditions"]["u"] = "U_inf"
+
+    with pytest.raises(RuntimeError, match="Non-target"):
+        mesh_run.check_invariants(*invariant_readbacks)
+
+
+def _native_feature(tag, kind, properties, *, path=None, children=None, entities=None):
+    return {
+        "tag": tag, "path": path or tag, "type": kind, "active": True,
+        "properties": properties, "unreadable_properties": {},
+        "selection_entities": entities, "features": children or [],
+    }
+
+
+def _square_mesh(divisions):
+    """Small synthetic native mesh: values are test data, not CFD readback claims."""
+    coords = [(i / divisions, j / divisions) for j in range(divisions + 1) for i in range(divisions + 1)]
+    triangles = []
+    for j in range(divisions):
+        for i in range(divisions):
+            a = j * (divisions + 1) + i
+            b, c, d = a + 1, a + divisions + 1, a + divisions + 2
+            triangles.extend(((a, b, d), (a, d, c)))
+    return {
+        "tag": "mesh1", "geometry_tag": "geom1", "length_unit": "m", "sdim": 2,
+        "automatic": False, "is_complete": True,
+        "num_elem": len(triangles), "num_vertex": len(coords),
+        "quality": {"measure": "volcircum", "minimum": 0.7, "mean": 0.8},
+        "area": {"minimum": 0.5 / divisions**2, "maximum": 0.5 / divisions**2, "total": 1.0},
+        "vertices": np.array(coords).T.tolist(),
+        "elements": {"tri": {"count": len(triangles), "connectivity": np.array(triangles).T.tolist(), "entities": [1] * len(triangles)}},
+        "features": [
+            _native_feature("size", "MeshSizeDefault", {"custom": "off", "hmax": 0.0084, "hmin": 0.00024, "hgrad": 1.13}),
+            _native_feature("size1", "Size", {"custom": "on", "hmax": 0.0004, "hmin": 0.00005, "hgrad": 1.08}, entities=[5, 6, 7, 8]),
+            _native_feature("bl1", "BndLayer", {}, children=[
+                _native_feature("blp1", "BndLayerProp", {"inittype": "blhminfact", "blhminfact": 5.0, "blnlayers": 2.0, "blstretch": 1.2}, path="bl1/blp1", entities=[5, 6, 7, 8]),
+            ]),
+        ],
+    }
+
+
+@pytest.fixture
+def native_readbacks():
+    non_mesh = {"components": [{
+        "tag": "comp1",
+        "geometry": [{"tag": "geom1", "features": [_native_feature("c1", "Circle", {"r": 0.005})]}],
+        "physics": [_native_feature("spf", "LaminarFlow", {}, children=[
+            _native_feature("fp1", "FluidProperties", {"streamlinens": "0", "crosswindns": "0", "rho": "rho_f"}, path="spf/fp1"),
+            _native_feature("init1", "init", {"u_init": ["0", "0", "0"], "p_init": "0"}, path="spf/init1"),
+            _native_feature("wallbc1", "WallBC", {"BoundaryCondition": "NoSlip"}, path="spf/wallbc1", entities=[5, 6, 7, 8]),
+        ])],
+        "materials": [],
+    }]}
+    before = {
+        "status": "SUCCESS", "operation": "inspect_native_mesh", "sha256": "A" * 64,
+        "components": [{"tag": "comp1", "meshes": [_square_mesh(1)]}],
+        "non_mesh": non_mesh,
+    }
+    after = deepcopy(before)
+    after["sha256"] = "B" * 64
+    after["components"][0]["meshes"][0] = _square_mesh(2)
+    plan = {
+        "source_sha256": before["sha256"], "component_tag": "comp1", "mesh_tag": "mesh1",
+        "refinement_factor": 1.4, "changes": [],
+    }
+    for index, feature in enumerate(before["components"][0]["meshes"][0]["features"][:2]):
+        for prop in ("hmax", "hmin"):
+            old = feature["properties"][prop]
+            new = old / 1.4
+            plan["changes"].append({"feature_path": [feature["tag"]], "property": prop, "before": old, "after": new})
+            after["components"][0]["meshes"][0]["features"][index]["properties"][prop] = new
+    plan["changes"].append({"feature_path": ["size"], "property": "custom", "before": "off", "after": "on"})
+    after["components"][0]["meshes"][0]["features"][0]["properties"]["custom"] = "on"
+    return before, after, plan
+
+
+def test_native_refinement_requires_real_rebuilt_mesh_and_actual_scale_readbacks(native_readbacks):
+    result = mesh_run.check_mesh_refinement(*native_readbacks)
+    assert result["status"] == "PASS"
+
+
+@pytest.mark.parametrize("fault", ["sampling_only", "wrong_size_readback", "missing_quality", "stale_source_hash", "wrong_refinement_factor", "changed_boundary_layer"])
+def test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence(native_readbacks, fault):
+    before, after, plan = native_readbacks
+    mesh_before, mesh_after = (item["components"][0]["meshes"][0] for item in (before, after))
+    if fault == "sampling_only":
+        for key in ("num_elem", "num_vertex", "vertices", "elements", "area"):
+            mesh_after[key] = deepcopy(mesh_before[key])
+    elif fault == "wrong_size_readback":
+        mesh_after["features"][1]["properties"]["hmin"] = mesh_before["features"][1]["properties"]["hmin"]
+    elif fault == "missing_quality":
+        mesh_after["quality"] = None
+    elif fault == "stale_source_hash":
+        plan["source_sha256"] = "C" * 64
+    elif fault == "wrong_refinement_factor":
+        plan["refinement_factor"] = 2.0
+    else:
+        mesh_after["features"][2]["features"][0]["properties"]["blstretch"] = 1.4
+
+    with pytest.raises((RuntimeError, ValueError)):
+        mesh_run.check_mesh_refinement(before, after, plan)
+
+
+@pytest.mark.parametrize("fault", ["geometry", "stabilization", "boundary_condition", "initial_condition"])
+def test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes(native_readbacks, fault):
+    component = native_readbacks[1]["non_mesh"]["components"][0]
+    physics = component["physics"][0]["features"]
+    if fault == "geometry":
+        component["geometry"][0]["features"][0]["properties"]["r"] = 0.006
+    elif fault == "stabilization":
+        physics[0]["properties"]["streamlinens"] = "1"
+    elif fault == "boundary_condition":
+        physics[2]["properties"]["BoundaryCondition"] = "Slip"
+    else:
+        physics[1]["properties"]["u_init"] = ["U_inf", "0", "0"]
+
+    with pytest.raises((RuntimeError, ValueError)):
+        mesh_run.check_mesh_refinement(*native_readbacks)
+
+
+@pytest.mark.parametrize("fault", [None, "source_changed", "retained_solution", "missing_clear_proof"], ids=["fresh_mesh", "changed_source", "stale_cfd_solution", "missing_empty_readback"])
+def test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution(tmp_path, monkeypatch, native_readbacks, fault):
+    source, output = tmp_path / "m0.mph", tmp_path / "m1.mph"
+    source.write_bytes(b"M0 solved model")
+    plan = deepcopy(native_readbacks[2])
+    plan["source_sha256"] = comsol_bridge.compute_file_hash(source)
+
+    def execute(args, root=None):
+        assert args[0] == "refine-native-mesh"
+        assert Path(args[1]) == source
+        Path(args[2]).write_bytes(b"new native M1 mesh")
+        if fault == "source_changed":
+            source.write_bytes(b"unexpected source mutation")
+        result = {"status": "SUCCESS"}
+        if fault != "missing_clear_proof":
+            result["stored_solution_data_empty"] = fault != "retained_solution"
+        return result
+
+    external = Mock(side_effect=execute)
+    monkeypatch.setattr(comsol_bridge, "_run_bridge", external)
+    if fault:
+        with pytest.raises(comsol_bridge.ModelValidationError):
+            comsol_bridge.refine_native_mesh(source, output, plan)
+        assert not output.exists()
+    else:
+        result = comsol_bridge.refine_native_mesh(source, output, plan)
+        assert source.read_bytes() == b"M0 solved model"
+        assert output.read_bytes() == b"new native M1 mesh"
+        assert result["stored_solution_data_empty"] is True
+        assert result["source_sha256"] == plan["source_sha256"]
+    external.assert_called_once()
+
+
+def test_native_bridge_rejects_source_hash_mismatch_before_external_call(tmp_path, monkeypatch, native_readbacks):
+    source, output = tmp_path / "m0.mph", tmp_path / "m1.mph"
+    source.write_bytes(b"M0 solved model")
+    external = Mock()
+    monkeypatch.setattr(comsol_bridge, "_run_bridge", external)
+
+    with pytest.raises(comsol_bridge.ModelValidationError, match="SHA-256"):
+        comsol_bridge.refine_native_mesh(source, output, native_readbacks[2])
+
+    external.assert_not_called()
+    assert not output.exists()
+
+
+def _add_cylinder_wall_quads(mesh, segments):
+    """Add explicit wall edges and adjacent quads to exercise native length measurements."""
+    vertices = np.asarray(mesh["vertices"]).T.tolist()
+    offset = len(vertices)
+    angles = 2 * np.pi * np.arange(segments) / segments
+    for radius in (0.005, 0.006):
+        vertices.extend(np.column_stack((0.1 + radius * np.cos(angles), 0.12 + radius * np.sin(angles))).tolist())
+    edges, quads = [], []
+    for i in range(segments):
+        j = (i + 1) % segments
+        edges.append([offset + i, offset + j])
+        # Deliberately non-cyclic node order exercises geometry-based ordering.
+        quads.append([offset + i, offset + j + segments, offset + j, offset + i + segments])
+    mesh["vertices"] = np.asarray(vertices).T.tolist()
+    mesh["num_vertex"] = len(vertices)
+    mesh["num_elem"] += segments
+    for tag, cells, entity in (("edg", edges, 5), ("quad", quads, 1)):
+        mesh["elements"][tag] = {"count": segments, "connectivity": np.asarray(cells).T.tolist(), "entities": [entity] * segments}
+
+
+def _write_case_diagnostics(directory):
+    time = np.linspace(0.0, 200.0, 1001)
+    phase = 2 * np.pi * 0.16 * time
+    _write_wake(directory, time, 0.005 + 0.002 * np.sin(phase), 0.001 * np.sin(phase))
+    for filename, values in (("lift_coeff.txt", 0.3 * np.sin(phase)), ("drag_coeff.txt", 1.346 + 0.002 * np.cos(2 * phase))):
+        np.savetxt(directory / filename, np.column_stack((time, values)), header="Time (s) coefficient (1)", comments="% ")
+
+
+@pytest.fixture
+def offline_mesh_run(tmp_path, monkeypatch, native_readbacks, invariant_readbacks):
+    source_dir = tmp_path / "accepted_case_c"
+    source_dir.mkdir()
+    source = source_dir / "case_c.mph"
+    source.write_bytes(b"accepted Case C source")
+    historical = tmp_path / "case_b.mph"
+    historical.write_bytes(b"preserved Case B")
+    _write_case_diagnostics(source_dir)
+    source_hash = mesh_run.compute_file_hash(source)
+    (source_dir / "solve_response.json").write_text(json.dumps({
+        "output_sha256": source_hash,
+        "solution_stats": {"num_dofs": 100, "num_timesteps": 1001, "time_min": 0.0, "time_max": 200.0, "has_nan_or_inf": False, "has_physical_field": True},
+    }), encoding="utf-8")
+    native_before, native_after, plan = native_readbacks
+    native_before["sha256"] = plan["source_sha256"] = source_hash
+    before, after, tree, new_tree = invariant_readbacks
+    for index, native in enumerate((native_before, native_after)):
+        mesh = native["components"][0]["meshes"][0]
+        _add_cylinder_wall_quads(mesh, 4 * (index + 1))
+        (before, after)[index]["mesh_details"].update(num_elem=mesh["num_elem"], num_vertex=mesh["num_vertex"])
+    for target in (tree, new_tree):
+        target["parameters"] = {key: {"value": value} for key, value in {"U_inf": 0.01, "D": 0.01, "R": 0.005, "x_c": 0.1, "y_c": 0.12}.items()}
+        target["components"][0]["physics"] = [{"tag": "spf", "features": [{"tag": "wallbc1", "type": "WallBC", "selection_entities": [5, 6, 7, 8]}]}]
+    state = {
+        "source": source, "historical": historical, "output": tmp_path / "new_m1",
+        "native_before": native_before, "native_after": native_after, "plan": plan,
+    }
+    monkeypatch.setattr(mesh_run, "M0_DIR", source_dir)
+    monkeypatch.setattr(mesh_run, "M0_MODEL", source)
+    monkeypatch.setattr(mesh_run, "PROTECTED_PATHS", (source_dir, historical))
+
+    def inspect_native(model_path):
+        response = deepcopy(native_before if model_path == source else native_after)
+        response["sha256"] = mesh_run.compute_file_hash(model_path)
+        return response
+
+    def refine(model_path, output_path, plan, allow_overwrite=False):
+        assert model_path == source
+        assert allow_overwrite is False
+        output_path.write_bytes(b"M1 refined mesh; no stored solution")
+        state["prepared"] = output_path
+        return {
+            "status": "SUCCESS", "before": deepcopy(native_before), "after": inspect_native(output_path),
+            "stored_solution_data_empty": True, "cleared_solution_tags": ["sol1"],
+            "source_sha256": source_hash, "output_sha256": mesh_run.compute_file_hash(output_path),
+            "refinement_plan": deepcopy(plan),
+        }
+
+    def solve(**kwargs):
+        kwargs["output_path"].write_bytes(b"M1 new solution")
+        return {
+            "status": "SUCCESS", "source_sha256": mesh_run.compute_file_hash(kwargs["model_path"]),
+            "output_sha256": mesh_run.compute_file_hash(kwargs["output_path"]),
+            "solution_stats": {"num_dofs": 200, "num_timesteps": 1001, "time_min": 0.0, "time_max": 200.0, "has_nan_or_inf": False, "has_physical_field": True},
+            "log": "\n".join(f"{i} {0.05 * i:.8f} 0.05 2 1 2 2 0 0" for i in range(1, 4001)),
+        }
+
+    def export(**kwargs):
+        _write_case_diagnostics(kwargs["output_dir"])
+        if state.get("drag_scale"):
+            drag_path = kwargs["output_dir"] / "drag_coeff.txt"
+            values = np.loadtxt(drag_path, comments="%")
+            values[:, 1] *= state["drag_scale"]
+            np.savetxt(drag_path, values, header="Time (s) coefficient (1)", comments="% ")
+        return {"status": "SUCCESS"}
+
+    callbacks = {
+        "inspect_native_mesh": inspect_native,
+        "refine_native_mesh": refine,
+        "inspect_model": lambda model_path: deepcopy(tree if model_path == source else new_tree),
+        "run_prechecks": lambda **kwargs: {"overall_prechecks_status": "PASS", "precheck_b_solver_model": deepcopy(before if kwargs["model_path"] == source else after)},
+        "run_study": solve,
+        "export_s1_diagnostics": export,
+    }
+    for name, callback in callbacks.items():
+        state[name] = Mock(side_effect=callback)
+        monkeypatch.setattr(mesh_run, name, state[name])
+    return state
+
+
+@pytest.mark.parametrize("drag_scale,expected_status", [(1.0, "PASS"), (1.02, "SENSITIVE")])
+def test_entry_solves_only_isolated_refined_m1_and_keeps_comparison_preliminary(offline_mesh_run, drag_scale, expected_status):
+    state = offline_mesh_run
+    state["drag_scale"] = drag_scale
+
+    report = mesh_run.run_mesh_m1(state["output"], state["plan"])
+
+    state["refine_native_mesh"].assert_called_once_with(
+        model_path=state["source"], output_path=state["prepared"], plan=state["plan"], allow_overwrite=False,
+    )
+    state["run_study"].assert_called_once_with(
+        model_path=state["prepared"], output_path=state["output"] / "re100_s1b2_m1_solved.mph",
+        study_tag="transient_only", allow_overwrite=False,
+    )
+    assert state["prepared"].parent == state["output"]
+    assert state["prepared"] != state["source"]
+    assert report["status"] == expected_status
+    assert report["physical_comparison"]["acceptance_status"] == expected_status
+    assert report["mesh_independence_established"] is False
+    assert report["physical_comparison"]["grid_independence_phase_can_close"] is False
+    assert report["protected_files_unchanged"] is True
+    assert state["source"].read_bytes() == b"accepted Case C source"
+    assert state["historical"].read_bytes() == b"preserved Case B"
+    assert report["m0_mesh_summary"]["cylinder_boundary"]["edge_count"] == 4
+    assert report["m1_mesh_summary"]["cylinder_boundary"]["edge_count"] == 8
+    assert report["wake_comparison"]["normalization"] == "U_inf"
+    assert json.loads((state["output"] / "mesh_report.json").read_text(encoding="utf-8")) == report
+
+
+def test_entry_refuses_existing_output_before_external_operations(offline_mesh_run):
+    state = offline_mesh_run
+    state["output"].mkdir()
+    marker = state["output"] / "prior_report.txt"
+    marker.write_text("preserve", encoding="utf-8")
+
+    with pytest.raises(FileExistsError):
+        mesh_run.run_mesh_m1(state["output"], state["plan"])
+
+    state["inspect_model"].assert_not_called()
+    state["refine_native_mesh"].assert_not_called()
+    state["run_study"].assert_not_called()
+    assert marker.read_text(encoding="utf-8") == "preserve"
+
+
+def test_entry_does_not_solve_when_native_mesh_did_not_refine(offline_mesh_run):
+    state = offline_mesh_run
+    state["native_after"]["components"] = deepcopy(state["native_before"]["components"])
+
+    with pytest.raises(RuntimeError, match="counts must increase"):
+        mesh_run.run_mesh_m1(state["output"], state["plan"])
+
+    state["refine_native_mesh"].assert_called_once()
+    state["run_study"].assert_not_called()
+    saved = json.loads((state["output"] / "mesh_report.json").read_text(encoding="utf-8"))
+    assert saved["status"] == "FAIL"
+    assert saved["protected_files_unchanged"] is True
+
+
+@pytest.fixture
+def completed_solve_with_failed_export(offline_mesh_run):
+    """Exercise the real failed-run archive path after the M1 solution exists."""
+    state = offline_mesh_run
+    export_callback = state["export_s1_diagnostics"].side_effect
+    state["export_s1_diagnostics"].side_effect = RuntimeError("OpenGL image export unavailable")
+    with pytest.raises(RuntimeError, match="OpenGL"):
+        mesh_run.run_mesh_m1(state["output"], state["plan"])
+    state["export_s1_diagnostics"].side_effect = export_callback
+    for name in ("inspect_model", "inspect_native_mesh", "refine_native_mesh", "run_study", "export_s1_diagnostics", "run_prechecks"):
+        state[name].reset_mock()
+    state["solved"] = state["output"] / "re100_s1b2_m1_solved.mph"
+    state["solved_bytes"] = state["solved"].read_bytes()
+    state["failure_bytes"] = (state["output"] / "failure.log").read_bytes()
+    return state
+
+
+def test_postprocess_recovery_uses_saved_solution_without_refining_or_solving(completed_solve_with_failed_export):
+    state = completed_solve_with_failed_export
+
+    report = mesh_run.verify_saved_mesh_m1(state["output"])
+
+    state["refine_native_mesh"].assert_not_called()
+    state["run_study"].assert_not_called()
+    state["export_s1_diagnostics"].assert_called_once()
+    assert state["export_s1_diagnostics"].call_args.kwargs["model_path"] == state["solved"]
+    assert state["solved"].read_bytes() == state["solved_bytes"]
+    assert report["status"] == "PASS"
+    assert report["mesh_independence_established"] is False
+    assert report["protected_files_unchanged"] is True
+
+
+def test_postprocess_recovery_rejects_tampered_solution_before_export(completed_solve_with_failed_export):
+    state = completed_solve_with_failed_export
+    state["solved"].write_bytes(b"different model after failed export")
+
+    with pytest.raises(RuntimeError):
+        mesh_run.verify_saved_mesh_m1(state["output"])
+
+    state["export_s1_diagnostics"].assert_not_called()
+    state["refine_native_mesh"].assert_not_called()
+    state["run_study"].assert_not_called()
+
+
+def test_postprocess_recovery_preserves_failure_and_does_not_invent_missing_wall_clock(completed_solve_with_failed_export):
+    state = completed_solve_with_failed_export
+    report_path = state["output"] / "mesh_report.json"
+    legacy_report = json.loads(report_path.read_text(encoding="utf-8"))
+    legacy_report.pop("solve_duration_sec", None)
+    report_path.write_text(json.dumps(legacy_report, indent=2), encoding="utf-8")
+    original_report_bytes = report_path.read_bytes()
+    response_path = state["output"] / "solve_response.json"
+    response = json.loads(response_path.read_text(encoding="utf-8"))
+    response["elapsed_ms"] = 123456
+    response_path.write_text(json.dumps(response), encoding="utf-8")
+
+    mesh_run.verify_saved_mesh_m1(state["output"])
+
+    metadata = json.loads((state["output"] / "solver_metadata.json").read_text(encoding="utf-8"))
+    assert metadata["solve_duration_sec"] == "UNOBTAINED"
+    assert metadata["comsol_elapsed_ms"] == 123456
+    assert any(path.read_bytes() == original_report_bytes for path in state["output"].glob("mesh_report_initial_export_failure*.json"))
+    assert any(path.read_bytes() == state["failure_bytes"] for path in state["output"].glob("failure_initial_export_failure*.log"))
+    state["refine_native_mesh"].assert_not_called()
+    state["run_study"].assert_not_called()
+
+
+def _stable_stats(name):
+    return {
+        "name": name,
+        "status": "STABLE",
+        "is_stable": True,
+        "num_cycles": 5,
+        "window": [170.0, 200.0],
+        "St_zc_mean": 0.16,
+        "St_peaks_mean": 0.16,
+        "Cd_mean": 1.346,
+        "Cl_amp_mean": 0.3,
+        "Cl_demeaned_rms": 0.21,
+        "step_info": {"step_count": 4091},
+        "solve_wall_clock_sec": 10.0,
+    }
+
+
+def test_two_mesh_agreement_is_only_preliminary_not_mesh_independence():
+    result = mesh_run.classify_comparison(_stable_stats("M0"), _stable_stats("M1"))
+
+    assert result["acceptance_status"] == "PASS"
+    assert result["mesh_independence_established"] is False
+    assert set(result["thresholds_pct"].values()) == {1.0}
+
+
+@pytest.mark.parametrize("metric", ["St_zc_mean", "Cd_mean", "Cl_amp_mean", "Cl_demeaned_rms"])
+def test_each_primary_metric_retains_one_percent_sensitivity_gate(metric):
+    coarse, fine = _stable_stats("M0"), _stable_stats("M1")
+    fine[metric] *= 1.02
+
+    result = mesh_run.classify_comparison(coarse, fine)
+
+    assert result["acceptance_status"] == "SENSITIVE"
+    assert result["mesh_independence_established"] is False
+
+
+@pytest.mark.parametrize("case_index", [0, 1], ids=["M0", "M1"])
+@pytest.mark.parametrize("fault", ["unstable", "four_cycles"])
+def test_both_meshes_require_five_stable_complete_cycles(case_index, fault):
+    cases = [_stable_stats("M0"), _stable_stats("M1")]
+    if fault == "unstable":
+        cases[case_index]["is_stable"] = False
+        cases[case_index]["stability_message"] = "Amplitude is drifting"
+        expected = "UNSTABLE"
+    else:
+        cases[case_index]["num_cycles"] = 4
+        expected = "INSUFFICIENT_CYCLES"
+
+    result = mesh_run.classify_comparison(*cases)
+
+    assert result["can_compare"] is False
+    assert result["acceptance_status"] == expected
+    assert result["mesh_independence_established"] is False
+
+
+def _write_wake(directory, times, u, v):
+    directory.mkdir(parents=True, exist_ok=True)
+    for channel, values in (("u", u), ("v", v)):
+        np.savetxt(
+            directory / f"wake_{channel}.txt",
+            np.column_stack((times, values)),
+            header=f"Time (s) {channel} (m/s)",
+            comments="% ",
+            fmt="%.17g",
+        )
+
+
+def test_wake_constant_mean_and_demeaned_rms_on_non_grid_window(tmp_path):
+    time = np.arange(0.0, 12.1, 0.2)
+    _write_wake(tmp_path, time, np.full_like(time, 0.003), np.full_like(time, -1e-14))
+
+    result = mesh_run.analyze_wake(tmp_path, [0.137, 10.137], 0.01)
+
+    assert result["window"] == [0.137, 10.137]
+    for channel, mean in (("u", 0.003), ("v", -1e-14)):
+        observed = result["channels"][channel]
+        assert observed["mean_m_s"] == pytest.approx(mean, abs=1e-17)
+        assert observed["demeaned_rms_m_s"] == pytest.approx(0.0, abs=1e-17)
+        assert observed["mean_over_u_inf"] == pytest.approx(mean / 0.01, abs=1e-15)
+
+
+def test_wake_offset_sine_uses_exact_five_cycle_window_and_removes_mean(tmp_path):
+    time = np.linspace(0.0, 12.0, 6001)
+    u = 0.003 + 0.002 * np.sin(np.pi * time)
+    v = -1e-14 + 0.0015 * np.cos(np.pi * time)
+    _write_wake(tmp_path, time, u, v)
+
+    result = mesh_run.analyze_wake(tmp_path, [0.137, 10.137], 0.01)
+
+    for channel, mean, amplitude in (("u", 0.003, 0.002), ("v", -1e-14, 0.0015)):
+        observed = result["channels"][channel]
+        assert observed["mean_m_s"] == pytest.approx(mean, abs=1e-14)
+        assert observed["demeaned_rms_m_s"] == pytest.approx(amplitude / np.sqrt(2), rel=2e-6)
+        assert observed["rms_over_u_inf"] == pytest.approx(amplitude / np.sqrt(2) / 0.01, rel=2e-6)
+
+
+@pytest.mark.parametrize("fault", ["uncovered_window", "zero_u_inf", "nonfinite_sample", "time_reversal"])
+def test_wake_statistics_reject_invalid_normalization_or_series(tmp_path, fault):
+    time = np.linspace(0.0, 12.0, 61)
+    values = np.full_like(time, 0.003)
+    if fault == "nonfinite_sample":
+        values[20] = np.nan
+    if fault == "time_reversal":
+        time[20] = time[19] - 0.1
+    _write_wake(tmp_path, time, values, values)
+    window = [-0.1, 10.137] if fault == "uncovered_window" else [0.137, 10.137]
+    u_inf = 0.0 if fault == "zero_u_inf" else 0.01
+
+    with pytest.raises((RuntimeError, ValueError)):
+        mesh_run.analyze_wake(tmp_path, window, u_inf)
+
+
+def test_near_zero_wake_mean_difference_uses_u_inf_not_local_mean(tmp_path):
+    time = np.linspace(0.0, 12.0, 61)
+    m0, m1 = tmp_path / "m0", tmp_path / "m1"
+    _write_wake(m0, time, np.full_like(time, 1e-16), np.zeros_like(time))
+    _write_wake(m1, time, np.full_like(time, 0.0001), np.full_like(time, -0.0002))
+    coarse = mesh_run.analyze_wake(m0, [0.137, 10.137], 0.01)
+    fine = mesh_run.analyze_wake(m1, [0.137, 10.137], 0.01)
+
+    result = mesh_run.compare_wake_statistics(coarse, fine)
+
+    assert result["normalization"] == "U_inf"
+    assert result["diagnostic_only"] is True
+    assert result["mesh_independence_established"] is False
+    assert result["channels"]["u"]["delta_mean_over_u_inf"] == pytest.approx(0.01)
+    assert result["channels"]["v"]["delta_mean_over_u_inf"] == pytest.approx(-0.02)
+    for channel in ("u", "v"):
+        assert result["channels"][channel]["delta_rms_over_u_inf"] == pytest.approx(0, abs=1e-15)

@@ -12,6 +12,7 @@ import contextlib
 import errno
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -213,6 +214,17 @@ def ensure_bridge_compiled(root: Path | None = None) -> Path:
     return java_class
 
 
+def _graphics_preference_seed_dir(root: Path) -> Path:
+    """Locate this installation's existing Windows profile without assuming a version."""
+    ini = root / "bin" / "win64" / "comsolbatch.ini"
+    if not ini.is_file():
+        raise ComsolConnectionError("Cannot locate COMSOL profile configuration for isolated graphics export")
+    match = re.search(r"@user\.home/\.comsol/(v[0-9]+)/", ini.read_text(encoding="utf-8", errors="replace"))
+    if not match:
+        raise ComsolConnectionError("COMSOL launcher does not identify its user preference profile")
+    return Path.home() / ".comsol" / match.group(1)
+
+
 def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess.CompletedProcess:
     """Use the official single-process Java API after a native batch startup failure.
 
@@ -237,11 +249,33 @@ def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess
             raise ComsolConnectionError(f"Standalone launcher compilation failed: {compiled.stderr}")
         encoded = [base64.b64encode(value.encode("utf-8")).decode("ascii")
                    for value in [str(root.resolve()), *args]]
-        return subprocess.run(
-            [str(java_bin / "java.exe"), "-Xmx2g", "-Xss4m", "-cp", classpath,
+        graphics_options = []
+        isolated_preferences = None
+        preference_seed_hashes = {}
+        if args and args[0] == "export-s1-diagnostics":
+            isolated_preferences = work / "preferences"
+            isolated_preferences.mkdir()
+            # A blank profile lacks resource paths needed by model loading. Copy the
+            # existing local files only into this temporary JVM directory; never edit
+            # their originals or include their contents in result metadata.
+            seed_dir = _graphics_preference_seed_dir(root)
+            for name in ("comsol.prefs", "comsolserver.prefs"):
+                seed_file = seed_dir / name
+                if not seed_file.is_file():
+                    raise ComsolConnectionError(f"Missing existing COMSOL preferences needed for isolated export: {seed_file}")
+                contents = seed_file.read_bytes()
+                (isolated_preferences / name).write_bytes(contents)
+                preference_seed_hashes[name] = hashlib.sha256(contents).hexdigest()
+            graphics_options = ["-Dcs.3drend=sw", f"-Dcs.prefsdir={isolated_preferences}"]
+        process = subprocess.run(
+            [str(java_bin / "java.exe"), "-Xmx2g", "-Xss4m", *graphics_options, "-cp", classpath,
              "ComsolStandalone", *encoded],
             cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
+        if isolated_preferences is not None:
+            process.graphics_preferences_dir = str(isolated_preferences)
+            process.graphics_preference_seed_hashes = preference_seed_hashes
+        return process
 
 
 def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
@@ -367,6 +401,26 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
 
     data.setdefault("log", stdout)
     data["launch_mode"] = launch_mode
+    if launch_mode == "standalone_java_api" and args and args[0] == "export-s1-diagnostics":
+        renderer_values = re.findall(r"^COMSOL_GRAPHICS_RENDERER_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE)
+        if renderer_values != ["sw"]:
+            raise ComsolConnectionError("Standalone image export lacks a verified software-renderer preference readback")
+        preference_dirs = re.findall(r"^COMSOL_GRAPHICS_PREFSDIR_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE)
+        try:
+            actual_directory = base64.b64decode(preference_dirs[0], validate=True).decode("utf-8")
+        except (IndexError, ValueError, UnicodeDecodeError) as exc:
+            raise ComsolConnectionError("Standalone image export lacks isolated preference-directory readback") from exc
+        if len(preference_dirs) != 1 or actual_directory != getattr(proc, "graphics_preferences_dir", None):
+            raise ComsolConnectionError("Standalone image export preference directory does not match its temporary launch directory")
+        data["graphics_renderer"] = {
+            "source": "ModelUtil.getPreference",
+            "preference": "graphics.rendering.3drend",
+            "value": renderer_values[0],
+            "scope": "export_process_only",
+            "preferences_directory": actual_directory,
+            "preferences_directory_source": "pre-init cs.prefsdir system property readback matched to launcher",
+            "seed_preferences_sha256": getattr(proc, "graphics_preference_seed_hashes", {}),
+        }
     if startup_failure is not None:
         data["batch_startup_failure"] = startup_failure
     return data
@@ -398,6 +452,99 @@ def inspect_model(model_path: Path | str, root: Path | None = None) -> dict[str,
 
     res["sha256"] = hash_after
     return res
+
+
+def inspect_native_mesh(model_path: Path | str, root: Path | None = None) -> dict[str, Any]:
+    """Read native COMSOL mesh feature settings and statistics without modifying the model."""
+    model_path = Path(model_path)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+    before = compute_file_hash(model_path)
+    res = _run_bridge(["inspect-native-mesh", str(model_path.resolve())], root=root)
+    after = compute_file_hash(model_path)
+    if before != after:
+        raise ModelValidationError(
+            f"Integrity check failed: source model changed during mesh inspection ({before} -> {after})"
+        )
+    res["sha256"] = after
+    return res
+
+
+def refine_native_mesh(
+    model_path: Path | str,
+    output_path: Path | str,
+    plan: dict[str, Any],
+    root: Path | None = None,
+    allow_overwrite: bool = False,
+) -> dict[str, Any]:
+    """Apply a hash-bound M1 size plan to a new native mesh; never execute a study."""
+    model_path, output_path = Path(model_path), Path(output_path)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Source model file does not exist: {model_path}")
+    if output_path.is_symlink() or model_path.resolve() == output_path.resolve():
+        raise ModelValidationError("Refusing to overwrite or alias the source model")
+    if output_path.exists() and not allow_overwrite:
+        raise FileExistsError(f"Mesh output already exists: {output_path}")
+    before_hash = compute_file_hash(model_path)
+    if str(plan.get("source_sha256", "")).upper() != before_hash.upper():
+        raise ModelValidationError("Mesh plan source SHA-256 does not match the actual source model")
+    factor = float(plan.get("refinement_factor", 0))
+    if not math.isfinite(factor) or factor <= 1:
+        raise InvalidParameterError("Refinement factor must be finite and greater than one")
+    component, mesh = plan.get("component_tag", ""), plan.get("mesh_tag", "")
+    if not all(isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in (component, mesh)):
+        raise InvalidParameterError("Plan must name verified component and mesh tags")
+    rows, seen, size_changes = [], set(), set()
+    for change in plan.get("changes", []):
+        path, prop = change.get("feature_path"), change.get("property")
+        if not isinstance(path, list) or not path or not all(
+            isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in path
+        ):
+            raise InvalidParameterError("Each change requires a verified mesh feature path")
+        key = (tuple(path), prop)
+        if key in seen:
+            raise InvalidParameterError("Duplicate native mesh property change")
+        seen.add(key)
+        old, new = change.get("before"), change.get("after")
+        if prop == "custom":
+            if old != "off" or new != "on":
+                raise InvalidParameterError("The only custom-mode change is off to on")
+            kind = "string"
+        elif prop in {"hmax", "hmin"}:
+            if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v <= 0 for v in (old, new)):
+                raise InvalidParameterError("Mesh size before/after values must be finite positive numbers")
+            if not math.isclose(new, old / factor, rel_tol=1e-12, abs_tol=0):
+                raise InvalidParameterError("Mesh size change does not follow the declared refinement factor")
+            kind = "number"
+            size_changes.add(prop)
+        else:
+            raise InvalidParameterError(f"Unapproved M1 native mesh property: {prop}")
+        rows.append("\t".join(["/".join(path), prop, kind, str(old), str(new)]))
+    if size_changes != {"hmax", "hmin"}:
+        raise InvalidParameterError("Native M1 plan requires explicit hmax and hmin refinement")
+    encoded = base64.b64encode("\n".join(rows).encode("utf-8")).decode("ascii")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
+    args = ["refine-native-mesh", str(model_path.resolve()), str(staging_path.resolve()), component, mesh, encoded]
+    with task_staging_session(staging_path, stage_id):
+        try:
+            result = _run_bridge(args, root=root)
+            if compute_file_hash(model_path) != before_hash:
+                raise ModelValidationError("Source model changed during native mesh refinement")
+            if result.get("stored_solution_data_empty") is not True:
+                raise ModelValidationError("Refined input must not retain the source CFD solution")
+            publish_staging_file(staging_path, output_path, stage_id, allow_overwrite=allow_overwrite)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
+    result["source_sha256"] = before_hash
+    result["output_model"] = str(output_path.resolve())
+    result["output_sha256"] = compute_file_hash(output_path)
+    result["refinement_plan"] = plan
+    return result
 
 
 def inspect_probe_and_solver(

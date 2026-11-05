@@ -29,7 +29,24 @@ public class ComsolStandalone {
             for (int i = 1; i < args.length; i++) commands[i - 1] = decode(args[i]);
             // Image exports require plotting support; no progress window is opened.
             boolean graphics = commands.length > 0 && "export-s1-diagnostics".equals(commands[0]);
+            String isolatedPreferences = System.getProperty("cs.prefsdir");
+            if (graphics && (!"sw".equals(System.getProperty("cs.3drend"))
+                    || isolatedPreferences == null || !new java.io.File(isolatedPreferences).isDirectory())) {
+                throw new IllegalStateException("Image export requires pre-init software renderer and isolated preferences");
+            }
             ModelUtil.initStandalone(graphics);
+            if (graphics) {
+                // COMSOL may autosave preferences: its JVM property selects a temporary
+                // preferences directory before initStandalone initializes the renderer.
+                String rendererPreference = "graphics.rendering.3drend";
+                String actualRenderer = ModelUtil.getPreference(rendererPreference);
+                if (!"sw".equals(actualRenderer)) {
+                    throw new IllegalStateException("Software renderer preference readback failed: " + actualRenderer);
+                }
+                System.out.println("COMSOL_GRAPHICS_RENDERER_READBACK=" + actualRenderer);
+                System.out.println("COMSOL_GRAPHICS_PREFSDIR_READBACK="
+                    + Base64.getEncoder().encodeToString(isolatedPreferences.getBytes(StandardCharsets.UTF_8)));
+            }
             ModelUtil.showProgress((String) null);
             ComsolBridge.main(commands);
             ModelUtil.clear();

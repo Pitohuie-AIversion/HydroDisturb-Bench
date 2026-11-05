@@ -33,6 +33,18 @@ public class ComsolBridge {
                     return;
                 }
                 handleInspectModel(args[1]);
+            } else if ("inspect-native-mesh".equals(command)) {
+                if (args.length < 2) {
+                    outputError("INVALID_PARAMETER", "Missing model path for inspect-native-mesh", "");
+                    return;
+                }
+                handleInspectNativeMesh(args[1]);
+            } else if ("refine-native-mesh".equals(command)) {
+                if (args.length != 6) {
+                    outputError("INVALID_PARAMETER", "Usage: refine-native-mesh <source> <output> <component> <mesh> <base64Plan>", "");
+                    return;
+                }
+                handleRefineNativeMesh(args[1], args[2], args[3], args[4], args[5]);
             } else if ("update-param".equals(command)) {
                 if (args.length < 5) {
                     outputError("INVALID_PARAMETER", "Usage: update-param <modelPath> <outputPath> <paramName> <paramExpr> [paramDescr]", "");
@@ -340,6 +352,271 @@ public class ComsolBridge {
         sb.append("}\n");
 
         emitResult(sb.toString());
+    }
+
+    private static void handleInspectNativeMesh(String modelPath) throws Exception {
+        Model model = ModelUtil.loadCopy("MeshInspection", modelPath);
+        emitResult(nativeMeshJson(model, modelPath));
+    }
+
+    private static String nativeMeshJson(Model model, String modelPath) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n  \"status\": \"SUCCESS\",\n  \"operation\": \"inspect_native_mesh\",\n");
+        sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+        sb.append("  \"model_tag\": ").append(quote(model.tag())).append(",\n");
+        sb.append("  \"comsol_version\": ").append(quote(ModelUtil.getComsolVersion())).append(",\n");
+        sb.append("  \"components\": [");
+        String[] comps = model.component().tags();
+        for (int ci = 0; ci < comps.length; ci++) {
+            if (ci > 0) sb.append(",");
+            String ctag = comps[ci];
+            sb.append("{\"tag\":").append(quote(ctag)).append(",\"meshes\":[");
+            String[] meshes = model.component(ctag).mesh().tags();
+            for (int mi = 0; mi < meshes.length; mi++) {
+                if (mi > 0) sb.append(",");
+                String mtag = meshes[mi];
+                MeshSequence mesh = model.component(ctag).mesh(mtag);
+                sb.append("{\"tag\":").append(quote(mtag))
+                  .append(",\"geometry_tag\":").append(quote(mesh.geom()))
+                  .append(",\"length_unit\":").append(quote(model.component(ctag).geom(mesh.geom()).lengthUnit()))
+                  .append(",\"sdim\":").append(mesh.getSDim())
+                  .append(",\"automatic\":").append(mesh.isAutomatic())
+                  .append(",\"is_complete\":").append(mesh.isComplete())
+                  .append(",\"num_elem\":").append(mesh.getNumElem())
+                  .append(",\"num_vertex\":").append(mesh.getNumVertex())
+                  .append(",\"quality\":{\"measure\":").append(quote(mesh.stat().getQualityMeasure()))
+                  .append(",\"minimum\":").append(mesh.getMinQuality())
+                  .append(",\"mean\":").append(mesh.getMeanQuality())
+                  .append("},\"area\":{\"minimum\":").append(mesh.getMinVolume())
+                  .append(",\"maximum\":").append(mesh.getMaxVolume())
+                  .append(",\"total\":").append(mesh.getVolume()).append("}")
+                  .append(",\"features\":[");
+                String[] fs = mesh.feature().tags();
+                for (int fi = 0; fi < fs.length; fi++) {
+                    if (fi > 0) sb.append(",");
+                    String ftag = fs[fi];
+                    appendNativeFeature(sb, mesh.feature(ftag), ftag);
+                }
+                sb.append("],\"vertices\":").append(nativeValueJson(mesh.getVertex()));
+                sb.append(",\"elements\":{");
+                String[] types = mesh.getTypes();
+                for (int ti = 0; ti < types.length; ti++) {
+                    if (ti > 0) sb.append(",");
+                    String type = types[ti];
+                    sb.append(quote(type)).append(":{\"count\":").append(mesh.getNumElem(type))
+                      .append(",\"connectivity\":").append(nativeValueJson(mesh.getElem(type)))
+                      .append(",\"entities\":").append(nativeValueJson(mesh.getElemEntity(type))).append("}");
+                }
+                sb.append("}}");
+            }
+            sb.append("]}");
+        }
+        sb.append("],\n  \"non_mesh\":");
+        appendNativeNonMesh(sb, model);
+        sb.append("\n}");
+        return sb.toString();
+    }
+
+    /** Apply only explicitly approved size controls, rebuild the native mesh, never solve CFD. */
+    private static void handleRefineNativeMesh(String sourcePath, String outputPath, String componentTag,
+                                               String meshTag, String encodedPlan) throws Exception {
+        if (sourcePath.equalsIgnoreCase(outputPath)) throw new IllegalArgumentException("Source and output must differ");
+        Model model = ModelUtil.loadCopy("MeshRefinement", sourcePath);
+        MeshSequence mesh = model.component(componentTag).mesh(meshTag);
+        if (!"m".equals(model.component(componentTag).geom(mesh.geom()).lengthUnit())) {
+            throw new IllegalArgumentException("M1 size values require the verified metre geometry unit");
+        }
+        String before = nativeMeshJson(model, sourcePath);
+        int oldCount = mesh.getNumElem();
+        String plan = new String(java.util.Base64.getDecoder().decode(encodedPlan), java.nio.charset.StandardCharsets.UTF_8);
+        String[] rows = plan.split("\n");
+        MeshFeature[] targets = new MeshFeature[rows.length];
+        String[][] fields = new String[rows.length][];
+        // Check all preconditions before any setter can affect another default value.
+        for (int i = 0; i < rows.length; i++) {
+            fields[i] = rows[i].split("\t", -1);
+            if (fields[i].length != 5) throw new IllegalArgumentException("Invalid mesh-plan row");
+            String[] path = fields[i][0].split("/");
+            MeshFeature feature = mesh.feature(path[0]);
+            for (int j = 1; j < path.length; j++) feature = feature.feature(path[j]);
+            if (!"Size".equals(feature.getType()) && !"MeshSizeDefault".equals(feature.getType())) {
+                throw new IllegalArgumentException("M1 changes are limited to existing Size features");
+            }
+            String property = fields[i][1];
+            if (!property.equals("custom") && !property.equals("hmax") && !property.equals("hmin")) {
+                throw new IllegalArgumentException("Unapproved mesh property: " + property);
+            }
+            Object current = nativeReadProperty(feature, property);
+            if (!nativePlanMatches(current, fields[i][2], fields[i][3])) {
+                throw new IllegalArgumentException("Mesh-plan before value mismatch: " + fields[i][0] + "/" + property);
+            }
+            targets[i] = feature;
+        }
+        for (int i = 0; i < rows.length; i++) {
+            if (fields[i][2].equals("number")) targets[i].set(fields[i][1], Double.parseDouble(fields[i][4]));
+            else targets[i].set(fields[i][1], fields[i][4]);
+        }
+        String[] solTags = model.sol().tags();
+        for (String tag : solTags) model.sol(tag).clearSolutionData();
+        mesh.run();
+        if (!mesh.isComplete() || mesh.getNumElem() <= oldCount || !(mesh.getMinQuality() > 0)) {
+            throw new IllegalStateException("Native refined mesh is incomplete, unchanged, or degenerate");
+        }
+        for (int i = 0; i < rows.length; i++) {
+            if (!nativePlanMatches(nativeReadProperty(targets[i], fields[i][1]), fields[i][2], fields[i][4])) {
+                throw new IllegalStateException("Mesh-plan after value mismatch: " + fields[i][0] + "/" + fields[i][1]);
+            }
+        }
+        boolean emptySolutions = true;
+        for (String tag : solTags) {
+            if (!model.sol(tag).isEmpty()) emptySolutions = false;
+        }
+        if (!emptySolutions) throw new IllegalStateException("Old solution data remains after mesh refinement");
+        String after = nativeMeshJson(model, outputPath);
+        model.save(outputPath);
+        emitResult("{\"status\":\"SUCCESS\",\"operation\":\"refine_native_mesh\",\"source_model\":"
+            + quote(sourcePath) + ",\"output_model\":" + quote(outputPath)
+            + ",\"cleared_solution_tags\":" + stringArrayToJson(solTags)
+            + ",\"stored_solution_data_empty\":" + emptySolutions
+            + ",\"before\":" + before + ",\"after\":" + after + "}");
+    }
+
+    private static boolean nativePlanMatches(Object value, String kind, String expected) {
+        if (kind.equals("number") && value instanceof Number) {
+            double actual = ((Number) value).doubleValue(), wanted = Double.parseDouble(expected);
+            return Double.isFinite(actual) && Double.isFinite(wanted)
+                && Math.abs(actual - wanted) <= Math.max(Math.abs(wanted), 1e-30) * 1e-12;
+        }
+        return kind.equals("string") && value instanceof String && value.equals(expected);
+    }
+
+    /** Read values through the installed public API; unsupported properties remain explicit. */
+    private static Object nativeReadProperty(Object feature, String name) throws Exception {
+        String type = String.valueOf(feature.getClass().getMethod("getValueType", String.class).invoke(feature, name));
+        if (type.equals("Selection")) {
+            Object selection = feature.getClass().getMethod("selection", String.class).invoke(feature, name);
+            return selection.getClass().getMethod("entities").invoke(selection);
+        }
+        String preferred = "get" + type;
+        String[] getters = {preferred, "getString", "getStringArray", "getStringMatrix", "getDouble",
+            "getDoubleArray", "getDoubleMatrix", "getInt", "getIntArray", "getIntMatrix", "getBoolean",
+            "getBooleanArray", "getBooleanMatrix"};
+        Exception last = null;
+        for (String getter : getters) {
+            try { return feature.getClass().getMethod(getter, String.class).invoke(feature, name); }
+            catch (Exception e) { last = e; }
+        }
+        throw new IllegalStateException("No readable getter for " + name + " (" + type + ")", last);
+    }
+
+    private static String nativeValueJson(Object value) {
+        if (value == null) return "null";
+        if (value instanceof String) return quote((String) value);
+        if (value instanceof Boolean) return value.toString();
+        if (value instanceof Number) {
+            double v = ((Number) value).doubleValue();
+            if (!Double.isFinite(v)) throw new IllegalStateException("Non-finite native property value");
+            return value.toString();
+        }
+        if (value.getClass().isArray()) {
+            StringBuilder b = new StringBuilder("[");
+            int n = java.lang.reflect.Array.getLength(value);
+            for (int i = 0; i < n; i++) {
+                if (i > 0) b.append(",");
+                b.append(nativeValueJson(java.lang.reflect.Array.get(value, i)));
+            }
+            return b.append("]").toString();
+        }
+        throw new IllegalStateException("Unsupported native value class: " + value.getClass().getName());
+    }
+
+    private static void appendNativeFeature(StringBuilder sb, Object feature, String path) {
+        sb.append("{\"tag\":").append(quote(invokeStringMethod(feature, "tag")))
+          .append(",\"path\":").append(quote(path))
+          .append(",\"type\":").append(quote(invokeStringMethod(feature, "getType")));
+        try { sb.append(",\"active\":").append(feature.getClass().getMethod("isActive").invoke(feature)); }
+        catch (Exception e) { sb.append(",\"active\":null"); }
+        StringBuilder errors = new StringBuilder("{");
+        boolean firstError = true;
+        sb.append(",\"properties\":{");
+        try {
+            String[] props = (String[]) feature.getClass().getMethod("properties").invoke(feature);
+            Arrays.sort(props);
+            boolean first = true;
+            for (String prop : props) {
+                try {
+                    String value = nativeValueJson(nativeReadProperty(feature, prop));
+                    if (!first) sb.append(",");
+                    sb.append(quote(prop)).append(":").append(value);
+                    first = false;
+                } catch (Exception e) {
+                    if (!firstError) errors.append(",");
+                    errors.append(quote(prop)).append(":").append(quote(e.getMessage()));
+                    firstError = false;
+                }
+            }
+        } catch (Exception e) {
+            errors.append("\"_properties\":").append(quote(e.getMessage()));
+        }
+        sb.append("},\"unreadable_properties\":").append(errors).append("}");
+        sb.append(",\"selection_entities\":");
+        try { sb.append(intArrayToJson(featureEntities(feature))); }
+        catch (Exception e) { sb.append("null"); }
+        for (String group : new String[]{"feature", "prop", "propertyGroup"}) {
+            try {
+                java.lang.reflect.Method listMethod = feature.getClass().getMethod(group);
+                Object list = listMethod.invoke(feature);
+                String[] tags = (String[]) list.getClass().getMethod("tags").invoke(list);
+                sb.append(",").append(quote(group.equals("feature") ? "features" : group)).append(":[");
+                for (int i = 0; i < tags.length; i++) {
+                    if (i > 0) sb.append(",");
+                    Object child = feature.getClass().getMethod(group, String.class).invoke(feature, tags[i]);
+                    appendNativeFeature(sb, child, path + "/" + tags[i]);
+                }
+                sb.append("]");
+            } catch (NoSuchMethodException e) {
+                // This feature type has no children of this category.
+            } catch (Exception e) {
+                throw new IllegalStateException("Cannot inspect " + path + "/" + group, e);
+            }
+        }
+        sb.append("}");
+    }
+
+    private static void appendNativeNonMesh(StringBuilder sb, Model model) {
+        sb.append("{\"components\":[");
+        String[] tags = model.component().tags();
+        for (int i = 0; i < tags.length; i++) {
+            if (i > 0) sb.append(",");
+            ModelNode comp = model.component(tags[i]);
+            sb.append("{\"tag\":").append(quote(tags[i])).append(",\"geometry\":[");
+            String[] geoms = comp.geom().tags();
+            for (int j = 0; j < geoms.length; j++) {
+                if (j > 0) sb.append(",");
+                GeomSequence geom = comp.geom(geoms[j]);
+                sb.append("{\"tag\":").append(quote(geoms[j])).append(",\"features\":[");
+                String[] fs = geom.feature().tags();
+                for (int k = 0; k < fs.length; k++) {
+                    if (k > 0) sb.append(",");
+                    appendNativeFeature(sb, geom.feature(fs[k]), fs[k]);
+                }
+                sb.append("]}");
+            }
+            sb.append("],\"physics\":[");
+            String[] physics = comp.physics().tags();
+            for (int j = 0; j < physics.length; j++) {
+                if (j > 0) sb.append(",");
+                appendNativeFeature(sb, comp.physics(physics[j]), physics[j]);
+            }
+            sb.append("],\"materials\":[");
+            String[] mats = comp.material().tags();
+            for (int j = 0; j < mats.length; j++) {
+                if (j > 0) sb.append(",");
+                appendNativeFeature(sb, comp.material(mats[j]), mats[j]);
+            }
+            sb.append("]}");
+        }
+        sb.append("]}");
     }
 
     private static void handleUpdateParam(String modelPath, String outputPath, String paramName, String paramExpr, String descr) {

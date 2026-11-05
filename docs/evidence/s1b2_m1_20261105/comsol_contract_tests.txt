@@ -1,0 +1,52 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.21, pytest-9.1.1, pluggy-1.6.0 -- D:\Program Files\Anaconda\envs\seagent\python.exe
+cachedir: .pytest_cache
+rootdir: D:\\\U0001f4c1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 42 items
+
+tests/test_comsol_api_contract.py::test_error_mapping PASSED             [  2%]
+tests/test_comsol_api_contract.py::test_comsol_not_found_raises_connection_error PASSED [  4%]
+tests/test_comsol_api_contract.py::test_nonexistent_model_path_rejected PASSED [  7%]
+tests/test_comsol_api_contract.py::test_refuse_to_overwrite_original_model PASSED [  9%]
+tests/test_comsol_api_contract.py::test_invalid_parameter_arguments_rejected PASSED [ 11%]
+tests/test_comsol_api_contract.py::test_bridge_error_propagation PASSED  [ 14%]
+tests/test_comsol_api_contract.py::test_bridge_node_not_found_propagation PASSED [ 16%]
+tests/test_comsol_api_contract.py::test_inspection_schema_contract PASSED [ 19%]
+tests/test_comsol_api_contract.py::test_baseline_integrity_check_failure PASSED [ 21%]
+tests/test_comsol_api_contract.py::test_subprocess_nonzero_exit_code_fails_closed PASSED [ 23%]
+tests/test_comsol_api_contract.py::test_invalid_json_fails_closed PASSED [ 26%]
+tests/test_comsol_api_contract.py::test_preexisting_output_file_strictly_preserved_on_failure PASSED [ 28%]
+tests/test_comsol_api_contract.py::test_comsol_midrun_abort_quarantines_and_does_not_publish PASSED [ 30%]
+tests/test_comsol_api_contract.py::test_symlink_output_path_rejected PASSED [ 33%]
+tests/test_comsol_api_contract.py::test_non_dict_json_fails_closed PASSED [ 35%]
+tests/test_comsol_api_contract.py::test_schema_missing_fields_fails_closed PASSED [ 38%]
+tests/test_comsol_api_contract.py::test_preexisting_final_file_blocks_successful_run_when_overwrite_forbidden PASSED [ 40%]
+tests/test_comsol_api_contract.py::test_concurrent_publish_race_same_target_only_one_succeeds PASSED [ 42%]
+tests/test_comsol_api_contract.py::test_quarantine_listing_and_recovery PASSED [ 45%]
+tests/test_comsol_api_contract.py::test_quarantine_failure_preserves_staging_file_in_place PASSED [ 47%]
+tests/test_comsol_api_contract.py::test_active_task_not_quarantined_by_recovery PASSED [ 50%]
+tests/test_comsol_api_contract.py::test_source_model_mutation_fails_before_publish_and_quarantines PASSED [ 52%]
+tests/test_comsol_api_contract.py::test_multiprocess_publish_race_same_target_only_one_succeeds PASSED [ 54%]
+tests/test_comsol_api_contract.py::test_quarantine_collision_never_overwrites_existing_artifact PASSED [ 57%]
+tests/test_comsol_api_contract.py::test_fresh_unleased_file_retained_by_recovery PASSED [ 59%]
+tests/test_comsol_api_contract.py::test_recovery_reentrance_is_idempotent PASSED [ 61%]
+tests/test_comsol_api_contract.py::test_multiprocess_quarantine_race_no_overwrite PASSED [ 64%]
+tests/test_comsol_api_contract.py::test_publish_failure_preserves_staging_file PASSED [ 66%]
+tests/test_comsol_api_contract.py::test_posix_atomic_no_overwrite_fails_closed PASSED [ 69%]
+tests/test_comsol_api_contract.py::test_standalone_fallback_does_not_retry_command_failures[unknown] PASSED [ 71%]
+tests/test_comsol_api_contract.py::test_standalone_fallback_does_not_retry_command_failures[native_name_only] PASSED [ 73%]
+tests/test_comsol_api_contract.py::test_standalone_fallback_does_not_retry_command_failures[partial_json] PASSED [ 76%]
+tests/test_comsol_api_contract.py::test_standalone_fallback_does_not_retry_command_failures[solver_error] PASSED [ 78%]
+tests/test_comsol_api_contract.py::test_standalone_fallback_recovers_only_identified_batch_startup PASSED [ 80%]
+tests/test_comsol_api_contract.py::test_standalone_launcher_preserves_unicode_arguments PASSED [ 83%]
+tests/test_comsol_api_contract.py::test_standalone_image_export_requires_one_software_renderer_readback[actual_software_readback] PASSED [ 85%]
+tests/test_comsol_api_contract.py::test_standalone_image_export_requires_one_software_renderer_readback[missing_readback] PASSED [ 88%]
+tests/test_comsol_api_contract.py::test_standalone_image_export_requires_one_software_renderer_readback[wrong_renderer] PASSED [ 90%]
+tests/test_comsol_api_contract.py::test_standalone_image_export_requires_one_software_renderer_readback[ambiguous_readback] PASSED [ 92%]
+tests/test_comsol_api_contract.py::test_standalone_image_export_requires_one_software_renderer_readback[unbound_preferences_directory] PASSED [ 95%]
+tests/test_comsol_api_contract.py::test_standalone_software_graphics_options_are_preinit_and_export_only[export-s1-diagnostics] PASSED [ 97%]
+tests/test_comsol_api_contract.py::test_standalone_software_graphics_options_are_preinit_and_export_only[inspect-api] PASSED [100%]
+
+============================= 42 passed in 1.71s ==============================

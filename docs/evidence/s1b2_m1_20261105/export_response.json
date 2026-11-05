@@ -1,0 +1,153 @@
+{
+  "status": "SUCCESS",
+  "operation": "export_s1_diagnostics",
+  "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified\\re100_s1b2_m1_solved.mph",
+  "output_dir": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified",
+  "exported_files": [
+    "lift_coeff.txt",
+    "drag_coeff.txt",
+    "wake_u.txt",
+    "wake_v.txt",
+    "inlet_u.txt",
+    "inlet_p.txt",
+    "stag_p.txt",
+    "vorticity_t10s_comsol.png",
+    "vorticity_grid_t10s.txt",
+    "vorticity_t40s_comsol.png",
+    "vorticity_grid_t40s.txt",
+    "vorticity_t100s_comsol.png",
+    "vorticity_grid_t100s.txt",
+    "vorticity_t195s_comsol.png",
+    "vorticity_grid_t195s.txt",
+    "vorticity_t200s_comsol.png",
+    "vorticity_grid_t200s.txt",
+    "vorticity_overview_t200s_comsol.png"
+  ],
+  "log": "COMSOL_GRAPHICS_RENDERER_READBACK=sw\nCOMSOL_GRAPHICS_PREFSDIR_READBACK=QzpcVXNlcnNcQWRtaW5pc3RyYXRvclxBcHBEYXRhXExvY2FsXFRlbXBcaHlkcm9iZW5jaF9jb21zb2xfODc5bTlzX2hccHJlZmVyZW5jZXM=\n*******************************************\n***COMSOL 6.4.0.429 progress output file***\n*******************************************\nThu Nov 05 09:59:03 CST 2026\n           当前进度:   0 % - \nMemory: 848/855 766/773\n           当前进度:   1 % - 正在计算\nMemory: 868/868 785/785\n           当前进度:   2 % - 正在计算\nMemory: 868/868 786/786\n           当前进度:   3 % - 正在计算\nMemory: 886/886 805/805\n           当前进度:   4 % - 正在计算\nMemory: 919/919 842/842\n           当前进度:   5 % - 正在计算\nMemory: 936/936 860/860\n           当前进度:   6 % - 正在计算\nMemory: 928/947 854/873\n           当前进度:   7 % - 正在计算\nMemory: 950/950 879/879\n           当前进度:   8 % - 正在计算\nMemory: 972/972 902/902\n           当前进度:   9 % - 正在计算\nMemory: 1013/1013 951/951\n-          当前进度:  10 % - 正在计算\nMemory: 1032/1032 972/972\n-          当前进度:  11 % - 正在计算\nMemory: 1048/1048 990/990\n-          当前进度:  12 % - 正在计算\nMemory: 1065/1065 1009/1009\n-          当前进度:  13 % - 正在计算\nMemory: 1081/1081 1027/1027\n-          当前进度:  14 % - 正在计算\nMemory: 1114/1114 1063/1063\n-          当前进度:  15 % - 正在计算\nMemory: 1130/1130 1081/1081\n-          当前进度:  16 % - 正在计算\nMemory: 1146/1146 1099/1099\n-          当前进度:  17 % - 正在计算\nMemory: 1163/1163 1117/1117\n-          当前进度:  18 % - 正在计算\nMemory: 1188/1188 1146/1146\n-          当前进度:  19 % - 正在计算\nMemory: 1212/1212 1175/1175\n--         当前进度:  20 % - 正在计算\nMemory: 1234/1234 1196/1196\n--         当前进度:  21 % - 正在计算\nMemory: 1250/1251 1215/1215\n--         当前进度:  22 % - 正在计算\nMemory: 1269/1269 1234/1234\n--         当前进度:  23 % - 正在计算\nMemory: 1304/1304 1273/1273\n--         当前进度:  24 % - 正在计算\nMemory: 1323/1323 1294/1294\n--         当前进度:  25 % - 正在计算\nMemory: 1342/1342 1315/1315\n--         当前进度:  26 % - 正在计算\nMemory: 1357/1357 1333/1333\n--         当前进度:  27 % - 正在计算\nMemory: 1371/1371 1358/1358\n--         当前进度:  28 % - 正在计算\nMemory: 1384/1384 1372/1372\n--         当前进度:  29 % - 正在计算\nMemory: 1397/1397 1384/1384\n---        当前进度:  30 % - 正在计算\nMemory: 1401/1401 1388/1388\n---        当前进度:  31 % - 正在计算\nMemory: 1417/1417 1403/1403\n---        当前进度:  32 % - 正在计算\nMemory: 1428/1428 1413/1413\n---        当前进度:  33 % - 正在计算\nMemory: 1440/1440 1425/1425\n---        当前进度:  34 % - 正在计算\nMemory: 1452/1452 1436/1436\n---        当前进度:  35 % - 正在计算\nMemory: 1463/1463 1446/1446\n---        当前进度:  36 % - 正在计算\nMemory: 1381/1468 1363/1451\n---        当前进度:  37 % - 正在计算\nMemory: 1394/1468 1375/1451\n---        当前进度:  38 % - 正在计算\nMemory: 1408/1468 1389/1451\n---        当前进度:  39 % - 正在计算\nMemory: 1419/1468 1398/1451\n----       当前进度:  40 % - 正在计算\nMemory: 1423/1468 1402/1451\n----       当前进度:  41 % - 正在计算\nMemory: 1424/1468 1402/1451\n----       当前进度:  42 % - 正在计算\nMemory: 1433/1468 1411/1451\n----       当前进度:  43 % - 正在计算\nMemory: 1440/1468 1419/1451\n----       当前进度:  44 % - 正在计算\nMemory: 1368/1468 1357/1451\n----       当前进度:  45 % - 正在计算\nMemory: 1373/1468 1362/1451\n----       当前进度:  46 % - 正在计算\nMemory: 1378/1468 1367/1451\n----       当前进度:  47 % - 正在计算\nMemory: 1381/1468 1369/1451\n----       当前进度:  48 % - 正在计算\nMemory: 1383/1468 1371/1451\n----       当前进度:  49 % - 正在计算\nMemory: 1385/1468 1374/1451\n           当前进度:   0 % - \nMemory: 1388/1468 1376/1451\n           当前进度:   1 % - 正在计算\nMemory: 1388/1468 1377/1451\n           当前进度:   2 % - 正在计算\nMemory: 1391/1468 1379/1451\n           当前进度:   3 % - 正在计算\nMemory: 1389/1468 1378/1451\n           当前进度:   4 % - 正在计算\nMemory: 1395/1468 1384/1451\n           当前进度:   5 % - 正在计算\nMemory: 1400/1468 1389/1451\n           当前进度:   6 % - 正在计算\nMemory: 1401/1468 1390/1451\n           当前进度:   7 % - 正在计算\nMemory: 1403/1468 1392/1451\n           当前进度:   8 % - 正在计算\nMemory: 1406/1468 1395/1451\n           当前进度:   9 % - 正在计算\nMemory: 1408/1468 1397/1451\n-          当前进度:  10 % - 正在计算\nMemory: 1411/1468 1400/1451\n-          当前进度:  11 % - 正在计算\nMemory: 1413/1468 1401/1451\n-          当前进度:  12 % - 正在计算\nMemory: 1415/1468 1403/1451\n-          当前进度:  13 % - 正在计算\nMemory: 1417/1468 1406/1451\n-          当前进度:  14 % - 正在计算\nMemory: 1419/1468 1408/1451\n-          当前进度:  15 % - 正在计算\nMemory: 1421/1468 1410/1451\n-          当前进度:  16 % - 正在计算\nMemory: 1422/1468 1411/1451\n-          当前进度:  17 % - 正在计算\nMemory: 1424/1468 1413/1451\n-          当前进度:  18 % - 正在计算\nMemory: 1426/1468 1414/1451\n-          当前进度:  19 % - 正在计算\nMemory: 1427/1468 1416/1451\n--         当前进度:  20 % - 正在计算\nMemory: 1429/1468 1417/1451\n--         当前进度:  21 % - 正在计算\nMemory: 1431/1468 1420/1451\n--         当前进度:  22 % - 正在计算\nMemory: 1426/1468 1414/1451\n--         当前进度:  23 % - 正在计算\nMemory: 1428/1468 1415/1451\n--         当前进度:  24 % - 正在计算\nMemory: 1428/1468 1416/1451\n--         当前进度:  25 % - 正在计算\n--         当前进度:  26 % - 正在计算\nMemory: 1429/1468 1416/1451\n--         当前进度:  27 % - 正在计算\nMemory: 1429/1468 1417/1451\n--         当前进度:  28 % - 正在计算\n--         当前进度:  29 % - 正在计算\nMemory: 1431/1468 1419/1451\n---        当前进度:  30 % - 正在计算\nMemory: 1434/1468 1421/1451\n---        当前进度:  31 % - 正在计算\nMemory: 1434/1468 1422/1451\n---        当前进度:  32 % - 正在计算\nMemory: 1390/1468 1378/1451\n---        当前进度:  33 % - 正在计算\nMemory: 1394/1468 1382/1451\n---        当前进度:  34 % - 正在计算\nMemory: 1401/1468 1389/1451\n---        当前进度:  35 % - 正在计算\nMemory: 1403/1468 1391/1451\n---        当前进度:  36 % - 正在计算\nMemory: 1405/1468 1394/1451\n---        当前进度:  37 % - 正在计算\nMemory: 1409/1468 1398/1451\n---        当前进度:  38 % - 正在计算\nMemory: 1416/1468 1405/1451\n---        当前进度:  39 % - 正在计算\nMemory: 1397/1468 1385/1451\n----       当前进度:  40 % - 正在计算\nMemory: 1408/1468 1396/1451\n----       当前进度:  41 % - 正在计算\nMemory: 1417/1468 1406/1451\n----       当前进度:  42 % - 正在计算\nMemory: 1427/1468 1415/1451\n----       当前进度:  43 % - 正在计算\nMemory: 1437/1468 1424/1451\n----       当前进度:  44 % - 正在计算\nMemory: 1446/1468 1433/1451\n----       当前进度:  45 % - 正在计算\nMemory: 1457/1468 1444/1451\n----       当前进度:  46 % - 正在计算\nMemory: 1467/1468 1453/1453\n----       当前进度:  47 % - 正在计算\nMemory: 1475/1475 1460/1460\n----       当前进度:  48 % - 正在计算\nMemory: 1485/1485 1474/1474\n----       当前进度:  49 % - 正在计算\nMemory: 1495/1495 1484/1484\n           当前进度:   0 % - \nMemory: 1496/1496 1485/1485\n--         当前进度:  23 % - 正在计算\nMemory: 1501/1501 1489/1489\n----       当前进度:  47 % - 正在计算\nMemory: 1499/1502 1487/1489\n           当前进度:   0 % - \nMemory: 1498/1502 1485/1489\n--         当前进度:  23 % - 正在计算\nMemory: 1398/1502 1385/1489\n----       当前进度:  47 % - 正在计算\n           当前进度:   0 % - \n--         当前进度:  23 % - 正在计算\nMemory: 1408/1502 1396/1489\n----       当前进度:  47 % - 正在计算\n           当前进度:   0 % - \n--         当前进度:  23 % - 正在计算\nMemory: 1403/1502 1391/1489\n----       当前进度:  47 % - 正在计算\n           当前进度:   0 % - \n--         当前进度:  23 % - 正在计算\nMemory: 1408/1502 1396/1489\n----       当前进度:  47 % - 正在计算\n           当前进度:   0 % - \n           当前进度:   0 % - 正在绘制\nMemory: 1401/1502 1389/1489\n           当前进度:   2 % - 正在计算\nMemory: 1402/1502 1389/1489\n           当前进度:   3 % - 正在绘制\nMemory: 1403/1502 1390/1489\n-          当前进度:  15 % - 正在计算\nMemory: 1412/1502 1392/1489\n--         当前进度:  25 % - 正在计算\nMemory: 1416/1502 1395/1489\n--         当前进度:  26 % - 正在计算\nMemory: 1417/1502 1396/1489\n---        当前进度:  30 % - 生成图像\nMemory: 1501/1502 1479/1489\n           当前进度:   0 % - \nMemory: 1434/1516 1395/1498\n---        当前进度:  33 % - 正在计算\nMemory: 1453/1516 1422/1498\n---------  当前进度:  98 % - 正在写入文件\nMemory: 1468/1516 1437/1498\n           当前进度:   0 % - 正在绘制\nMemory: 1469/1516 1437/1498\n           当前进度:   2 % - 正在计算\nMemory: 1469/1516 1438/1498\n           当前进度:   3 % - 正在绘制\n-          当前进度:  15 % - 正在计算\nMemory: 1472/1516 1438/1498\n--         当前进度:  25 % - 正在计算\nMemory: 1473/1516 1438/1498\n--         当前进度:  26 % - 正在计算\n---        当前进度:  30 % - 生成图像\nMemory: 1513/1516 1497/1498\n           当前进度:   0 % - \nMemory: 1523/1528 1505/1518\n---        当前进度:  33 % - 正在计算\nMemory: 1530/1530 1506/1518\n           当前进度:   0 % - \nMemory: 1463/1532 1418/1518\n           当前进度:   0 % - 正在绘制\nMemory: 1467/1532 1422/1518\n           当前进度:   2 % - 正在计算\nMemory: 1467/1532 1423/1518\n           当前进度:   3 % - 正在绘制\n-          当前进度:  15 % - 正在计算\nMemory: 1468/1532 1423/1518\n--         当前进度:  25 % - 正在计算\n--         当前进度:  26 % - 正在计算\n---        当前进度:  30 % - 生成图像\nMemory: 1510/1532 1488/1518\n           当前进度:   0 % - \nMemory: 1478/1532 1444/1518\n---        当前进度:  33 % - 正在计算\nMemory: 1482/1532 1442/1518\n---------  当前进度:  95 % - 正在写入文件\nMemory: 1496/1532 1454/1518\n           当前进度:   0 % - 正在绘制\nMemory: 1497/1532 1454/1518\n           当前进度:   2 % - 正在计算\n           当前进度:   3 % - 正在绘制\n-          当前进度:  15 % - 正在计算\nMemory: 1497/1532 1455/1518\n--         当前进度:  25 % - 正在计算\n--         当前进度:  26 % - 正在计算\n---        当前进度:  30 % - 生成图像\nMemory: 1518/1532 1485/1518\n           当前进度:   0 % - \nMemory: 1527/1540 1493/1518\n---        当前进度:  33 % - 正在计算\nMemory: 1529/1540 1494/1518\n---------  当前进度:  99 % - 正在写入文件\nMemory: 1529/1540 1495/1518\n           当前进度:   0 % - 正在绘制\nMemory: 1530/1540 1495/1518\n           当前进度:   2 % - 正在计算\n           当前进度:   3 % - 正在绘制\nMemory: 1531/1540 1495/1518\n-          当前进度:  15 % - 正在计算\n--         当前进度:  25 % - 正在计算\n--         当前进度:  26 % - 正在计算\nMemory: 1531/1540 1496/1518\n---        当前进度:  30 % - 生成图像\nMemory: 1538/1540 1502/1518\n           当前进度:   0 % - \nMemory: 1533/1547 1494/1518\n---        当前进度:  33 % - 正在计算\nMemory: 1534/1547 1494/1518\n---------  当前进度:  98 % - 正在写入文件\nMemory: 1539/1547 1497/1518\n           当前进度:   0 % - 正在绘制\nMemory: 1540/1547 1498/1518\n           当前进度:   2 % - 正在计算\n           当前进度:   3 % - 正在绘制\n-          当前进度:  15 % - 正在计算\n--         当前进度:  25 % - 正在计算\n--         当前进度:  26 % - 正在计算\n---        当前进度:  30 % - 生成图像\nMemory: 1544/1547 1503/1518\n<<<JSON_START>>>\n{\n  \"status\": \"SUCCESS\",\n  \"operation\": \"export_s1_diagnostics\",\n  \"model_path\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\re100_s1b2_m1_20261105_verified\\\\re100_s1b2_m1_solved.mph\",\n  \"output_dir\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\runs\\\\.staging\\\\stage_1e99a302aabe\",\n  \"exported_files\": [\"lift_coeff.txt\", \"drag_coeff.txt\", \"wake_u.txt\", \"wake_v.txt\", \"inlet_u.txt\", \"inlet_p.txt\", \"stag_p.txt\", \"vorticity_t10s_comsol.png\", \"vorticity_grid_t10s.txt\", \"vorticity_t40s_comsol.png\", \"vorticity_grid_t40s.txt\", \"vorticity_t100s_comsol.png\", \"vorticity_grid_t100s.txt\", \"vorticity_t195s_comsol.png\", \"vorticity_grid_t195s.txt\", \"vorticity_t200s_comsol.png\", \"vorticity_grid_t200s.txt\", \"vorticity_overview_t200s_comsol.png\"]\n}\n\n<<<JSON_END>>>\n",
+  "launch_mode": "standalone_java_api",
+  "graphics_renderer": {
+    "source": "ModelUtil.getPreference",
+    "preference": "graphics.rendering.3drend",
+    "value": "sw",
+    "scope": "export_process_only",
+    "preferences_directory": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydrobench_comsol_879m9s_h\\preferences",
+    "preferences_directory_source": "pre-init cs.prefsdir system property readback matched to launcher",
+    "seed_preferences_sha256": {
+      "comsol.prefs": "7ebbc43968882315ed77e3dab49bb52752926c0c16b01b903a84a881e55f1326",
+      "comsolserver.prefs": "c45a2c9377bbbc17f81fb7dc7b839ac0628f11df37ebd2a2eac66ede6b2536ac"
+    }
+  },
+  "batch_startup_failure": {
+    "stdout": "\nERROR: Failed to start COMSOL. For details, see the log file C:\\Users\\Administrator\\.comsol\\v64\\logs\\batch3.log\nERROR: Additional information: com/comsol/nativejni/FlNativeException\n",
+    "stderr": "",
+    "returncode": 0
+  },
+  "stage_id": "1e99a302aabe",
+  "validation": {
+    "valid": true,
+    "diagnostics_dir": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\.staging\\stage_1e99a302aabe",
+    "num_steps": 1001,
+    "dt": 0.2,
+    "time_range": [
+      0.0,
+      200.0
+    ],
+    "series": {
+      "lift_coeff.txt": {
+        "num_samples": 1001,
+        "min": -0.32187998714659616,
+        "max": 0.3218669215184546,
+        "mean": -0.0010423309768398878,
+        "std": 0.1873863986509165,
+        "header": "% 时间 (s)                  Lift coefficient"
+      },
+      "drag_coeff.txt": {
+        "num_samples": 1001,
+        "min": 0.8152280328601164,
+        "max": 2.0801427801184724,
+        "mean": 1.3122968546905593,
+        "std": 0.07788230142693495,
+        "header": "% 时间 (s)                  Drag coefficient"
+      },
+      "wake_u.txt": {
+        "num_samples": 1001,
+        "min": 6.015178793513888e-06,
+        "max": 0.009954533519005233,
+        "mean": 0.0054874069235429195,
+        "std": 0.002124060744776064,
+        "header": "% 时间 (s)                  速度场，x 分量"
+      },
+      "wake_v.txt": {
+        "num_samples": 1001,
+        "min": -0.0036939932346169175,
+        "max": 0.0036737363685730925,
+        "mean": 1.8809212725266786e-05,
+        "std": 0.0023236563844826366,
+        "header": "% 时间 (s)                  速度场，y 分量"
+      },
+      "inlet_u.txt": {
+        "num_samples": 1001,
+        "min": 6.057135419292813e-06,
+        "max": 0.010058104588258865,
+        "mean": 0.010048062582811474,
+        "std": 0.00031755609489577443,
+        "header": "% 时间 (s)                  速度场，x 分量"
+      },
+      "inlet_p.txt": {
+        "num_samples": 1001,
+        "min": 0.003659488325176229,
+        "max": 1.0551796234172528,
+        "mean": 0.005065358072545666,
+        "std": 0.033207920448507774,
+        "header": "% 时间 (s)                  压力"
+      },
+      "stag_p.txt": {
+        "num_samples": 1001,
+        "min": 0.057291518526134066,
+        "max": 0.8168019792135578,
+        "mean": 0.058626469298010284,
+        "std": 0.02398815451138092,
+        "header": "% 时间 (s)                  压力"
+      }
+    },
+    "snapshots": [
+      {
+        "filename": "vorticity_t10s_comsol.png",
+        "size_bytes": 79122
+      },
+      {
+        "filename": "vorticity_t40s_comsol.png",
+        "size_bytes": 143582
+      },
+      {
+        "filename": "vorticity_t100s_comsol.png",
+        "size_bytes": 176243
+      },
+      {
+        "filename": "vorticity_t195s_comsol.png",
+        "size_bytes": 174555
+      },
+      {
+        "filename": "vorticity_t200s_comsol.png",
+        "size_bytes": 174509
+      }
+    ]
+  },
+  "source_sha256": "1003693AEBA77F293B51EFE3D943B46D4149D8396391FA15F27225778DB52F8B",
+  "manifest_file": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_s1b2_m1_20261105_verified\\manifest.json",
+  "published_files": [
+    "lift_coeff.txt",
+    "drag_coeff.txt",
+    "wake_u.txt",
+    "wake_v.txt",
+    "inlet_u.txt",
+    "inlet_p.txt",
+    "stag_p.txt",
+    "vorticity_t10s_comsol.png",
+    "vorticity_t40s_comsol.png",
+    "vorticity_t100s_comsol.png",
+    "vorticity_t195s_comsol.png",
+    "vorticity_t200s_comsol.png",
+    "manifest.json"
+  ]
+}
