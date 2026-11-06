@@ -67,6 +67,14 @@ def test_rejects_changed_base_and_unknown_case_keys(tmp_path):
         validate_sweep_config(_sweep(base, config, [bad]), root=tmp_path)
 
 
+def test_base_identity_is_stable_across_text_line_endings(tmp_path):
+    base, config = _base(tmp_path)
+    sweep = _sweep(base, config, [_case("one")])
+    base.write_bytes(base.read_bytes().replace(b"\n", b"\r\n"))
+    result = validate_sweep_config(sweep, root=tmp_path)
+    assert result["case_count"] == 1
+
+
 def test_rejects_case_that_is_not_a_valid_pulse(tmp_path):
     base, config = _base(tmp_path)
     bad = _case("one")

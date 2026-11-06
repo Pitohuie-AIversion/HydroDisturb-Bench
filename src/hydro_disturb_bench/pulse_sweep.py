@@ -26,7 +26,11 @@ def _require(condition, message):
 
 
 def _sha(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    # JSON configuration is tracked as text without a repository-wide EOL rule.
+    # Hash its UTF-8 text representation after EOL normalization so a Windows
+    # checkout cannot appear to be a different base configuration from Linux.
+    data = Path(path).read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(data).hexdigest()
 
 
 def _unique(pairs):
