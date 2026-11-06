@@ -1059,6 +1059,7 @@ def test_standalone_fallback_recovers_only_identified_batch_startup(tmp_path, mo
 
 def test_standalone_launcher_preserves_unicode_arguments(tmp_path, monkeypatch):
     import base64
+
     from hydro_disturb_bench.comsol_java import bridge
 
     class_file = tmp_path / "ComsolBridge.class"

@@ -32,7 +32,6 @@ for p in (str(SRC_DIR), str(SCRIPTS_DIR)):
 
 from hydro_disturb_bench.comsol_java import compute_file_hash
 from hydro_disturb_bench.io import (
-    load_comsol_1d_timeseries,
     validate_s1_diagnostics,
 )
 from scripts.verify_and_compare_s1b1 import (

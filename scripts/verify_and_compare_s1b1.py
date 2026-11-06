@@ -21,6 +21,7 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
+
 import numpy as np
 
 # Force UTF-8 stdout
@@ -155,13 +156,13 @@ def parse_solver_steps_from_log(log_path: Path) -> dict[str, Any]:
         return {"step_count": "UNOBTAINED", "late_dt_mean": "UNOBTAINED", "late_dt_range": []}
 
     content = log_path.read_text(encoding="utf-8", errors="replace")
-    step_lines = [l for l in content.splitlines() if re.match(r"^\s*\d+\s+[\d\.]+\s+[\d\.]+", l)]
+    step_lines = [line for line in content.splitlines() if re.match(r"^\s*\d+\s+[\d\.]+\s+[\d\.]+", line)]
     if not step_lines:
         return {"step_count": "UNOBTAINED", "late_dt_mean": "UNOBTAINED", "late_dt_range": []}
 
     late_dts = []
-    for l in step_lines:
-        parts = l.strip().split()
+    for line in step_lines:
+        parts = line.strip().split()
         if len(parts) >= 3:
             try:
                 t = float(parts[1])
