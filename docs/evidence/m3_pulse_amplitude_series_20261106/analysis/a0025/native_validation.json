@@ -1,0 +1,1000 @@
+{
+  "status": "PASS",
+  "complete_branch_evidence": true,
+  "restart_protocol_id": "native-restart-consistent-off-v2",
+  "registered_solver_change": {
+    "feature_type": "Time",
+    "property": "consistent",
+    "original": "bweuler",
+    "both_branches": "off"
+  },
+  "source_seed_vector_bytes_equal": true,
+  "source_seed_derivative_bytes_equal": true,
+  "variables_probe_cross_branch_bytes_equal": false,
+  "variables_probe_sha256_by_branch": {
+    "zero": "855091338ebb82276f7d58fbea5e294a8265f1b2c6c6a5c7484d6920278c776f",
+    "pulse": "523ef47210f0ab8d65ab7366861f3c0a9c93fb658df0536fd516ccd5dffd14b9"
+  },
+  "variables_probe_cross_branch_difference_by_field": [
+    {
+      "name": "comp1.p",
+      "count": 17910,
+      "different_count": 18,
+      "max_absolute_difference": 1.3877787807814457e-17,
+      "source_range": [
+        -0.06389526700145892,
+        0.05801056223942997
+      ],
+      "initialized_range": [
+        -0.06389526700145892,
+        0.05801056223942997
+      ]
+    },
+    {
+      "name": "comp1.spf.dt2Inv_u",
+      "count": 34752,
+      "different_count": 0,
+      "max_absolute_difference": 0.0,
+      "source_range": [
+        2500.0,
+        2500.0
+      ],
+      "initialized_range": [
+        2500.0,
+        2500.0
+      ]
+    },
+    {
+      "name": "comp1.spf.isFluidHasBeenSolved",
+      "count": 1,
+      "different_count": 0,
+      "max_absolute_difference": 0.0,
+      "source_range": [
+        1.0,
+        1.0
+      ],
+      "initialized_range": [
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "comp1.u",
+      "count": 17910,
+      "different_count": 20,
+      "max_absolute_difference": 6.938893903907228e-18,
+      "source_range": [
+        -0.0024168766495414554,
+        0.013277398018436472
+      ],
+      "initialized_range": [
+        -0.0024168766495414554,
+        0.013277398018436472
+      ]
+    },
+    {
+      "name": "comp1.v",
+      "count": 17910,
+      "different_count": 1,
+      "max_absolute_difference": 1.3552527156068805e-20,
+      "source_range": [
+        -0.006295526362407303,
+        0.006796733171867888
+      ],
+      "initialized_range": [
+        -0.006295526362407303,
+        0.006796733171867888
+      ]
+    }
+  ],
+  "variables_probe_comparison_policy": "Diagnostic only: a separate Variables execution does not observe runAll's internal Time input. Differences are reported without a new numerical gate; strict source/seed/selected-input U and UDot checks and frozen sampled-field gates are unchanged.",
+  "solver_first_cross_branch_bytes_equal": false,
+  "solver_first_cross_branch_difference_by_field": [
+    {
+      "name": "comp1.p",
+      "count": 17910,
+      "different_count": 85,
+      "max_absolute_difference": 1.3877787807814457e-17,
+      "source_range": [
+        -0.06389526700145892,
+        0.05801056223942997
+      ],
+      "initialized_range": [
+        -0.06389526700145892,
+        0.05801056223942997
+      ]
+    },
+    {
+      "name": "comp1.spf.dt2Inv_u",
+      "count": 34752,
+      "different_count": 77,
+      "max_absolute_difference": 5.368519850890152e-09,
+      "source_range": [
+        1625.0000003068812,
+        2500.0
+      ],
+      "initialized_range": [
+        1625.0000003068812,
+        2500.0
+      ]
+    },
+    {
+      "name": "comp1.spf.isFluidHasBeenSolved",
+      "count": 1,
+      "different_count": 0,
+      "max_absolute_difference": 0.0,
+      "source_range": [
+        1.0,
+        1.0
+      ],
+      "initialized_range": [
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "comp1.u",
+      "count": 17910,
+      "different_count": 56,
+      "max_absolute_difference": 8.673617379884035e-18,
+      "source_range": [
+        -0.0024168766495414554,
+        0.013277398018436472
+      ],
+      "initialized_range": [
+        -0.0024168766495414554,
+        0.013277398018436472
+      ]
+    },
+    {
+      "name": "comp1.v",
+      "count": 17910,
+      "different_count": 20,
+      "max_absolute_difference": 4.336808689942018e-19,
+      "source_range": [
+        -0.006295526362407303,
+        0.006796733171867888
+      ],
+      "initialized_range": [
+        -0.006295526362407303,
+        0.006796733171867888
+      ]
+    }
+  ],
+  "native_state_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+  "native_derivative_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696",
+  "native_dof_count": 88483,
+  "native_dof_mapping_sha256": "18d2ec51d199ff754d69dee97f2288cf0b09b666104eec596d674a6d0e910330",
+  "source_solnum": 901,
+  "seed_solnum": 901,
+  "seed_frame_count": 1001,
+  "branch_time_s": 180.0,
+  "mesh_fingerprint": {
+    "component_tag": "comp1",
+    "geometry_tag": "geom1",
+    "mesh_tag": "mesh1",
+    "vertex_count": 17910,
+    "element_count": 34752,
+    "sha256": "3a5072314b6f98241205654c5010ce9e1bae474924aad5d65f6493d315de6a3f",
+    "hash_input": "ordered native vertices, sorted element-type connectivity/entity arrays, mesh feature tree; UTF-8 JSON values"
+  },
+  "native_state_differences": {
+    "prepare": {
+      "variables_probe_sha256": "881cfe89c9c3ff0ce984e03a9f8c07cd0debafd6f1e730eb0580e28aed9fd0f7",
+      "variables_probe_raw_dof_max_absolute_difference": 2499.999977096854,
+      "variables_probe_difference_by_field": [
+        {
+          "name": "comp1.p",
+          "count": 17910,
+          "different_count": 13884,
+          "max_absolute_difference": 3.469446951953614e-17,
+          "source_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ],
+          "initialized_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ]
+        },
+        {
+          "name": "comp1.spf.dt2Inv_u",
+          "count": 34752,
+          "different_count": 34752,
+          "max_absolute_difference": 2499.999977096854,
+          "source_range": [
+            2.2903145966173807e-05,
+            399.99999837684845
+          ],
+          "initialized_range": [
+            2500.0,
+            2500.0
+          ]
+        },
+        {
+          "name": "comp1.spf.isFluidHasBeenSolved",
+          "count": 1,
+          "different_count": 0,
+          "max_absolute_difference": 0.0,
+          "source_range": [
+            1.0,
+            1.0
+          ],
+          "initialized_range": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "comp1.u",
+          "count": 17910,
+          "different_count": 14217,
+          "max_absolute_difference": 8.673617379884035e-18,
+          "source_range": [
+            -0.0024168766495414563,
+            0.013277398018436477
+          ],
+          "initialized_range": [
+            -0.0024168766495414554,
+            0.013277398018436472
+          ]
+        },
+        {
+          "name": "comp1.v",
+          "count": 17910,
+          "different_count": 13579,
+          "max_absolute_difference": 4.336808689942018e-18,
+          "source_range": [
+            -0.006295526362407304,
+            0.00679673317186789
+          ],
+          "initialized_range": [
+            -0.006295526362407303,
+            0.006796733171867888
+          ]
+        }
+      ],
+      "variables_probe_udot_sha256": "e33aafc01c7fd900bab8ac09815bc9201ceb9df73aa1c09a3815c4e3f33ddba1",
+      "selected_seed_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+      "selected_seed_udot_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696"
+    },
+    "zero": {
+      "variables_probe_sha256": "855091338ebb82276f7d58fbea5e294a8265f1b2c6c6a5c7484d6920278c776f",
+      "variables_probe_raw_dof_max_absolute_difference": 2499.999977096854,
+      "variables_probe_difference_by_field": [
+        {
+          "name": "comp1.p",
+          "count": 17910,
+          "different_count": 13879,
+          "max_absolute_difference": 3.469446951953614e-17,
+          "source_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ],
+          "initialized_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ]
+        },
+        {
+          "name": "comp1.spf.dt2Inv_u",
+          "count": 34752,
+          "different_count": 34752,
+          "max_absolute_difference": 2499.999977096854,
+          "source_range": [
+            2.2903145966173807e-05,
+            399.99999837684845
+          ],
+          "initialized_range": [
+            2500.0,
+            2500.0
+          ]
+        },
+        {
+          "name": "comp1.spf.isFluidHasBeenSolved",
+          "count": 1,
+          "different_count": 0,
+          "max_absolute_difference": 0.0,
+          "source_range": [
+            1.0,
+            1.0
+          ],
+          "initialized_range": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "comp1.u",
+          "count": 17910,
+          "different_count": 14228,
+          "max_absolute_difference": 8.673617379884035e-18,
+          "source_range": [
+            -0.0024168766495414563,
+            0.013277398018436477
+          ],
+          "initialized_range": [
+            -0.0024168766495414554,
+            0.013277398018436472
+          ]
+        },
+        {
+          "name": "comp1.v",
+          "count": 17910,
+          "different_count": 13578,
+          "max_absolute_difference": 4.336808689942018e-18,
+          "source_range": [
+            -0.006295526362407304,
+            0.00679673317186789
+          ],
+          "initialized_range": [
+            -0.006295526362407303,
+            0.006796733171867888
+          ]
+        }
+      ],
+      "variables_probe_udot_sha256": "fb2fc89380a529edeeb53ec5cbe8b573b623a467f879d1490073476ec25eab6b",
+      "selected_seed_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+      "selected_seed_udot_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696",
+      "solver_first_sha256": "f7ea709d6c992524687e546ad9112f5e60d97d56c72726dffb1f288c8d610476",
+      "solver_first_raw_dof_max_absolute_difference": 2117.5941502380365,
+      "solver_first_difference_by_field": [
+        {
+          "name": "comp1.p",
+          "count": 17910,
+          "different_count": 13923,
+          "max_absolute_difference": 3.469446951953614e-17,
+          "source_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ],
+          "initialized_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ]
+        },
+        {
+          "name": "comp1.spf.dt2Inv_u",
+          "count": 34752,
+          "different_count": 34752,
+          "max_absolute_difference": 2117.5941502380365,
+          "source_range": [
+            2.2903145966173807e-05,
+            399.99999837684845
+          ],
+          "initialized_range": [
+            1625.0000003068812,
+            2500.0
+          ]
+        },
+        {
+          "name": "comp1.spf.isFluidHasBeenSolved",
+          "count": 1,
+          "different_count": 0,
+          "max_absolute_difference": 0.0,
+          "source_range": [
+            1.0,
+            1.0
+          ],
+          "initialized_range": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "comp1.u",
+          "count": 17910,
+          "different_count": 14289,
+          "max_absolute_difference": 1.0408340855860843e-17,
+          "source_range": [
+            -0.0024168766495414563,
+            0.013277398018436477
+          ],
+          "initialized_range": [
+            -0.0024168766495414554,
+            0.013277398018436472
+          ]
+        },
+        {
+          "name": "comp1.v",
+          "count": 17910,
+          "different_count": 13657,
+          "max_absolute_difference": 4.336808689942018e-18,
+          "source_range": [
+            -0.006295526362407304,
+            0.00679673317186789
+          ],
+          "initialized_range": [
+            -0.006295526362407303,
+            0.006796733171867888
+          ]
+        }
+      ],
+      "solver_first_udot_sha256": "fc039fb75bdca947efe7a1ceda536197845dbc03bc0aa90963324b0860762b97"
+    },
+    "pulse": {
+      "variables_probe_sha256": "523ef47210f0ab8d65ab7366861f3c0a9c93fb658df0536fd516ccd5dffd14b9",
+      "variables_probe_raw_dof_max_absolute_difference": 2499.999977096854,
+      "variables_probe_difference_by_field": [
+        {
+          "name": "comp1.p",
+          "count": 17910,
+          "different_count": 13878,
+          "max_absolute_difference": 3.469446951953614e-17,
+          "source_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ],
+          "initialized_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ]
+        },
+        {
+          "name": "comp1.spf.dt2Inv_u",
+          "count": 34752,
+          "different_count": 34752,
+          "max_absolute_difference": 2499.999977096854,
+          "source_range": [
+            2.2903145966173807e-05,
+            399.99999837684845
+          ],
+          "initialized_range": [
+            2500.0,
+            2500.0
+          ]
+        },
+        {
+          "name": "comp1.spf.isFluidHasBeenSolved",
+          "count": 1,
+          "different_count": 0,
+          "max_absolute_difference": 0.0,
+          "source_range": [
+            1.0,
+            1.0
+          ],
+          "initialized_range": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "comp1.u",
+          "count": 17910,
+          "different_count": 14222,
+          "max_absolute_difference": 8.673617379884035e-18,
+          "source_range": [
+            -0.0024168766495414563,
+            0.013277398018436477
+          ],
+          "initialized_range": [
+            -0.0024168766495414554,
+            0.013277398018436472
+          ]
+        },
+        {
+          "name": "comp1.v",
+          "count": 17910,
+          "different_count": 13579,
+          "max_absolute_difference": 4.336808689942018e-18,
+          "source_range": [
+            -0.006295526362407304,
+            0.00679673317186789
+          ],
+          "initialized_range": [
+            -0.006295526362407303,
+            0.006796733171867888
+          ]
+        }
+      ],
+      "variables_probe_udot_sha256": "25934b1b60f0b780b42280a635d70dc70e29ce7c4933a9bdf0bcd12b92b183df",
+      "selected_seed_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+      "selected_seed_udot_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696",
+      "solver_first_sha256": "250dc57830da1bf4bb0859f1c1f844f3316a7b4179faa2fec7e26cd1918fec47",
+      "solver_first_raw_dof_max_absolute_difference": 2117.5941502380365,
+      "solver_first_difference_by_field": [
+        {
+          "name": "comp1.p",
+          "count": 17910,
+          "different_count": 13934,
+          "max_absolute_difference": 3.469446951953614e-17,
+          "source_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ],
+          "initialized_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ]
+        },
+        {
+          "name": "comp1.spf.dt2Inv_u",
+          "count": 34752,
+          "different_count": 34752,
+          "max_absolute_difference": 2117.5941502380365,
+          "source_range": [
+            2.2903145966173807e-05,
+            399.99999837684845
+          ],
+          "initialized_range": [
+            1625.0000003068812,
+            2500.0
+          ]
+        },
+        {
+          "name": "comp1.spf.isFluidHasBeenSolved",
+          "count": 1,
+          "different_count": 0,
+          "max_absolute_difference": 0.0,
+          "source_range": [
+            1.0,
+            1.0
+          ],
+          "initialized_range": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "comp1.u",
+          "count": 17910,
+          "different_count": 14295,
+          "max_absolute_difference": 1.0408340855860843e-17,
+          "source_range": [
+            -0.0024168766495414563,
+            0.013277398018436477
+          ],
+          "initialized_range": [
+            -0.0024168766495414554,
+            0.013277398018436472
+          ]
+        },
+        {
+          "name": "comp1.v",
+          "count": 17910,
+          "different_count": 13658,
+          "max_absolute_difference": 4.336808689942018e-18,
+          "source_range": [
+            -0.006295526362407304,
+            0.00679673317186789
+          ],
+          "initialized_range": [
+            -0.006295526362407303,
+            0.006796733171867888
+          ]
+        }
+      ],
+      "solver_first_udot_sha256": "343a69f4d08554d86a34700f0916138dbbaa7edacfebd45a83def76d4316b7c5"
+    }
+  },
+  "source_integrals": {
+    "zero": {
+      "passed": true,
+      "peak_force_per_depth_N_m": 0.0,
+      "impulse_per_depth_N_s_m": 0.0
+    },
+    "pulse": {
+      "passed": true,
+      "peak_force_per_depth_N_m": 0.0015679675276462322,
+      "impulse_per_depth_N_s_m": 0.0015679675276462318,
+      "peak_relative_error": 2.3605428722817123e-10,
+      "impulse_relative_error": 2.360540651835663e-10
+    }
+  },
+  "readable_invariants_passed": true,
+  "unreadable_property_observations": [
+    {
+      "snapshot": "prepare/before",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "prepare/before",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "prepare/configured",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "prepare/after",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "zero/before",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "zero/configured",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "zero/after",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "pulse/before",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "pulse/configured",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "pulse/after",
+      "path": "mat1",
+      "property": "customize"
+    }
+  ],
+  "unreadable_property_observation_count": 81,
+  "invariance_scope": "Readable snapshot properties and reported native mesh fingerprint compared; unreadable properties are not independently verified. Preparation may change tlist/Variables initialization and branch parameters; branches may add the audited force/parameters and the separately checked registered consistent=bweuler->off change. Solver runtime messages, Variables expanded clist and property-default bookkeeping are separately accounted for.",
+  "native_difference_scope": "Source and selected full-history native seed U/UDot bytes are equal. The separate Variables probes are validation-only and are not claimed to be the hidden input to runAll. Actual first solved states are decoded and compared to source and each other without a new numerical threshold; frozen sampled-field gates control their physical differences. Raw native-DOF differences mix units.",
+  "external_gates": [
+    "source/checkpoint/output file hashes",
+    "accepted internal time-step logs",
+    "sampled-field restart and response gates"
+  ]
+}

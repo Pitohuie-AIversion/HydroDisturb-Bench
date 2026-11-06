@@ -1,0 +1,29 @@
+{
+  "command": [
+    "D:/Program Files/Anaconda/envs/seagent/python.exe",
+    "-X",
+    "utf8",
+    "scripts/run_m3_pulse_amplitude_series.py",
+    "--output",
+    "runs/re100_m3_pulse_amplitude_series_20261106_verified",
+    "--stage",
+    "precheck"
+  ],
+  "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench",
+  "data_root": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+  "started_utc": "2026-11-06T03:17:33.794259+00:00",
+  "status": "PASS",
+  "returncode": 0,
+  "elapsed_seconds": 7.8805084228515625,
+  "ended_utc": "2026-11-06T03:17:41.674767+00:00",
+  "files": {
+    "stdout.txt": {
+      "bytes": 518,
+      "sha256": "05dce0e4c70f634bd436c28e208570fd7fe50999a21f180039b3c893975050ba"
+    },
+    "stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

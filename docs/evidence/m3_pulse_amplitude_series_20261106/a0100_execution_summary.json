@@ -1,0 +1,53 @@
+{
+  "evidence_kind": "summary_not_full_original",
+  "source": {
+    "run_relative_path": "a0100/execution.json",
+    "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\execution.json",
+    "bytes": 2681,
+    "sha256": "0e04f3c589b58f22e8adace7bd246d5af1317e8b2b38601eb1e1f6480f19958c",
+    "full_original": "local_only",
+    "verification": "actual source bytes read by this exporter"
+  },
+  "omitted_fields_count": 0,
+  "array_omission_threshold": 128,
+  "canonical_json_definition": "sorted keys, compact separators, ensure_ascii=False, allow_nan=False, UTF-8",
+  "content": {
+    "status": "COMPLETE",
+    "operation": "run_pulse_branch",
+    "command": [
+      "run-pulse-series-branch",
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\prepare_08\\common_checkpoint.mph",
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\a0100.mph",
+      "0.01",
+      "native-restart-consistent-off-v2",
+      "m3-pulse-amplitude-series-v1"
+    ],
+    "source_model": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\prepare_08\\common_checkpoint.mph",
+    "source_sha256_before": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+    "source_sha256_after": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+    "output_model": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\a0100.mph",
+    "output_sha256": "a391acddd555dc448c59dfc0b9d3df827ff26800c5c379a405b45acfa5a6fe67",
+    "readback_sha256": "405665c79cb4fb5410382a2dff678239c3b97e7a597b841e7cbc185e372bbea6",
+    "implementation": {
+      "source_files": {
+        "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\scripts\\run_m3_branch_pulse.py": {
+          "sha256_before": "911de834cd582abc97c9bebc9c668e00fb49d0a8c97f792eab9a0fcc9541efa3",
+          "sha256_after": "911de834cd582abc97c9bebc9c668e00fb49d0a8c97f792eab9a0fcc9541efa3"
+        },
+        "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\bridge.py": {
+          "sha256_before": "870d6a97a57882c6770a8000433049f781fadbbe8d88f804374549418c0c9953",
+          "sha256_after": "870d6a97a57882c6770a8000433049f781fadbbe8d88f804374549418c0c9953"
+        },
+        "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\ComsolBridge.java": {
+          "sha256_before": "092b3e123961c171b3f954172598e0be807c14271dd7c3eca19679113545fbdd",
+          "sha256_after": "092b3e123961c171b3f954172598e0be807c14271dd7c3eca19679113545fbdd"
+        }
+      },
+      "all_source_files_unchanged": true,
+      "compiled_class_path": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\ComsolBridge.class",
+      "compiled_class_sha256_after": "e2a43a5ceb9598ec884a471f0305cef074fdb8958e7cc18611180c1d47f7f3b8",
+      "compiled_class_note": "End-of-operation bytes; compilation may occur during the operation"
+    },
+    "elapsed_seconds": 144.6331729888916
+  }
+}

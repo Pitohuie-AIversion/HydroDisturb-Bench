@@ -96,6 +96,12 @@ public class ComsolBridge {
                     return;
                 }
                 handleRunPulseBranch(args[1], args[2], args[3], args[4]);
+            } else if ("run-pulse-series-branch".equals(command)) {
+                if (args.length != 6) {
+                    outputError("INVALID_PARAMETER", "Usage: run-pulse-series-branch <checkpoint> <output> <accelerationAmplitude_m_s2> <restartProtocolId> <seriesId>", "");
+                    return;
+                }
+                handleRunPulseBranch(args[1], args[2], args[3], args[4], args[5]);
             } else if ("export-full-field-sample".equals(command)
                     || "export-full-field-sequence-batch".equals(command)) {
                 if (args.length < 10) {
@@ -1246,6 +1252,10 @@ public class ComsolBridge {
 
     /** The only PDE solve added for this experiment: a new branch from the common checkpoint. */
     private static void handleRunPulseBranch(String sourcePath, String outputPath, String amplitudeText, String restartProtocolId) {
+        handleRunPulseBranch(sourcePath, outputPath, amplitudeText, restartProtocolId, null);
+    }
+
+    private static void handleRunPulseBranch(String sourcePath, String outputPath, String amplitudeText, String restartProtocolId, String seriesId) {
         String stage = "validate", seedVector = "null", inputVector = "null", variablesProbe = "null";
         String seedDerivative = "null", inputDerivative = "null", probeDerivative = "null";
         try {
@@ -1254,8 +1264,17 @@ public class ComsolBridge {
                 throw new IllegalArgumentException("Explicit frozen restart protocol native-restart-consistent-off-v2 is required");
             }
             double amplitude = Double.parseDouble(amplitudeText);
-            if (amplitude != 0.0 && amplitude != 0.005) {
-                throw new IllegalArgumentException("Frozen experiment only permits acceleration 0 or 0.005 m/s^2");
+            if (seriesId == null) {
+                if (amplitude != 0.0 && amplitude != 0.005) {
+                    throw new IllegalArgumentException("Frozen experiment only permits acceleration 0 or 0.005 m/s^2");
+                }
+            } else {
+                if (!"m3-pulse-amplitude-series-v1".equals(seriesId)) {
+                    throw new IllegalArgumentException("Explicit series m3-pulse-amplitude-series-v1 is required");
+                }
+                if (amplitude != 0.0025 && amplitude != 0.010) {
+                    throw new IllegalArgumentException("Frozen amplitude series only permits acceleration 0.0025 or 0.010 m/s^2");
+                }
             }
             stage = "load common checkpoint";
             Model model = ModelUtil.loadCopy("Model", sourcePath);
@@ -1347,6 +1366,7 @@ public class ComsolBridge {
             variablesProbe = branchVectorJson(sol, 1);
             SolverFeature vars = sol.feature(tags[7]);
             System.out.println("BRANCH_RESTART_PROTOCOL_READBACK={\"restart_protocol_id\":" + quote(restartProtocolId)
+                + (seriesId == null ? "" : ",\"series_id\":" + quote(seriesId))
                 + ",\"consistent\":" + quote(branchTime.getString("consistent")) + "}");
             System.out.println("BRANCH_NATIVE_INIT_READBACK={\"control\":" + quote(vars.getString("control"))
                 + ",\"initmethod\":" + quote(vars.getString("initmethod"))
@@ -1384,6 +1404,7 @@ public class ComsolBridge {
             emitResult("{\"status\":\"SUCCESS\",\"operation\":\"run_pulse_branch\",\"source_model\":" + quote(sourcePath)
                 + ",\"output_model\":" + quote(outputPath) + ",\"time_solver_executed\":true,\"amplitude_m_s2\":" + amplitude
                 + ",\"restart_protocol_id\":" + quote(restartProtocolId)
+                + (seriesId == null ? "" : ",\"series_id\":" + quote(seriesId))
                 + ",\"dataset_tag\":" + quote(tags[9]) + ",\"solution_tag\":" + quote(tags[6])
                 + ",\"seed_solnum\":" + seedIndex + ",\"seed_frame_count\":" + seed.getPVals().length
                 + ",\"seed_times\":" + doubleArrayToJson(seed.getPVals())
@@ -1405,6 +1426,7 @@ public class ComsolBridge {
             emitResult("{\"status\":\"ERROR\",\"error_code\":\"MODEL_VALIDATION_FAILED\",\"message\":"
                 + quote("Pulse branch failed at " + stage + ": " + t.getMessage()) + ",\"details\":" + quote(getStackTrace(t))
                 + ",\"restart_protocol_id\":" + quote(restartProtocolId)
+                + (seriesId == null ? "" : ",\"series_id\":" + quote(seriesId))
                 + ",\"partial_native_vectors\":{\"seed\":" + seedVector + ",\"input\":" + inputVector
                 + ",\"variables_probe\":" + variablesProbe
                 + "},\"partial_native_derivatives\":{\"seed\":" + seedDerivative + ",\"input\":" + inputDerivative

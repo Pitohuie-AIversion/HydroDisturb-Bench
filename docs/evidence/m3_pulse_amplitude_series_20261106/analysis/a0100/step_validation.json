@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "headers_seen": 1,
+  "accepted_step_count": 457,
+  "first_step_number": 1,
+  "last_step_number": 457,
+  "initial_time_s": 180.0,
+  "first_accepted_time_s": 180.0,
+  "final_internal_time_s": 200.0,
+  "output_only_rows_excluded": 101,
+  "dt_min_s": 0.00096408,
+  "dt_max_s": 0.05,
+  "cap_s": 0.05,
+  "cap_display_relative_tolerance": 0.0001,
+  "contiguous_unique_accepted_step_ids": true,
+  "displayed_time_nondecreasing": true,
+  "last_internal_step_may_exceed_last_output_time": true,
+  "source": "process_002_stdout.log",
+  "getter_diagnostic": {
+    "available": true,
+    "character_count": 29946,
+    "has_step_table_header": false,
+    "complete_step_table": false,
+    "truncated_or_invalid": true,
+    "text_utf8_sha256": "cc28d46ae4195d481904c61702c2a6dbab3d0b8e665f0e6dc50d3097df5b442c",
+    "validation_error": "[MODEL_VALIDATION_FAILED] Missing actual Step Time Stepsize header"
+  },
+  "stdout_table_candidates": [
+    "process_002_stdout.log"
+  ],
+  "source_bytes_sha256": "3ef7838a06682fcf7265593dd8ff07ad38e4db5e92b7b4911dc042bf2a262b8e",
+  "reason": "Original process stdout is the primary actual step-log source"
+}

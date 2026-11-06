@@ -1,0 +1,36 @@
+{
+  "evidence_kind": "summary_not_full_original",
+  "source": {
+    "run_relative_path": "a0025/process_003_execution.json",
+    "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\process_003_execution.json",
+    "bytes": 1055,
+    "sha256": "d8f7d7437d64c08dd8cdf0f2d737ba84b69bf51e39b42c6c8a625609ba249b56",
+    "full_original": "local_only",
+    "verification": "actual source bytes read by this exporter"
+  },
+  "omitted_fields_count": 0,
+  "array_omission_threshold": 128,
+  "canonical_json_definition": "sorted keys, compact separators, ensure_ascii=False, allow_nan=False, UTF-8",
+  "content": {
+    "command": [
+      "D:\\Program Files\\COMSOL64\\Multiphysics\\java\\win64\\jre\\bin\\java.exe",
+      "-Xmx2g",
+      "-Xss4m",
+      "-cp",
+      "D:\\Program Files\\COMSOL64\\Multiphysics\\plugins\\*;C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydrobench_comsol_6v0hsvhs",
+      "ComsolStandalone",
+      "RDpcUHJvZ3JhbSBGaWxlc1xDT01TT0w2NFxNdWx0aXBoeXNpY3M=",
+      "cnVuLXB1bHNlLXNlcmllcy1icmFuY2g=",
+      "RDpc8J+TgSAwMV9Xb3Jrc3BhY2VzICjku6PnoIHkuI7lt6XnqIvljLopXEh5ZHJvRGlzdHVyYi1CZW5jaFxzY3JhdGNoXG0zX2JyYW5jaF9wdWxzZV8yMDI2MTEwNVxwcmVwYXJlXzA4XGNvbW1vbl9jaGVja3BvaW50Lm1waA==",
+      "RDpc8J+TgSAwMV9Xb3Jrc3BhY2VzICjku6PnoIHkuI7lt6XnqIvljLopXEh5ZHJvRGlzdHVyYi1CZW5jaFxydW5zXHJlMTAwX20zX3B1bHNlX2FtcGxpdHVkZV9zZXJpZXNfMjAyNjExMDZfdmVyaWZpZWRcYTAwMjVcYTAwMjUubXBo",
+      "MC4wMDI1",
+      "bmF0aXZlLXJlc3RhcnQtY29uc2lzdGVudC1vZmYtdjI=",
+      "bTMtcHVsc2UtYW1wbGl0dWRlLXNlcmllcy12MQ=="
+    ],
+    "returncode": 0,
+    "started_unix": 1793935185.3642483,
+    "finished_unix": 1793935352.8650875,
+    "stdout": "process_003_stdout.log",
+    "stderr": "process_003_stderr.log"
+  }
+}

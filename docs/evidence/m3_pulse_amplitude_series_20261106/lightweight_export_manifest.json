@@ -1,0 +1,662 @@
+{
+  "schema_version": 1,
+  "series_id": "m3-pulse-amplitude-series-v1",
+  "status": "PASS",
+  "scope": "Lightweight archive extraction, not a new CFD solve or independent physical acceptance",
+  "original_run": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified",
+  "original_artifacts": "local_only",
+  "models_npz_and_raw_field_txt_exported": false,
+  "source_files": [
+    {
+      "run_relative_path": "a0025/readback.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\readback.json",
+      "bytes": 32248868,
+      "sha256": "57d2ea312b77ab785e122f1a734edc9642e94c561f39b310b4c49bb263ec3032",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0025/execution.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\execution.json",
+      "bytes": 2684,
+      "sha256": "7e1cb6b7982e9b7a102df6443be8631c2b8ecf45bd1a84d8b811eb4a48eb0fbe",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0025/series_execution.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\series_execution.json",
+      "bytes": 1137,
+      "sha256": "975821e1562de415510fbea6aea2356ee4e2da90780ba70f2f450580ccd64fc2",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0025/process_000_stdout.log",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\process_000_stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0025/process_001_stdout.log",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\process_001_stdout.log",
+      "bytes": 186,
+      "sha256": "a5256f56b3642c128a41dbf4421ac155ced0cd5dee085af3ce529c7aec4e5477",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0025/process_002_stdout.log",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\process_002_stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0025/process_003_stdout.log",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\process_003_stdout.log",
+      "bytes": 13933201,
+      "sha256": "bd49084509c06c99753e23e6238a650a4c7188db33b4606179e9aca8bf3cea6b",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0025/process_003_execution.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\process_003_execution.json",
+      "bytes": 1055,
+      "sha256": "d8f7d7437d64c08dd8cdf0f2d737ba84b69bf51e39b42c6c8a625609ba249b56",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/sequence_manifest.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\sequence_manifest.json",
+      "bytes": 5771,
+      "sha256": "fcfb9da76ab8865408e8da590831ad09cb4e45b25763304a38dddc04b3734e06",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/sequence_report.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\sequence_report.json",
+      "bytes": 10606,
+      "sha256": "98da8519631e465c0c07c7deb5f2d251f83a1fa9333c9a0c7b72065a2e07b2a9",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0000/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0000\\metadata.json",
+      "bytes": 263042,
+      "sha256": "489854f6f3b180e6b9f0a395e8b9009f64fb465250be4c1797f0fce30a282233",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0000/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0000\\bridge_response.json",
+      "bytes": 387327,
+      "sha256": "5c5cea9ec6e2158cbacb39831e41ff532d2c32f1bff2f778488c0c69384a90e0",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0001/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0001\\metadata.json",
+      "bytes": 263085,
+      "sha256": "538b3e5398d01b7fcd43fc8468e86b7fdb0681565602dd032c07845e7983776f",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0001/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0001\\bridge_response.json",
+      "bytes": 387459,
+      "sha256": "2e627ceedbc6d6923edea95b19c6c4660c064c66bf77b4c360c2385b72832ce5",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0002/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0002\\metadata.json",
+      "bytes": 263053,
+      "sha256": "a236de36cc8333459f8ed7fe575eb6e792bf6ce96eb434d92fb5c00e85d31d0f",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0002/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0002\\bridge_response.json",
+      "bytes": 387401,
+      "sha256": "c87e2b1e4371df81725de607c090e73b5ac930ebe34ccc2737dd2dbaa5753273",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0003/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0003\\metadata.json",
+      "bytes": 46537,
+      "sha256": "4bb0756f945aac312040a7f87669fa901deb85871f29504e5d189a707fbb7a69",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0025/fields/batch_0003/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0003\\bridge_response.json",
+      "bytes": 65404,
+      "sha256": "b21c157bf5279a7aa2d91f03211766b3cababc4a98f209d7428f497bb690d70c",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0100/readback.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\readback.json",
+      "bytes": 32241303,
+      "sha256": "405665c79cb4fb5410382a2dff678239c3b97e7a597b841e7cbc185e372bbea6",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0100/execution.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\execution.json",
+      "bytes": 2681,
+      "sha256": "0e04f3c589b58f22e8adace7bd246d5af1317e8b2b38601eb1e1f6480f19958c",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0100/series_execution.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\series_execution.json",
+      "bytes": 1136,
+      "sha256": "5556ae541d7ddae14388a42c7bf9890ce7d0bde8692ff2b599b4e823a41a6364",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0100/process_000_stdout.log",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\process_000_stdout.log",
+      "bytes": 186,
+      "sha256": "fb3fa2078707c85ead5f71fbe02ac3cd0f54c27d05abc854104a8ef1af2fccf2",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0100/process_001_stdout.log",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\process_001_stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0100/process_002_stdout.log",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\process_002_stdout.log",
+      "bytes": 13926037,
+      "sha256": "3ef7838a06682fcf7265593dd8ff07ad38e4db5e92b7b4911dc042bf2a262b8e",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "a0100/process_002_execution.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\process_002_execution.json",
+      "bytes": 1055,
+      "sha256": "edf90645cff9522522217c5ca1a575fa25ed205658352769c5ca6798f5acd2b1",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/sequence_manifest.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\sequence_manifest.json",
+      "bytes": 5771,
+      "sha256": "55f3d5b538eed6c331ffbec835be83ca8055a6de977b56462ef70112b8f04287",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/sequence_report.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\sequence_report.json",
+      "bytes": 10606,
+      "sha256": "fca4ddc79305d0fc3191e4306164fd7c75cf6dc1395f685183131817f4e9614f",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0000/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0000\\metadata.json",
+      "bytes": 263114,
+      "sha256": "1b1c71900a375bfdbf7300e910d04cf86989dd57a1f8abf035b8485476fe7e01",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0000/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0000\\bridge_response.json",
+      "bytes": 387405,
+      "sha256": "887fadb7da220b90e6cc7add61583cb666e713aa0d67319a57bc8bd659a75e81",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0001/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0001\\metadata.json",
+      "bytes": 263119,
+      "sha256": "ce69238724a1dfd9b56cc95b86e183387eb7986188f62480253cd20d2fa5038c",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0001/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0001\\bridge_response.json",
+      "bytes": 387439,
+      "sha256": "37c2286a00ee8f7619ca17d9aef17fc52eb427b4167c786c449302da61264e75",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0002/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0002\\metadata.json",
+      "bytes": 263059,
+      "sha256": "6ec10ab392c7be613d5bb31e41b042ad3c061a00cfaa82254e729b79392e2d3e",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0002/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0002\\bridge_response.json",
+      "bytes": 387383,
+      "sha256": "efe7517574ba6966f3958622328e4fe1ea1046a9df448f009f45daaa4cd9ee08",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0003/metadata.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0003\\metadata.json",
+      "bytes": 46547,
+      "sha256": "97d3a6de5e90377632fdbe2fe9a3213f2849f9b6ed1030c7c6a976e15123dd4d",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "sample_a0100/fields/batch_0003/bridge_response.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0003\\bridge_response.json",
+      "bytes": 65446,
+      "sha256": "823f9aab8750e1a7f8db15fa00403c4389e8602a5602e4c6195519e31c88b80e",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "reference_precheck.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\reference_precheck.json",
+      "bytes": 471,
+      "sha256": "099c82c83cc261926db964cd07dedd6632fa0c3bcdcfd1976b9e188c404ff1ec",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "reference_integrity_after.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\reference_integrity_after.json",
+      "bytes": 7891,
+      "sha256": "d5b71140975108b86b4e802f397c9eaf5d9ba4f10f44b8285a0d6e9d5df96b9f",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0025/field_comparison.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0025\\field_comparison.json",
+      "bytes": 27939,
+      "sha256": "5a54dd9091a2f0f045cebe873013cadb799421e03d4dc22c16def610307d51a0",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0025/native_validation.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0025\\native_validation.json",
+      "bytes": 26231,
+      "sha256": "d63375007d8d030f8a6442f082be0d7b848451deef664d2980be7109bafce802",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0025/report.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0025\\report.json",
+      "bytes": 427,
+      "sha256": "4cc78c473aaf09960ae33adb3787e3b17c6de3ac7f5d49059b2e0d5390c82203",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0025/step_validation.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0025\\step_validation.json",
+      "bytes": 1155,
+      "sha256": "228b45177441c203c356f7f154a8f51882e698d7def6bab7dadea2247f386ef4",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0100/field_comparison.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0100\\field_comparison.json",
+      "bytes": 27767,
+      "sha256": "dac506f6a8f6cabd62010aa1bfbddcc9f5d6ade399c1d7e8b1b61b9a79047f60",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0100/native_validation.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0100\\native_validation.json",
+      "bytes": 26229,
+      "sha256": "99cfc3b8143eb41432a8350c5db5dddf717063dfcc21b744c05ad5f668aee0c1",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0100/report.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0100\\report.json",
+      "bytes": 425,
+      "sha256": "9ce7f33e4d3bfeb1f6e37979699f54bdc2b682bdbec26414c0d7d6ea3ab1b586",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/a0100/step_validation.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\a0100\\step_validation.json",
+      "bytes": 1155,
+      "sha256": "87dec6d26fb01e0dcfabc00775c58c11affd489efe4adc72d5f2b4036f17ff99",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    },
+    {
+      "run_relative_path": "analysis/report.json",
+      "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\analysis\\report.json",
+      "bytes": 1945,
+      "sha256": "9ed94b5731946dfb308999b42dd582341209875511a2c09237b77c05952e5bdf",
+      "full_original": "local_only",
+      "verification": "actual source bytes read by this exporter"
+    }
+  ],
+  "model_hash_references": [
+    {
+      "branch": "a0025",
+      "role": "input_checkpoint",
+      "path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\prepare_08\\common_checkpoint.mph",
+      "sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+      "hash_source": "a0025/execution.json:source_sha256_after",
+      "verification": "reported existing execution hash; model bytes not reread by this exporter",
+      "full_original": "local_only"
+    },
+    {
+      "branch": "a0025",
+      "role": "output_model",
+      "path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\a0025.mph",
+      "sha256": "731396d357dbd697b106db0522f53f0122f68a676eeed6c50d682b41d21c2e7a",
+      "hash_source": "a0025/execution.json:output_sha256",
+      "verification": "reported existing execution hash; model bytes not reread by this exporter",
+      "full_original": "local_only"
+    },
+    {
+      "branch": "a0100",
+      "role": "input_checkpoint",
+      "path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\prepare_08\\common_checkpoint.mph",
+      "sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+      "hash_source": "a0100/execution.json:source_sha256_after",
+      "verification": "reported existing execution hash; model bytes not reread by this exporter",
+      "full_original": "local_only"
+    },
+    {
+      "branch": "a0100",
+      "role": "output_model",
+      "path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\a0100.mph",
+      "sha256": "a391acddd555dc448c59dfc0b9d3df827ff26800c5c379a405b45acfa5a6fe67",
+      "hash_source": "a0100/execution.json:output_sha256",
+      "verification": "reported existing execution hash; model bytes not reread by this exporter",
+      "full_original": "local_only"
+    }
+  ],
+  "solver_stdout_sources": [
+    {
+      "output": "a0025_solver_stdout.txt",
+      "source": {
+        "run_relative_path": "a0025/process_003_stdout.log",
+        "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\process_003_stdout.log",
+        "bytes": 13933201,
+        "sha256": "bd49084509c06c99753e23e6238a650a4c7188db33b4606179e9aca8bf3cea6b",
+        "full_original": "local_only",
+        "verification": "actual source bytes read by this exporter"
+      },
+      "selection": "unique original process stdout with Step Time Stepsize before JSON_START",
+      "transform": "prefix before first JSON_START; UTF-8 strict decode; LF; strip only horizontal line-end whitespace",
+      "has_step_table_header": true,
+      "time_finished_marker": true,
+      "getter_used_as_log": false,
+      "exported_bytes": 76016,
+      "exported_sha256": "034b17f46208afad0d951284d4717869759f3e38386e0911da2ee82942ec4aed"
+    },
+    {
+      "output": "a0100_solver_stdout.txt",
+      "source": {
+        "run_relative_path": "a0100/process_002_stdout.log",
+        "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\process_002_stdout.log",
+        "bytes": 13926037,
+        "sha256": "3ef7838a06682fcf7265593dd8ff07ad38e4db5e92b7b4911dc042bf2a262b8e",
+        "full_original": "local_only",
+        "verification": "actual source bytes read by this exporter"
+      },
+      "selection": "unique original process stdout with Step Time Stepsize before JSON_START",
+      "transform": "prefix before first JSON_START; UTF-8 strict decode; LF; strip only horizontal line-end whitespace",
+      "has_step_table_header": true,
+      "time_finished_marker": true,
+      "getter_used_as_log": false,
+      "exported_bytes": 69094,
+      "exported_sha256": "7056faf7628bd990ee6187b0de81e93db846eaf9dce5ad2ade928fc4c4a553ae"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "a0025_execution_summary.json",
+      "bytes": 3435,
+      "sha256": "fde1f6108e0fe7534b6bda5598e432dfadd58d8f3ee0b55305cbcd90d63b77fb"
+    },
+    {
+      "path": "a0025_readback_summary.json",
+      "bytes": 390276,
+      "sha256": "27956209b4ec5181737763045b3c1ad67ea4e8a319b9981f76216bfb93a050fa"
+    },
+    {
+      "path": "a0025_series_execution_summary.json",
+      "bytes": 1864,
+      "sha256": "0c91ccb64affb288b13107be766f93a80a0c546986a3780292b79ac732e51cdb"
+    },
+    {
+      "path": "a0025_solver_process_summary.json",
+      "bytes": 1796,
+      "sha256": "b33aef93051cec2f9ee975a42ab7725769a379462e57a5de927ba8e8c171afdf"
+    },
+    {
+      "path": "a0025_solver_stdout.txt",
+      "bytes": 76016,
+      "sha256": "034b17f46208afad0d951284d4717869759f3e38386e0911da2ee82942ec4aed"
+    },
+    {
+      "path": "a0100_execution_summary.json",
+      "bytes": 3432,
+      "sha256": "3c218e45bf2a4b454bb1b8655ce04573bdf224fdebcf10a9d88edf81ae34fd3c"
+    },
+    {
+      "path": "a0100_readback_summary.json",
+      "bytes": 390247,
+      "sha256": "5a6a3a58218ee016061b700bed5e39e93b73818275b24c852b52059dcefbff16"
+    },
+    {
+      "path": "a0100_series_execution_summary.json",
+      "bytes": 1863,
+      "sha256": "dda62dc8cd79e4fb457c22f1764bd65f9569cb9de7d82bdfeedca4db8c943985"
+    },
+    {
+      "path": "a0100_solver_process_summary.json",
+      "bytes": 1796,
+      "sha256": "3fff3a06fe467f98ff16b211a1064a8dcc544cdb940d67e332da4c4aebb53884"
+    },
+    {
+      "path": "a0100_solver_stdout.txt",
+      "bytes": 69094,
+      "sha256": "7056faf7628bd990ee6187b0de81e93db846eaf9dce5ad2ade928fc4c4a553ae"
+    },
+    {
+      "path": "analysis/a0025/field_comparison.json",
+      "bytes": 27939,
+      "sha256": "5a54dd9091a2f0f045cebe873013cadb799421e03d4dc22c16def610307d51a0"
+    },
+    {
+      "path": "analysis/a0025/native_validation.json",
+      "bytes": 26231,
+      "sha256": "d63375007d8d030f8a6442f082be0d7b848451deef664d2980be7109bafce802"
+    },
+    {
+      "path": "analysis/a0025/report.json",
+      "bytes": 427,
+      "sha256": "4cc78c473aaf09960ae33adb3787e3b17c6de3ac7f5d49059b2e0d5390c82203"
+    },
+    {
+      "path": "analysis/a0025/step_validation.json",
+      "bytes": 1155,
+      "sha256": "228b45177441c203c356f7f154a8f51882e698d7def6bab7dadea2247f386ef4"
+    },
+    {
+      "path": "analysis/a0100/field_comparison.json",
+      "bytes": 27767,
+      "sha256": "dac506f6a8f6cabd62010aa1bfbddcc9f5d6ade399c1d7e8b1b61b9a79047f60"
+    },
+    {
+      "path": "analysis/a0100/native_validation.json",
+      "bytes": 26229,
+      "sha256": "99cfc3b8143eb41432a8350c5db5dddf717063dfcc21b744c05ad5f668aee0c1"
+    },
+    {
+      "path": "analysis/a0100/report.json",
+      "bytes": 425,
+      "sha256": "9ce7f33e4d3bfeb1f6e37979699f54bdc2b682bdbec26414c0d7d6ea3ab1b586"
+    },
+    {
+      "path": "analysis/a0100/step_validation.json",
+      "bytes": 1155,
+      "sha256": "87dec6d26fb01e0dcfabc00775c58c11affd489efe4adc72d5f2b4036f17ff99"
+    },
+    {
+      "path": "analysis/report.json",
+      "bytes": 1945,
+      "sha256": "9ed94b5731946dfb308999b42dd582341209875511a2c09237b77c05952e5bdf"
+    },
+    {
+      "path": "reference_integrity_after.json",
+      "bytes": 7891,
+      "sha256": "d5b71140975108b86b4e802f397c9eaf5d9ba4f10f44b8285a0d6e9d5df96b9f"
+    },
+    {
+      "path": "reference_precheck.json",
+      "bytes": 471,
+      "sha256": "099c82c83cc261926db964cd07dedd6632fa0c3bcdcfd1976b9e188c404ff1ec"
+    },
+    {
+      "path": "sample_a0025/batch_0000/bridge_response_summary.json",
+      "bytes": 147960,
+      "sha256": "e1b02632967e3a7f7ccfc7847b0caf554ae920db0986ef2e4cd972f42c7842fa"
+    },
+    {
+      "path": "sample_a0025/batch_0000/metadata_summary.json",
+      "bytes": 171412,
+      "sha256": "d0e4d97c8ae25f58f7bb157885f2633151f5755526654c87902dec497fd28698"
+    },
+    {
+      "path": "sample_a0025/batch_0001/bridge_response_summary.json",
+      "bytes": 147986,
+      "sha256": "64ac6902218c3139fcb7d1fd7e9fb85b4d17825731bb2c980318af46f2b9dcd8"
+    },
+    {
+      "path": "sample_a0025/batch_0001/metadata_summary.json",
+      "bytes": 171455,
+      "sha256": "45776a05de5ab2dd0bab98d39e5b426e62063fecf67712390297d727347c9596"
+    },
+    {
+      "path": "sample_a0025/batch_0002/bridge_response_summary.json",
+      "bytes": 147970,
+      "sha256": "d7fc31aa39062ea50cd8871a5cdd67638d598224b11f06af82152f871ffc5beb"
+    },
+    {
+      "path": "sample_a0025/batch_0002/metadata_summary.json",
+      "bytes": 171423,
+      "sha256": "c6cc69ac8bcea7d95f57b68f1628538107bbfd98242e027e733a363657dcc74d"
+    },
+    {
+      "path": "sample_a0025/batch_0003/bridge_response_summary.json",
+      "bytes": 26945,
+      "sha256": "95f475554a94dd27ae55c5a80eee5e620512720b37fa4a3801d74f0c2d56ebe0"
+    },
+    {
+      "path": "sample_a0025/batch_0003/metadata_summary.json",
+      "bytes": 31131,
+      "sha256": "413cdf6bba79bf1d1aea3cfd00c8ad5af392f42d2e3564e9cec7319ba1ea2837"
+    },
+    {
+      "path": "sample_a0025/sequence_manifest_summary.json",
+      "bytes": 6872,
+      "sha256": "3654858fa8916e908dbb6401c2c037096076a9c5748944173c701de82daa7cb8"
+    },
+    {
+      "path": "sample_a0025/sequence_report_summary.json",
+      "bytes": 12006,
+      "sha256": "0472d166f1e0e0c14f12141d901fdb3534a1da49527481a64c23823d521f8086"
+    },
+    {
+      "path": "sample_a0100/batch_0000/bridge_response_summary.json",
+      "bytes": 147996,
+      "sha256": "905c5e3d8fd382788f67664ab4c7bbe65a38484c4dc68652fb91c1eb9368ce6d"
+    },
+    {
+      "path": "sample_a0100/batch_0000/metadata_summary.json",
+      "bytes": 171484,
+      "sha256": "7b3e2889700fc7e2642539ca56040bef6b4eb2a757962d6012a4879f632c4b84"
+    },
+    {
+      "path": "sample_a0100/batch_0001/bridge_response_summary.json",
+      "bytes": 148003,
+      "sha256": "680379016adb50719af49d98b7e97c52622901b78427833b4a23faa20b4cf80d"
+    },
+    {
+      "path": "sample_a0100/batch_0001/metadata_summary.json",
+      "bytes": 171489,
+      "sha256": "b42af2eb6ae19ca17750ca69cb51cd236f8424c17c2bfa5cbf8b70d9adde67a0"
+    },
+    {
+      "path": "sample_a0100/batch_0002/bridge_response_summary.json",
+      "bytes": 147974,
+      "sha256": "d9d157d918e69217ea1d1ac05a2546e642d0cffbf84934aa12fd69745d41bca7"
+    },
+    {
+      "path": "sample_a0100/batch_0002/metadata_summary.json",
+      "bytes": 171429,
+      "sha256": "d52b9f614668daaa0da05f660a3367039784291789b33f940dc2974e69118fc0"
+    },
+    {
+      "path": "sample_a0100/batch_0003/bridge_response_summary.json",
+      "bytes": 26950,
+      "sha256": "3370a48ea540610b8258d9a91441bc2dccdc0142e45e6934904de5f20e359467"
+    },
+    {
+      "path": "sample_a0100/batch_0003/metadata_summary.json",
+      "bytes": 31141,
+      "sha256": "0d76d2e41c349efe24f7e0bd33a3f7106721cea76686a974db48a8f88365dd1c"
+    },
+    {
+      "path": "sample_a0100/sequence_manifest_summary.json",
+      "bytes": 6872,
+      "sha256": "66139f2ac5c68faabfd25bda1e2991ae320427b33a77cd94a6f008f23fbe30ed"
+    },
+    {
+      "path": "sample_a0100/sequence_report_summary.json",
+      "bytes": 12006,
+      "sha256": "9e5ecb4c998a195a2d3780d1f9875f3f171d0d2dbad777fd5d572d55ced09480"
+    }
+  ]
+}

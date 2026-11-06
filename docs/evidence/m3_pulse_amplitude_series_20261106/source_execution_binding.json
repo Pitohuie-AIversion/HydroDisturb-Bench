@@ -1,0 +1,109 @@
+{
+  "status": "PASS",
+  "scope": "Executed source bytes mapped exactly to staged Git bytes; no semantic equivalence assumptions",
+  "files": [
+    {
+      "path": "scripts/run_m3_branch_pulse.py",
+      "executed_raw_sha256": "911de834cd582abc97c9bebc9c668e00fb49d0a8c97f792eab9a0fcc9541efa3",
+      "executed_raw_bytes": 28373,
+      "git_blob_sha256": "7bf8714c4f408ccb8cfadd37b0573b3b3b9f5a3ae946dedc3d45692f3c9184c9",
+      "git_bytes": 27858,
+      "git_transform": "CRLF to LF only",
+      "raw_source_storage": "local_only",
+      "raw_snapshot": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\implementation_snapshot\\scripts\\run_m3_branch_pulse.py"
+    },
+    {
+      "path": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "executed_raw_sha256": "870d6a97a57882c6770a8000433049f781fadbbe8d88f804374549418c0c9953",
+      "executed_raw_bytes": 77294,
+      "git_blob_sha256": "c8fca09a6491dc3b0c6405f795da5943fbafc71bc08f129ac2b6518a60376192",
+      "git_bytes": 75411,
+      "git_transform": "CRLF to LF only",
+      "raw_source_storage": "local_only",
+      "raw_snapshot": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\implementation_snapshot\\src\\hydro_disturb_bench\\comsol_java\\bridge.py"
+    },
+    {
+      "path": "src/hydro_disturb_bench/comsol_java/ComsolBridge.java",
+      "executed_raw_sha256": "092b3e123961c171b3f954172598e0be807c14271dd7c3eca19679113545fbdd",
+      "executed_raw_bytes": 175069,
+      "git_blob_sha256": "97f3f13773cbd11191b6ef10517e5aba05d763536ed4b23df74a2bd7f82efb64",
+      "git_bytes": 172175,
+      "git_transform": "CRLF to LF only",
+      "raw_source_storage": "local_only",
+      "raw_snapshot": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\implementation_snapshot\\src\\hydro_disturb_bench\\comsol_java\\ComsolBridge.java"
+    },
+    {
+      "path": "scripts/run_m3_pulse_amplitude_series.py",
+      "executed_raw_sha256": "499c86c81bfc6b4a514ddfe24c8a91295ace1096b467fadd6c257a9d7e650475",
+      "executed_raw_bytes": 23179,
+      "git_blob_sha256": "499c86c81bfc6b4a514ddfe24c8a91295ace1096b467fadd6c257a9d7e650475",
+      "git_bytes": 23179,
+      "git_transform": "identity",
+      "raw_source_storage": "local_only",
+      "raw_snapshot": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\implementation_snapshot\\scripts\\run_m3_pulse_amplitude_series.py"
+    },
+    {
+      "path": "docs/evidence/m3_pulse_amplitude_series_20261106/preregistered_plan.json",
+      "executed_raw_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+      "executed_raw_bytes": 10486,
+      "git_blob_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+      "git_bytes": 10486,
+      "git_transform": "identity",
+      "raw_source_storage": "local_only",
+      "raw_snapshot": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\implementation_snapshot\\docs\\evidence\\m3_pulse_amplitude_series_20261106\\preregistered_plan.json"
+    }
+  ],
+  "branch_bindings": [
+    {
+      "case": "a0025",
+      "path": "scripts/run_m3_branch_pulse.py",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0025",
+      "path": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0025",
+      "path": "src/hydro_disturb_bench/comsol_java/ComsolBridge.java",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0025",
+      "path": "scripts/run_m3_pulse_amplitude_series.py",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0025",
+      "path": "docs/evidence/m3_pulse_amplitude_series_20261106/preregistered_plan.json",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0100",
+      "path": "scripts/run_m3_branch_pulse.py",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0100",
+      "path": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0100",
+      "path": "src/hydro_disturb_bench/comsol_java/ComsolBridge.java",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0100",
+      "path": "scripts/run_m3_pulse_amplitude_series.py",
+      "execution_before_after_equal": true
+    },
+    {
+      "case": "a0100",
+      "path": "docs/evidence/m3_pulse_amplitude_series_20261106/preregistered_plan.json",
+      "execution_before_after_equal": true
+    }
+  ],
+  "compiled_class_storage": "local_only in implementation_snapshot, same SHA as each execution record"
+}

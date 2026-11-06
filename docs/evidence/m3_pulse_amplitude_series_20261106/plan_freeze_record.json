@@ -1,0 +1,11 @@
+{
+  "frozen_utc": "2026-11-06T02:57:23.003257+00:00",
+  "series_id": "m3-pulse-amplitude-series-v1",
+  "plan_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+  "new_series_time_solves_started": 0,
+  "existing_reference_cases_reused": [
+    "zero",
+    "a0050"
+  ],
+  "reference_files_checked": 21
+}

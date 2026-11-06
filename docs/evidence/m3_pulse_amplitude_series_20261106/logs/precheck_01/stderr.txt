@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\scripts\run_m3_pulse_amplitude_series.py", line 357, in <module>
+    raise SystemExit(main())
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\scripts\run_m3_pulse_amplitude_series.py", line 349, in main
+    report = run_series(load_frozen_plan(), output, args.stage)
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\scripts\run_m3_pulse_amplitude_series.py", line 290, in run_series
+    refs = validate_reference(series_plan)  # Every invocation validates before any external solve or sampling.
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\scripts\run_m3_pulse_amplitude_series.py", line 162, in validate_reference
+    validate_sample(fields, model, record)
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\scripts\run_m3_pulse_amplitude_series.py", line 99, in validate_sample
+    require(metadata.get("source_sha256") == execution["output_sha256"]
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\scripts\run_m3_branch_pulse.py", line 52, in _require
+    raise bridge.ModelValidationError(message)
+hydro_disturb_bench.comsol_java.bridge.ModelValidationError: [MODEL_VALIDATION_FAILED] Sampled fields are not bound to the corresponding solved model

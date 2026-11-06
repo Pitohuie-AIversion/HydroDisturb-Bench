@@ -1,0 +1,9 @@
+{
+  "status": "STAGE_COMPLETE",
+  "stage": "precheck",
+  "series_id": "m3-pulse-amplitude-series-v1",
+  "series_plan_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+  "source_sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "checkpoint_sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+  "output": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified"
+}

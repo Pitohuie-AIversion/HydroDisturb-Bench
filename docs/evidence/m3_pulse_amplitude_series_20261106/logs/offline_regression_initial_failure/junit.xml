@@ -1,0 +1,987 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="29" skipped="0" tests="514" time="103.140" timestamp="2026-11-06T11:22:39.098445+08:00" hostname="SR-MuZY"><testcase classname="tests.test_branch_evidence" name="test_native_byte_and_force_evidence_passes_without_requiring_first_solved_state_equality" time="0.068" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[base64]" time="0.043" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[hash]" time="0.048" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[count]" time="0.046" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[endian]" time="0.040" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[nonfinite_state]" time="0.039" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_native_input]" time="0.045" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_initial_time]" time="0.043" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[mapping_hash]" time="0.042" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[mapping_order]" time="0.046" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[mesh]" time="0.041" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[solver]" time="0.050" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[material]" time="0.080" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[extra_parameter]" time="0.080" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[initialization]" time="0.082" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_force_unit]" time="0.087" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_integral_unit]" time="0.086" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_dataset]" time="0.088" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_point_dataset]" time="0.097" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_solnum]" time="0.102" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_force_expression]" time="0.106" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[inactive_force]" time="0.106" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_domain]" time="0.101" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_center_force]" time="0.106" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[wrong_force_time]" time="0.111" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[time_gap]" time="0.093" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[zero_force]" time="0.080" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[missing_input]" time="0.073" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[missing_initial_role]" time="0.085" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[udot_hash]" time="0.083" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[udot_changed]" time="0.076" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[udot_missing]" time="0.073" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[udot_count_lie]" time="0.072" /><testcase classname="tests.test_branch_evidence" name="test_native_provenance_faults_cannot_be_accepted[single_frame_seed]" time="0.035" /><testcase classname="tests.test_branch_evidence" name="test_source_integral_exceeding_frozen_tolerance_returns_fail" time="0.089" /><testcase classname="tests.test_branch_evidence" name="test_prepare_only_check_does_not_claim_completed_branch_evidence" time="0.044" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[protocol_missing]" time="0.021" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[protocol_wrong_id]" time="0.020" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[protocol_extra_setting]" time="0.021" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[readback_missing]" time="0.061" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[readback_wrong_id]" time="0.044" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[pulse_not_changed]" time="0.072" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[zero_not_changed]" time="0.057" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[before_changed]" time="0.055" /><testcase classname="tests.test_branch_evidence" name="test_restart_protocol_allows_only_registered_change_in_both_branches[other_setting_drift]" time="0.070" /><testcase classname="tests.test_branch_evidence" name="test_only_consistent_default_bookkeeping_is_authorized[False]" time="0.077" /><testcase classname="tests.test_branch_evidence" name="test_only_consistent_default_bookkeeping_is_authorized[True]" time="0.080" /><testcase classname="tests.test_branch_evidence" name="test_validation_only_probe_difference_is_diagnostic_not_a_hidden_time_input_claim" time="0.081" /><testcase classname="tests.test_branch_evidence" name="test_first_solved_state_difference_is_reported_without_inventing_new_gate" time="0.085" /><testcase classname="tests.test_branch_pulse" name="test_analysis_matches_101_branch_times_from_151_frame_baseline" time="0.139" /><testcase classname="tests.test_branch_pulse" name="test_velocity_norm_uses_u_and_v_jointly_without_component_averaging" time="0.017" /><testcase classname="tests.test_branch_pulse" name="test_nonuniform_area_weights_exclude_mask_and_use_global_weights_for_roi" time="0.013" /><testcase classname="tests.test_branch_pulse" name="test_pressure_gauge_offset_is_reported_but_not_counted_as_centered_error" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_pressure_norm_uses_rho_u_squared_and_weighted_spatial_centering" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_time_rms_uses_half_weight_at_temporal_endpoints" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_restart_gate_failure_is_returned_without_confusing_it_with_response[velocity-0.0051-False]" time="0.019" /><testcase classname="tests.test_branch_pulse" name="test_restart_gate_failure_is_returned_without_confusing_it_with_response[velocity-0.0101-True]" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_restart_gate_failure_is_returned_without_confusing_it_with_response[pressure-0.0101-False]" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_restart_gate_failure_is_returned_without_confusing_it_with_response[pressure-0.0301-True]" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_pre_event_leak_fails_even_with_detectable_later_response" time="0.035" /><testcase classname="tests.test_branch_pulse" name="test_pre_event_bound_uses_pre_event_noise_only" time="0.013" /><testcase classname="tests.test_branch_pulse" name="test_response_below_five_times_restart_noise_is_not_declared_physical" time="0.015" /><testcase classname="tests.test_branch_pulse" name="test_response_floor_and_event_window_are_respected[10-0.0049]" time="0.013" /><testcase classname="tests.test_branch_pulse" name="test_response_floor_and_event_window_are_respected[5-0.02]" time="0.013" /><testcase classname="tests.test_branch_pulse" name="test_response_floor_and_event_window_are_respected[31-0.02]" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_response_window_includes_186_seconds" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_change_outside_fixed_roi_does_not_satisfy_response_gate" time="0.012" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[tensor_shape]" time="0.007" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[channel_order]" time="0.007" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[pressure_unit]" time="0.007" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[coordinate_drift]" time="0.009" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[mask_drift]" time="0.006" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[fluid_nan]" time="0.006" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[fluid_inf]" time="0.006" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[duplicate_time]" time="0.005" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[missing_branch_frame]" time="0.008" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_incompatible_field_contracts[nearest_baseline_time]" time="0.007" /><testcase classname="tests.test_branch_pulse" name="test_analysis_rejects_shared_invalid_mask_that_hides_fluid_samples" time="0.010" /><testcase classname="tests.test_branch_pulse" name="test_saved_time_roundoff_is_allowed_without_nearest_frame_selection" time="0.012" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_persists_vectors_readback_and_model_hashes" time="0.130" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_rejects_changed_completed_model" time="0.094" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_preserves_failure_and_refuses_overwrite" time="0.061" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_reuses_verified_checkpoint_without_bridge" time="0.070" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_rejects_derivative_hash_mismatch_and_retains_readback" time="0.074" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_rejects_checkpoint_hash_before_stage_creation" time="0.032" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_passes_explicit_frozen_protocol_to_each_branch[zero]" time="0.081" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_passes_explicit_frozen_protocol_to_each_branch[pulse]" time="0.082" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_rejects_reusing_old_solve_without_explicit_protocol" time="0.081" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_entrypoint_freezes_both_files_and_attaches_protocol" time="0.053" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_entrypoint_rejects_unbound_protocol_before_external_work[missing_marker]" time="0.088" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_entrypoint_rejects_unbound_protocol_before_external_work[changed_run_copy]" time="0.069" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_entrypoint_rejects_unbound_protocol_before_external_work[changed_protocol]" time="0.063" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_entrypoint_rejects_unbound_protocol_before_external_work[wrong_physical_binding]" time="0.067" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_rejects_vector_bytes_hash_mismatch" time="0.016" /><testcase classname="tests.test_branch_pulse_runner" name="test_runner_preserves_raw_process_bytes_before_decoding" time="0.120" /><testcase classname="tests.test_branch_pulse_runner" name="test_analysis_rejects_valid_sequence_from_wrong_branch_model" time="0.788" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_accepts_complete_zero_or_one_based_internal_rows[0]" time="0.016" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_accepts_complete_zero_or_one_based_internal_rows[1]" time="0.015" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_ignores_real_progress_lines_without_counting_them" time="0.015" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_progress_lines_do_not_hide_invalid_internal_steps[cap]" time="0.013" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_progress_lines_do_not_hide_invalid_internal_steps[gap]" time="0.014" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_progress_lines_do_not_hide_invalid_internal_steps[incomplete]" time="0.014" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[missing_header]" time="0.011" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[missing_start]" time="0.014" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[gap]" time="0.014" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[duplicate]" time="0.013" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[negative_dt]" time="0.014" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[over_cap]" time="0.015" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[nan]" time="0.009" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[truncated]" time="0.012" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_missing_corrupt_or_excessive_internal_steps[output_only_end]" time="0.014" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_uses_real_stdout_when_getter_is_empty" time="0.035" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_prefers_complete_stdout_over_truncated_nonempty_getter" time="0.034" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_accepts_complete_getter_only_when_stdout_table_is_absent" time="0.029" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_truncated_or_pseudo_getter_fallback[3769 184.14 .05 2 1 1]" time="0.023" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_truncated_or_pseudo_getter_fallback[Step Time Stepsize Res Jac Sol\n3769 184.14 .05 2 1 1]" time="0.026" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_truncated_or_pseudo_getter_fallback[Step Time Stepsize Res Jac Sol\n0 180 - out\n1 200 .05 2 1 1]" time="0.023" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_truncated_or_pseudo_getter_fallback[Step Time Stepsize Res Jac Sol\n0 180 - out\n- 200 - out]" time="0.022" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_does_not_hide_incomplete_stdout_with_complete_getter" time="0.035" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_rejects_ambiguous_stdout_even_with_complete_getter" time="0.032" /><testcase classname="tests.test_branch_pulse_runner" name="test_step_gate_missing_both_real_sources_fails" time="0.021" /><testcase classname="tests.test_comsol_api_contract" name="test_error_mapping" time="0.002" /><testcase classname="tests.test_comsol_api_contract" name="test_comsol_not_found_raises_connection_error" time="0.003" /><testcase classname="tests.test_comsol_api_contract" name="test_nonexistent_model_path_rejected" time="0.015" /><testcase classname="tests.test_comsol_api_contract" name="test_refuse_to_overwrite_original_model" time="0.028" /><testcase classname="tests.test_comsol_api_contract" name="test_invalid_parameter_arguments_rejected" time="0.025" /><testcase classname="tests.test_comsol_api_contract" name="test_bridge_error_propagation" time="0.021" /><testcase classname="tests.test_comsol_api_contract" name="test_bridge_node_not_found_propagation" time="0.021" /><testcase classname="tests.test_comsol_api_contract" name="test_inspection_schema_contract" time="0.030" /><testcase classname="tests.test_comsol_api_contract" name="test_baseline_integrity_check_failure" time="0.061" /><testcase classname="tests.test_comsol_api_contract" name="test_subprocess_nonzero_exit_code_fails_closed" time="0.021" /><testcase classname="tests.test_comsol_api_contract" name="test_invalid_json_fails_closed" time="0.020" /><testcase classname="tests.test_comsol_api_contract" name="test_preexisting_output_file_strictly_preserved_on_failure" time="0.055" /><testcase classname="tests.test_comsol_api_contract" name="test_comsol_midrun_abort_quarantines_and_does_not_publish" time="0.061" /><testcase classname="tests.test_comsol_api_contract" name="test_symlink_output_path_rejected" time="0.019" /><testcase classname="tests.test_comsol_api_contract" name="test_non_dict_json_fails_closed" time="0.024" /><testcase classname="tests.test_comsol_api_contract" name="test_schema_missing_fields_fails_closed" time="0.041" /><testcase classname="tests.test_comsol_api_contract" name="test_preexisting_final_file_blocks_successful_run_when_overwrite_forbidden" time="0.130" /><testcase classname="tests.test_comsol_api_contract" name="test_concurrent_publish_race_same_target_only_one_succeeds" time="0.106" /><testcase classname="tests.test_comsol_api_contract" name="test_quarantine_listing_and_recovery" time="0.039" /><testcase classname="tests.test_comsol_api_contract" name="test_quarantine_failure_preserves_staging_file_in_place" time="0.019" /><testcase classname="tests.test_comsol_api_contract" name="test_active_task_not_quarantined_by_recovery" time="0.065" /><testcase classname="tests.test_comsol_api_contract" name="test_source_model_mutation_fails_before_publish_and_quarantines" time="0.063" /><testcase classname="tests.test_comsol_api_contract" name="test_multiprocess_publish_race_same_target_only_one_succeeds" time="0.361" /><testcase classname="tests.test_comsol_api_contract" name="test_quarantine_collision_never_overwrites_existing_artifact" time="0.047" /><testcase classname="tests.test_comsol_api_contract" name="test_fresh_unleased_file_retained_by_recovery" time="0.034" /><testcase classname="tests.test_comsol_api_contract" name="test_recovery_reentrance_is_idempotent" time="0.068" /><testcase classname="tests.test_comsol_api_contract" name="test_multiprocess_quarantine_race_no_overwrite" time="0.308" /><testcase classname="tests.test_comsol_api_contract" name="test_publish_failure_preserves_staging_file" time="0.020" /><testcase classname="tests.test_comsol_api_contract" name="test_posix_atomic_no_overwrite_fails_closed" time="0.020" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_fallback_does_not_retry_command_failures[unknown]" time="0.017" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_fallback_does_not_retry_command_failures[native_name_only]" time="0.015" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_fallback_does_not_retry_command_failures[partial_json]" time="0.018" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_fallback_does_not_retry_command_failures[solver_error]" time="0.019" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_fallback_recovers_only_identified_batch_startup" time="0.017" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_launcher_preserves_unicode_arguments" time="0.039" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_image_export_requires_one_software_renderer_readback[actual_software_readback]" time="0.016" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_image_export_requires_one_software_renderer_readback[missing_readback]" time="0.019" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_image_export_requires_one_software_renderer_readback[wrong_renderer]" time="0.016" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_image_export_requires_one_software_renderer_readback[ambiguous_readback]" time="0.021" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_image_export_requires_one_software_renderer_readback[unbound_preferences_directory]" time="0.022" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_software_graphics_options_are_preinit_and_export_only[export-s1-diagnostics]" time="0.063" /><testcase classname="tests.test_comsol_api_contract" name="test_standalone_software_graphics_options_are_preinit_and_export_only[inspect-api]" time="0.050" /><testcase classname="tests.test_field_sequence" name="test_sequence_roundtrips_151_saved_frames_across_uneven_batches" time="2.687" /><testcase classname="tests.test_field_sequence" name="test_single_frame_batches_retain_consecutive_saved_times" time="0.613" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[missing_frame]" time="0.778" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[duplicate_boundary_time]" time="0.713" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[wrong_solnum]" time="0.922" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[coordinate_drift]" time="0.829" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[model_tag_drift]" time="1.326" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[dataset_drift]" time="1.095" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[geometry_mask_drift]" time="1.088" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[geometry_source_drift]" time="1.117" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[missing_batch_marker]" time="0.786" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[source_mutated]" time="1.102" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[overlap_value_mismatch]" time="2.540" /><testcase classname="tests.test_field_sequence" name="test_sequence_rejects_invalid_batch_or_cross_batch_provenance[saved_solution_gap]" time="2.395" /><testcase classname="tests.test_field_sequence" name="test_second_batch_external_failure_retains_completed_batch_and_diagnostics" time="0.876" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes0]" time="0.233" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes1]" time="0.212" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes2]" time="0.158" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes3]" time="0.192" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes4]" time="0.193" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes5]" time="0.200" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes6]" time="0.195" /><testcase classname="tests.test_field_sequence" name="test_invalid_sequence_schedule_rejected_before_external_reads[changes7]" time="0.214" /><testcase classname="tests.test_field_sequence" name="test_sequence_never_overwrites_existing_output" time="0.211" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[coverage_gap]" time="0.545" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[coverage_duplicate]" time="0.622" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[batch_hash]" time="0.541" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[metadata_hash]" time="0.467" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[response_hash]" time="0.494" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[path_escape]" time="0.499" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[requested_time_gap]" time="0.556" /><testcase classname="tests.test_field_sequence" name="test_sequence_loader_rejects_manifest_coverage_or_evidence_tampering[actual_time_gap]" time="0.499" /><testcase classname="tests.test_full_field_sampling" name="test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask" time="0.168" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[fluid_nan]" time="0.062" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[fluid_inf]" time="0.058" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_pressure_unit]" time="0.058" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_pressure_header_unit]" time="0.069" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_header_time]" time="0.070" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[duplicate_coordinate]" time="0.071" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[extra_column]" time="0.068" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[malformed_row]" time="0.060" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_bounds]" time="0.061" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[actual_time_missing]" time="0.054" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[actual_time_nearest]" time="0.051" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_export]" time="0.057" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_file]" time="0.065" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[duplicate_export]" time="0.065" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[path_escape]" time="0.063" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_dataset]" time="0.064" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_unit_evidence]" time="0.061" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_geometry]" time="0.056" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_model]" time="0.055" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_solnum]" time="0.060" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_coordinate]" time="0.067" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_time]" time="0.065" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_wrong_channel]" time="0.064" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_missing_time]" time="0.064" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[direct_insufficient]" time="0.064" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_node]" time="0.066" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_node_units]" time="0.064" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_node_units]" time="0.059" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_source_dataset]" time="0.071" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_numerical_tag]" time="0.063" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[wrong_direct_point_dataset]" time="0.061" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_corrupt_data_or_unbound_readbacks_without_publication[missing_direct_row_tag]" time="0.060" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_retains_external_read_failure_and_original_raw_export" time="0.041" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_entry_rejects_source_mutation_before_publication" time="0.134" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_never_overwrites_existing_output_directory[False]" time="0.019" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_never_overwrites_existing_output_directory[True]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value0]" time="0.012" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value1]" time="0.038" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value2]" time="0.014" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value3]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[requested_times-value4]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value5]" time="0.017" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value6]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value7]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value8]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[grid_shapes-value9]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[bounds-value10]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_sampling_rejects_invalid_request_before_external_access[bounds-value11]" time="0.016" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[wrong_tensor_shape]" time="0.146" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[mask_as_int]" time="0.158" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[finite_inside_solid]" time="0.149" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[fluid_nan]" time="0.163" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[wrong_channel_order]" time="0.158" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[time_mismatch]" time="0.155" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[requested_time_metadata_mismatch]" time="0.143" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_corrupt_saved_arrays_and_metadata[shape_metadata_mismatch]" time="0.167" /><testcase classname="tests.test_full_field_sampling" name="test_npz_reader_rejects_changed_archive_bytes_before_loading" time="0.166" /><testcase classname="tests.test_full_field_sampling" name="test_saved_time_roundoff_is_tolerated_without_replacing_actual_with_requested" time="0.192" /><testcase classname="tests.test_git_attributes" name="test_gitattributes_file_rules" time="0.003" /><testcase classname="tests.test_git_attributes" name="test_isolated_git_staging_preserves_binary_and_normalizes_text" time="1.282" /><testcase classname="tests.test_git_attributes" name="test_workspace_git_check_attr" time="0.572" /><testcase classname="tests.test_git_attributes" name="test_git_blobs_match_all_manifests" time="9.954" /><testcase classname="tests.test_planning" name="test_reynolds_velocity_consistent" time="0.003" /><testcase classname="tests.test_planning" name="test_sampling_reproducible" time="0.004" /><testcase classname="tests.test_planning" name="test_units_conversion_and_direction" time="0.004" /><testcase classname="tests.test_planning" name="test_invalid_ranges_rejected" time="0.004" /><testcase classname="tests.test_planning" name="test_future_forcing_outside_domain_rejected" time="0.005" /><testcase classname="tests.test_planning" name="test_plan_writes_manifest_and_cases" time="0.250" /><testcase classname="tests.test_planning" name="test_no_simulator_claim_or_baseline_overwrite" time="0.030" /><testcase classname="tests.test_planning" name="test_comsol_adapter_mock_contract" time="0.033" /><testcase classname="tests.test_planning" name="test_adapter_missing_parameter_fails_closed" time="0.033" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_changes_only_registered_amplitude_and_source_references[0.0025]" time="0.070" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_changes_only_registered_amplitude_and_source_references[0.005]" time="0.067" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_changes_only_registered_amplitude_and_source_references[0.01]" time="0.073" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_rejects_unregistered_amplitudes[0.0]" time="0.051" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_rejects_unregistered_amplitudes[-0.0025]" time="0.060" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_rejects_unregistered_amplitudes[0.0075]" time="0.064" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_rejects_unregistered_amplitudes[0.02]" time="0.072" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_rejects_unregistered_amplitudes[nan]" time="0.061" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_rejects_unregistered_amplitudes[inf]" time="0.055" /><testcase classname="tests.test_pulse_amplitude_series" name="test_derived_plan_rejects_unregistered_amplitudes[True]" time="0.050" /><testcase classname="tests.test_pulse_amplitude_series" name="test_frozen_series_bytes_are_checked_before_plan_is_used" time="0.031" /><testcase classname="tests.test_pulse_amplitude_series" name="test_frozen_series_structure_cannot_authorize_extra_or_relabelled_cases[new_amplitude]" time="0.044" /><testcase classname="tests.test_pulse_amplitude_series" name="test_frozen_series_structure_cannot_authorize_extra_or_relabelled_cases[duplicate_case]" time="0.046" /><testcase classname="tests.test_pulse_amplitude_series" name="test_frozen_series_structure_cannot_authorize_extra_or_relabelled_cases[resolve_old_again]" time="0.041" /><testcase classname="tests.test_pulse_amplitude_series" name="test_frozen_series_structure_cannot_authorize_extra_or_relabelled_cases[reuse_new]" time="0.049" /><testcase classname="tests.test_pulse_amplitude_series" name="test_sample_identity_matches_the_exact_solved_branch" time="0.041" /><testcase classname="tests.test_pulse_amplitude_series" name="test_real_archived_loader_metadata_accepts_comsol_uppercase_sha[zero-native_zero_index.zip]" time="0.046" /><testcase classname="tests.test_pulse_amplitude_series" name="test_real_archived_loader_metadata_accepts_comsol_uppercase_sha[a0050-native_pulse_index.zip]" time="0.047" /><testcase classname="tests.test_pulse_amplitude_series" name="test_matching_but_invalid_hash_strings_cannot_pass_sample_binding[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]" time="0.034" /><testcase classname="tests.test_pulse_amplitude_series" name="test_matching_but_invalid_hash_strings_cannot_pass_sample_binding[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]" time="0.030" /><testcase classname="tests.test_pulse_amplitude_series" name="test_matching_but_invalid_hash_strings_cannot_pass_sample_binding[gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg]" time="0.038" /><testcase classname="tests.test_pulse_amplitude_series" name="test_matching_but_invalid_hash_strings_cannot_pass_sample_binding[None]" time="0.034" /><testcase classname="tests.test_pulse_amplitude_series" name="test_matching_but_invalid_hash_strings_cannot_pass_sample_binding[123]" time="0.032" /><testcase classname="tests.test_pulse_amplitude_series" name="test_sample_cannot_be_substituted_from_another_amplitude[old_amplitude_path]" time="0.042" /><testcase classname="tests.test_pulse_amplitude_series" name="test_sample_cannot_be_substituted_from_another_amplitude[wrong_hash]" time="0.032" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_reuse_checks_real_native_and_field_identities" time="1.728" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_byte_failures_stop_before_any_new_solve[checkpoint_bytes]" time="1.189" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_byte_failures_stop_before_any_new_solve[zero_model_bytes]" time="1.327" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_byte_failures_stop_before_any_new_solve[missing_old_readback]" time="1.501" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_semantic_failures_are_not_hidden_by_valid_file_hashes[nonzero_old_zero]" time="1.868" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_semantic_failures_are_not_hidden_by_valid_file_hashes[wrong_checkpoint_path]" time="1.638" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_semantic_failures_are_not_hidden_by_valid_file_hashes[wrong_checkpoint_hash]" time="1.075" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reference_semantic_failures_are_not_hidden_by_valid_file_hashes[wrong_protocol]" time="0.943" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reused_field_provenance_must_match_the_accepted_model[baseline_model]" time="1.023" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reused_field_provenance_must_match_the_accepted_model[zero_from_a0050]" time="1.004" /><testcase classname="tests.test_pulse_amplitude_series" name="test_reused_field_provenance_must_match_the_accepted_model[manifest_hash]" time="1.040" /><testcase classname="tests.test_pulse_amplitude_series" name="test_series_entrypoint_solves_only_two_new_amplitudes_and_reuses_controls" time="3.479" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_rejects_actual_identity_faults_and_retains_returned_evidence[wrong_amplitude]" time="0.864" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_rejects_actual_identity_faults_and_retains_returned_evidence[wrong_series]" time="0.843" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_rejects_actual_identity_faults_and_retains_returned_evidence[wrong_branch_A]" time="0.953" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_rejects_actual_identity_faults_and_retains_returned_evidence[wrong_checkpoint]" time="0.828" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_cannot_relax_thresholds_or_fit_source_reference_to_observed_values[restart]" time="0.667" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_cannot_relax_thresholds_or_fit_source_reference_to_observed_values[response]" time="0.652" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_cannot_relax_thresholds_or_fit_source_reference_to_observed_values[source_tolerance]" time="0.681" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_solve_cannot_relax_thresholds_or_fit_source_reference_to_observed_values[source_reference]" time="0.639" /><testcase classname="tests.test_pulse_amplitude_series" name="test_new_sample_cannot_be_relabelled_from_the_reused_a0050_case" time="1.423" /><testcase classname="tests.test_pulse_amplitude_series" name="test_numerical_failure_stops_series_without_tuning_amplitude_or_acceptance[source_integral]" time="2.131" /><testcase classname="tests.test_pulse_amplitude_series" name="test_numerical_failure_stops_series_without_tuning_amplitude_or_acceptance[undetectable]" time="2.396" /><testcase classname="tests.test_pulse_amplitude_series" name="test_second_new_solve_failure_preserves_first_case_and_all_old_artifacts" time="2.174" /><testcase classname="tests.test_pulse_amplitude_series" name="test_existing_completed_new_model_is_checked_before_reuse" time="0.974" /><testcase classname="tests.test_pulse_amplitude_series" name="test_sample_only_stage_cannot_bypass_new_series_provenance[failed_series]" time="1.525" /><testcase classname="tests.test_pulse_amplitude_series" name="test_sample_only_stage_cannot_bypass_new_series_provenance[wrong_readback_binding]" time="1.343" /><testcase classname="tests.test_pulse_amplitude_series" name="test_unrelated_existing_output_is_not_overwritten" time="1.053" /><testcase classname="tests.test_re100_s1a2_stability" name="test_baseline_and_s1a_models_immutability" time="0.001"><failure message="AssertionError: Missing case\cylinder_flow.mph&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('case/cylinder_flow.mph').is_file">def test_baseline_and_s1a_models_immutability():
+        """Verify that original baseline, S0 benchmark, and S1-A solved models are strictly unmodified."""
+&gt;       assert BASELINE_CASE.is_file(), f"Missing {BASELINE_CASE}"
+E       AssertionError: Missing case\cylinder_flow.mph
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('case/cylinder_flow.mph').is_file
+
+tests\test_re100_s1a2_stability.py:42: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_solution_time_table_alignment" time="0.002"><failure message="AssertionError: Missing solver metadata file: runs\re100_s1a2_trial\solver_metadata.json&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('runs/re100_s1a2_trial/solver_metadata.json').is_file">def test_s1a2_solution_time_table_alignment():
+        """Verify that S1-A2 solved model metadata matches the 200s extended schedule."""
+        import json
+
+        meta_file = S1A2_DIR / "solver_metadata.json"
+&gt;       assert meta_file.is_file(), f"Missing solver metadata file: {meta_file}"
+E       AssertionError: Missing solver metadata file: runs\re100_s1a2_trial\solver_metadata.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/solver_metadata.json').is_file
+
+tests\test_re100_s1a2_stability.py:60: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_diagnostics_data_contract_and_manifest" time="0.002"><failure message="AssertionError: Missing S1-A2 diagnostics directory: runs\re100_s1a2_trial&#10;assert False&#10; +  where False = is_dir()&#10; +    where is_dir = WindowsPath('runs/re100_s1a2_trial').is_dir">def test_s1a2_diagnostics_data_contract_and_manifest():
+        """Verify full data contract, timestamp alignment, and manifest token for S1-A2 diagnostics."""
+&gt;       assert S1A2_DIR.is_dir(), f"Missing S1-A2 diagnostics directory: {S1A2_DIR}"
+E       AssertionError: Missing S1-A2 diagnostics directory: runs\re100_s1a2_trial
+E       assert False
+E        +  where False = is_dir()
+E        +    where is_dir = WindowsPath('runs/re100_s1a2_trial').is_dir
+
+tests\test_re100_s1a2_stability.py:84: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_synthetic_sine_cycle_detection_correctness" time="0.002" /><testcase classname="tests.test_re100_s1a2_stability" name="test_growing_amplitude_signal_rejected_as_limit_cycle" time="0.002" /><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds" time="0.001"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: runs\re100_s1a2_trial\lift_coeff.txt">def test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds():
+        """Verify that real COMSOL S1-A2 data meets the recommended engineering stability criteria over the last 5 cycles."""
+&gt;       t_cl, cl = load_comsol_1d_timeseries(S1A2_DIR / "lift_coeff.txt")[:2]
+
+tests\test_re100_s1a2_stability.py:156:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('runs/re100_s1a2_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -&gt; tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+&gt;           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: runs\re100_s1a2_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_multi_window_statistics_consistency" time="0.001"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: runs\re100_s1a2_trial\lift_coeff.txt">def test_s1a2_multi_window_statistics_consistency():
+        """Verify that Window 1 [120, 160]s and Window 2 [160, 200]s show consistent limit-cycle properties."""
+&gt;       t_cl, cl = load_comsol_1d_timeseries(S1A2_DIR / "lift_coeff.txt")[:2]
+
+tests\test_re100_s1a2_stability.py:212:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('runs/re100_s1a2_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -&gt; tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+&gt;           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: runs\re100_s1a2_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a_legacy_100s_interface_unaffected" time="0.002"><failure message="AssertionError: assert False&#10; +  where False = is_dir()&#10; +    where is_dir = WindowsPath('runs/re100_s1a_trial').is_dir">def test_s1a_legacy_100s_interface_unaffected():
+        """Verify that validating existing S1-A 100s results remains 100% functional and backward-compatible."""
+        s1a_dir = Path("runs/re100_s1a_trial")
+&gt;       assert s1a_dir.is_dir()
+E       AssertionError: assert False
+E        +  where False = is_dir()
+E        +    where is_dir = WindowsPath('runs/re100_s1a_trial').is_dir
+
+tests\test_re100_s1a2_stability.py:233: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_upgraded_vorticity_snapshots_and_comparison" time="0.133"><failure message="AssertionError: Missing upgraded snapshot: vorticity_t10s_comsol.png&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('runs/re100_s1a2_trial/vorticity_t10s_comsol.png').is_file">def test_s1a2_upgraded_vorticity_snapshots_and_comparison():
+        """Verify that upgraded wake-zoom vorticity snapshots and t=195s comparison figure exist and meet quality specs."""
+        from PIL import Image
+
+        s1a2_dir = Path("runs/re100_s1a2_trial")
+        snapshots = [
+            "vorticity_t10s_comsol.png",
+            "vorticity_t40s_comsol.png",
+            "vorticity_t100s_comsol.png",
+            "vorticity_t195s_comsol.png",
+            "vorticity_t200s_comsol.png",
+        ]
+        for s in snapshots:
+            p = s1a2_dir / s
+&gt;           assert p.is_file(), f"Missing upgraded snapshot: {s}"
+E           AssertionError: Missing upgraded snapshot: vorticity_t10s_comsol.png
+E           assert False
+E            +  where False = is_file()
+E            +    where is_file = WindowsPath('runs/re100_s1a2_trial/vorticity_t10s_comsol.png').is_file
+
+tests\test_re100_s1a2_stability.py:261: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_visualization_specification_and_data_contract" time="0.002"><failure message="AssertionError: Missing vorticity stats report: runs\re100_s1a2_trial\re100_s1a2_vorticity_stats.json&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_stats.json').is_file">def test_s1a2_visualization_specification_and_data_contract():
+        """Verify that upgraded Karman street visualization adheres to all scientific visualization specifications."""
+        stats_file = S1A2_DIR / "re100_s1a2_vorticity_stats.json"
+&gt;       assert stats_file.is_file(), f"Missing vorticity stats report: {stats_file}"
+E       AssertionError: Missing vorticity stats report: runs\re100_s1a2_trial\re100_s1a2_vorticity_stats.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_stats.json').is_file
+
+tests\test_re100_s1a2_stability.py:280: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_visualization_all_output_artifacts_exist_and_valid" time="0.002"><failure message="AssertionError: assert (False)&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_discussion.png').is_file">def test_s1a2_visualization_all_output_artifacts_exist_and_valid():
+        """Verify that all required visualization figures (Version A, Version B PNG/PDF, Overview, SymLog, Enhanced) exist and are non-empty."""
+        from PIL import Image
+
+        # Version A: 科研讨论版
+        p_disc = S1A2_DIR / "re100_s1a2_vorticity_discussion.png"
+        p_snap = S1A2_DIR / "re100_s1a2_vorticity_snapshots.png"
+&gt;       assert p_disc.is_file() and p_disc.stat().st_size &gt; 200_000
+E       AssertionError: assert (False)
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_discussion.png').is_file
+
+tests\test_re100_s1a2_stability.py:350: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_vorticity_grid_real_five_snapshots_strict_admission" time="0.002"><failure message="AssertionError: Missing grid file: runs\re100_s1a2_trial\vorticity_grid_t10s.txt&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('runs/re100_s1a2_trial/vorticity_grid_t10s.txt').is_file">def test_vorticity_grid_real_five_snapshots_strict_admission():
+        """Verify that all 5 real COMSOL 2D vorticity grid files pass strict admission criteria."""
+        for t_s in [10, 40, 100, 195, 200]:
+            grid_file = S1A2_DIR / f"vorticity_grid_t{t_s}s.txt"
+&gt;           assert grid_file.is_file(), f"Missing grid file: {grid_file}"
+E           AssertionError: Missing grid file: runs\re100_s1a2_trial\vorticity_grid_t10s.txt
+E           assert False
+E            +  where False = is_file()
+E            +    where is_file = WindowsPath('runs/re100_s1a2_trial/vorticity_grid_t10s.txt').is_file
+
+tests\test_re100_s1a2_stability.py:391: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a2_stability" name="test_vorticity_grid_rejection_incomplete_rows" time="0.010" /><testcase classname="tests.test_re100_s1a2_stability" name="test_vorticity_grid_rejection_xy_swapped" time="0.012" /><testcase classname="tests.test_re100_s1a2_stability" name="test_vorticity_grid_rejection_disordered_rows" time="0.015" /><testcase classname="tests.test_re100_s1a2_stability" name="test_vorticity_grid_rejection_duplicate_points" time="0.011" /><testcase classname="tests.test_re100_s1a2_stability" name="test_s1a2_three_panel_comparison_and_clipping_stats" time="0.002"><failure message="AssertionError: assert (False)&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_t195s_comparison.png').is_file">def test_s1a2_three_panel_comparison_and_clipping_stats():
+        """Verify the three-way comparison figure and spatial clipping statistics."""
+        from PIL import Image
+
+        # Check 3-panel comparison figure
+        p_comp = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
+&gt;       assert p_comp.is_file() and p_comp.stat().st_size &gt; 200_000
+E       AssertionError: assert (False)
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_t195s_comparison.png').is_file
+
+tests\test_re100_s1a2_stability.py:525: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_s1a_models_immutability" time="0.001"><failure message="AssertionError: Baseline model not found at C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph').is_file">def test_s1a_models_immutability():
+        """Verify both baseline and S0 benchmark models have strictly unchanged SHA-256 hashes."""
+&gt;       assert BASELINE_MODEL.is_file(), f"Baseline model not found at {BASELINE_MODEL}"
+E       AssertionError: Baseline model not found at C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph').is_file
+
+tests\test_re100_s1a_trial.py:66: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_s1a_diagnostics_presence_fail_closed_no_silent_skip" time="0.001"><failure message="AssertionError: S1 trial directory missing: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial&#10;assert False&#10; +  where False = is_dir()&#10; +    where is_dir = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial').is_dir">def test_s1a_diagnostics_presence_fail_closed_no_silent_skip():
+        """Verify S1-A diagnostic outputs exist. If missing, fail closed; DO NOT silently skip!"""
+&gt;       assert S1_TRIAL_DIR.is_dir(), f"S1 trial directory missing: {S1_TRIAL_DIR}"
+E       AssertionError: S1 trial directory missing: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial
+E       assert False
+E        +  where False = is_dir()
+E        +    where is_dir = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial').is_dir
+
+tests\test_re100_s1a_trial.py:79: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_s1a_data_contract_and_alignment" time="0.001"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostics directory does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial">def test_s1a_data_contract_and_alignment():
+        """Validate full S1 data contract: sample count, timestamp alignment, units, and finite values."""
+&gt;       res = validate_s1_diagnostics(
+            S1_TRIAL_DIR,
+            expected_steps=501,
+            expected_dt=0.20,
+            expected_t_final=100.0,
+        )
+
+tests\test_re100_s1a_trial.py:104:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+diagnostics_dir = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial')
+expected_steps = 501, expected_dt = 0.2, expected_t_final = 100.0
+time_tol = 0.0001, require_manifest = False, expected_source_hash = None
+required_series = ('lift_coeff.txt', 'drag_coeff.txt', 'wake_u.txt', 'wake_v.txt', 'inlet_u.txt', 'inlet_p.txt', ...)
+required_snapshots = None
+
+    def validate_s1_diagnostics(
+        diagnostics_dir: str | Path,
+        expected_steps: int = 501,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        time_tol: float = 1e-4,
+        require_manifest: bool = False,
+        expected_source_hash: str | None = None,
+        required_series: tuple[str, ...] | list[str] = S1_REQUIRED_SERIES,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Validate completeness, alignment, units, and finite values for S1 diagnostics.
+
+        Fail closed:
+        - If require_manifest=True and manifest.json missing -&gt; raises ComsolExportValidationError
+        - If manifest.json exists, verifies all recorded files, sizes, and SHA-256 hashes match on disk
+        - If any required file is missing -&gt; raises ComsolExportValidationError
+        - If sample count != expected_steps -&gt; raises ComsolExportValidationError
+        - If timestamps are misaligned across series -&gt; raises ComsolExportValidationError
+        - If NaN/Inf exists -&gt; raises ComsolExportValidationError
+        - If any snapshot image is missing or empty (&lt; 100 bytes) -&gt; raises ComsolExportValidationError
+        """
+        import numpy as np
+
+        diag_dir = Path(diagnostics_dir)
+        if not diag_dir.is_dir():
+&gt;           raise ComsolExportValidationError(f"Diagnostics directory does not exist: {diag_dir}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostics directory does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial
+
+src\hydro_disturb_bench\io.py:827: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_s1a_data_contract_rejection_on_corruptions" time="0.093" /><testcase classname="tests.test_re100_s1a_trial" name="test_aerodynamic_coefficients_normalization_consistency" time="0.001"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\lift_coeff.txt">def test_aerodynamic_coefficients_normalization_consistency():
+        """Verify force normalization scale and aerodynamic coefficient formulas."""
+        rho = 998.2
+        U_inf = 0.010058104588
+        D = 0.01
+        W_depth = 1.0
+
+        q_inf = 0.5 * rho * (U_inf**2)
+        F_ref = q_inf * D * W_depth
+        assert math.isclose(q_inf, 0.05049169, rel_tol=1e-4)
+        assert math.isclose(F_ref, 5.049169e-4, rel_tol=1e-4)
+
+        # Load actual lift and drag
+&gt;       t, cl, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "lift_coeff.txt")
+
+tests\test_re100_s1a_trial.py:193:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -&gt; tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+&gt;           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_frequency_extraction_algorithm_on_synthetic_signal" time="3.391" /><testcase classname="tests.test_re100_s1a_trial" name="test_growing_amplitude_signal_not_falsely_classified_as_limit_cycle" time="0.001" /><testcase classname="tests.test_re100_s1a_trial" name="test_s1a_pressure_surge_physical_bounds" time="0.002"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\inlet_p.txt">def test_s1a_pressure_surge_physical_bounds():
+        """Verify startup pressure surge bounds and decay to steady hydrodynamic stagnation pressure."""
+&gt;       t, ip, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "inlet_p.txt")
+
+tests\test_re100_s1a_trial.py:291:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial/inlet_p.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -&gt; tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+&gt;           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\inlet_p.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_s1a_multi_window_statistics_and_cycle_analysis" time="0.002"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\lift_coeff.txt">def test_s1a_multi_window_statistics_and_cycle_analysis():
+        """Verify multi-window comparison, cycle stability, and Strouhal number on actual S1-A data."""
+&gt;       t, cl, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "lift_coeff.txt")
+
+tests\test_re100_s1a_trial.py:311:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -&gt; tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+&gt;           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_file_publish_lock_lifecycle_and_directory_target" time="0.138" /><testcase classname="tests.test_re100_s1a_trial" name="test_export_s1_diagnostics_refuses_overwrite_by_default" time="0.032"><failure message="hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ref0')
+
+    def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path):
+        """When target directory contains results, allow_overwrite=False refuses publish and preserves originals."""
+        target_dir = tmp_path / "diag_existing"
+        target_dir.mkdir()
+
+        # Populate target_dir with existing files
+        for fname in S1_REQUIRED_SERIES:
+            (target_dir / fname).write_text(
+                f"% Original {fname}\n0.0 1.0\n100.0 2.0\n", encoding="utf-8"
+            )
+        for iname in S1_REQUIRED_SNAPSHOTS:
+            (target_dir / iname).write_bytes(b"ORIGINAL_IMAGE_BYTES" * 10)
+        (target_dir / "manifest.json").write_text(
+            '{"status": "COMPLETED", "files": {}}', encoding="utf-8"
+        )
+
+        orig_lift_bytes = (target_dir / "lift_coeff.txt").read_bytes()
+
+        # Call export_s1_diagnostics with allow_overwrite=False (mocking bridge to produce valid staging)
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"NEW_SNAPSHOT_BYTES" * 10)
+                return {"status": "SUCCESS", "operation": "export_s1_diagnostics"}
+
+            mock_bridge.side_effect = side_effect
+
+            with pytest.raises(
+                FileExistsError, match="Refusing to overwrite existing diagnostic result set"
+            ):
+&gt;               export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+
+tests\test_re100_s1a_trial.py:455:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ref0/diag_existing')
+allow_overwrite = False, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_&lt;stage_id&gt;_&lt;fname&gt; in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+&gt;           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_export_s1_diagnostics_versioning_and_full_recovery" time="0.015"><failure message="hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ver0')
+
+    def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
+        """When allow_overwrite=True, old results are preserved in versions/ and both versions are recoverable."""
+        target_dir = tmp_path / "diag_versioned"
+        target_dir.mkdir()
+
+        # Step 1: Create Version 1
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect_v1(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header V1", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 1.1" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"V1_SNAPSHOT" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect_v1
+&gt;           res1 = export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+
+tests\test_re100_s1a_trial.py:486:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ver0/diag_versioned')
+allow_overwrite = False, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_&lt;stage_id&gt;_&lt;fname&gt; in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+&gt;           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[1]" time="0.017"><failure message="hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure0')
+fail_file_idx = 1
+
+    @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
+    def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
+        tmp_path: Path, fail_file_idx: int
+    ):
+        """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
+        target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
+        target_dir.mkdir()
+
+        # Pre-populate with known sentinel data to verify it is NOT corrupted
+        sentinel_file = target_dir / "sentinel.txt"
+        sentinel_file.write_text("DO_NOT_TOUCH", encoding="utf-8")
+
+        real_copy2 = shutil.copy2
+        call_count = 0
+
+        def faulty_copy2(src, dst, *args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == fail_file_idx:
+                raise OSError(
+                    f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})"
+                )
+            return real_copy2(src, dst, *args, **kwargs)
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"IMAGE_BYTES" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect
+
+            with patch("shutil.copy2", side_effect=faulty_copy2):
+                with pytest.raises(OSError, match="Simulated filesystem failure"):
+&gt;                   export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+
+tests\test_re100_s1a_trial.py:570:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure0/fail_sim_1')
+allow_overwrite = True, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_&lt;stage_id&gt;_&lt;fname&gt; in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+&gt;           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[5]" time="0.019"><failure message="hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure1')
+fail_file_idx = 5
+
+    @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
+    def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
+        tmp_path: Path, fail_file_idx: int
+    ):
+        """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
+        target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
+        target_dir.mkdir()
+
+        # Pre-populate with known sentinel data to verify it is NOT corrupted
+        sentinel_file = target_dir / "sentinel.txt"
+        sentinel_file.write_text("DO_NOT_TOUCH", encoding="utf-8")
+
+        real_copy2 = shutil.copy2
+        call_count = 0
+
+        def faulty_copy2(src, dst, *args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == fail_file_idx:
+                raise OSError(
+                    f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})"
+                )
+            return real_copy2(src, dst, *args, **kwargs)
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"IMAGE_BYTES" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect
+
+            with patch("shutil.copy2", side_effect=faulty_copy2):
+                with pytest.raises(OSError, match="Simulated filesystem failure"):
+&gt;                   export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+
+tests\test_re100_s1a_trial.py:570:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure1/fail_sim_5')
+allow_overwrite = True, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_&lt;stage_id&gt;_&lt;fname&gt; in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+&gt;           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[11]" time="0.018"><failure message="hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure2')
+fail_file_idx = 11
+
+    @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
+    def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
+        tmp_path: Path, fail_file_idx: int
+    ):
+        """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
+        target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
+        target_dir.mkdir()
+
+        # Pre-populate with known sentinel data to verify it is NOT corrupted
+        sentinel_file = target_dir / "sentinel.txt"
+        sentinel_file.write_text("DO_NOT_TOUCH", encoding="utf-8")
+
+        real_copy2 = shutil.copy2
+        call_count = 0
+
+        def faulty_copy2(src, dst, *args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == fail_file_idx:
+                raise OSError(
+                    f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})"
+                )
+            return real_copy2(src, dst, *args, **kwargs)
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"IMAGE_BYTES" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect
+
+            with patch("shutil.copy2", side_effect=faulty_copy2):
+                with pytest.raises(OSError, match="Simulated filesystem failure"):
+&gt;                   export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+
+tests\test_re100_s1a_trial.py:570:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure2/fail_sim_11')
+allow_overwrite = True, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_&lt;stage_id&gt;_&lt;fname&gt; in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+&gt;           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_export_failure_preserves_staging_evidence_in_quarantine" time="0.011"><failure message="hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_failure_preserves_0')
+
+    def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path):
+        """When COMSOL aborts or data validation fails, staging artifacts are quarantined, never deleted with ignore_errors."""
+        target_dir = tmp_path / "abort_target"
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect_abort(args, root=None):
+                staging = Path(args[2])
+                # Partial export left behind before crashing
+                (staging / "lift_coeff.txt").write_text("% Partial lift\n0.0 0.1\n", encoding="utf-8")
+                raise ComsolConnectionError("COMSOL batch process terminated unexpectedly")
+
+            mock_bridge.side_effect = side_effect_abort
+
+            with pytest.raises(ComsolConnectionError, match="COMSOL batch process terminated"):
+&gt;               export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+
+tests\test_re100_s1a_trial.py:609:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_failure_preserves_0/abort_target')
+allow_overwrite = False, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_&lt;stage_id&gt;_&lt;fname&gt; in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+&gt;           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_multiprocess_concurrent_publish_race_no_corruption_or_loss" time="0.496"><failure message="AssertionError: assert 'SUCCESS' in {''}">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_multiprocess_concurrent_p0')
+
+    def test_multiprocess_concurrent_publish_race_no_corruption_or_loss(tmp_path: Path):
+        """Two concurrent processes racing to export/publish to the same output_dir serialize via lock without data loss."""
+        import subprocess
+
+        target_dir = tmp_path / "race_diag"
+
+        worker_code = """
+    import sys
+    from pathlib import Path
+    from unittest.mock import patch
+    from hydro_disturb_bench.comsol_java.bridge import export_s1_diagnostics
+    from hydro_disturb_bench.io import S1_REQUIRED_SERIES, S1_REQUIRED_SNAPSHOTS
+
+    base = Path(sys.argv[1])
+    out = Path(sys.argv[2])
+    proc_id = sys.argv[3]
+
+    def mock_run(args, root=None):
+        staging = Path(args[2])
+        for f in S1_REQUIRED_SERIES:
+            lines = [f"% Header {proc_id}", "% 时间 (s) Value"] + [f"{t * 0.2:.4f} 0.5" for t in range(501)]
+            (staging / f).write_text("\\n".join(lines), encoding="utf-8")
+        for f in S1_REQUIRED_SNAPSHOTS:
+            (staging / f).write_bytes(f"IMAGE_{proc_id}".encode("utf-8") * 20)
+        return {"status": "SUCCESS"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run):
+        try:
+            export_s1_diagnostics(base, out, allow_overwrite=False)
+            print("SUCCESS")
+        except FileExistsError:
+            print("CONFLICT")
+    """
+        sub_env = {**os.environ, "PYTHONPATH": "src"}
+        p1 = subprocess.Popen(
+            [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P1"],
+            env=sub_env,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+        p2 = subprocess.Popen(
+            [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P2"],
+            env=sub_env,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+
+        out1, _ = p1.communicate(timeout=30)
+        out2, _ = p2.communicate(timeout=30)
+
+        results = {out1.strip(), out2.strip()}
+&gt;       assert "SUCCESS" in results
+E       AssertionError: assert 'SUCCESS' in {''}
+
+tests\test_re100_s1a_trial.py:669: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1a_trial" name="test_s1a_manifest_tamper_detection" time="0.146" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_log_accepts_adaptive_steps_below_cap" time="0.073" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_log_rejects_invalid_internal_step_evidence[over_cap]" time="0.067" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_log_rejects_invalid_internal_step_evidence[gap]" time="0.057" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_log_rejects_invalid_internal_step_evidence[duplicate]" time="0.064" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_log_rejects_invalid_internal_step_evidence[time_reversal]" time="0.064" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_log_rejects_invalid_internal_step_evidence[truncated]" time="0.061" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_log_rejects_invalid_internal_step_evidence[short_tail]" time="0.060" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_actual_settings_accept_only_target_cap_change" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_actual_noncompliant_settings[wrong_cap]" time="0.002" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_actual_noncompliant_settings[auto_mode]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_actual_noncompliant_settings[rtol]" time="0.002" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_actual_noncompliant_settings[atol]" time="0.002" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_actual_noncompliant_settings[output_schedule]" time="0.002" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_actual_noncompliant_settings[mesh]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_actual_noncompliant_settings[initial_condition]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_rejects_changed_model_parameter" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[St_zc_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[Cd_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[Cl_amp_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_does_not_relax_any_of_the_four_one_percent_thresholds[Cl_demeaned_rms]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_requires_both_cases_stable_with_five_complete_cycles[unstable-C]" time="0.002" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_requires_both_cases_stable_with_five_complete_cycles[unstable-D]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_requires_both_cases_stable_with_five_complete_cycles[insufficient_cycles-C]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_requires_both_cases_stable_with_five_complete_cycles[insufficient_cycles-D]" time="0.001" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_solves_only_c_into_new_directory_with_only_cap_override" time="0.102" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_refuses_existing_output_before_external_calls" time="0.021" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_rejects_bad_c_evidence_before_solving[precheck]" time="0.034" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_rejects_bad_c_evidence_before_solving[source_cap]" time="0.033" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_rejects_bad_c_evidence_before_solving[source_mode]" time="0.035" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_rejects_bad_c_evidence_before_solving[source_rtol]" time="0.054" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_reports_sensitive_result_without_promoting_to_pass" time="0.117" /><testcase classname="tests.test_re100_s1b1_case_d" name="test_case_d_entry_persists_failed_stability_gate" time="0.102" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_all_baseline_and_prior_models_immutability" time="0.002"><failure message="AssertionError: Missing required model: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph').is_file">def test_all_baseline_and_prior_models_immutability():
+        """Verify that cylinder_flow.mph, re100_benchmark.mph, and solved models are strictly immutable."""
+        for path, expected in [
+            (BASELINE_CASE, EXPECTED_CASE_HASH),
+            (BENCHMARK_MODEL, EXPECTED_S0_HASH),
+            (S1A_SOLVED_MPH, EXPECTED_S1A_HASH),
+            (S1A2_SOLVED_MPH, EXPECTED_S1A2_HASH),
+        ]:
+&gt;           assert path.is_file(), f"Missing required model: {path}"
+E           AssertionError: Missing required model: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+E           assert False
+E            +  where False = is_file()
+E            +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph').is_file
+
+tests\test_re100_s1b1_time_convergence.py:78: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_mismatch_rejection_logic" time="0.002" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_verify_probe_metadata_production_validation" time="0.002" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_verify_probe_metadata_rejects_actual_metadata_errors" time="0.002" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_verify_probe_metadata_rejects_actual_time_mismatches" time="0.001" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_verify_probe_metadata_rejects_unspecified_units_and_missing_actual_t" time="0.002" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_solver_requested_vs_readback_consistency" time="0.002"><failure message="AssertionError: Missing C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1b1_trial\solver_metadata.json&#10;assert False&#10; +  where False = is_file()&#10; +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1b1_trial/solver_metadata.json').is_file">def test_solver_requested_vs_readback_consistency():
+        """Verify that requested rtol matches live solver readback and rejects inconsistencies."""
+        meta_path = S1B1_DIR / "solver_metadata.json"
+&gt;       assert meta_path.is_file(), f"Missing {meta_path}"
+E       AssertionError: Missing C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1b1_trial\solver_metadata.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1b1_trial/solver_metadata.json').is_file
+
+tests\test_re100_s1b1_time_convergence.py:298: AssertionError</failure></testcase><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_case_a_and_b_non_target_settings_strictly_identical" time="0.001"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\runs\\re100_s1b1_trial\\solver_metadata.json'">def test_case_a_and_b_non_target_settings_strictly_identical():
+        """Verify that mesh, physics, BCs, ICs, and stepping policy are identical between Case A and Case B."""
+&gt;       meta_b = json.loads((S1B1_DIR / "solver_metadata.json").read_text(encoding="utf-8"))
+
+tests\test_re100_s1b1_time_convergence.py:325:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\Program Files\Anaconda\envs\seagent\lib\pathlib.py:1134: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1b1_trial/solver_metadata.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+&gt;       return self._accessor.open(self, mode, buffering, encoding, errors,
+                                   newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\runs\\re100_s1b1_trial\\solver_metadata.json'
+
+D:\Program Files\Anaconda\envs\seagent\lib\pathlib.py:1119: FileNotFoundError</failure></testcase><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_exact_window_integration_constant_signal_arbitrary_window" time="0.001" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_exact_window_integration_linear_signal_arbitrary_endpoints" time="0.001" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_demeaned_rms_synthetic_sine_non_zero_mean_and_arbitrary_phase" time="0.001" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_production_evaluate_limit_cycle_stability" time="0.001" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_analyze_case_and_compare_cases_reject_unstable_signals" time="0.004" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_compare_cases_sensitive_when_lift_amplitude_or_rms_exceeds_threshold" time="0.003" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_case_a_and_b_real_cfd_production_analysis" time="0.002"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a2_trial\lift_coeff.txt">def test_case_a_and_b_real_cfd_production_analysis():
+        """Verify Case A and Case B real CFD runs using production analyze_case and compare_cases."""
+        case_a_dir = ROOT_DIR / "runs" / "re100_s1a2_trial"
+        case_b_dir = ROOT_DIR / "runs" / "re100_s1b1_trial"
+
+&gt;       stats_a = analyze_case(
+            name="Case_A",
+            trial_dir=case_a_dir,
+        )
+
+tests\test_re100_s1b1_time_convergence.py:587:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\verify_and_compare_s1b1.py:203: in analyze_case
+    t_cl, cl = load_comsol_1d_timeseries(trial_path / "lift_coeff.txt")[:2]
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a2_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -&gt; tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+&gt;           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a2_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_s1b1_diagnostics_completeness_and_manifest" time="0.001"><failure message="hydro_disturb_bench.io.ComsolExportValidationError: Diagnostics directory does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1b1_trial">def test_s1b1_diagnostics_completeness_and_manifest():
+        """Verify that Case B diagnostic artifacts are fully validated and complete."""
+&gt;       val = validate_s1_diagnostics(
+            S1B1_DIR,
+            expected_steps=1001,
+            expected_dt=0.20,
+            expected_t_final=200.0,
+            require_manifest=True,
+        )
+
+tests\test_re100_s1b1_time_convergence.py:643:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+diagnostics_dir = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1b1_trial')
+expected_steps = 1001, expected_dt = 0.2, expected_t_final = 200.0
+time_tol = 0.0001, require_manifest = True, expected_source_hash = None
+required_series = ('lift_coeff.txt', 'drag_coeff.txt', 'wake_u.txt', 'wake_v.txt', 'inlet_u.txt', 'inlet_p.txt', ...)
+required_snapshots = None
+
+    def validate_s1_diagnostics(
+        diagnostics_dir: str | Path,
+        expected_steps: int = 501,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        time_tol: float = 1e-4,
+        require_manifest: bool = False,
+        expected_source_hash: str | None = None,
+        required_series: tuple[str, ...] | list[str] = S1_REQUIRED_SERIES,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -&gt; dict[str, Any]:
+        """Validate completeness, alignment, units, and finite values for S1 diagnostics.
+
+        Fail closed:
+        - If require_manifest=True and manifest.json missing -&gt; raises ComsolExportValidationError
+        - If manifest.json exists, verifies all recorded files, sizes, and SHA-256 hashes match on disk
+        - If any required file is missing -&gt; raises ComsolExportValidationError
+        - If sample count != expected_steps -&gt; raises ComsolExportValidationError
+        - If timestamps are misaligned across series -&gt; raises ComsolExportValidationError
+        - If NaN/Inf exists -&gt; raises ComsolExportValidationError
+        - If any snapshot image is missing or empty (&lt; 100 bytes) -&gt; raises ComsolExportValidationError
+        """
+        import numpy as np
+
+        diag_dir = Path(diagnostics_dir)
+        if not diag_dir.is_dir():
+&gt;           raise ComsolExportValidationError(f"Diagnostics directory does not exist: {diag_dir}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostics directory does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1b1_trial
+
+src\hydro_disturb_bench\io.py:827: ComsolExportValidationError</failure></testcase><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[missing]" time="0.041" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[cm/s]" time="0.060" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[m/s]" time="0.065" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[read_failure]" time="0.033" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[wrong_file]" time="0.056" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[wrong_dataset]" time="0.064" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[ft/s_header]" time="0.071" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[unbound_label]" time="0.041" /><testcase classname="tests.test_re100_s1b1_time_convergence" name="test_probe_run_prechecks_unit_provenance_entry[feature_override]" time="0.059" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_mesh_experiment_rejects_time_policy_other_than_case_c[changed_tolerance]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_mesh_experiment_rejects_time_policy_other_than_case_c[automatic_step_cap]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_mesh_experiment_rejects_time_policy_other_than_case_c[case_d_time_policy]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_invariants_allow_changed_mesh_counts_with_same_time_and_physics" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_mesh_study_rejects_non_target_solver_and_physics_changes[absolute_tolerance]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_mesh_study_rejects_non_target_solver_and_physics_changes[output_schedule]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_mesh_study_rejects_non_target_solver_and_physics_changes[element_order]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_mesh_study_rejects_non_target_solver_and_physics_changes[initial_condition]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_refinement_requires_real_rebuilt_mesh_and_actual_scale_readbacks" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[sampling_only]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[wrong_size_readback]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[missing_quality]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[stale_source_hash]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[wrong_refinement_factor]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_missing_or_inconsistent_refinement_evidence[changed_boundary_layer]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[geometry]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[stabilization]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[boundary_condition]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_mesh_gate_rejects_nonmesh_physics_and_geometry_changes[initial_condition]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[fresh_mesh]" time="0.043" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[changed_source]" time="0.039" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[stale_cfd_solution]" time="0.035" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_bridge_publishes_only_new_mesh_with_unchanged_source_and_cleared_solution[missing_empty_readback]" time="0.038" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_native_bridge_rejects_source_hash_mismatch_before_external_call" time="0.020" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_entry_solves_only_isolated_refined_m1_and_keeps_comparison_preliminary[1.0-PASS]" time="0.299" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_entry_solves_only_isolated_refined_m1_and_keeps_comparison_preliminary[1.02-SENSITIVE]" time="0.244" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_entry_refuses_existing_output_before_external_operations" time="0.060" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_entry_does_not_solve_when_native_mesh_did_not_refine" time="0.147" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_postprocess_recovery_uses_saved_solution_without_refining_or_solving" time="0.352" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_postprocess_recovery_rejects_tampered_solution_before_export" time="0.225" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_postprocess_recovery_preserves_failure_and_does_not_invent_missing_wall_clock" time="0.341" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_two_mesh_agreement_is_only_preliminary_not_mesh_independence" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_each_primary_metric_retains_one_percent_sensitivity_gate[St_zc_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_each_primary_metric_retains_one_percent_sensitivity_gate[Cd_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_each_primary_metric_retains_one_percent_sensitivity_gate[Cl_amp_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_each_primary_metric_retains_one_percent_sensitivity_gate[Cl_demeaned_rms]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_both_meshes_require_five_stable_complete_cycles[unstable-M0]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_both_meshes_require_five_stable_complete_cycles[unstable-M1]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_both_meshes_require_five_stable_complete_cycles[four_cycles-M0]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_both_meshes_require_five_stable_complete_cycles[four_cycles-M1]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_wake_constant_mean_and_demeaned_rms_on_non_grid_window" time="0.024" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_wake_offset_sine_uses_exact_five_cycle_window_and_removes_mean" time="0.108" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_wake_statistics_reject_invalid_normalization_or_series[uncovered_window]" time="0.020" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_wake_statistics_reject_invalid_normalization_or_series[zero_u_inf]" time="0.016" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_wake_statistics_reject_invalid_normalization_or_series[nonfinite_sample]" time="0.016" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_wake_statistics_reject_invalid_normalization_or_series[time_reversal]" time="0.021" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_near_zero_wake_mean_difference_uses_u_inf_not_local_mean" time="0.036" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_config_binds_to_m0_at_h0_over_196_and_checks_m1_count_ordering" time="0.005" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_validation_rejects_double_refinement_and_non_monotonic_counts[double_applied_from_m1_sizes]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_validation_rejects_double_refinement_and_non_monotonic_counts[source_case_is_m1]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_validation_rejects_double_refinement_and_non_monotonic_counts[source_model_is_already_m1]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_validation_rejects_double_refinement_and_non_monotonic_counts[mismatched_level_and_factor]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_validation_rejects_double_refinement_and_non_monotonic_counts[m2_not_finer_than_m1]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_returns_sensitive_when_any_m1_m2_metric_exceeds_one_percent[St_zc_mean]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_returns_sensitive_when_any_m1_m2_metric_exceeds_one_percent[Cd_mean]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_returns_sensitive_when_any_m1_m2_metric_exceeds_one_percent[Cl_amp_mean]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_returns_sensitive_when_any_m1_m2_metric_exceeds_one_percent[Cl_demeaned_rms]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_passes_adjacent_gate_when_m1_m2_within_one_percent_and_deltas_reduce" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_requires_five_stable_cycles_on_all_three_meshes[unstable-M0]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_requires_five_stable_cycles_on_all_three_meshes[unstable-M1]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_requires_five_stable_cycles_on_all_three_meshes[unstable-M2]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_requires_five_stable_cycles_on_all_three_meshes[four_cycles-M0]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_requires_five_stable_cycles_on_all_three_meshes[four_cycles-M1]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_three_mesh_comparison_requires_five_stable_cycles_on_all_three_meshes[four_cycles-M2]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_entry_solves_only_isolated_m2_from_m0_and_preserves_m0_and_m1[1.0-PASS]" time="0.420" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m2_entry_solves_only_isolated_m2_from_m0_and_preserves_m0_and_m1[1.015-SENSITIVE]" time="0.359" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_config_binds_to_m0_at_h0_over_2744_and_checks_m2_count_ordering" time="0.004" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_validation_rejects_cumulative_refinement_and_non_monotonic_counts[double_applied_from_m2_sizes]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_validation_rejects_cumulative_refinement_and_non_monotonic_counts[source_case_is_m2]" time="0.003" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_validation_rejects_cumulative_refinement_and_non_monotonic_counts[source_model_is_already_m2]" time="0.004" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_validation_rejects_cumulative_refinement_and_non_monotonic_counts[mismatched_level_and_factor]" time="0.004" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_validation_rejects_cumulative_refinement_and_non_monotonic_counts[m3_not_finer_than_m2]" time="0.005" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_returns_sensitive_when_any_m2_m3_metric_exceeds_one_percent[St_zc_mean]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_returns_sensitive_when_any_m2_m3_metric_exceeds_one_percent[Cd_mean]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_returns_sensitive_when_any_m2_m3_metric_exceeds_one_percent[Cl_amp_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_returns_sensitive_when_any_m2_m3_metric_exceeds_one_percent[Cl_demeaned_rms]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_passes_adjacent_gate_when_m2_m3_within_one_percent_and_deltas_reduce" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_distinguishes_relative_diff_from_absolute_delta_reduction" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[unstable-M0]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[unstable-M1]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[unstable-M2]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[unstable-M3]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[four_cycles-M0]" time="0.001" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[four_cycles-M1]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[four_cycles-M2]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_four_mesh_comparison_requires_five_stable_cycles_on_all_four_meshes[four_cycles-M3]" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_compare_four_wake_statistics" time="0.002" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_entry_solves_only_isolated_m3_from_m0_and_preserves_m0_m1_m2[1.0-PASS]" time="0.502" /><testcase classname="tests.test_re100_s1b2_mesh" name="test_m3_entry_solves_only_isolated_m3_from_m0_and_preserves_m0_m1_m2[1.015-SENSITIVE]" time="0.525" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_m3_time_check_step_log_accepts_valid_log" time="0.081" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_m3_time_check_step_log_rejects_faults[exceed_cap]" time="0.067" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_m3_time_check_step_log_rejects_faults[gap_id]" time="0.063" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_m3_time_check_step_log_rejects_faults[duplicate_id]" time="0.061" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_m3_time_check_step_log_rejects_faults[time_reversal]" time="0.058" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_m3_time_check_step_log_rejects_faults[early_stop]" time="0.014" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_classify_m3_time_comparison_passes_when_within_one_percent" time="0.001" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[St_zc_mean]" time="0.002" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[Cd_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[Cl_amp_mean]" time="0.001" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_classify_m3_time_comparison_fails_when_any_metric_exceeds_threshold[Cl_demeaned_rms]" time="0.001" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_classify_m3_time_comparison_requires_at_least_five_cycles" time="0.001" /><testcase classname="tests.test_re100_s1b3_m3_time" name="test_check_settings_verifies_m3_mesh_and_rtol_invariance" time="0.002" /></testsuite></testsuites>

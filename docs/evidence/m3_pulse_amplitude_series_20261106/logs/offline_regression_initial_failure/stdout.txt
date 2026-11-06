@@ -1,0 +1,1124 @@
+........................................................................ [ 14%]
+........................................................................ [ 28%]
+........................................................................ [ 42%]
+........................................................................ [ 56%]
+................................FFF..FFFFFFF....FFFF.F..FF.FFFFFFF...... [ 70%]
+...........................F.....FF......FF............................. [ 84%]
+........................................................................ [ 98%]
+..........                                                               [100%]
+================================== FAILURES ===================================
+__________________ test_baseline_and_s1a_models_immutability __________________
+
+    def test_baseline_and_s1a_models_immutability():
+        """Verify that original baseline, S0 benchmark, and S1-A solved models are strictly unmodified."""
+>       assert BASELINE_CASE.is_file(), f"Missing {BASELINE_CASE}"
+E       AssertionError: Missing case\cylinder_flow.mph
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('case/cylinder_flow.mph').is_file
+
+tests\test_re100_s1a2_stability.py:42: AssertionError
+___________________ test_s1a2_solution_time_table_alignment ___________________
+
+    def test_s1a2_solution_time_table_alignment():
+        """Verify that S1-A2 solved model metadata matches the 200s extended schedule."""
+        import json
+
+        meta_file = S1A2_DIR / "solver_metadata.json"
+>       assert meta_file.is_file(), f"Missing solver metadata file: {meta_file}"
+E       AssertionError: Missing solver metadata file: runs\re100_s1a2_trial\solver_metadata.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/solver_metadata.json').is_file
+
+tests\test_re100_s1a2_stability.py:60: AssertionError
+______________ test_s1a2_diagnostics_data_contract_and_manifest _______________
+
+    def test_s1a2_diagnostics_data_contract_and_manifest():
+        """Verify full data contract, timestamp alignment, and manifest token for S1-A2 diagnostics."""
+>       assert S1A2_DIR.is_dir(), f"Missing S1-A2 diagnostics directory: {S1A2_DIR}"
+E       AssertionError: Missing S1-A2 diagnostics directory: runs\re100_s1a2_trial
+E       assert False
+E        +  where False = is_dir()
+E        +    where is_dir = WindowsPath('runs/re100_s1a2_trial').is_dir
+
+tests\test_re100_s1a2_stability.py:84: AssertionError
+___ test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds ____
+
+    def test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds():
+        """Verify that real COMSOL S1-A2 data meets the recommended engineering stability criteria over the last 5 cycles."""
+>       t_cl, cl = load_comsol_1d_timeseries(S1A2_DIR / "lift_coeff.txt")[:2]
+
+tests\test_re100_s1a2_stability.py:156:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('runs/re100_s1a2_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+>           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: runs\re100_s1a2_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError
+________________ test_s1a2_multi_window_statistics_consistency ________________
+
+    def test_s1a2_multi_window_statistics_consistency():
+        """Verify that Window 1 [120, 160]s and Window 2 [160, 200]s show consistent limit-cycle properties."""
+>       t_cl, cl = load_comsol_1d_timeseries(S1A2_DIR / "lift_coeff.txt")[:2]
+
+tests\test_re100_s1a2_stability.py:212:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('runs/re100_s1a2_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+>           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: runs\re100_s1a2_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError
+__________________ test_s1a_legacy_100s_interface_unaffected __________________
+
+    def test_s1a_legacy_100s_interface_unaffected():
+        """Verify that validating existing S1-A 100s results remains 100% functional and backward-compatible."""
+        s1a_dir = Path("runs/re100_s1a_trial")
+>       assert s1a_dir.is_dir()
+E       AssertionError: assert False
+E        +  where False = is_dir()
+E        +    where is_dir = WindowsPath('runs/re100_s1a_trial').is_dir
+
+tests\test_re100_s1a2_stability.py:233: AssertionError
+____________ test_s1a2_upgraded_vorticity_snapshots_and_comparison ____________
+
+    def test_s1a2_upgraded_vorticity_snapshots_and_comparison():
+        """Verify that upgraded wake-zoom vorticity snapshots and t=195s comparison figure exist and meet quality specs."""
+        from PIL import Image
+
+        s1a2_dir = Path("runs/re100_s1a2_trial")
+        snapshots = [
+            "vorticity_t10s_comsol.png",
+            "vorticity_t40s_comsol.png",
+            "vorticity_t100s_comsol.png",
+            "vorticity_t195s_comsol.png",
+            "vorticity_t200s_comsol.png",
+        ]
+        for s in snapshots:
+            p = s1a2_dir / s
+>           assert p.is_file(), f"Missing upgraded snapshot: {s}"
+E           AssertionError: Missing upgraded snapshot: vorticity_t10s_comsol.png
+E           assert False
+E            +  where False = is_file()
+E            +    where is_file = WindowsPath('runs/re100_s1a2_trial/vorticity_t10s_comsol.png').is_file
+
+tests\test_re100_s1a2_stability.py:261: AssertionError
+___________ test_s1a2_visualization_specification_and_data_contract ___________
+
+    def test_s1a2_visualization_specification_and_data_contract():
+        """Verify that upgraded Karman street visualization adheres to all scientific visualization specifications."""
+        stats_file = S1A2_DIR / "re100_s1a2_vorticity_stats.json"
+>       assert stats_file.is_file(), f"Missing vorticity stats report: {stats_file}"
+E       AssertionError: Missing vorticity stats report: runs\re100_s1a2_trial\re100_s1a2_vorticity_stats.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_stats.json').is_file
+
+tests\test_re100_s1a2_stability.py:280: AssertionError
+________ test_s1a2_visualization_all_output_artifacts_exist_and_valid _________
+
+    def test_s1a2_visualization_all_output_artifacts_exist_and_valid():
+        """Verify that all required visualization figures (Version A, Version B PNG/PDF, Overview, SymLog, Enhanced) exist and are non-empty."""
+        from PIL import Image
+
+        # Version A: 科研讨论版
+        p_disc = S1A2_DIR / "re100_s1a2_vorticity_discussion.png"
+        p_snap = S1A2_DIR / "re100_s1a2_vorticity_snapshots.png"
+>       assert p_disc.is_file() and p_disc.stat().st_size > 200_000
+E       AssertionError: assert (False)
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_discussion.png').is_file
+
+tests\test_re100_s1a2_stability.py:350: AssertionError
+__________ test_vorticity_grid_real_five_snapshots_strict_admission ___________
+
+    def test_vorticity_grid_real_five_snapshots_strict_admission():
+        """Verify that all 5 real COMSOL 2D vorticity grid files pass strict admission criteria."""
+        for t_s in [10, 40, 100, 195, 200]:
+            grid_file = S1A2_DIR / f"vorticity_grid_t{t_s}s.txt"
+>           assert grid_file.is_file(), f"Missing grid file: {grid_file}"
+E           AssertionError: Missing grid file: runs\re100_s1a2_trial\vorticity_grid_t10s.txt
+E           assert False
+E            +  where False = is_file()
+E            +    where is_file = WindowsPath('runs/re100_s1a2_trial/vorticity_grid_t10s.txt').is_file
+
+tests\test_re100_s1a2_stability.py:391: AssertionError
+_____________ test_s1a2_three_panel_comparison_and_clipping_stats _____________
+
+    def test_s1a2_three_panel_comparison_and_clipping_stats():
+        """Verify the three-way comparison figure and spatial clipping statistics."""
+        from PIL import Image
+
+        # Check 3-panel comparison figure
+        p_comp = S1A2_DIR / "re100_s1a2_vorticity_t195s_comparison.png"
+>       assert p_comp.is_file() and p_comp.stat().st_size > 200_000
+E       AssertionError: assert (False)
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('runs/re100_s1a2_trial/re100_s1a2_vorticity_t195s_comparison.png').is_file
+
+tests\test_re100_s1a2_stability.py:525: AssertionError
+________________________ test_s1a_models_immutability _________________________
+
+    def test_s1a_models_immutability():
+        """Verify both baseline and S0 benchmark models have strictly unchanged SHA-256 hashes."""
+>       assert BASELINE_MODEL.is_file(), f"Baseline model not found at {BASELINE_MODEL}"
+E       AssertionError: Baseline model not found at C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph').is_file
+
+tests\test_re100_s1a_trial.py:66: AssertionError
+__________ test_s1a_diagnostics_presence_fail_closed_no_silent_skip ___________
+
+    def test_s1a_diagnostics_presence_fail_closed_no_silent_skip():
+        """Verify S1-A diagnostic outputs exist. If missing, fail closed; DO NOT silently skip!"""
+>       assert S1_TRIAL_DIR.is_dir(), f"S1 trial directory missing: {S1_TRIAL_DIR}"
+E       AssertionError: S1 trial directory missing: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial
+E       assert False
+E        +  where False = is_dir()
+E        +    where is_dir = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial').is_dir
+
+tests\test_re100_s1a_trial.py:79: AssertionError
+____________________ test_s1a_data_contract_and_alignment _____________________
+
+    def test_s1a_data_contract_and_alignment():
+        """Validate full S1 data contract: sample count, timestamp alignment, units, and finite values."""
+>       res = validate_s1_diagnostics(
+            S1_TRIAL_DIR,
+            expected_steps=501,
+            expected_dt=0.20,
+            expected_t_final=100.0,
+        )
+
+tests\test_re100_s1a_trial.py:104:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+diagnostics_dir = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial')
+expected_steps = 501, expected_dt = 0.2, expected_t_final = 100.0
+time_tol = 0.0001, require_manifest = False, expected_source_hash = None
+required_series = ('lift_coeff.txt', 'drag_coeff.txt', 'wake_u.txt', 'wake_v.txt', 'inlet_u.txt', 'inlet_p.txt', ...)
+required_snapshots = None
+
+    def validate_s1_diagnostics(
+        diagnostics_dir: str | Path,
+        expected_steps: int = 501,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        time_tol: float = 1e-4,
+        require_manifest: bool = False,
+        expected_source_hash: str | None = None,
+        required_series: tuple[str, ...] | list[str] = S1_REQUIRED_SERIES,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Validate completeness, alignment, units, and finite values for S1 diagnostics.
+
+        Fail closed:
+        - If require_manifest=True and manifest.json missing -> raises ComsolExportValidationError
+        - If manifest.json exists, verifies all recorded files, sizes, and SHA-256 hashes match on disk
+        - If any required file is missing -> raises ComsolExportValidationError
+        - If sample count != expected_steps -> raises ComsolExportValidationError
+        - If timestamps are misaligned across series -> raises ComsolExportValidationError
+        - If NaN/Inf exists -> raises ComsolExportValidationError
+        - If any snapshot image is missing or empty (< 100 bytes) -> raises ComsolExportValidationError
+        """
+        import numpy as np
+
+        diag_dir = Path(diagnostics_dir)
+        if not diag_dir.is_dir():
+>           raise ComsolExportValidationError(f"Diagnostics directory does not exist: {diag_dir}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostics directory does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial
+
+src\hydro_disturb_bench\io.py:827: ComsolExportValidationError
+___________ test_aerodynamic_coefficients_normalization_consistency ___________
+
+    def test_aerodynamic_coefficients_normalization_consistency():
+        """Verify force normalization scale and aerodynamic coefficient formulas."""
+        rho = 998.2
+        U_inf = 0.010058104588
+        D = 0.01
+        W_depth = 1.0
+
+        q_inf = 0.5 * rho * (U_inf**2)
+        F_ref = q_inf * D * W_depth
+        assert math.isclose(q_inf, 0.05049169, rel_tol=1e-4)
+        assert math.isclose(F_ref, 5.049169e-4, rel_tol=1e-4)
+
+        # Load actual lift and drag
+>       t, cl, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "lift_coeff.txt")
+
+tests\test_re100_s1a_trial.py:193:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+>           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError
+___________________ test_s1a_pressure_surge_physical_bounds ___________________
+
+    def test_s1a_pressure_surge_physical_bounds():
+        """Verify startup pressure surge bounds and decay to steady hydrodynamic stagnation pressure."""
+>       t, ip, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "inlet_p.txt")
+
+tests\test_re100_s1a_trial.py:291:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial/inlet_p.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+>           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\inlet_p.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError
+_____________ test_s1a_multi_window_statistics_and_cycle_analysis _____________
+
+    def test_s1a_multi_window_statistics_and_cycle_analysis():
+        """Verify multi-window comparison, cycle stability, and Strouhal number on actual S1-A data."""
+>       t, cl, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "lift_coeff.txt")
+
+tests\test_re100_s1a_trial.py:311:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+>           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError
+___________ test_export_s1_diagnostics_refuses_overwrite_by_default ___________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ref0')
+
+    def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path):
+        """When target directory contains results, allow_overwrite=False refuses publish and preserves originals."""
+        target_dir = tmp_path / "diag_existing"
+        target_dir.mkdir()
+
+        # Populate target_dir with existing files
+        for fname in S1_REQUIRED_SERIES:
+            (target_dir / fname).write_text(
+                f"% Original {fname}\n0.0 1.0\n100.0 2.0\n", encoding="utf-8"
+            )
+        for iname in S1_REQUIRED_SNAPSHOTS:
+            (target_dir / iname).write_bytes(b"ORIGINAL_IMAGE_BYTES" * 10)
+        (target_dir / "manifest.json").write_text(
+            '{"status": "COMPLETED", "files": {}}', encoding="utf-8"
+        )
+
+        orig_lift_bytes = (target_dir / "lift_coeff.txt").read_bytes()
+
+        # Call export_s1_diagnostics with allow_overwrite=False (mocking bridge to produce valid staging)
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"NEW_SNAPSHOT_BYTES" * 10)
+                return {"status": "SUCCESS", "operation": "export_s1_diagnostics"}
+
+            mock_bridge.side_effect = side_effect
+
+            with pytest.raises(
+                FileExistsError, match="Refusing to overwrite existing diagnostic result set"
+            ):
+>               export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+
+tests\test_re100_s1a_trial.py:455:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ref0/diag_existing')
+allow_overwrite = False, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_<stage_id>_<fname> in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+>           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError
+___________ test_export_s1_diagnostics_versioning_and_full_recovery ___________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ver0')
+
+    def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
+        """When allow_overwrite=True, old results are preserved in versions/ and both versions are recoverable."""
+        target_dir = tmp_path / "diag_versioned"
+        target_dir.mkdir()
+
+        # Step 1: Create Version 1
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect_v1(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header V1", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 1.1" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"V1_SNAPSHOT" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect_v1
+>           res1 = export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+
+tests\test_re100_s1a_trial.py:486:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_s1_diagnostics_ver0/diag_versioned')
+allow_overwrite = False, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_<stage_id>_<fname> in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+>           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError
+___ test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[1] ___
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure0')
+fail_file_idx = 1
+
+    @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
+    def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
+        tmp_path: Path, fail_file_idx: int
+    ):
+        """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
+        target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
+        target_dir.mkdir()
+
+        # Pre-populate with known sentinel data to verify it is NOT corrupted
+        sentinel_file = target_dir / "sentinel.txt"
+        sentinel_file.write_text("DO_NOT_TOUCH", encoding="utf-8")
+
+        real_copy2 = shutil.copy2
+        call_count = 0
+
+        def faulty_copy2(src, dst, *args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == fail_file_idx:
+                raise OSError(
+                    f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})"
+                )
+            return real_copy2(src, dst, *args, **kwargs)
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"IMAGE_BYTES" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect
+
+            with patch("shutil.copy2", side_effect=faulty_copy2):
+                with pytest.raises(OSError, match="Simulated filesystem failure"):
+>                   export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+
+tests\test_re100_s1a_trial.py:570:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure0/fail_sim_1')
+allow_overwrite = True, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_<stage_id>_<fname> in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+>           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError
+___ test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[5] ___
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure1')
+fail_file_idx = 5
+
+    @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
+    def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
+        tmp_path: Path, fail_file_idx: int
+    ):
+        """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
+        target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
+        target_dir.mkdir()
+
+        # Pre-populate with known sentinel data to verify it is NOT corrupted
+        sentinel_file = target_dir / "sentinel.txt"
+        sentinel_file.write_text("DO_NOT_TOUCH", encoding="utf-8")
+
+        real_copy2 = shutil.copy2
+        call_count = 0
+
+        def faulty_copy2(src, dst, *args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == fail_file_idx:
+                raise OSError(
+                    f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})"
+                )
+            return real_copy2(src, dst, *args, **kwargs)
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"IMAGE_BYTES" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect
+
+            with patch("shutil.copy2", side_effect=faulty_copy2):
+                with pytest.raises(OSError, match="Simulated filesystem failure"):
+>                   export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+
+tests\test_re100_s1a_trial.py:570:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure1/fail_sim_5')
+allow_overwrite = True, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_<stage_id>_<fname> in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+>           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError
+__ test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[11] ___
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure2')
+fail_file_idx = 11
+
+    @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
+    def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
+        tmp_path: Path, fail_file_idx: int
+    ):
+        """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
+        target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
+        target_dir.mkdir()
+
+        # Pre-populate with known sentinel data to verify it is NOT corrupted
+        sentinel_file = target_dir / "sentinel.txt"
+        sentinel_file.write_text("DO_NOT_TOUCH", encoding="utf-8")
+
+        real_copy2 = shutil.copy2
+        call_count = 0
+
+        def faulty_copy2(src, dst, *args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == fail_file_idx:
+                raise OSError(
+                    f"Simulated filesystem failure on file #{fail_file_idx} ({Path(src).name})"
+                )
+            return real_copy2(src, dst, *args, **kwargs)
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect(args, root=None):
+                staging = Path(args[2])
+                for f in S1_REQUIRED_SERIES:
+                    lines = ["% Header", "% 时间 (s) Value"] + [
+                        f"{t * 0.2:.4f} 0.5" for t in range(501)
+                    ]
+                    (staging / f).write_text("\n".join(lines), encoding="utf-8")
+                for f in S1_REQUIRED_SNAPSHOTS:
+                    (staging / f).write_bytes(b"IMAGE_BYTES" * 20)
+                return {"status": "SUCCESS"}
+
+            mock_bridge.side_effect = side_effect
+
+            with patch("shutil.copy2", side_effect=faulty_copy2):
+                with pytest.raises(OSError, match="Simulated filesystem failure"):
+>                   export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+
+tests\test_re100_s1a_trial.py:570:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_simulated_publish_failure2/fail_sim_11')
+allow_overwrite = True, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_<stage_id>_<fname> in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+>           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError
+________ test_export_failure_preserves_staging_evidence_in_quarantine _________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_failure_preserves_0')
+
+    def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path):
+        """When COMSOL aborts or data validation fails, staging artifacts are quarantined, never deleted with ignore_errors."""
+        target_dir = tmp_path / "abort_target"
+
+        with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge") as mock_bridge:
+
+            def side_effect_abort(args, root=None):
+                staging = Path(args[2])
+                # Partial export left behind before crashing
+                (staging / "lift_coeff.txt").write_text("% Partial lift\n0.0 0.1\n", encoding="utf-8")
+                raise ComsolConnectionError("COMSOL batch process terminated unexpectedly")
+
+            mock_bridge.side_effect = side_effect_abort
+
+            with pytest.raises(ComsolConnectionError, match="COMSOL batch process terminated"):
+>               export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+
+tests\test_re100_s1a_trial.py:609:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph')
+output_dir = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_export_failure_preserves_0/abort_target')
+allow_overwrite = False, root = None, expected_steps = None, expected_dt = 0.2
+expected_t_final = 100.0, versioned = True, snapshot_times = None
+required_snapshots = None
+
+    def export_s1_diagnostics(
+        model_path: Path | str,
+        output_dir: Path | str,
+        allow_overwrite: bool = False,
+        root: Path | None = None,
+        expected_steps: int | None = None,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        versioned: bool = True,
+        snapshot_times: list[float] | None = None,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Export Stage S1 diagnostic time-series (lift, drag, wake, inlet, stag) and vorticity snapshots.
+
+        Publication gate (atomic, fail closed):
+        1. COMSOL bridge reports SUCCESS into staging directory.
+        2. Source model SHA-256 unchanged.
+        3. Staging directory passes validate_s1_diagnostics (aligned steps, no NaN/Inf, snapshots valid).
+        4. Completion manifest.json generated in staging directory.
+        5. Under cross-process file_publish_lock:
+           - If destination already contains results and allow_overwrite is False: quarantine as conflict and raise FileExistsError.
+           - If destination contains results and allow_overwrite is True: archive existing results to versions/ before replacing.
+           - Stage each file as .tmp_<stage_id>_<fname> in output_dir. If any file fails, clean up .tmp_ files and quarantine staging!
+           - Atomically promote .tmp_ files to final names (diagnostic files first, manifest.json last as the commit token).
+        """
+        from ..io import (
+            S1_A2_REQUIRED_SNAPSHOTS,
+            S1_REQUIRED_SERIES,
+            S1_REQUIRED_SNAPSHOTS,
+            ComsolExportValidationError,
+            build_s1_manifest,
+            validate_s1_diagnostics,
+        )
+
+        model_path = Path(model_path)
+        output_dir = Path(output_dir)
+
+        if not model_path.is_file():
+>           raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+E           hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+
+src\hydro_disturb_bench\comsol_java\bridge.py:1725: ModelNotFoundError
+_______ test_multiprocess_concurrent_publish_race_no_corruption_or_loss _______
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-259/test_multiprocess_concurrent_p0')
+
+    def test_multiprocess_concurrent_publish_race_no_corruption_or_loss(tmp_path: Path):
+        """Two concurrent processes racing to export/publish to the same output_dir serialize via lock without data loss."""
+        import subprocess
+
+        target_dir = tmp_path / "race_diag"
+
+        worker_code = """
+    import sys
+    from pathlib import Path
+    from unittest.mock import patch
+    from hydro_disturb_bench.comsol_java.bridge import export_s1_diagnostics
+    from hydro_disturb_bench.io import S1_REQUIRED_SERIES, S1_REQUIRED_SNAPSHOTS
+
+    base = Path(sys.argv[1])
+    out = Path(sys.argv[2])
+    proc_id = sys.argv[3]
+
+    def mock_run(args, root=None):
+        staging = Path(args[2])
+        for f in S1_REQUIRED_SERIES:
+            lines = [f"% Header {proc_id}", "% 时间 (s) Value"] + [f"{t * 0.2:.4f} 0.5" for t in range(501)]
+            (staging / f).write_text("\\n".join(lines), encoding="utf-8")
+        for f in S1_REQUIRED_SNAPSHOTS:
+            (staging / f).write_bytes(f"IMAGE_{proc_id}".encode("utf-8") * 20)
+        return {"status": "SUCCESS"}
+
+    with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=mock_run):
+        try:
+            export_s1_diagnostics(base, out, allow_overwrite=False)
+            print("SUCCESS")
+        except FileExistsError:
+            print("CONFLICT")
+    """
+        sub_env = {**os.environ, "PYTHONPATH": "src"}
+        p1 = subprocess.Popen(
+            [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P1"],
+            env=sub_env,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+        p2 = subprocess.Popen(
+            [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P2"],
+            env=sub_env,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+
+        out1, _ = p1.communicate(timeout=30)
+        out2, _ = p2.communicate(timeout=30)
+
+        results = {out1.strip(), out2.strip()}
+>       assert "SUCCESS" in results
+E       AssertionError: assert 'SUCCESS' in {''}
+
+tests\test_re100_s1a_trial.py:669: AssertionError
+---------------------------- Captured stderr call -----------------------------
+Traceback (most recent call last):
+  File "<string>", line 23, in <module>
+Traceback (most recent call last):
+  File "<string>", line 23, in <module>
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\src\hydro_disturb_bench\comsol_java\bridge.py", line 1725, in export_s1_diagnostics
+  File "C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\src\hydro_disturb_bench\comsol_java\bridge.py", line 1725, in export_s1_diagnostics
+    raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+    raise ModelNotFoundError(f"Model file does not exist: {model_path}")
+hydro_disturb_bench.comsol_java.bridge.ModelNotFoundError: [MODEL_NOT_FOUND] Model file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+_______________ test_all_baseline_and_prior_models_immutability _______________
+
+    def test_all_baseline_and_prior_models_immutability():
+        """Verify that cylinder_flow.mph, re100_benchmark.mph, and solved models are strictly immutable."""
+        for path, expected in [
+            (BASELINE_CASE, EXPECTED_CASE_HASH),
+            (BENCHMARK_MODEL, EXPECTED_S0_HASH),
+            (S1A_SOLVED_MPH, EXPECTED_S1A_HASH),
+            (S1A2_SOLVED_MPH, EXPECTED_S1A2_HASH),
+        ]:
+>           assert path.is_file(), f"Missing required model: {path}"
+E           AssertionError: Missing required model: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\case\cylinder_flow.mph
+E           assert False
+E            +  where False = is_file()
+E            +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/case/cylinder_flow.mph').is_file
+
+tests\test_re100_s1b1_time_convergence.py:78: AssertionError
+________________ test_solver_requested_vs_readback_consistency ________________
+
+    def test_solver_requested_vs_readback_consistency():
+        """Verify that requested rtol matches live solver readback and rejects inconsistencies."""
+        meta_path = S1B1_DIR / "solver_metadata.json"
+>       assert meta_path.is_file(), f"Missing {meta_path}"
+E       AssertionError: Missing C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1b1_trial\solver_metadata.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1b1_trial/solver_metadata.json').is_file
+
+tests\test_re100_s1b1_time_convergence.py:298: AssertionError
+__________ test_case_a_and_b_non_target_settings_strictly_identical ___________
+
+    def test_case_a_and_b_non_target_settings_strictly_identical():
+        """Verify that mesh, physics, BCs, ICs, and stepping policy are identical between Case A and Case B."""
+>       meta_b = json.loads((S1B1_DIR / "solver_metadata.json").read_text(encoding="utf-8"))
+
+tests\test_re100_s1b1_time_convergence.py:325:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\Program Files\Anaconda\envs\seagent\lib\pathlib.py:1134: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1b1_trial/solver_metadata.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return self._accessor.open(self, mode, buffering, encoding, errors,
+                                   newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\runs\\re100_s1b1_trial\\solver_metadata.json'
+
+D:\Program Files\Anaconda\envs\seagent\lib\pathlib.py:1119: FileNotFoundError
+_______________ test_case_a_and_b_real_cfd_production_analysis ________________
+
+    def test_case_a_and_b_real_cfd_production_analysis():
+        """Verify Case A and Case B real CFD runs using production analyze_case and compare_cases."""
+        case_a_dir = ROOT_DIR / "runs" / "re100_s1a2_trial"
+        case_b_dir = ROOT_DIR / "runs" / "re100_s1b1_trial"
+
+>       stats_a = analyze_case(
+            name="Case_A",
+            trial_dir=case_a_dir,
+        )
+
+tests\test_re100_s1b1_time_convergence.py:587:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\verify_and_compare_s1b1.py:203: in analyze_case
+    t_cl, cl = load_comsol_1d_timeseries(trial_path / "lift_coeff.txt")[:2]
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1a2_trial/lift_coeff.txt')
+
+    def load_comsol_1d_timeseries(file_path: str | Path) -> tuple[Any, Any, dict[str, str]]:
+        """Parse a single 1D COMSOL text export (time, value) and validate structure.
+
+        Returns (times, values, metadata_dict).
+        Raises ComsolExportValidationError on any non-finite sample, corrupt row, or empty file.
+        """
+        import numpy as np
+
+        path = Path(file_path)
+        if not path.is_file():
+>           raise ComsolExportValidationError(f"Diagnostic file does not exist: {path}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostic file does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1a2_trial\lift_coeff.txt
+
+src\hydro_disturb_bench\io.py:657: ComsolExportValidationError
+_______________ test_s1b1_diagnostics_completeness_and_manifest _______________
+
+    def test_s1b1_diagnostics_completeness_and_manifest():
+        """Verify that Case B diagnostic artifacts are fully validated and complete."""
+>       val = validate_s1_diagnostics(
+            S1B1_DIR,
+            expected_steps=1001,
+            expected_dt=0.20,
+            expected_t_final=200.0,
+            require_manifest=True,
+        )
+
+tests\test_re100_s1b1_time_convergence.py:643:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+diagnostics_dir = WindowsPath('C:/Users/Administrator/.codex/worktrees/m3-pulse-amplitudes/HydroDisturb-Bench/runs/re100_s1b1_trial')
+expected_steps = 1001, expected_dt = 0.2, expected_t_final = 200.0
+time_tol = 0.0001, require_manifest = True, expected_source_hash = None
+required_series = ('lift_coeff.txt', 'drag_coeff.txt', 'wake_u.txt', 'wake_v.txt', 'inlet_u.txt', 'inlet_p.txt', ...)
+required_snapshots = None
+
+    def validate_s1_diagnostics(
+        diagnostics_dir: str | Path,
+        expected_steps: int = 501,
+        expected_dt: float = 0.20,
+        expected_t_final: float = 100.0,
+        time_tol: float = 1e-4,
+        require_manifest: bool = False,
+        expected_source_hash: str | None = None,
+        required_series: tuple[str, ...] | list[str] = S1_REQUIRED_SERIES,
+        required_snapshots: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Validate completeness, alignment, units, and finite values for S1 diagnostics.
+
+        Fail closed:
+        - If require_manifest=True and manifest.json missing -> raises ComsolExportValidationError
+        - If manifest.json exists, verifies all recorded files, sizes, and SHA-256 hashes match on disk
+        - If any required file is missing -> raises ComsolExportValidationError
+        - If sample count != expected_steps -> raises ComsolExportValidationError
+        - If timestamps are misaligned across series -> raises ComsolExportValidationError
+        - If NaN/Inf exists -> raises ComsolExportValidationError
+        - If any snapshot image is missing or empty (< 100 bytes) -> raises ComsolExportValidationError
+        """
+        import numpy as np
+
+        diag_dir = Path(diagnostics_dir)
+        if not diag_dir.is_dir():
+>           raise ComsolExportValidationError(f"Diagnostics directory does not exist: {diag_dir}")
+E           hydro_disturb_bench.io.ComsolExportValidationError: Diagnostics directory does not exist: C:\Users\Administrator\.codex\worktrees\m3-pulse-amplitudes\HydroDisturb-Bench\runs\re100_s1b1_trial
+
+src\hydro_disturb_bench\io.py:827: ComsolExportValidationError
+=========================== short test summary info ===========================
+FAILED tests/test_re100_s1a2_stability.py::test_baseline_and_s1a_models_immutability
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_solution_time_table_alignment
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_diagnostics_data_contract_and_manifest
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_multi_window_statistics_consistency
+FAILED tests/test_re100_s1a2_stability.py::test_s1a_legacy_100s_interface_unaffected
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_upgraded_vorticity_snapshots_and_comparison
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_visualization_specification_and_data_contract
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_visualization_all_output_artifacts_exist_and_valid
+FAILED tests/test_re100_s1a2_stability.py::test_vorticity_grid_real_five_snapshots_strict_admission
+FAILED tests/test_re100_s1a2_stability.py::test_s1a2_three_panel_comparison_and_clipping_stats
+FAILED tests/test_re100_s1a_trial.py::test_s1a_models_immutability - Assertio...
+FAILED tests/test_re100_s1a_trial.py::test_s1a_diagnostics_presence_fail_closed_no_silent_skip
+FAILED tests/test_re100_s1a_trial.py::test_s1a_data_contract_and_alignment - ...
+FAILED tests/test_re100_s1a_trial.py::test_aerodynamic_coefficients_normalization_consistency
+FAILED tests/test_re100_s1a_trial.py::test_s1a_pressure_surge_physical_bounds
+FAILED tests/test_re100_s1a_trial.py::test_s1a_multi_window_statistics_and_cycle_analysis
+FAILED tests/test_re100_s1a_trial.py::test_export_s1_diagnostics_refuses_overwrite_by_default
+FAILED tests/test_re100_s1a_trial.py::test_export_s1_diagnostics_versioning_and_full_recovery
+FAILED tests/test_re100_s1a_trial.py::test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[1]
+FAILED tests/test_re100_s1a_trial.py::test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[5]
+FAILED tests/test_re100_s1a_trial.py::test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results[11]
+FAILED tests/test_re100_s1a_trial.py::test_export_failure_preserves_staging_evidence_in_quarantine
+FAILED tests/test_re100_s1a_trial.py::test_multiprocess_concurrent_publish_race_no_corruption_or_loss
+FAILED tests/test_re100_s1b1_time_convergence.py::test_all_baseline_and_prior_models_immutability
+FAILED tests/test_re100_s1b1_time_convergence.py::test_solver_requested_vs_readback_consistency
+FAILED tests/test_re100_s1b1_time_convergence.py::test_case_a_and_b_non_target_settings_strictly_identical
+FAILED tests/test_re100_s1b1_time_convergence.py::test_case_a_and_b_real_cfd_production_analysis
+FAILED tests/test_re100_s1b1_time_convergence.py::test_s1b1_diagnostics_completeness_and_manifest
+29 failed, 485 passed, 30 deselected in 103.60s (0:01:43)
