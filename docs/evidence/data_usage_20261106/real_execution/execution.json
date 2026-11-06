@@ -1,0 +1,35 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-X",
+    "utf8",
+    "scripts/prepare_m3_data_usage.py",
+    "--data-root",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+    "--output",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_data_usage_20261106_verified",
+    "--audit-reference-ref",
+    "4b7f74c658739908532b15277bb46a6495b02aad"
+  ],
+  "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+  "python_version": "3.10.21 | packaged by Anaconda, Inc. | (main, Aug 27 2026, 14:35:39) [MSC v.1942 64 bit (AMD64)]",
+  "started_at_utc": "2026-11-06T11:24:00.028844+00:00",
+  "elapsed_seconds": 38.157,
+  "returncode": 0,
+  "source_sha256_before": {
+    "src/hydro_disturb_bench/field_sequence.py": "55a07019067b7b696f274d780a507bcd0ea754f20a77da6154447766aa192e02",
+    "src/hydro_disturb_bench/field_sampling.py": "b2edf67200d0909567b58d0b4426f66df1f26f4b4fc36ab9f776f4f3c0c49224",
+    "src/hydro_disturb_bench/data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "scripts/prepare_m3_data_usage.py": "91642e8393f148092988cb9f8bff7c0c8bd64a9a97816dfb56a287d9dc08fed3",
+    "configs/m3_data_usage.json": "5d8dfa2d133b4b850569200db7a798d2e7442e3da83eff494a60a88559ffa965"
+  },
+  "source_sha256_after": {
+    "src/hydro_disturb_bench/field_sequence.py": "55a07019067b7b696f274d780a507bcd0ea754f20a77da6154447766aa192e02",
+    "src/hydro_disturb_bench/field_sampling.py": "b2edf67200d0909567b58d0b4426f66df1f26f4b4fc36ab9f776f4f3c0c49224",
+    "src/hydro_disturb_bench/data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "scripts/prepare_m3_data_usage.py": "91642e8393f148092988cb9f8bff7c0c8bd64a9a97816dfb56a287d9dc08fed3",
+    "configs/m3_data_usage.json": "5d8dfa2d133b4b850569200db7a798d2e7442e3da83eff494a60a88559ffa965"
+  },
+  "source_files_unchanged": true,
+  "comsol_started": false
+}

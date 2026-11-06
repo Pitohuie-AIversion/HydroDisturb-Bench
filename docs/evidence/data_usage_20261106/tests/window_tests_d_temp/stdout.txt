@@ -1,0 +1,705 @@
+..........FF.F......FF...F...F..F....                                    [100%]
+================================== FAILURES ===================================
+_________ test_explicit_independent_families_and_tail_aligned_windows _________
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255EB004880>
+
+    def test_explicit_independent_families_and_tail_aligned_windows(sequence_factory):
+        records = [sequence_factory("train"), sequence_factory("val", start=172),
+>                  sequence_factory("test", start=174)]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_data_windows.py:80: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_explicit_independent_fami0/test.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_explicit_independent_fami0/test')
+start = 174, stop = 175.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_explicit_independent_fami0\\.staging_field_sequence_13fb9a79b741' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_explicit_independent_fami0\\test'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+____ test_one_family_stays_in_one_split_without_inventing_validation_data _____
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255CAED96F0>
+
+    def test_one_family_stays_in_one_split_without_inventing_validation_data(sequence_factory):
+>       records = [sequence_factory("a", family="shared"),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   sequence_factory("b", family="shared", start=172)]
+
+tests\test_data_windows.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_one_family_stays_in_one_s0/a.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_one_family_stays_in_one_s0/a')
+start = 170.0, stop = 171.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_one_family_stays_in_one_s0\\.staging_field_sequence_37969489c1e8' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_one_family_stays_in_one_s0\\a'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+_____ test_assignments_must_be_complete_explicit_and_known[assignments1] ______
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255EB007320>
+assignments = {'one': 'train', 'extra': 'test'}
+
+    @pytest.mark.parametrize("assignments", [{}, {"one": "train", "extra": "test"}, {"one": "random"}])
+    def test_assignments_must_be_complete_explicit_and_known(sequence_factory, assignments):
+        with pytest.raises(bridge.InvalidParameterError):
+>           windows.split_trajectory_families([sequence_factory()], assignments)
+                                               ^^^^^^^^^^^^^^^^^^
+
+tests\test_data_windows.py:109: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_assignments_must_be_compl1/one.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_assignments_must_be_compl1/one')
+start = 170.0, stop = 171.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_assignments_must_be_compl1\\.staging_field_sequence_209c20b4235f' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_assignments_must_be_compl1\\one'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+_ test_shared_ancestry_cannot_be_relabeled_as_an_independent_family[native_state_sha256] _
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255EB0D4880>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000255EB051E60>
+field = 'native_state_sha256'
+
+    @pytest.mark.parametrize("field", ["root_model_sha256", "checkpoint_sha256", "native_state_sha256"])
+    def test_shared_ancestry_cannot_be_relabeled_as_an_independent_family(sequence_factory, monkeypatch, field):
+>       first, second = sequence_factory("a"), sequence_factory("b", start=172)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_data_windows.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_shared_ancestry_cannot_be2/b.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_shared_ancestry_cannot_be2/b')
+start = 172, stop = 173.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_shared_ancestry_cannot_be2\\.staging_field_sequence_7ddefe4edbf3' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_shared_ancestry_cannot_be2\\b'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+____________ test_model_identity_is_checked_across_ancestry_roles _____________
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255EB0F2CF0>
+
+    def test_model_identity_is_checked_across_ancestry_roles(sequence_factory):
+>       first, second = sequence_factory("a"), sequence_factory("b", start=172)
+                        ^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_data_windows.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_model_identity_is_checked0/a.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_model_identity_is_checked0/a')
+start = 170.0, stop = 171.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_model_identity_is_checked0\\.staging_field_sequence_5aa8c12174b6' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_model_identity_is_checked0\\a'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+____ test_window_reads_cross_batch_boundaries_without_exposing_diagnostics ____
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255EB0F2980>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000255EB0AF110>
+
+    def test_window_reads_cross_batch_boundaries_without_exposing_diagnostics(sequence_factory, monkeypatch):
+>       record = sequence_factory()
+                 ^^^^^^^^^^^^^^^^^^
+
+tests\test_data_windows.py:170: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_window_reads_cross_batch_0/one.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_window_reads_cross_batch_0/one')
+start = 170.0, stop = 171.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_window_reads_cross_batch_0\\.staging_field_sequence_10eb199650b9' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_window_reads_cross_batch_0\\one'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+_ test_recomputed_digest_does_not_authorize_invalid_windows_or_splits[trajectory] _
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255EB0D5220>
+fault = 'trajectory'
+
+    @pytest.mark.parametrize("fault", ["split", "family", "trajectory", "gap", "out_of_bounds", "duplicate", "count"])
+    def test_recomputed_digest_does_not_authorize_invalid_windows_or_splits(sequence_factory, fault):
+>       index = windows.build_window_index([sequence_factory()], {"one": "train"}, windows.WindowSpec(3, 2))
+                                            ^^^^^^^^^^^^^^^^^^
+
+tests\test_data_windows.py:208: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_recomputed_digest_does_no2/one.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_recomputed_digest_does_no2/one')
+start = 170.0, stop = 171.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_recomputed_digest_does_no2\\.staging_field_sequence_667c0b397e7e' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_recomputed_digest_does_no2\\one'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+_ test_recomputed_digest_does_not_authorize_invalid_windows_or_splits[duplicate] _
+
+sequence_factory = <function sequence_factory.<locals>.create at 0x00000255EB005D20>
+fault = 'duplicate'
+
+    @pytest.mark.parametrize("fault", ["split", "family", "trajectory", "gap", "out_of_bounds", "duplicate", "count"])
+    def test_recomputed_digest_does_not_authorize_invalid_windows_or_splits(sequence_factory, fault):
+>       index = windows.build_window_index([sequence_factory()], {"one": "train"}, windows.WindowSpec(3, 2))
+                                            ^^^^^^^^^^^^^^^^^^
+
+tests\test_data_windows.py:208: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_data_windows.py:41: in create
+    export_full_field_sequence(model, directory, start=start,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+model_path = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_recomputed_digest_does_no5/one.mph')
+output_dir = WindowsPath('D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/data_usage_20261106/window_tests_d_temp/pytest_temp/test_recomputed_digest_does_no5/one')
+start = 170.0, stop = 171.8, step = 0.2, grid_shape = (17, 9), batch_size = 4
+overlap_reference = None, root = None, process_runner = None
+
+    def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
+                                    grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                    root=None, process_runner=None):
+        """Export a contiguous saved-time sequence to a new directory; retain failures."""
+        model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
+        if not model_path.is_file():
+            raise bridge.ModelNotFoundError(f"Model file does not exist: {model_path}")
+        if output_dir.exists() or output_dir.is_symlink():
+            raise FileExistsError(output_dir)
+        times = _time_axis(start, stop, step)
+        _input_require(isinstance(batch_size, int) and not isinstance(batch_size, bool) and 1 <= batch_size <= 32,
+                          "Sequence batch size must be an integer from 1 to 32")
+        _input_require(len(grid_shape) == 2 and all(isinstance(v, int) and not isinstance(v, bool) and v >= 3 for v in grid_shape),
+                          "Sequence grid requires integer nx,ny >=3")
+        before = bridge.compute_file_hash(model_path)
+        stage = output_dir.parent / (".staging_field_sequence_" + uuid.uuid4().hex[:12])
+        stage.mkdir(parents=True, exist_ok=False)
+        manifest = {"schema_version": 1, "operation": "export_full_field_sequence", "status": "VALIDATING",
+                    "source_model": str(model_path), "source_sha256": before, "requested_times": times.tolist(),
+                    "actual_times": [], "time_step_s": float(step), "grid_shape": list(grid_shape), "batch_size": batch_size,
+                    "shape": [len(times), 3, grid_shape[1], grid_shape[0]], "tensor_layout": sampling.LAYOUT,
+                    "channel_order": list(sampling.CHANNELS), "units": list(sampling.UNITS), "batches": [],
+                    "solution_numbers": [], "solver_called": False}
+        metrics = []
+        try:
+            process_options = {} if process_runner is None else {"process_runner": process_runner}
+            first_data = None
+            for batch_index, begin in enumerate(range(0, len(times), batch_size)):
+                end = min(begin + batch_size, len(times))
+                batch_dir = stage / f"batch_{batch_index:04d}"
+                metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
+                    np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                    **process_options)
+                sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
+                data = sampling.load_full_field_sample(batch_dir)
+                _same_grid_and_source(first_data or data, data)
+                if first_data is None:
+                    first_data = _static_reference(data)
+                manifest["batches"].append({"path": batch_dir.name, "start_index": begin, "stop_index": end,
+                    "count": end - begin, "npz_sha256": metric["npz_sha256"],
+                    "metadata_sha256": bridge.compute_file_hash(batch_dir / "metadata.json"),
+                    "response_sha256": bridge.compute_file_hash(batch_dir / "bridge_response.json")})
+                manifest["actual_times"].extend(data["times"].tolist())
+                manifest["solution_numbers"].extend(item["solnum"] for item in data["metadata"]["unit_evidence"])
+                metrics.append(metric)
+                sampling._write_json(stage / "progress.json", {"completed_frames": end, "total_frames": len(times), "batches": manifest["batches"]})
+            complete = _read_batches(stage, manifest)
+            complete["batch_metadata"] = first_data["metadata"]
+            manifest["overlap_check"] = _check_overlap(complete, overlap_reference)
+            manifest.update(status="PASS", source_unchanged=True)
+            sampling._write_json(stage / "sequence_manifest.json", manifest)
+            loaded = load_full_field_sequence(stage)
+            sampling._require(np.array_equal(loaded["values"], complete["values"], equal_nan=True), "Sequence changed on full readback")
+            report = {**manifest, "output_dir": str(output_dir.resolve()), "batch_metrics": metrics,
+                      "readback_passed": True, "direct_point_checks": sum(m["direct_checks"] for m in metrics),
+                      "max_direct_absolute_errors": np.max([m["max_direct_absolute_errors"] for m in metrics], axis=0).tolist(),
+                      "fluid_entries": int(np.isfinite(loaded["values"]).sum()), "masked_entries": int(np.isnan(loaded["values"]).sum())}
+            sampling._write_json(stage / "sequence_report.json", report)
+            with bridge.file_publish_lock(output_dir.parent / ".locks" / (output_dir.name + ".lock")):
+                if output_dir.exists() or output_dir.is_symlink():
+                    raise FileExistsError(output_dir)
+                if os.name == "nt":
+>                   os.rename(stage, output_dir)
+E                   PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_recomputed_digest_does_no5\\.staging_field_sequence_08db2ccdb152' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp\\test_recomputed_digest_does_no5\\one'
+
+src\hydro_disturb_bench\field_sequence.py:394: PermissionError
+=========================== short test summary info ===========================
+FAILED tests/test_data_windows.py::test_explicit_independent_families_and_tail_aligned_windows
+FAILED tests/test_data_windows.py::test_one_family_stays_in_one_split_without_inventing_validation_data
+FAILED tests/test_data_windows.py::test_assignments_must_be_complete_explicit_and_known[assignments1]
+FAILED tests/test_data_windows.py::test_shared_ancestry_cannot_be_relabeled_as_an_independent_family[native_state_sha256]
+FAILED tests/test_data_windows.py::test_model_identity_is_checked_across_ancestry_roles
+FAILED tests/test_data_windows.py::test_window_reads_cross_batch_boundaries_without_exposing_diagnostics
+FAILED tests/test_data_windows.py::test_recomputed_digest_does_not_authorize_invalid_windows_or_splits[trajectory]
+FAILED tests/test_data_windows.py::test_recomputed_digest_does_not_authorize_invalid_windows_or_splits[duplicate]
+8 failed, 29 passed in 12.39s

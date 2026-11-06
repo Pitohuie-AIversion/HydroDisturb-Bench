@@ -19,6 +19,8 @@
 
 软件维护已完成 uv 锁定安装、测试分层和分支执行服务抽取；`c28aded` 的 [Windows/Linux CI](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/actions/runs/42202843334) 各有 522 passed、37 deselected。随后将 bridge 的文件锁、staging、发布与恢复抽到独立模块，保留公开入口和失败留存语义，见 [第二轮拆分报告](reports/FILE_TRANSACTION_REFACTOR_20261106.md)。各次执行的测试范围和数量分别记录，不累计为同一次验证。
 
+数据使用层现提供按批读取、跨批时间窗口和显式轨迹族划分。已有五条序列的 555 帧、21 批次被用于生成 105 个窗口，统一归入一个 train 族，validation/test 为空；未新增物理工况。见 [使用接口](DATA_USAGE.md) 与 [真实数据审计](reports/DATA_USAGE_20261106.md)。
+
 ## 已合入的阶段与复核入口
 
 下表描述最终阶段结论，不把早期失败或待修复报告当作最终证据。历史报告保留原样；其中旧措辞与当前状态不一致时，以最终结构化结果、修复提交和本页限定范围为准。
@@ -93,6 +95,7 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 | [run_m3_branch_pulse.py](../scripts/run_m3_branch_pulse.py) `--output <新目录> --stage all` | 准备原生起点并实际求解零/0.005 两分支；不是旧结果只读复核命令 |
 | [run_m3_pulse_amplitude_series.py](../scripts/run_m3_pulse_amplitude_series.py) `--output <新目录> --stage precheck` | 检查冻结计划、旧模型及数据身份，不进行新的 Time 求解 |
 | 同上 `--stage all` | 实际求解两个新增幅值并采样；不能用于重复确认已验收成果 |
+| [prepare_m3_data_usage.py](../scripts/prepare_m3_data_usage.py) `--output <新目录>` | 只读核验已有数据的来源族，创建小型窗口索引；不加载 MPH 或启动 COMSOL；可选固定旧 reader 对照 |
 | [check_git_attributes.py](../check_git_attributes.py) `--attributes .gitattributes` | Git 属性、真实暂存行为及清单检查；仅在归档规则或相应证据改变时按需运行 |
 
 旧五帧/151 帧脚本按源码定位仓库内的固定历史 `runs/` 路径。幅值系列入口支持 `HYDRO_DATA_ROOT`，其冻结相对路径必须指向持有旧模型、checkpoint 和样本的数据根目录；该环境变量不是所有旧入口统一支持的重定向参数。不要以改哈希、删除检查或重算历史模型来绕过缺数据。
@@ -136,7 +139,7 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 
 ## 后续开发约定
 
-下一块功能工作优先围绕现有连续序列做按批读取与窗口索引，先规定历史/预测长度、学习器可见字段和轨迹族划分。共享 checkpoint 的兄弟分支与重叠窗口不能随机分散到训练/验证两侧。当前只有一个轨迹族，足以验证数据管线，不能包装为独立泛化评估；这部分接口尚未实现。
+按批读取与窗口索引已用现有数据贯通；5 帧历史、5 帧未来、步幅 5 是本轮管线样例，不是最终训练规格。共享 checkpoint 的兄弟分支与重叠窗口仍不能随机分散到训练/验证两侧。下一次模型实验前须补充独立轨迹族并明确任务与留出策略，或明确只做当前族内的管线试运行，不包装为独立泛化评估。
 
 保持已验收基线、配置和历史证据不变；下一次实验先明确独立起点/轨迹族、隐藏信息、时间窗口、数据划分和数据预算，再扩展受控分支。参见 [研究计划](RESEARCH_PLAN.md)。当前不新增网格、时间步、扰动机制或训练任务。
 

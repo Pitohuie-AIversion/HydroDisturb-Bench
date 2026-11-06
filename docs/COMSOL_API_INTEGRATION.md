@@ -215,7 +215,7 @@ The installed `hydrobench` command and `python -m hydro_disturb_bench.cli` use t
 
 ## 6. Saved M3 Fields and Native Branches
 
-The implemented Cartesian sampler exports `[u,v,p]` in `[m/s,m/s,Pa]`, with explicit increasing x/y axes, actual saved times, and separate cylinder/invalid masks. It writes compressed NPZ arrays plus metadata and original COMSOL TXT exports. Fluid values must be finite; masked tensor entries are NaN. These are evaluated point samples, not a claim of conservative cell-average projection. HDF5/Zarr training packaging and trajectory splits remain future work.
+The implemented Cartesian sampler exports `[u,v,p]` in `[m/s,m/s,Pa]`, with explicit increasing x/y axes, actual saved times, and separate cylinder/invalid masks. It writes compressed NPZ arrays plus metadata and original COMSOL TXT exports. Fluid values must be finite; masked tensor entries are NaN. These are evaluated point samples, not a claim of conservative cell-average projection. HDF5/Zarr training packaging remains future work; explicit family splits and window indexes are described in [DATA_USAGE](DATA_USAGE.md).
 
 | Entry point | Scope and prerequisites |
 | --- | --- |
@@ -223,6 +223,8 @@ The implemented Cartesian sampler exports `[u,v,p]` in `[m/s,m/s,Pa]`, with expl
 | `python scripts/sample_re100_m3_sequence.py --output NEW_SEQUENCE_DIR` | Existing M3 and accepted five-frame overlap reference; 151 frames from 170–200 s, 32-frame batches, 161×97. No CFD solve. |
 | `hydro_disturb_bench.field_sampling.load_full_field_sample(path)` | Offline NPZ/metadata validation for one sample batch. |
 | `hydro_disturb_bench.field_sequence.load_full_field_sequence(path)` | Offline manifest/hash validation of all seven arrays; concatenates time-dependent arrays while checking shared axes and cylinder masks. |
+| `hydro_disturb_bench.field_sequence.FieldSequenceReader(path)` | Validated batch iteration, half-open frame ranges and bounded-memory whole-sequence verification. Partial reads certify only accessed batches. |
+| `python scripts/prepare_m3_data_usage.py --output NEW_INDEX_DIR` | Read pinned small lineage JSONs and existing NPZ files, then save only a lightweight family/window index and audits. No native solve or model read. |
 | `python scripts/run_m3_branch_pulse.py --help` | Frozen zero/0.005 m/s² branch experiment; explicit prepare/solve/sample/analyze stages and optional verified checkpoint reuse. |
 | `python scripts/run_m3_pulse_amplitude_series.py --help` | Frozen 0.0025/0.010 m/s² additions; reuse of accepted zero/0.005 controls. Stages: precheck, solve, sample, analyze, all. |
 

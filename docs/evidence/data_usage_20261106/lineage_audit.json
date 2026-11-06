@@ -1,0 +1,102 @@
+{
+  "status": "PASS",
+  "family_id": "m3_saved_sol1_901_180s",
+  "root_model_sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "checkpoint_sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+  "native_identity": {
+    "native_state_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+    "native_derivative_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696",
+    "native_dof_mapping_sha256": "18d2ec51d199ff754d69dee97f2288cf0b09b666104eec596d674a6d0e910330",
+    "mesh_fingerprint": {
+      "component_tag": "comp1",
+      "geometry_tag": "geom1",
+      "mesh_tag": "mesh1",
+      "vertex_count": 17910,
+      "element_count": 34752,
+      "sha256": "3a5072314b6f98241205654c5010ce9e1bae474924aad5d65f6493d315de6a3f",
+      "hash_input": "ordered native vertices, sorted element-type connectivity/entity arrays, mesh feature tree; UTF-8 JSON values"
+    },
+    "native_dof_count": 88483
+  },
+  "trajectories": [
+    {
+      "trajectory_id": "baseline",
+      "manifest_sha256": "db52cf07e4cea0541f3c4b086a2b3a69149e1bec4f55bea0b114d0ae4fda4e2d",
+      "source_sha256": "15E841FC4240D93DB877932C1B371646426F1229BDB40D0335B0ED7609D145B4",
+      "frames": 151
+    },
+    {
+      "trajectory_id": "zero",
+      "manifest_sha256": "1abd74b56526848d0654ad76a8dd0427cfbfeab8c81d0a32c95151493efe4baf",
+      "source_sha256": "3B80751413D7C811F6CE710CCB53D1DB8A3C224C448A1BDF0D16D606D3B1B6D4",
+      "frames": 101
+    },
+    {
+      "trajectory_id": "a0025",
+      "manifest_sha256": "fcfb9da76ab8865408e8da590831ad09cb4e45b25763304a38dddc04b3734e06",
+      "source_sha256": "731396D357DBD697B106DB0522F53F0122F68A676EEED6C50D682B41D21C2E7A",
+      "frames": 101
+    },
+    {
+      "trajectory_id": "a0050",
+      "manifest_sha256": "8d464d43b20e04da66b56bf1cd3afc51e9e3a5229f14bf7f677f93ec9f6defe1",
+      "source_sha256": "7F122C41162E8DDF4F923C91EB984F252FCBF9833F93708864A9B379A6E40A91",
+      "frames": 101
+    },
+    {
+      "trajectory_id": "a0100",
+      "manifest_sha256": "55f3d5b538eed6c331ffbec835be83ca8055a6de977b56462ef70112b8f04287",
+      "source_sha256": "A391ACDDD555DC448C59DFC0B9D3DF827FF26800C5C379A405B45ACFA5A6FE67",
+      "frames": 101
+    }
+  ],
+  "scope": "Pinned JSON ancestry and NPZ bytes; no MPH/bin read or COMSOL call",
+  "input_sha256_before_after": {
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\docs\\evidence\\m3_pulse_amplitude_series_20261106\\preregistered_plan.json": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\docs\\evidence\\m3_branch_pulse_20261105\\preregistered_plan.json": "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\docs\\evidence\\m3_branch_pulse_20261105\\restart_protocol_v2.json": "586a7065a7e9da4560501a368ab68037b0bbdaebf4957e6bab9541bb16e8acb8",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\prepare\\execution.json": "9984f0531816778e388a3fd1c14d93f173c168715c14aff4ed8e8c4fe8d7f839",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\prepare\\native_vectors.json": "a9f848f6e093db176a225a27ee0487ec015f2f70572406b94424c20f9503d67e",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\prepare\\native_derivative_vectors.json": "ccd2125dbef72321e46a1ee0a061042c320e50a5d0507c9b64e3ec4ba5529ac7",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_field_sequence_20261105_verified\\sequence_manifest.json": "db52cf07e4cea0541f3c4b086a2b3a69149e1bec4f55bea0b114d0ae4fda4e2d",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_zero\\fields\\sequence_manifest.json": "1abd74b56526848d0654ad76a8dd0427cfbfeab8c81d0a32c95151493efe4baf",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\zero\\execution.json": "da9de30335e4fad2de7283dcd035e837d207ac9ec40d348c4f4871103eb1782d",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\zero\\native_vectors.json": "c2e9d26e776421ca8b038cb6fece7ed505709c2c608fddcaf173d1b725c19b07",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\zero\\native_derivative_vectors.json": "48bc8f53ee4f11a0b3a5647836a9bc2ad22b3312de633dbe128307cea68eeacd",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\sequence_manifest.json": "fcfb9da76ab8865408e8da590831ad09cb4e45b25763304a38dddc04b3734e06",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\execution.json": "7e1cb6b7982e9b7a102df6443be8631c2b8ecf45bd1a84d8b811eb4a48eb0fbe",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\native_vectors.json": "4d2451cd054ef4468a2c7757c21400d5778e6b8bdbaba8237bde594eb36ff9f6",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0025\\native_derivative_vectors.json": "d1b4a3d0def259b929b52b91c03c497cdb0f73d352d2b56799548521602fcd84",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_pulse\\fields\\sequence_manifest.json": "8d464d43b20e04da66b56bf1cd3afc51e9e3a5229f14bf7f677f93ec9f6defe1",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\pulse\\execution.json": "f22d722f5dcd721c444bda5dc1809d3c399f77965febae941466c0530a9b2065",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\pulse\\native_vectors.json": "ef54807239647a0fb33aa8cc516ad1f9120d42995214019f931e96a9af201072",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\pulse\\native_derivative_vectors.json": "9547c8ef28f92fc84f1900a976a8b08f310d91aa027687e4c990fc93cd7c86a6",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\sequence_manifest.json": "55f3d5b538eed6c331ffbec835be83ca8055a6de977b56462ef70112b8f04287",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\execution.json": "0e04f3c589b58f22e8adace7bd246d5af1317e8b2b38601eb1e1f6480f19958c",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\native_vectors.json": "51be5034bc3c870e03656f90aff0b45f69a2f626fcf691fd05447635534dfd25",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\native_derivative_vectors.json": "757e7d51ff52cdcde247836c01221650f5840f7633b64180897c4ef46053724d",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_field_sequence_20261105_verified\\batch_0000\\field_sample.npz": "41e1a7cb0c747076874850caf7220359fe2bf3119d2eeb1bc0e775adccbc315d",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_field_sequence_20261105_verified\\batch_0001\\field_sample.npz": "52bb082921479de09af7fdb305bc435f5a60e96db373172cf4405cf1d039463f",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_field_sequence_20261105_verified\\batch_0002\\field_sample.npz": "ec8abc3d588bc1495c7cd186c13d62c6dbe00d062ccf75c70223a45eec3bf2df",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_field_sequence_20261105_verified\\batch_0003\\field_sample.npz": "9520dd34f92aaa2b564c8c669cdfb1674a4ea8cffecced39181183e16f0cc0c1",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_field_sequence_20261105_verified\\batch_0004\\field_sample.npz": "c03c2c1997111a1e07be7fdcd95db76f73430ce8a3672af26d5691ad9134876a",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_zero\\fields\\batch_0000\\field_sample.npz": "c9833ba5f84d1489a1a2f6c2343d952fc8c9d5c69569906dfd19cc951bb663c5",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_zero\\fields\\batch_0001\\field_sample.npz": "b414b18aebb41142ed25b72a8742907679c210cdd193fe552521d63fda99d201",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_zero\\fields\\batch_0002\\field_sample.npz": "4ac32b44b7332c711071b24234fe348cfe66eda1ba37b6639b7c8ef6e77b8ad6",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_zero\\fields\\batch_0003\\field_sample.npz": "68206b65369dbeaa55043aafb9568d78afa2909d202ac87e42c40245abf4f97b",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0000\\field_sample.npz": "898583e2af5156046508a134ac51adda55e23b1710eb580873525a06d6511653",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0001\\field_sample.npz": "71c0e7b82d2a1161a9c3e5f4f23d6f916cb9dd93f50eec3470a46dc49ca0318d",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0002\\field_sample.npz": "54d6fe9da6bc853eb4046a6e772a1e22d44102d0eb3e98616e276b2be4867448",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0025\\fields\\batch_0003\\field_sample.npz": "21afdb6c8ff04a619976ad5f71f5a4591376042c495a4970101217f0960298c1",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_pulse\\fields\\batch_0000\\field_sample.npz": "cd90901759022d5eaad63a7fe6a5de26f422308d596ff4a71c9f5a89349207bb",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_pulse\\fields\\batch_0001\\field_sample.npz": "7a12e7abe37cd2fcf722b68a661046e3c07127dc12383072e02b6824fba30e59",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_pulse\\fields\\batch_0002\\field_sample.npz": "d0ae96982b1c4b99ce6fa608ebab12efec453224376f57c6189412bfbaa1d51d",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_branch_pulse_20261105_verified_v6\\sample_pulse\\fields\\batch_0003\\field_sample.npz": "2dfad0cf2165e15798baf025e37bc61b01933dbb605400bccb64a70055fb3483",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0000\\field_sample.npz": "0f7a5a6cdbb35870d31d98b3ef1ca0230644ed5a719c92b931cffcc9fcdaa62c",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0001\\field_sample.npz": "6def7ccc982eacab388cacc4a6bf716cb70ea0688ba32cd0eebeb32760fd7d95",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0002\\field_sample.npz": "021bf16401a5588e9746b34a72342badfa3738d8837570631f926b272b9a1598",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\sample_a0100\\fields\\batch_0003\\field_sample.npz": "782ad75ec805201b06b1322ce027ff54bb9769dff62f3e2db826cc233152e1bd",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\configs\\m3_data_usage.json": "5d8dfa2d133b4b850569200db7a798d2e7442e3da83eff494a60a88559ffa965"
+  },
+  "inputs_unchanged": true
+}

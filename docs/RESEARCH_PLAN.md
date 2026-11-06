@@ -7,9 +7,9 @@ Updated **2026-11-06**, against the accepted experiment delivery [`195d613`](htt
 | Workstream | Current state | Next decision |
 | --- | --- | --- |
 | Baseline and numerical sensitivity | Long-time stable wake, A–D time study, M0–M3 native mesh series and M3 time-cap check completed for selected engineering statistics | Reuse M3 with `rtol=1e-4 / const / 0.05 s`; no new M4 or extra time-step scan is scheduled |
-| Data interface | Five-frame/two-grid sample and 151-frame continuous `[u,v,p]` baseline accepted | Reuse loaders, exact saved-time selection, provenance and masks |
+| Data interface | Saved `[u,v,p]` sequences now support bounded batch/range reads and lightweight window indexes | Preserve exact saved-time selection, provenance, masks and explicit learner-visible fields |
 | Native-state branching | Zero and 0.005 m/s² pulse branches accepted; 0.0025 and 0.010 m/s² added from the same checkpoint | Freeze this small amplitude group as a controlled prototype |
-| Dataset design | One checkpoint family with three nonzero amplitudes; no train/test benchmark yet | Define independent trajectory/checkpoint groups, observation windows and hidden metadata before scaling |
+| Dataset design | One checkpoint family, five sequences, 105 windows from a 5-history/5-future/stride-5 example; all train, no independent holdout | Add independently justified trajectory families before claiming validation/test generalization |
 | New mechanisms and forecasting | Not implemented or evaluated as a dataset/model benchmark | Separate future tasks; do not combine them with routine evidence review |
 
 The existing groups show distinct physical futures above the measured restart difference. They do not establish generalization to unseen disturbances or a globally linear response law. All three reported response peaks lie at the right boundary of the preregistered `(181,186] s` window; they are window maxima, not full-trajectory maxima.
@@ -48,7 +48,7 @@ Local momentum sources are equivalent forces, not automatically faithful models 
 
 The delivered field format is NPZ with JSON metadata: `(T,3,Ny,Nx)` `float64`, `[u,v,p]`, physical x/y arrays, saved times, cylinder/invalid masks, source identity, units and hashes. The continuous baseline covers 170–200 s at 0.2 s; each branch covers 180–200 s at the same interval. Full data remain in local storage, with necessary evidence and identity inventories in Git.
 
-Future production records may add vorticity, forcing-field tensors, explicit learner-visible views, trajectory-family identifiers, dataset splits and HDF5/Zarr packaging. Those additions are not delivered by the present `[u,v,p]` sequence alone.
+The [data usage layer](DATA_USAGE.md) adds explicit family assignments, window indexes and an eight-array learner view. The M3 entrypoint verifies pinned JSON ancestry before constructing the family; the generic library detects conflicting declared lineage and duplicated artifact identities. Vorticity, forcing-field tensors and HDF5/Zarr packaging remain future additions.
 
 Split whole trajectory/checkpoint families **before** constructing overlapping windows. Sibling branches sharing a checkpoint and common history should remain grouped unless an explicitly defined evaluation protocol requires otherwise. Reserve independent histories, seeds and parameter combinations; evaluate unseen amplitudes, positions and mechanisms separately. Randomly splitting overlapping windows from the 151-frame baseline would leak raw frames between partitions.
 

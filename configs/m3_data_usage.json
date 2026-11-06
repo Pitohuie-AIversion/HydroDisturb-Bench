@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "description": "Registered existing M3 family. Data paths resolve under HYDRO_DATA_ROOT; no COMSOL execution or tensor duplication.",
+  "family_id": "m3_saved_sol1_901_180s",
+  "family_assignment": "train",
+  "window_spec": {
+    "history_frames": 5,
+    "forecast_frames": 5,
+    "stride": 5
+  },
+  "inputs": {
+    "series_plan": {
+      "scope": "repository",
+      "path": "docs/evidence/m3_pulse_amplitude_series_20261106/preregistered_plan.json",
+      "sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d"
+    },
+    "base_plan": {
+      "scope": "repository",
+      "path": "docs/evidence/m3_branch_pulse_20261105/preregistered_plan.json",
+      "sha256": "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad"
+    },
+    "restart_protocol": {
+      "scope": "repository",
+      "path": "docs/evidence/m3_branch_pulse_20261105/restart_protocol_v2.json",
+      "sha256": "586a7065a7e9da4560501a368ab68037b0bbdaebf4957e6bab9541bb16e8acb8"
+    },
+    "prepare_execution": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/prepare/execution.json",
+      "sha256": "9984f0531816778e388a3fd1c14d93f173c168715c14aff4ed8e8c4fe8d7f839"
+    },
+    "prepare_vectors": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/prepare/native_vectors.json",
+      "sha256": "a9f848f6e093db176a225a27ee0487ec015f2f70572406b94424c20f9503d67e"
+    },
+    "prepare_derivatives": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/prepare/native_derivative_vectors.json",
+      "sha256": "ccd2125dbef72321e46a1ee0a061042c320e50a5d0507c9b64e3ec4ba5529ac7"
+    },
+    "baseline_manifest": {
+      "scope": "data",
+      "path": "runs/re100_m3_field_sequence_20261105_verified/sequence_manifest.json",
+      "sha256": "db52cf07e4cea0541f3c4b086a2b3a69149e1bec4f55bea0b114d0ae4fda4e2d"
+    },
+    "zero_manifest": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_zero/fields/sequence_manifest.json",
+      "sha256": "1abd74b56526848d0654ad76a8dd0427cfbfeab8c81d0a32c95151493efe4baf"
+    },
+    "zero_execution": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero/execution.json",
+      "sha256": "da9de30335e4fad2de7283dcd035e837d207ac9ec40d348c4f4871103eb1782d"
+    },
+    "zero_vectors": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero/native_vectors.json",
+      "sha256": "c2e9d26e776421ca8b038cb6fece7ed505709c2c608fddcaf173d1b725c19b07"
+    },
+    "zero_derivatives": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero/native_derivative_vectors.json",
+      "sha256": "48bc8f53ee4f11a0b3a5647836a9bc2ad22b3312de633dbe128307cea68eeacd"
+    },
+    "a0025_manifest": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/sample_a0025/fields/sequence_manifest.json",
+      "sha256": "fcfb9da76ab8865408e8da590831ad09cb4e45b25763304a38dddc04b3734e06"
+    },
+    "a0025_execution": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0025/execution.json",
+      "sha256": "7e1cb6b7982e9b7a102df6443be8631c2b8ecf45bd1a84d8b811eb4a48eb0fbe"
+    },
+    "a0025_vectors": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0025/native_vectors.json",
+      "sha256": "4d2451cd054ef4468a2c7757c21400d5778e6b8bdbaba8237bde594eb36ff9f6"
+    },
+    "a0025_derivatives": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0025/native_derivative_vectors.json",
+      "sha256": "d1b4a3d0def259b929b52b91c03c497cdb0f73d352d2b56799548521602fcd84"
+    },
+    "a0050_manifest": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_pulse/fields/sequence_manifest.json",
+      "sha256": "8d464d43b20e04da66b56bf1cd3afc51e9e3a5229f14bf7f677f93ec9f6defe1"
+    },
+    "a0050_execution": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse/execution.json",
+      "sha256": "f22d722f5dcd721c444bda5dc1809d3c399f77965febae941466c0530a9b2065"
+    },
+    "a0050_vectors": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse/native_vectors.json",
+      "sha256": "ef54807239647a0fb33aa8cc516ad1f9120d42995214019f931e96a9af201072"
+    },
+    "a0050_derivatives": {
+      "scope": "data",
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse/native_derivative_vectors.json",
+      "sha256": "9547c8ef28f92fc84f1900a976a8b08f310d91aa027687e4c990fc93cd7c86a6"
+    },
+    "a0100_manifest": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/sample_a0100/fields/sequence_manifest.json",
+      "sha256": "55f3d5b538eed6c331ffbec835be83ca8055a6de977b56462ef70112b8f04287"
+    },
+    "a0100_execution": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0100/execution.json",
+      "sha256": "0e04f3c589b58f22e8adace7bd246d5af1317e8b2b38601eb1e1f6480f19958c"
+    },
+    "a0100_vectors": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0100/native_vectors.json",
+      "sha256": "51be5034bc3c870e03656f90aff0b45f69a2f626fcf691fd05447635534dfd25"
+    },
+    "a0100_derivatives": {
+      "scope": "data",
+      "path": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0100/native_derivative_vectors.json",
+      "sha256": "757e7d51ff52cdcde247836c01221650f5840f7633b64180897c4ef46053724d"
+    }
+  },
+  "trajectories": [
+    {
+      "trajectory_id": "baseline",
+      "sequence_dir": "runs/re100_m3_field_sequence_20261105_verified",
+      "manifest_input": "baseline_manifest",
+      "amplitude_m_s2": null
+    },
+    {
+      "trajectory_id": "zero",
+      "sequence_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_zero/fields",
+      "manifest_input": "zero_manifest",
+      "amplitude_m_s2": 0.0,
+      "stage_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero"
+    },
+    {
+      "trajectory_id": "a0025",
+      "sequence_dir": "runs/re100_m3_pulse_amplitude_series_20261106_verified/sample_a0025/fields",
+      "manifest_input": "a0025_manifest",
+      "amplitude_m_s2": 0.0025,
+      "stage_dir": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0025"
+    },
+    {
+      "trajectory_id": "a0050",
+      "sequence_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_pulse/fields",
+      "manifest_input": "a0050_manifest",
+      "amplitude_m_s2": 0.005,
+      "stage_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse"
+    },
+    {
+      "trajectory_id": "a0100",
+      "sequence_dir": "runs/re100_m3_pulse_amplitude_series_20261106_verified/sample_a0100/fields",
+      "manifest_input": "a0100_manifest",
+      "amplitude_m_s2": 0.01,
+      "stage_dir": "runs/re100_m3_pulse_amplitude_series_20261106_verified/a0100"
+    }
+  ]
+}

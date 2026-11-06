@@ -1,0 +1,72 @@
+{
+  "status": "PASS",
+  "config_sha256": "5d8dfa2d133b4b850569200db7a798d2e7442e3da83eff494a60a88559ffa965",
+  "index_sha256": "63004756d70b381a51a63106fd81035dbd6f5594ae3865d66ef1daf9543575b5",
+  "counts": {
+    "trajectories": 5,
+    "windows": 105,
+    "by_split": {
+      "train": {
+        "trajectories": 5,
+        "windows": 105
+      },
+      "validation": {
+        "trajectories": 0,
+        "windows": 0
+      },
+      "test": {
+        "trajectories": 0,
+        "windows": 0
+      }
+    }
+  },
+  "reference_comparison": {
+    "status": "PASS",
+    "batches": 21,
+    "windows": 105,
+    "array_comparisons": 1022,
+    "elements_compared": 110541310,
+    "max_absolute_difference": 0.0,
+    "cross_batch_windows": 28,
+    "nan_positions_compared": 63180,
+    "tail_checks": [
+      {
+        "trajectory_id": "a0025",
+        "start": 98,
+        "stop": 101,
+        "frames_after_last_window": 1
+      },
+      {
+        "trajectory_id": "a0050",
+        "start": 98,
+        "stop": 101,
+        "frames_after_last_window": 1
+      },
+      {
+        "trajectory_id": "a0100",
+        "start": 98,
+        "stop": 101,
+        "frames_after_last_window": 1
+      },
+      {
+        "trajectory_id": "baseline",
+        "start": 148,
+        "stop": 151,
+        "frames_after_last_window": 1
+      },
+      {
+        "trajectory_id": "zero",
+        "start": 98,
+        "stop": 101,
+        "frames_after_last_window": 1
+      }
+    ],
+    "reference_commit": "4b7f74c658739908532b15277bb46a6495b02aad",
+    "reference_source_sha256": "2f3f9c2ff29076f33ab4e2937b1f67be1d78f10f8977306c82b467fdeeaa9578"
+  },
+  "unchanged_input_file_count": 45,
+  "solver_called": false,
+  "new_tensor_files": 0,
+  "split_scope": "One shared-ancestor family in train; validation/test empty",
+  "path_scope": "Recorded absolute model paths must match data-root; relocation is not implicit"
+}

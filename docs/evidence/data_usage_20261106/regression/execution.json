@@ -1,0 +1,22 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "pytest",
+    "-q",
+    "--strict-markers",
+    "-m",
+    "not integration",
+    "--junitxml=D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\docs\\evidence\\data_usage_20261106\\regression\\junit.xml"
+  ],
+  "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+  "python_version": "3.10.21 | packaged by Anaconda, Inc. | (main, Aug 27 2026, 14:35:39) [MSC v.1942 64 bit (AMD64)]",
+  "started_at_utc": "2026-11-06T11:35:54.930483+00:00",
+  "elapsed_seconds": 84.5,
+  "returncode": 0,
+  "source_file_count": 73,
+  "source_files_unchanged": true,
+  "comsol_started": false
+}
