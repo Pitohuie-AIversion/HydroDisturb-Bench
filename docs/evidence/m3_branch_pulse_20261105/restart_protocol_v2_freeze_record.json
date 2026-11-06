@@ -1,0 +1,9 @@
+{
+  "protocol": "restart_protocol_v2.json",
+  "sha256": "586a7065a7e9da4560501a368ab68037b0bbdaebf4957e6bab9541bb16e8acb8",
+  "created_at_utc": "2026-11-05 15:55:41 UTC",
+  "this_protocol_time_solver_executions_so_far": 0,
+  "completed_new_future_trajectories_so_far": 0,
+  "old_protocol_status": "Failed during native continuation initialization; failures preserved in verified through verified_v5 directories",
+  "physical_plan_sha256": "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad"
+}

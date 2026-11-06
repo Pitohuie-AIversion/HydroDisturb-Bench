@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "git_ref": "INDEX",
+  "git_blob_count": 49,
+  "zip_count": 19,
+  "native_members": 612,
+  "total_zip_bytes": 419090768,
+  "report_local_links": 45,
+  "steps": {
+    "zero": {
+      "accepted_steps": 457,
+      "max_step_s": 0.05,
+      "end_time_s": 200.0,
+      "display_lines": 1204
+    },
+    "pulse": {
+      "accepted_steps": 457,
+      "max_step_s": 0.05,
+      "end_time_s": 200.0,
+      "display_lines": 1191
+    }
+  },
+  "scope": "Native ZIP bytes and all listed members, current display transformations, JSON syntax, report links and Git blobs; no CFD solve",
+  "record_role": "Prior local full-archive audit before lightweight remote packaging; native ZIP bytes unchanged, display summaries subsequently reduced"
+}

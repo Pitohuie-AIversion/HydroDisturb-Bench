@@ -1,0 +1,8 @@
+{
+  "plan": "preregistered_plan.json",
+  "sha256": "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad",
+  "checked_at_utc": "2026-11-05 14:49:42 UTC",
+  "time_solver_executions_so_far": 0,
+  "allowed_preparation": "Read-only source inspection and native state extraction/Variables initialization probes; no Time integration",
+  "threshold_or_pulse_changes_after_freeze": false
+}

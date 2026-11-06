@@ -1,0 +1,16 @@
+[
+  {
+    "path": "field_artifact_audit.json",
+    "source": "scratch/m3_branch_pulse_20261105/field_artifact_audit.json",
+    "source_sha256": "415bf4900e990839caabb293a8c139c5a4b260b9c4f797386c566ad54931ab7e",
+    "display_sha256": "4800f5fd4bf4fddf0dc05482c5b29bb9301b7cd1eab7a4ac6b899b29efbd3342",
+    "transformation": "UTF-8 LF display copy; raw file retained in native ZIP"
+  },
+  {
+    "path": "history_audit_final.json",
+    "source": "scratch/m3_branch_pulse_20261105/history_audit_final.json",
+    "source_sha256": "efb8023959de2dcbdfac40910104d9da0cdf4651b863f9d6b0b4ac06ea30ef14",
+    "display_sha256": "efb8023959de2dcbdfac40910104d9da0cdf4651b863f9d6b0b4ac06ea30ef14",
+    "transformation": "UTF-8 LF display copy; raw file retained in native ZIP"
+  }
+]

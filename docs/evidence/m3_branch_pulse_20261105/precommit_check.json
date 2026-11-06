@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "command": [
+    "git",
+    "diff",
+    "--cached",
+    "301088dd8b7bd7a6c4bc88f827693cbcfbfd2c4b",
+    "--check"
+  ],
+  "exit_code": 0,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scope": "Full staged delivery compared with accepted baseline, including code, tests, report and all readable evidence. Native ZIP members preserve their original whitespace."
+}

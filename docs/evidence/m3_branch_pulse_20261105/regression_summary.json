@@ -1,0 +1,261 @@
+{
+  "status": "PASS_WITH_RETAINED_TRANSIENT_FAILURE",
+  "targeted_first_attempt": {
+    "passed": 211,
+    "failed": 1,
+    "pytest_seconds": 11.74,
+    "failure": "Previously accepted sequence roundtrip test: Windows rename WinError 5"
+  },
+  "targeted_retry_same_code": {
+    "passed": 212,
+    "failed": 0,
+    "pytest_seconds": 11.24
+  },
+  "offline_regression": {
+    "passed": 461,
+    "deselected": 30,
+    "pytest_seconds": 30.29,
+    "selection": "not integration",
+    "includes_targeted_tests": true
+  },
+  "limitation": "Windows rename root cause remains unresolved. No production code change between attempts. Old 30 integration tests not run; real new branch solves are separately archived.",
+  "records": {
+    "git_diff_check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+      "start_unix": 1793895599.1200428,
+      "end_unix": 1793895599.2550433,
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "offline_regression": {
+      "command": [
+        "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "-q",
+        "-m",
+        "not integration",
+        "--junitxml",
+        "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\regressions\\offline_regression.xml"
+      ],
+      "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+      "start_unix": 1793895568.020791,
+      "end_unix": 1793895599.0740972,
+      "exit_code": 0,
+      "stdout_sha256": "57c6c5be51761882f7e5f094ac7cd536a7e5ae8a80d2285226e84042b3b90e68",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ruff": {
+      "command": [
+        "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\.venv\\Scripts\\ruff.exe",
+        "check",
+        "scripts/run_m3_branch_pulse.py",
+        "src/hydro_disturb_bench/branch_pulse.py",
+        "src/hydro_disturb_bench/branch_evidence.py",
+        "tests/test_branch_pulse.py",
+        "tests/test_branch_evidence.py",
+        "tests/test_branch_pulse_runner.py"
+      ],
+      "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+      "start_unix": 1793895599.0751033,
+      "end_unix": 1793895599.1190286,
+      "exit_code": 0,
+      "stdout_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "targeted": {
+      "command": [
+        "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "-v",
+        "tests/test_branch_pulse.py",
+        "tests/test_branch_evidence.py",
+        "tests/test_branch_pulse_runner.py",
+        "tests/test_field_sequence.py",
+        "tests/test_full_field_sampling.py",
+        "--junitxml",
+        "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\regressions\\targeted.xml"
+      ],
+      "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+      "start_unix": 1793895555.7222385,
+      "end_unix": 1793895568.0197852,
+      "exit_code": 1,
+      "stdout_sha256": "04068c44116ad1ceca9a69beca540de37b3112e9112f00a20be59740f9049359",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "targeted_retry": {
+      "command": [
+        "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "-v",
+        "tests/test_branch_pulse.py",
+        "tests/test_branch_evidence.py",
+        "tests/test_branch_pulse_runner.py",
+        "tests/test_field_sequence.py",
+        "tests/test_full_field_sampling.py",
+        "--junitxml",
+        "scratch\\m3_branch_pulse_20261105\\regressions\\targeted_retry.xml"
+      ],
+      "start_unix": 1793895679.9325824,
+      "end_unix": 1793895691.706998,
+      "exit_code": 0,
+      "stdout_sha256": "f8e5cb66fd334ddefa407f0d530fceb470076bf04ddef7e4a257bc227453a173",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reason": "One accepted sequence test hit the previously known Windows directory-rename WinError 5; no production code change. Full offline regression already passed, including that test. Original failure retained."
+    }
+  },
+  "archive": {
+    "path": "execution_logs.zip",
+    "bytes": 35960,
+    "sha256": "4fe5af0b244aa26543a1a98f0c6b0c28bcde2927f957eaf32ade0df4851d47a7",
+    "entry_count": 21,
+    "all_native_member_bytes_verified": true,
+    "files": [
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/git_diff_check.execution.json",
+        "bytes": 437,
+        "sha256": "68db4358d7ca6eca4008eb7d618269a8ed706d4a22bb5268bfc8a40794f212ed"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/git_diff_check.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/git_diff_check.stdout.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/offline_regression.execution.json",
+        "bytes": 743,
+        "sha256": "c8cc7d6dbd124705fe5ebcddb8c5b4cf336f78a42ed609d9012cd87bfd9dfc4c"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/offline_regression.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/offline_regression.stdout.txt",
+        "bytes": 604,
+        "sha256": "57c6c5be51761882f7e5f094ac7cd536a7e5ae8a80d2285226e84042b3b90e68"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/offline_regression.xml",
+        "bytes": 66737,
+        "sha256": "c2237fe188da5beb4aca4f1c1778c628292fdc89f981ca193bca734c0d640d6f"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/ruff.execution.json",
+        "bytes": 787,
+        "sha256": "057168c5537d7ccad26299a57fd7f61af013602e91ecb56155c7e765ccc91e64"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/ruff.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/ruff.stdout.txt",
+        "bytes": 19,
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted.execution.json",
+        "bytes": 893,
+        "sha256": "7abb292c902b74ca13dc6c643f498080ef399ae2afa6b4afe9307d36d7a6a185"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted.stdout.txt",
+        "bytes": 34078,
+        "sha256": "04068c44116ad1ceca9a69beca540de37b3112e9112f00a20be59740f9049359"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted.xml",
+        "bytes": 39063,
+        "sha256": "cbfadbe6af6713f29c1c4f9da0cd48cde3efd45dcc835f044dd0482931c47007"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted_retry.execution.json",
+        "bytes": 922,
+        "sha256": "d07a61e42417c36102c4c2ab06be2d813d82f2b6bc026455b82e3a35c5cec3bb"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted_retry.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted_retry.stdout.txt",
+        "bytes": 26939,
+        "sha256": "f8e5cb66fd334ddefa407f0d530fceb470076bf04ddef7e4a257bc227453a173"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/regressions/targeted_retry.xml",
+        "bytes": 31869,
+        "sha256": "5c41b3180f48fe1b6e64d990c00ab34d183150956de401776e4db5b31371810b"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/run_regressions.py",
+        "bytes": 2081,
+        "sha256": "ae6e44e9099a7b580138888de607fad2d6e046cc2ca533b1142c028e42467ad6"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/retry_targeted.py",
+        "bytes": 1390,
+        "sha256": "5becdbef1b231b88d06990968c59f1744cd568c22b7c458027bd470eda0fe886"
+      },
+      {
+        "path": "scratch/m3_branch_pulse_20261105/archive_regressions.py",
+        "bytes": 3580,
+        "sha256": "96c21f5117a3dd7e852b3617ccb69f53038df9d3a022d3bc76eddef5c494b36e"
+      }
+    ]
+  },
+  "displays": [
+    {
+      "path": "offline_regression.stdout.txt",
+      "sha256": "a5d698394bddf210db235fb90ad4f4535c970f8f0ee867d945f9707396bc4e04",
+      "bytes": 596,
+      "native_member": "scratch/m3_branch_pulse_20261105/regressions/offline_regression.stdout.txt",
+      "native_sha256": "57c6c5be51761882f7e5f094ac7cd536a7e5ae8a80d2285226e84042b3b90e68",
+      "transformation": "UTF-8 LF display copy"
+    },
+    {
+      "path": "targeted_retry.stdout.txt",
+      "sha256": "828dc976431892aac1bb34599184c2c113a3f01bfba90520a59a1a33325a2391",
+      "bytes": 26716,
+      "native_member": "scratch/m3_branch_pulse_20261105/regressions/targeted_retry.stdout.txt",
+      "native_sha256": "f8e5cb66fd334ddefa407f0d530fceb470076bf04ddef7e4a257bc227453a173",
+      "transformation": "UTF-8 LF display copy"
+    },
+    {
+      "path": "targeted_first_attempt.stdout.txt",
+      "sha256": "55be63e526a31cd6e216a35915cef0c3c24b69994a78f3bb24b3560f25d1994b",
+      "bytes": 33761,
+      "native_member": "scratch/m3_branch_pulse_20261105/regressions/targeted.stdout.txt",
+      "native_sha256": "04068c44116ad1ceca9a69beca540de37b3112e9112f00a20be59740f9049359",
+      "transformation": "UTF-8 LF display copy with trailing horizontal whitespace removed; original retained in execution_logs.zip"
+    }
+  ]
+}

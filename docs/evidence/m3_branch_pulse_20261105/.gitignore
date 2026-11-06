@@ -1,0 +1,15 @@
+# Raw archives remain local; keep the remote evidence package small.
+/native_runtime.zip
+/native_zero_batch_0000.zip
+/native_zero_batch_0001.zip
+/native_zero_batch_0002.zip
+/native_zero_batch_0003.zip
+/native_pulse_batch_0000.zip
+/native_pulse_batch_0001.zip
+/native_pulse_batch_0002.zip
+/native_pulse_batch_0003.zip
+/preparation_failures_00.zip
+/preparation_failures_01.zip
+/preparation_failures_02.zip
+/preparation_failures_03.zip
+/preparation_failures_04.zip

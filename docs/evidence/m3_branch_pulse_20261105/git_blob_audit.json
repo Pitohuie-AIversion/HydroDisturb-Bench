@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "git_ref": "INDEX",
+  "git_blob_count": 37,
+  "mode": "portable",
+  "zip_count": 5,
+  "native_members": 120,
+  "total_zip_bytes": 435316,
+  "local_only_archives_excluded": 14,
+  "report_local_links": 40,
+  "steps": {
+    "zero": {
+      "accepted_steps": 457,
+      "max_step_s": 0.05,
+      "end_time_s": 200.0,
+      "display_lines": 1204,
+      "rederived_from_native_stdout": false
+    },
+    "pulse": {
+      "accepted_steps": 457,
+      "max_step_s": 0.05,
+      "end_time_s": 200.0,
+      "display_lines": 1191,
+      "rederived_from_native_stdout": false
+    }
+  },
+  "scope": "Selected ZIP bytes and members, current display hashes, JSON syntax, report links and Git blobs; native stdout rederived only with --include-local-archives. Portable mode does not reproduce full-vector or full-field checks; no CFD solve."
+}

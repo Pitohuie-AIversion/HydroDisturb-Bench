@@ -1,0 +1,13 @@
+--- executed/scripts/run_m3_branch_pulse.py
++++ final/scripts/run_m3_branch_pulse.py
+@@ -293,6 +293,10 @@
+         if not match:
+             continue
+         step_text, time_text, dt_text = match.groups()
++        if step_text == "-" and not re.search(r"\sout(?:\s|$)", line):
++            # COMSOL prints progress lines such as '- Current Progress: 10 %'.
++            # They share the leading dash with output rows, but have no 'out'.
++            continue
+         try:
+             actual_time = float(time_text)
+         except ValueError as exc:

@@ -1,0 +1,124 @@
+{
+  "status": "PASS",
+  "scope": "Offline artifact/point-value audit; no COMSOL launch or MPH dependency",
+  "branches": {
+    "zero": {
+      "shape": [
+        101,
+        3,
+        97,
+        161
+      ],
+      "batches": [
+        {
+          "path": "batch_0000",
+          "frames": 32,
+          "seven_arrays_read_back": true
+        },
+        {
+          "path": "batch_0001",
+          "frames": 32,
+          "seven_arrays_read_back": true
+        },
+        {
+          "path": "batch_0002",
+          "frames": 32,
+          "seven_arrays_read_back": true
+        },
+        {
+          "path": "batch_0003",
+          "frames": 5,
+          "seven_arrays_read_back": true
+        }
+      ],
+      "raw_files": 101,
+      "fluid_channel_values": 4728012,
+      "raw_nan_channel_values": 2727,
+      "masked_tensor_nan_channel_values": 3939,
+      "direct_space_time_points": 303,
+      "direct_channel_comparisons": 909,
+      "maximum_raw_absolute_errors": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum_direct_absolute_errors": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum_coordinate_error_m": 5.551115123125783e-17,
+      "maximum_time_error_s": 0.0,
+      "status": "PASS"
+    },
+    "pulse": {
+      "shape": [
+        101,
+        3,
+        97,
+        161
+      ],
+      "batches": [
+        {
+          "path": "batch_0000",
+          "frames": 32,
+          "seven_arrays_read_back": true
+        },
+        {
+          "path": "batch_0001",
+          "frames": 32,
+          "seven_arrays_read_back": true
+        },
+        {
+          "path": "batch_0002",
+          "frames": 32,
+          "seven_arrays_read_back": true
+        },
+        {
+          "path": "batch_0003",
+          "frames": 5,
+          "seven_arrays_read_back": true
+        }
+      ],
+      "raw_files": 101,
+      "fluid_channel_values": 4728012,
+      "raw_nan_channel_values": 2727,
+      "masked_tensor_nan_channel_values": 3939,
+      "direct_space_time_points": 303,
+      "direct_channel_comparisons": 909,
+      "maximum_raw_absolute_errors": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum_direct_absolute_errors": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum_coordinate_error_m": 5.551115123125783e-17,
+      "maximum_time_error_s": 0.0,
+      "status": "PASS"
+    }
+  },
+  "raw_files_checked": 202,
+  "direct_space_time_points": 606,
+  "direct_channel_comparisons": 1818,
+  "baseline_comparison": {
+    "status": "PASS",
+    "formal_json_exact_match": true,
+    "independent_adjacent_interval_quadrature": {
+      "zero_velocity_time_rms_over_U": 0.0001395753476411054,
+      "zero_centered_pressure_time_rms_over_rhoU2": 2.9800497471091287e-05,
+      "response_roi_peak_over_U": 0.05847157069539605,
+      "response_roi_peak_time_s": 186.0
+    },
+    "absolute_difference_from_archived": {
+      "zero_velocity_time_rms_over_U": 0.0,
+      "zero_centered_pressure_time_rms_over_rhoU2": 3.3881317890172014e-21,
+      "response_roi_peak_over_U": 1.3877787807814457e-17,
+      "response_roi_peak_time_s": 0.0
+    },
+    "note": "Arithmetic agreement tolerance only; preregistered physical gates are unchanged."
+  }
+}

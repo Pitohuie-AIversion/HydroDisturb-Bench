@@ -73,6 +73,29 @@ public class ComsolBridge {
                     return;
                 }
                 handleExportSolutionData(args[1], args[2]);
+            } else if ("inspect-native-state".equals(command)) {
+                if (args.length != 4) {
+                    outputError("INVALID_PARAMETER", "Usage: inspect-native-state <model> <solutionTag> <solnum>", "");
+                    return;
+                }
+                Model nativeModel = ModelUtil.loadCopy("Model", args[1]);
+                SolverSequence nativeSol = nativeModel.sol(args[2]);
+                int nativeIndex = Integer.parseInt(args[3]);
+                emitResult("{\"status\":\"SUCCESS\",\"operation\":\"inspect_native_state\",\"model_path\":" + quote(args[1])
+                    + ",\"solution_type\":" + quote(nativeSol.getType()) + ",\"parameter_names\":" + stringArrayToJson(nativeSol.getPNames())
+                    + ",\"U\":" + branchVectorJson(nativeSol, nativeIndex) + ",\"UDot\":" + branchDerivativeJson(nativeSol, nativeIndex) + "}");
+            } else if ("prepare-branch-state".equals(command)) {
+                if (args.length != 4) {
+                    outputError("INVALID_PARAMETER", "Usage: prepare-branch-state <source> <checkpoint> <branchTimeSeconds>", "");
+                    return;
+                }
+                handlePrepareBranchState(args[1], args[2], args[3]);
+            } else if ("run-pulse-branch".equals(command)) {
+                if (args.length != 5) {
+                    outputError("INVALID_PARAMETER", "Usage: run-pulse-branch <checkpoint> <output> <accelerationAmplitude_m_s2> <restartProtocolId>", "");
+                    return;
+                }
+                handleRunPulseBranch(args[1], args[2], args[3], args[4]);
             } else if ("export-full-field-sample".equals(command)
                     || "export-full-field-sequence-batch".equals(command)) {
                 if (args.length < 10) {
@@ -1121,6 +1144,575 @@ public class ComsolBridge {
         } catch (Throwable t) {
             outputError("SOLVER_FAILED", "Failed to export solution data: " + t.getMessage(), getStackTrace(t));
         }
+    }
+
+    /** Restart only from the native finite-element vector, never from sampled tensors. */
+    private static void handlePrepareBranchState(String sourcePath, String outputPath, String timeText) {
+        String stage = "validate", sourceVector = "null", seedVector = "null", variablesProbe = "null";
+        String sourceDerivative = "null", seedDerivative = "null", probeDerivative = "null";
+        String sourceMapping = "null", initializedMapping = "null", initializationDifference = "null";
+        try {
+            branchDistinctPaths(sourcePath, outputPath);
+            double tb = Double.parseDouble(timeText);
+            if (tb != 180.0) throw new IllegalArgumentException("Frozen experiment requires branch time 180 s");
+            stage = "load source";
+            Model model = ModelUtil.loadCopy("Model", sourcePath);
+            String[] tags = branchTags(model);
+            SolverSequence sol = model.sol(tags[6]);
+            branchCheckTimeSettings(sol.feature(tags[8]));
+            String before = branchSnapshot(model, tags), meshBefore = branchMeshFingerprint(model, tags);
+            double[] times = sol.getPVals();
+            int sourceIndex = branchExactTime(times, tb);
+            if (sourceIndex != 901) throw new IllegalStateException("Frozen M3 source index must be 901");
+            sourceVector = branchVectorJson(sol, sourceIndex);
+            sourceDerivative = branchDerivativeJson(sol, sourceIndex);
+            double[] nativeU = sol.getU(sourceIndex);
+            double[] nativeUDot = sol.getUDot(sourceIndex);
+            sourceMapping = branchDofMapping(sol);
+            String sourceHash = branchHash(branchVectorBytes(nativeU));
+            String derivativeHash = branchHash(branchVectorBytes(nativeUDot));
+            if (nativeUDot.length != nativeU.length || times.length != 1001) throw new IllegalStateException("Unexpected native source derivative/history size");
+            for (String name : model.param().varnames()) if (name.startsWith("branch_")) {
+                throw new IllegalArgumentException("Source already contains branch parameters: " + name);
+            }
+            if (Arrays.asList(model.sol().tags()).contains("sol_branch_seed")) {
+                throw new IllegalArgumentException("Source already contains sol_branch_seed");
+            }
+            stage = "copy full native solution history";
+            // Copy COMSOL's complete native solution before clearing the working
+            // solver. Reconstructing a solution from U alone loses native UDot.
+            sol.copySolution("sol_branch_seed");
+            SolverSequence seed = model.sol("sol_branch_seed");
+            seed.label("Native M3 history; branch seed is saved frame 901 at t=180 s");
+            seed.comments("source_solution=" + tags[6] + ";source_solnum=" + sourceIndex
+                + ";source_time_s=" + tb + ";float64_le_sha256=" + sourceHash
+                + ";udot_float64_le_sha256=" + derivativeHash + ";copy_method=copySolution_full_native_history");
+            branchRequireVector(seed, sourceIndex, tb, sourceHash, nativeU.length);
+            branchRequireDerivative(seed, sourceIndex, derivativeHash, nativeU.length);
+            if (!Arrays.equals(times, seed.getPVals())) throw new IllegalStateException("Full native copy changed saved times");
+            seedVector = branchVectorJson(seed, sourceIndex);
+            seedDerivative = branchDerivativeJson(seed, sourceIndex);
+            sol.clearSolutionData();
+            model.param().set("branch_tb", "180[s]", "Frozen native restart time");
+            model.param().set("branch_source_solnum", Integer.toString(sourceIndex), "Original M3 saved solution index");
+            model.param().set("branch_seed_solnum", Integer.toString(sourceIndex), "Exact saved index in full native seed copy");
+            stage = "configure native initialization";
+            branchConfigureInitialization(model, tags);
+            String configured = branchSnapshot(model, tags);
+            stage = "Variables initialization only (no Time solve)";
+            sol.run(tags[7], false);
+            variablesProbe = branchVectorJson(sol, 1);
+            probeDerivative = branchDerivativeJson(sol, 1);
+            initializedMapping = branchDofMapping(sol);
+            if (!sourceMapping.equals(initializedMapping)) throw new IllegalStateException("Native DOF field/coordinate/ordering changed during Variables initialization");
+            initializationDifference = branchFieldDifferences(sol, nativeU, sol.getU(1));
+            // This is an auditable initialization probe, not a reconstruction of
+            // the original solution and not a claim about hidden Time input.
+            branchRequireVector(seed, sourceIndex, tb, sourceHash, nativeU.length);
+            branchRequireDerivative(seed, sourceIndex, derivativeHash, nativeU.length);
+            String meshAfter = branchMeshFingerprint(model, tags);
+            if (!meshBefore.equals(meshAfter)) throw new IllegalStateException("Native mesh changed during initialization");
+            branchCheckTimeSettings(sol.feature(tags[8]));
+            stage = "save common checkpoint";
+            model.save(outputPath);
+            emitResult("{\"status\":\"SUCCESS\",\"operation\":\"prepare_branch_state\",\"source_model\":"
+                + quote(sourcePath) + ",\"output_model\":" + quote(outputPath)
+                + ",\"time_solver_executed\":false,\"source_solnum\":" + sourceIndex
+                + ",\"seed_solnum\":" + sourceIndex + ",\"seed_frame_count\":" + seed.getPVals().length
+                + ",\"seed_times\":" + doubleArrayToJson(seed.getPVals())
+                + ",\"native_copy_method\":\"copySolution_full_native_history\""
+                + ",\"seed_solution_tag\":\"sol_branch_seed\",\"dataset_tag\":" + quote(tags[9])
+                + ",\"solution_tag\":" + quote(tags[6]) + ",\"source_times\":" + doubleArrayToJson(times)
+                + ",\"seed_provenance\":" + quote(seed.comments())
+                + ",\"native_vectors\":{\"source\":" + sourceVector + ",\"seed\":" + seedVector
+                + ",\"variables_probe\":" + variablesProbe
+                + "},\"native_derivatives\":{\"source\":" + sourceDerivative + ",\"seed\":" + seedDerivative
+                + ",\"variables_probe\":" + probeDerivative
+                + "},\"source_dof_mapping\":" + sourceMapping + ",\"initialized_dof_mapping\":" + initializedMapping
+                + ",\"initialization_difference_by_field\":" + initializationDifference + ",\"mesh_before\":" + meshBefore
+                + ",\"mesh_after\":" + meshAfter + ",\"before\":" + before
+                + ",\"configured\":" + configured + ",\"after\":" + branchSnapshot(model, tags) + "}");
+        } catch (Throwable t) {
+            emitResult("{\"status\":\"ERROR\",\"error_code\":\"MODEL_VALIDATION_FAILED\",\"message\":"
+                + quote("Native branch preparation failed at " + stage + ": " + t.getMessage())
+                + ",\"details\":" + quote(getStackTrace(t)) + ",\"partial_native_vectors\":{\"source\":"
+                + sourceVector + ",\"seed\":" + seedVector + ",\"variables_probe\":" + variablesProbe
+                + "},\"partial_native_derivatives\":{\"source\":" + sourceDerivative + ",\"seed\":" + seedDerivative
+                + ",\"variables_probe\":" + probeDerivative
+                + "},\"source_dof_mapping\":" + sourceMapping + ",\"initialized_dof_mapping\":" + initializedMapping
+                + ",\"initialization_difference_by_field\":" + initializationDifference + "}");
+        }
+    }
+
+    /** The only PDE solve added for this experiment: a new branch from the common checkpoint. */
+    private static void handleRunPulseBranch(String sourcePath, String outputPath, String amplitudeText, String restartProtocolId) {
+        String stage = "validate", seedVector = "null", inputVector = "null", variablesProbe = "null";
+        String seedDerivative = "null", inputDerivative = "null", probeDerivative = "null";
+        try {
+            branchDistinctPaths(sourcePath, outputPath);
+            if (!"native-restart-consistent-off-v2".equals(restartProtocolId)) {
+                throw new IllegalArgumentException("Explicit frozen restart protocol native-restart-consistent-off-v2 is required");
+            }
+            double amplitude = Double.parseDouble(amplitudeText);
+            if (amplitude != 0.0 && amplitude != 0.005) {
+                throw new IllegalArgumentException("Frozen experiment only permits acceleration 0 or 0.005 m/s^2");
+            }
+            stage = "load common checkpoint";
+            Model model = ModelUtil.loadCopy("Model", sourcePath);
+            String[] tags = branchTags(model);
+            SolverSequence sol = model.sol(tags[6]), seed = model.sol("sol_branch_seed");
+            if (model.param().evaluate("branch_tb") != 180.0 || model.param().evaluate("branch_source_solnum") != 901) {
+                throw new IllegalStateException("Checkpoint lacks the frozen original state mapping");
+            }
+            int seedIndex = (int) model.param().evaluate("branch_seed_solnum");
+            if (seedIndex != 901 || seed.getPVals().length != 1001 || branchExactTime(seed.getPVals(), 180) != seedIndex) {
+                throw new IllegalStateException("Checkpoint does not preserve the full native source history");
+            }
+            String before = branchSnapshot(model, tags), meshBefore = branchMeshFingerprint(model, tags);
+            seedVector = branchVectorJson(seed, seedIndex);
+            seedDerivative = branchDerivativeJson(seed, seedIndex);
+            double[] nativeU = seed.getU(seedIndex);
+            String sourceMapping = branchDofMapping(sol);
+            String seedHash = branchHash(branchVectorBytes(nativeU));
+            String derivativeHash = branchHash(branchVectorBytes(seed.getUDot(seedIndex)));
+            if (!seed.comments().contains("float64_le_sha256=" + seedHash)
+                    || !seed.comments().contains("udot_float64_le_sha256=" + derivativeHash)
+                    || !seed.comments().contains("copy_method=copySolution_full_native_history")) {
+                throw new IllegalStateException("Stored seed provenance and actual native state hashes disagree");
+            }
+            branchRequireVector(seed, seedIndex, 180, seedHash, nativeU.length);
+            branchRequireDerivative(seed, seedIndex, derivativeHash, nativeU.length);
+            branchCheckTimeSettings(sol.feature(tags[8]));
+            stage = "install preregistered force";
+            ModelParam p = model.param();
+            String[] parameterNames = {"branch_A", "branch_xc", "branch_yc", "branch_sigma", "branch_on", "branch_off"};
+            String[] parameterValues = {Double.toString(amplitude) + "[m/s^2]", "0.15[m]", "0.12[m]", "0.01[m]", "181[s]", "183[s]"};
+            for (int i = 0; i < parameterNames.length; i++) {
+                if (Arrays.asList(p.varnames()).contains(parameterNames[i])) throw new IllegalStateException("Checkpoint contains pulse parameter " + parameterNames[i]);
+                p.set(parameterNames[i], parameterValues[i]);
+            }
+            com.comsol.model.physics.Physics physics = model.component(tags[0]).physics(tags[3]);
+            if (Arrays.asList(physics.feature().tags()).contains("branch_vf")) throw new IllegalStateException("Pulse force already exists");
+            com.comsol.model.physics.PhysicsFeature force = physics.create("branch_vf", "VolumeForce", 2);
+            force.selection().set(new int[]{1});
+            String fy = "rho_f*branch_A*exp(-((x-branch_xc)^2+(y-branch_yc)^2)/(2*branch_sigma^2))"
+                + "*if((t>branch_on)&&(t<branch_off),sin(pi*(t-branch_on)/(branch_off-branch_on))^2,0)";
+            force.set("F", new String[]{"0[N/m^3]", fy, "0[N/m^3]"});
+            String[] actualForce = force.getStringArray("F");
+            if (actualForce.length != 3 || !actualForce[1].equals(fy)
+                    || !Arrays.equals(force.selection().entities(), new int[]{1}) || !force.isActive()) {
+                throw new IllegalStateException("Actual VolumeForce expression or domain differs from frozen plan");
+            }
+            branchConfigureInitialization(model, tags);
+            // Versioned restart protocol v2 changes only this initialization
+            // property; the original checkpoint and before snapshot retain BWE.
+            SolverFeature branchTime = sol.feature(tags[8]);
+            if (!"bweuler".equals(branchTime.getString("consistent"))) {
+                throw new IllegalStateException("Common checkpoint initialization is not the recorded bweuler baseline");
+            }
+            branchTime.set("consistent", "off");
+            if (!"off".equals(branchTime.getString("consistent"))) {
+                throw new IllegalStateException("Restart protocol consistent=off did not read back");
+            }
+            // Read the actual native state selected by the live initialization
+            // settings. The working solver's prior Variables probe is not input.
+            int selectedIndex = branchManualSolutionIndex(sol.feature(tags[7]));
+            SolverSequence selectedSource = model.sol(sol.feature(tags[7]).getString("initsol"));
+            inputVector = branchVectorJson(selectedSource, selectedIndex);
+            inputDerivative = branchDerivativeJson(selectedSource, selectedIndex);
+            branchRequireVector(selectedSource, selectedIndex, 180, seedHash, nativeU.length);
+            branchRequireDerivative(selectedSource, selectedIndex, derivativeHash, nativeU.length);
+            stage = "check actual branch initialization";
+            sol.run(tags[7], false);
+            variablesProbe = branchVectorJson(sol, 1);
+            probeDerivative = branchDerivativeJson(sol, 1);
+            String initializedMapping = branchDofMapping(sol);
+            if (!sourceMapping.equals(initializedMapping)) throw new IllegalStateException("Native DOF mapping changed when adding VolumeForce");
+            String initializationDifference = branchFieldDifferences(sol, nativeU, sol.getU(1));
+            double[] initializedTime = sol.getPVals(1);
+            if (initializedTime.length != 1 || initializedTime[0] != 180 || sol.getU(1).length != nativeU.length) {
+                throw new IllegalStateException("Actual Variables initial time/DOF count differs from the native source");
+            }
+            // Variables has now installed the new parameter context in this solution.
+            // Numerical result evaluation reads it without replacing the solution.
+            String forceInitial = branchForceEvidence(model, tags, actualForce, new double[]{180}, "branch_pre");
+            String configured = branchSnapshot(model, tags);
+            if (!meshBefore.equals(branchMeshFingerprint(model, tags))) throw new IllegalStateException("Native mesh changed before Time solver");
+            branchCheckTimeSettings(sol.feature(tags[8]));
+            stage = "Time solve 180..200 s";
+            if (!"off".equals(branchTime.getString("consistent"))) throw new IllegalStateException("Restart protocol changed before Time");
+            // The prior Variables run is a validation probe. runAll executes
+            // Compile -> Variables -> Time together and initializes again from
+            // the same live native seed; do not label the probe as its hidden input.
+            variablesProbe = branchVectorJson(sol, 1);
+            SolverFeature vars = sol.feature(tags[7]);
+            System.out.println("BRANCH_RESTART_PROTOCOL_READBACK={\"restart_protocol_id\":" + quote(restartProtocolId)
+                + ",\"consistent\":" + quote(branchTime.getString("consistent")) + "}");
+            System.out.println("BRANCH_NATIVE_INIT_READBACK={\"control\":" + quote(vars.getString("control"))
+                + ",\"initmethod\":" + quote(vars.getString("initmethod"))
+                + ",\"initsol\":" + quote(vars.getString("initsol"))
+                + ",\"initsoluse\":" + quote(vars.getString("initsoluse"))
+                + ",\"solnum\":" + quote(vars.getString("solnum"))
+                + ",\"manualsolnum\":" + nativeValueJson(nativeReadProperty(vars, "manualsolnum"))
+                + ",\"native_seed_time\":" + doubleArrayToJson(seed.getPVals(seedIndex))
+                + ",\"native_seed_sha256\":" + quote(branchHash(branchVectorBytes(seed.getU(seedIndex))))
+                + ",\"native_seed_udot_sha256\":" + quote(branchHash(branchVectorBytes(seed.getUDot(seedIndex)))) + "}");
+            System.out.println("BRANCH_TIME_START method=runAll amplitude_m_s2=" + amplitude + " native_source_sha256=" + seedHash
+                + " variables_probe_sha256=" + branchHash(branchVectorBytes(sol.getU(1))));
+            sol.runAll(false);
+            System.out.println("BRANCH_TIME_FINISHED");
+            stage = "check saved branch results";
+            double[] times = sol.getPVals();
+            if (times.length != 101) throw new IllegalStateException("Branch must save exactly 101 output times");
+            for (int i = 0; i < times.length; i++) {
+                if (!Double.isFinite(times[i]) || Math.abs(times[i] - (180 + 0.2 * i)) > 1e-10) {
+                    throw new IllegalStateException("Branch output time schedule changed");
+                }
+                branchVectorBytes(sol.getU(i + 1)); // finite full native vector, every saved frame
+            }
+            String firstVector = branchVectorJson(sol, 1);
+            String firstDerivative = branchDerivativeJson(sol, 1);
+            String forceEvidence = branchForceEvidence(model, tags, actualForce, times, "branch_post");
+            String meshAfter = branchMeshFingerprint(model, tags);
+            if (!meshBefore.equals(meshAfter)) throw new IllegalStateException("Native mesh changed during branch solve");
+            branchCheckTimeSettings(sol.feature(tags[8]));
+            if (!"off".equals(branchTime.getString("consistent"))) throw new IllegalStateException("Restart protocol changed during Time");
+            stage = "save independent branch solution";
+            model.save(outputPath);
+            StringBuilder feature = new StringBuilder();
+            appendNativeFeature(feature, force, tags[0] + "/" + tags[3] + "/" + force.tag());
+            emitResult("{\"status\":\"SUCCESS\",\"operation\":\"run_pulse_branch\",\"source_model\":" + quote(sourcePath)
+                + ",\"output_model\":" + quote(outputPath) + ",\"time_solver_executed\":true,\"amplitude_m_s2\":" + amplitude
+                + ",\"restart_protocol_id\":" + quote(restartProtocolId)
+                + ",\"dataset_tag\":" + quote(tags[9]) + ",\"solution_tag\":" + quote(tags[6])
+                + ",\"seed_solnum\":" + seedIndex + ",\"seed_frame_count\":" + seed.getPVals().length
+                + ",\"seed_times\":" + doubleArrayToJson(seed.getPVals())
+                + ",\"native_copy_method\":\"copySolution_full_native_history\""
+                + ",\"seed_provenance\":" + quote(seed.comments()) + ",\"actual_times\":" + doubleArrayToJson(times)
+                + ",\"initialization_path\":\"native seed -> runAll(Compile, Variables, Time); prior Variables execution is a validation probe only\""
+                + ",\"native_input_role\":\"full native seed frame selected by live Variables initsol/manualsolnum; variables_probe is not claimed to be the internal Time input\""
+                + ",\"native_vectors\":{\"seed\":" + seedVector + ",\"input\":" + inputVector
+                + ",\"variables_probe\":" + variablesProbe + ",\"solver_first\":" + firstVector
+                + "},\"native_derivatives\":{\"seed\":" + seedDerivative + ",\"input\":" + inputDerivative
+                + ",\"variables_probe\":" + probeDerivative + ",\"solver_first\":" + firstDerivative
+                + "},\"source_dof_mapping\":" + sourceMapping + ",\"initialized_dof_mapping\":" + initializedMapping
+                + ",\"initialization_difference_by_field\":" + initializationDifference
+                + ",\"force_feature\":" + feature + ",\"force_initial_evaluation\":" + forceInitial
+                + ",\"force_evaluation\":" + forceEvidence + ",\"mesh_before\":" + meshBefore + ",\"mesh_after\":" + meshAfter
+                + ",\"before\":" + before + ",\"configured\":" + configured + ",\"after\":" + branchSnapshot(model, tags)
+                + ",\"time_solver_log\":" + quote(sol.feature(tags[8]).getString("message")) + "}");
+        } catch (Throwable t) {
+            emitResult("{\"status\":\"ERROR\",\"error_code\":\"MODEL_VALIDATION_FAILED\",\"message\":"
+                + quote("Pulse branch failed at " + stage + ": " + t.getMessage()) + ",\"details\":" + quote(getStackTrace(t))
+                + ",\"restart_protocol_id\":" + quote(restartProtocolId)
+                + ",\"partial_native_vectors\":{\"seed\":" + seedVector + ",\"input\":" + inputVector
+                + ",\"variables_probe\":" + variablesProbe
+                + "},\"partial_native_derivatives\":{\"seed\":" + seedDerivative + ",\"input\":" + inputDerivative
+                + ",\"variables_probe\":" + probeDerivative + "}}");
+        }
+    }
+
+    private static void branchDistinctPaths(String source, String output) {
+        String a = java.nio.file.Paths.get(source).toAbsolutePath().normalize().toString();
+        String b = java.nio.file.Paths.get(output).toAbsolutePath().normalize().toString();
+        if (a.equalsIgnoreCase(b)) throw new IllegalArgumentException("Source and output must differ");
+        // Python owns pre-creation, no-overwrite admission, and source file hashes.
+    }
+
+    /** Resolve associations from the live M3 nodes already inspected before this experiment. */
+    private static String[] branchTags(Model model) {
+        DatasetFeature dataset = model.result().dataset("dset1");
+        if (!"Solution".equals(dataset.getType())) throw new IllegalStateException("dset1 is not a Solution dataset");
+        String component = dataset.getString("comp"), solution = dataset.getString("solution");
+        ModelNode comp = model.component(component);
+        if (comp.geom().tags().length != 1 || comp.physics().tags().length != 1) throw new IllegalStateException("Ambiguous branch geometry/physics");
+        String geometry = comp.geom().tags()[0], physics = comp.physics().tags()[0];
+        if (comp.geom(geometry).getSDim() != 2 || comp.geom(geometry).getNDomains() != 1
+                || !"m".equals(comp.geom(geometry).lengthUnit())) throw new IllegalStateException("Frozen branch requires one 2D fluid domain in metres");
+        SolverSequence sol = model.sol(solution);
+        String study = null, step = null, vars = null, time = null;
+        for (String tag : sol.feature().tags()) {
+            SolverFeature feature = sol.feature(tag);
+            if ("StudyStep".equals(feature.getType())) { study = feature.getString("study"); step = feature.getString("studystep"); }
+            else if ("Variables".equals(feature.getType())) { if (vars != null) throw new IllegalStateException("Multiple Variables features"); vars = tag; }
+            else if ("Time".equals(feature.getType())) { if (time != null) throw new IllegalStateException("Multiple Time features"); time = tag; }
+            else throw new IllegalStateException("Unexpected top-level branch solver feature " + feature.getType());
+        }
+        if (study == null || step == null || vars == null || time == null) throw new IllegalStateException("Missing branch solver associations");
+        String mesh = null;
+        String[] meshPairs = model.study(study).feature(step).getStringArray("mesh");
+        if (meshPairs.length % 2 != 0) throw new IllegalStateException("Invalid actual study mesh association");
+        for (int i = 0; i < meshPairs.length; i += 2) if (geometry.equals(meshPairs[i])) {
+            if (mesh != null) throw new IllegalStateException("Ambiguous actual study mesh association");
+            mesh = meshPairs[i + 1];
+        }
+        if (mesh == null || !Arrays.asList(comp.mesh().tags()).contains(mesh)
+                || !geometry.equals(comp.mesh(mesh).geom())) throw new IllegalStateException("Actual study mesh association is absent or invalid");
+        return new String[]{component, geometry, mesh, physics, study, step, solution, vars, time, dataset.tag()};
+    }
+
+    private static int branchExactTime(double[] times, double wanted) {
+        int index = -1;
+        for (int i = 0; i < times.length; i++) {
+            if (!Double.isFinite(times[i])) throw new IllegalStateException("Nonfinite saved solution time");
+            if (Math.abs(times[i] - wanted) <= 1e-12) {
+                if (index >= 0) throw new IllegalStateException("Ambiguous native saved time");
+                index = i + 1;
+            }
+        }
+        if (index < 0) throw new IllegalStateException("Required native saved time is absent");
+        return index;
+    }
+
+    private static void branchConfigureInitialization(Model model, String[] tags) {
+        model.study(tags[4]).feature(tags[5]).set("tlist", "range(180,0.2,200)");
+        SolverFeature time = model.sol(tags[6]).feature(tags[8]);
+        time.set("tlist", "range(180,0.2,200)");
+        SolverFeature vars = model.sol(tags[6]).feature(tags[7]);
+        vars.set("control", "user");
+        // This live 6.4 Variables node exposes direct user-controlled initmethod,
+        // not the study-level useinitsol property. Verify the actual initial vector.
+        vars.set("initmethod", "sol");
+        vars.set("initsol", "sol_branch_seed");
+        vars.set("initsoluse", "current");
+        vars.set("solnum", "manual");
+        int seedIndex = (int) model.param().evaluate("branch_seed_solnum");
+        if (seedIndex != 901) throw new IllegalStateException("Frozen full native seed index must be 901");
+        vars.set("manualsolnum", seedIndex);
+        vars.set("cname", new String[]{"t", "timestep"});
+        vars.set("clist", new String[]{"180", "0.2"});
+        if (!"user".equals(vars.getString("control")) || !"sol".equals(vars.getString("initmethod"))
+                || !"sol_branch_seed".equals(vars.getString("initsol")) || !"manual".equals(vars.getString("solnum"))
+                || branchManualSolutionIndex(vars) != seedIndex) {
+            throw new IllegalStateException("Native initialization configuration did not read back");
+        }
+    }
+
+    private static int branchManualSolutionIndex(SolverFeature vars) {
+        double[] indices = vars.getDoubleArray("manualsolnum");
+        if (indices.length != 1 || !Double.isFinite(indices[0]) || indices[0] != Math.rint(indices[0])) {
+            throw new IllegalStateException("Actual Variables initialization must select one saved index");
+        }
+        return (int) indices[0];
+    }
+
+    private static void branchCheckTimeSettings(SolverFeature time) {
+        if (Math.abs(time.getDouble("rtol") - 1e-4) > 1e-15
+                || !"const".equals(time.getString("maxstepconstraintbdf"))
+                || Math.abs(time.getDouble("maxstepbdf") - 0.05) > 1e-15) {
+            throw new IllegalStateException("Frozen solver rtol/maxstep settings are not present");
+        }
+    }
+
+    private static byte[] branchVectorBytes(double[] values) {
+        java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(values.length * 8).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        for (double value : values) {
+            if (!Double.isFinite(value)) throw new IllegalStateException("Nonfinite native degree of freedom");
+            bytes.putDouble(value);
+        }
+        return bytes.array();
+    }
+
+    private static String branchHash(byte[] bytes) {
+        try {
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(bytes);
+            StringBuilder result = new StringBuilder();
+            for (byte value : digest) result.append(String.format(java.util.Locale.ROOT, "%02x", value & 255));
+            return result.toString();
+        } catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
+    }
+
+    private static String branchVectorJson(SolverSequence sol, int index) {
+        double[] values = sol.getU(index), time = sol.getPVals(index);
+        if (time.length != 1 || !Double.isFinite(time[0]) || !sol.isRealU(index)) throw new IllegalStateException("Invalid native real transient state");
+        byte[] bytes = branchVectorBytes(values);
+        return "{\"solution_tag\":" + quote(sol.tag()) + ",\"solnum\":" + index + ",\"time\":" + time[0]
+            + ",\"count\":" + values.length + ",\"solution_size\":" + intArrayToJson(sol.getSize())
+            + ",\"dtype\":\"float64\",\"byte_order\":\"little\",\"sha256\":" + quote(branchHash(bytes))
+            + ",\"base64\":" + quote(java.util.Base64.getEncoder().encodeToString(bytes)) + "}";
+    }
+
+    /** Preserve undefined derivative entries explicitly; never replace them by zero. */
+    private static String branchDerivativeJson(SolverSequence sol, int index) {
+        try {
+            double[] values = sol.getUDot(index), times = sol.getPVals(index);
+            java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(values.length * 8).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+            int finite = 0, nan = 0, positiveInfinity = 0, negativeInfinity = 0;
+            for (double value : values) {
+                bytes.putDouble(value);
+                if (Double.isFinite(value)) finite++;
+                else if (Double.isNaN(value)) nan++;
+                else if (value > 0) positiveInfinity++;
+                else negativeInfinity++;
+            }
+            return "{\"available\":true,\"solution_tag\":" + quote(sol.tag()) + ",\"solnum\":" + index
+                + ",\"time\":" + times[0] + ",\"count\":" + values.length + ",\"finite_count\":" + finite
+                + ",\"nan_count\":" + nan + ",\"positive_infinity_count\":" + positiveInfinity
+                + ",\"negative_infinity_count\":" + negativeInfinity + ",\"dtype\":\"float64\",\"byte_order\":\"little\",\"sha256\":"
+                + quote(branchHash(bytes.array())) + ",\"base64\":" + quote(java.util.Base64.getEncoder().encodeToString(bytes.array())) + "}";
+        } catch (Throwable t) {
+            return "{\"available\":false,\"solution_tag\":" + quote(sol.tag()) + ",\"solnum\":" + index
+                + ",\"read_error\":" + quote(t.getMessage()) + ",\"details\":" + quote(getStackTrace(t)) + "}";
+        }
+    }
+
+    private static void branchRequireVector(SolverSequence sol, int index, double time, String hash, int count) {
+        double[] values = sol.getU(index), actualTime = sol.getPVals(index);
+        if (actualTime.length != 1 || Math.abs(actualTime[0] - time) > 1e-12 || values.length != count
+                || !branchHash(branchVectorBytes(values)).equals(hash)) {
+            throw new IllegalStateException("Actual native vector/time differs from original branch state: " + sol.tag());
+        }
+    }
+
+    private static void branchRequireDerivative(SolverSequence sol, int index, String hash, int count) {
+        double[] values = sol.getUDot(index);
+        if (values.length != count || !branchHash(branchVectorBytes(values)).equals(hash)) {
+            throw new IllegalStateException("Actual native time derivative differs from original branch state: " + sol.tag());
+        }
+    }
+
+    /** Public XmeshInfo maps every named DOF to its native solution-vector index. */
+    private static String branchDofMapping(SolverSequence sol) {
+        XmeshInfo info = sol.xmeshInfo();
+        XmeshInfoDofs dofs = info.dofs();
+        String payload = "{\"n_dofs\":" + info.nDofs() + ",\"field_names\":" + stringArrayToJson(info.fieldNames())
+            + ",\"field_dof_counts\":" + intArrayToJson(info.fieldNDofs()) + ",\"dof_names\":" + stringArrayToJson(dofs.dofNames())
+            + ",\"name_indices\":" + intArrayToJson(dofs.nameInds()) + ",\"solution_vector_indices\":" + intArrayToJson(dofs.solVectorInds())
+            + ",\"geometry_indices\":" + intArrayToJson(dofs.geomNums()) + ",\"coordinates\":" + branchCoordinateBytes(dofs.coords()) + "}";
+        return "{\"sha256\":" + quote(branchHash(payload.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+            + ",\"hash_encoding\":\"UTF-8 exact JSON payload below\",\"payload\":" + payload + "}";
+    }
+
+    private static String branchCoordinateBytes(double[][] coordinates) {
+        int columns = coordinates.length == 0 ? 0 : coordinates[0].length, nonfinite = 0;
+        java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(coordinates.length * columns * 8).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        for (double[] row : coordinates) {
+            if (row.length != columns) throw new IllegalStateException("Ragged native DOF coordinate array");
+            for (double value : row) {
+                if (!Double.isFinite(value)) nonfinite++;
+                bytes.putDouble(value); // Internal/global DOFs may have no spatial coordinate.
+            }
+        }
+        return "{\"shape\":[" + coordinates.length + "," + columns + "],\"dtype\":\"float64\",\"byte_order\":\"little\",\"order\":\"C\",\"non_finite_count\":" + nonfinite
+            + ",\"sha256\":" + quote(branchHash(bytes.array())) + ",\"base64\":" + quote(java.util.Base64.getEncoder().encodeToString(bytes.array())) + "}";
+    }
+
+    private static String branchFieldDifferences(SolverSequence sol, double[] source, double[] initialized) {
+        if (source.length != initialized.length) throw new IllegalStateException("Native vector length changed");
+        XmeshInfoDofs dofs = sol.xmeshInfo().dofs();
+        String[] names = dofs.dofNames();
+        int[] fields = dofs.nameInds(), indices = dofs.solVectorInds();
+        int[] counts = new int[names.length], different = new int[names.length];
+        double[] maxDifference = new double[names.length], sourceMin = new double[names.length], sourceMax = new double[names.length];
+        double[] initializedMin = new double[names.length], initializedMax = new double[names.length];
+        Arrays.fill(sourceMin, Double.POSITIVE_INFINITY); Arrays.fill(initializedMin, Double.POSITIVE_INFINITY);
+        Arrays.fill(sourceMax, Double.NEGATIVE_INFINITY); Arrays.fill(initializedMax, Double.NEGATIVE_INFINITY);
+        for (int i = 0; i < indices.length; i++) {
+            int index = indices[i], field = fields[i];
+            if (index < 0 || index >= source.length || field < 0 || field >= names.length) throw new IllegalStateException("Invalid actual DOF mapping index");
+            counts[field]++;
+            if (Double.doubleToLongBits(source[index]) != Double.doubleToLongBits(initialized[index])) different[field]++;
+            maxDifference[field] = Math.max(maxDifference[field], Math.abs(source[index] - initialized[index]));
+            sourceMin[field] = Math.min(sourceMin[field], source[index]); sourceMax[field] = Math.max(sourceMax[field], source[index]);
+            initializedMin[field] = Math.min(initializedMin[field], initialized[index]); initializedMax[field] = Math.max(initializedMax[field], initialized[index]);
+        }
+        StringBuilder result = new StringBuilder("[");
+        for (int field = 0; field < names.length; field++) {
+            if (field > 0) result.append(",");
+            result.append("{\"name\":").append(quote(names[field])).append(",\"count\":").append(counts[field])
+              .append(",\"different_count\":").append(different[field]).append(",\"max_absolute_difference\":").append(maxDifference[field])
+              .append(",\"source_range\":").append(doubleArrayToJson(new double[]{sourceMin[field], sourceMax[field]}))
+              .append(",\"initialized_range\":").append(doubleArrayToJson(new double[]{initializedMin[field], initializedMax[field]})).append("}");
+        }
+        return result.append("]").toString();
+    }
+
+    private static String branchMeshFingerprint(Model model, String[] tags) {
+        MeshSequence mesh = model.component(tags[0]).mesh(tags[2]);
+        StringBuilder data = new StringBuilder();
+        data.append(nativeValueJson(mesh.getVertex()));
+        String[] types = mesh.getTypes(); Arrays.sort(types);
+        for (String type : types) data.append(type).append(nativeValueJson(mesh.getElem(type))).append(nativeValueJson(mesh.getElemEntity(type)));
+        for (String tag : mesh.feature().tags()) appendNativeFeature(data, mesh.feature(tag), tag);
+        return "{\"component_tag\":" + quote(tags[0]) + ",\"geometry_tag\":" + quote(tags[1]) + ",\"mesh_tag\":" + quote(tags[2])
+            + ",\"vertex_count\":" + mesh.getNumVertex() + ",\"element_count\":" + mesh.getNumElem()
+            + ",\"sha256\":" + quote(branchHash(data.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+            + ",\"hash_input\":\"ordered native vertices, sorted element-type connectivity/entity arrays, mesh feature tree; UTF-8 JSON values\"}";
+    }
+
+    private static String branchSnapshot(Model model, String[] tags) {
+        StringBuilder sb = new StringBuilder("{\"parameters\":{");
+        String[] names = model.param().varnames(); Arrays.sort(names);
+        for (int i = 0; i < names.length; i++) {
+            if (i > 0) sb.append(",");
+            sb.append(quote(names[i])).append(":{\"expr\":").append(quote(model.param().get(names[i])))
+              .append(",\"value\":").append(model.param().evaluate(names[i]))
+              .append(",\"unit\":").append(quote(model.param().evaluateUnit(names[i]))).append("}");
+        }
+        sb.append("},\"solver_features\":[");
+        String[] features = model.sol(tags[6]).feature().tags();
+        for (int i = 0; i < features.length; i++) {
+            if (i > 0) sb.append(",");
+            appendNativeFeature(sb, model.sol(tags[6]).feature(features[i]), tags[6] + "/" + features[i]);
+        }
+        sb.append("],\"study_step\":");
+        appendNativeFeature(sb, model.study(tags[4]).feature(tags[5]), tags[4] + "/" + tags[5]);
+        sb.append(",\"non_mesh\":"); appendNativeNonMesh(sb, model);
+        return sb.append("}").toString();
+    }
+
+    /** Evaluate the exact expressions read from the real VolumeForce, never a nominal substitute. */
+    private static String branchForceEvidence(Model model, String[] tags, String[] force, double[] times, String prefix) {
+        int[] indices = new int[times.length]; for (int i = 0; i < indices.length; i++) indices[i] = i + 1;
+        DatasetFeature point = model.result().dataset().create(prefix + "_point", "CutPoint2D");
+        point.set("data", tags[9]); point.set("pointx", 0.15); point.set("pointy", 0.12);
+        NumericalFeature evaluation = model.result().numerical().create(prefix + "_eval", "EvalPoint");
+        evaluation.set("data", point.tag());
+        evaluation.set("expr", new String[]{force[0], force[1], force[2], "t", "x", "y"});
+        evaluation.set("solrepresentation", "solnum"); evaluation.set("innerinput", "manual"); evaluation.set("solnum", indices);
+        double[][] raw = evaluation.getReal();
+        double[][] values = branchResultMatrix(raw, 6, times.length);
+        String[] units = evaluation.getStringArray("unit");
+        if (units.length != 6 || !"N/m^3".equals(units[0]) || !"N/m^3".equals(units[1]) || !"N/m^3".equals(units[2])
+                || !"s".equals(units[3]) || !"m".equals(units[4]) || !"m".equals(units[5])) {
+            throw new IllegalStateException("Actual force-expression units are not N/m^3, s, m, m: " + Arrays.toString(units));
+        }
+        for (int i = 0; i < times.length; i++) {
+            if (Math.abs(values[3][i] - times[i]) > 1e-10 || Math.abs(values[4][i] - 0.15) > 1e-12
+                    || Math.abs(values[5][i] - 0.12) > 1e-12) throw new IllegalStateException("Force evaluation has wrong actual time/coordinates");
+            if (times[i] <= 181 || times[i] >= 183) {
+                if (values[0][i] != 0 || values[1][i] != 0 || values[2][i] != 0) throw new IllegalStateException("Force is nonzero outside frozen pulse window");
+            }
+        }
+        NumericalFeature integral = model.result().numerical().create(prefix + "_integral", "IntSurface");
+        integral.set("data", tags[9]); integral.selection().set(new int[]{1}); integral.set("expr", new String[]{force[1]});
+        integral.set("solrepresentation", "solnum"); integral.set("innerinput", "manual"); integral.set("solnum", indices);
+        double[][] totals = branchResultMatrix(integral.getReal(), 1, times.length);
+        String[] integralUnits = integral.getStringArray("unit");
+        if (integralUnits.length != 1 || !"N/m".equals(integralUnits[0])) throw new IllegalStateException("Actual source integral unit is not N/m");
+        return "{\"expression_source_feature\":\"branch_vf\",\"dataset_tag\":" + quote(tags[9])
+            + ",\"solution_tag\":" + quote(model.result().dataset(tags[9]).getString("solution"))
+            + ",\"actual_times\":" + doubleArrayToJson(values[3])
+            + ",\"point_evaluation\":{\"tag\":" + quote(evaluation.tag()) + ",\"type\":" + quote(evaluation.getType())
+            + ",\"dataset_tag\":" + quote(evaluation.getString("data")) + ",\"point_source_dataset\":" + quote(point.getString("data"))
+            + ",\"point_dataset_tag\":" + quote(point.tag()) + ",\"point_dataset_type\":" + quote(point.getType())
+            + ",\"solrepresentation\":" + quote(evaluation.getString("solrepresentation")) + ",\"innerinput\":" + quote(evaluation.getString("innerinput"))
+            + ",\"solnum\":" + intArrayToJson(evaluation.getIntArray("solnum")) + ",\"expressions\":" + stringArrayToJson(evaluation.getStringArray("expr"))
+            + ",\"units\":" + stringArrayToJson(units) + ",\"values_by_expression\":" + nativeValueJson(values)
+            + "},\"integral\":{\"tag\":" + quote(integral.tag()) + ",\"type\":" + quote(integral.getType())
+            + ",\"dataset_tag\":" + quote(integral.getString("data")) + ",\"selection\":" + intArrayToJson(integral.selection().entities())
+            + ",\"solrepresentation\":" + quote(integral.getString("solrepresentation")) + ",\"innerinput\":" + quote(integral.getString("innerinput"))
+            + ",\"solnum\":" + intArrayToJson(integral.getIntArray("solnum")) + ",\"expressions\":" + stringArrayToJson(integral.getStringArray("expr"))
+            + ",\"units\":" + stringArrayToJson(integralUnits) + ",\"Fy_per_depth\":" + doubleArrayToJson(totals[0]) + "}}";
+    }
+
+    private static double[][] branchResultMatrix(double[][] matrix, int expressions, int times) {
+        if (matrix.length != expressions) throw new IllegalStateException("Unexpected numerical expression row count");
+        for (double[] row : matrix) {
+            if (row.length != times) throw new IllegalStateException("Unexpected numerical time count");
+            for (double value : row) if (!Double.isFinite(value)) throw new IllegalStateException("Nonfinite native numerical evaluation");
+        }
+        return matrix;
     }
 
     /** Shared sample/sequence-batch primitive; never solves or saves the loaded model. */

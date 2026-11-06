@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "plan_sha256": "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad",
+  "native_status": "PASS",
+  "field_status": "PASS",
+  "restart_protocol_sha256": "586a7065a7e9da4560501a368ab68037b0bbdaebf4957e6bab9541bb16e8acb8",
+  "restart_protocol_id": "native-restart-consistent-off-v2",
+  "step_status": "PASS",
+  "step_validation": "step_validation.json",
+  "native_validation": "native_validation.json",
+  "field_comparison": "field_comparison.json",
+  "source_model_sha256_after": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4"
+}

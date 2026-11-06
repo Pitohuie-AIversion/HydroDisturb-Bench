@@ -1,0 +1,14 @@
+{
+  "id": "native-restart-consistent-off-v2",
+  "version": 2,
+  "physical_plan_sha256": "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad",
+  "decision_before_this_protocol_time_solves": true,
+  "completed_new_future_trajectories_at_decision": 0,
+  "reason": "The original unchanged backward-Euler initialization policy failed in the zero branch at 180.0004 s even after full native U/UDot copy was verified. This version changes only restart initialization, identically for both branches, using the already saved native state.",
+  "native_source": "Full COMSOL copySolution; original U and UDot at saved frame 901, t=180 s; no reconstruction from sampled tensors",
+  "solver_change": {"feature_type": "Time", "property": "consistent", "original": "bweuler", "both_branches": "off"},
+  "unchanged": ["physical pulse parameters", "native geometry and mesh", "material and boundary definitions", "finite-element and stabilization settings", "rtol=1e-4", "maxstepconstraintbdf=const", "maxstepbdf=0.05 s", "automatic initial-step policy", "nonlinear iteration settings", "absolute-time output schedule", "all field restart and response thresholds"],
+  "acceptance": "Must pass the original quantitative zero-versus-baseline gates and pulse-versus-zero gates, actual source-unit/integral checks, native provenance and full step-log checks. No threshold or force-amplitude change is authorized by this protocol.",
+  "evidence_boundary": "This explicitly supersedes the physical plan's preserve-other-solver-settings statement for the single consistent property. It does not prove the saved state is an exact DAE-consistent state, nor that backward-Euler initialization is the sole failure cause. Success requires actual new branch evidence.",
+  "official_reference": "https://doc.comsol.com/6.4/doc/com.comsol.help.comsol/comsol_ref_solver.36.139.html"
+}
