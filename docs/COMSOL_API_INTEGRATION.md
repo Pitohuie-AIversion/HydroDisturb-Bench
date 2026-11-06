@@ -2,16 +2,20 @@
 
 This document describes the design, implementation, and safety mechanisms for connecting HydroDisturb-Bench with COMSOL Multiphysics 6.4 via the official Java API.
 
+As of the [M3 amplitude-series delivery](reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md), this path has been used for real model inspection, numerical sensitivity studies, saved-solution sampling, and controlled native-state branches. These are bounded experiment results, not a production training dataset or an exact-solution error guarantee. The legacy MPh adapter remains available through `probe` and `solve`; the accepted M3 experiments use the Java bridge and dedicated Python runners.
+
 ## 1. Technical Rationale & Architecture
 
-HydroDisturb-Bench requires direct, programmatic, and deterministic control over 2D cylinder CFD simulation models. Rather than relying on untyped COM automation or third-party wrappers with undocumented state handling, this project interfaces directly with the official COMSOL Java API via `comsolbatch` and `comsolcompile`.
+HydroDisturb-Bench controls 2D cylinder CFD models through the official COMSOL Java API. Python discovers the installation, compiles the bridge, launches `comsolbatch` or the Windows standalone launcher described below, and validates structured results and source identities.
 
 ```mermaid
 graph TD
     CLI[HydroDisturb CLI / Codex Skill] --> BridgePy[Python comsol_java.bridge]
     BridgePy --> ShaBefore[Record Baseline SHA-256]
     BridgePy --> Batch[comsolbatch.exe -nosave -inputfile ComsolBridge.class]
+    BridgePy --> Standalone[Windows standalone Java launcher]
     Batch --> ComsolJVM[COMSOL OpenJDK 21 Runtime]
+    Standalone --> ComsolJVM
     ComsolJVM --> ModelUtil[com.comsol.model.util.ModelUtil]
     ModelUtil --> TargetCopy[Load Copy into Independent Model Session]
     TargetCopy --> Operations[Inspect / Mutate Params / Run Study]
@@ -36,18 +40,18 @@ The local installation was confirmed via Windows Registry `HKLM:\SOFTWARE\COMSOL
     - Chapter 1: Java API Overview & Standalone Execution
     - Chapter 2: `ModelUtil`, `ModelNode`, `Parameters`, `Study`, `Solver`
 
-### 2.1 Formal Platform Scope & Tiering (Phase 1 Acceptance)
+### 2.1 Platform Scope
 
 The project standardizes both the local development workstation and future remote compute servers on **Windows 64-bit**.
 
 | Platform Tier | Scope & Status | Technical Implementation & Guarantees |
 |---|---|---|
-| **Tier 1: Officially Supported & Formally Accepted** | **Windows + COMSOL Multiphysics 6.4 (Win64)** | Production target for development workstations and remote computational servers. Formal acceptance completed across all contracts: OpenJDK 21 toolchain (`comsolbatch.exe`), model tree inspection, parameter mutation, live CFD solving, baseline SHA-256 immutability, atomic publication (`os.rename`), process-exclusive leases (`msvcrt.locking`), and collision-free quarantine. |
+| **Tier 1: Supported target; local execution evidence archived** | **Windows + COMSOL Multiphysics 6.4 (Win64)** | The documented workstation has real inspection, solving, export, source-hash, and regression records. Windows is also the intended remote-compute target; each target installation still needs its own license, toolchain, DLL-loading, and filesystem checks. Local acceptance does not certify every remote host or eliminate every possible filesystem failure. |
 | **Tier 2: Unverified / Unaccepted (Phase 1)** | **Linux / POSIX Systems** | Cross-platform stubs (e.g. `fcntl`, `SYS_renameat2`) exist in the repository, but **Linux compatibility is NOT formally accepted for Phase 1 production use**. The project explicitly does not claim full cross-platform verification at this stage. Linux-specific production certification is deferred to future work. |
 
 ### 2.2 Windows Native Startup Recovery
 
-The Python bridge first uses `comsolbatch`. On Windows, if batch output contains both
+Most bridge commands first use `comsolbatch`. Windows `export-s1-diagnostics` goes directly through the standalone launcher because PNG export needs software rendering and isolated preferences. For the other commands, if batch output contains both
 `Failed to start COMSOL` and `FlNativeException`, and contains no `<<<JSON_START>>>`
 marker, it invokes the same bridge command through the standalone COMSOL Java API.
 This addresses the observed `csutil.dll` dependent-library lookup failure before the
@@ -84,12 +88,14 @@ separately in the corresponding run reports.
 ## 3. Strict Safety Contracts
 
 ### 3.1 Baseline Model Immutability & Pre-Publish Verification
-The baseline CFD model (e.g., `case/cylinder_flow.mph`) represents a trusted, benchmark reference.
+An input model (for example, the original `case/cylinder_flow.mph` template) is protected by identity and must remain unchanged. This protection alone does not establish its Reynolds number or physical accuracy; the calibrated Re=100 and M3 cases have separate experiment evidence.
 - Before every operation (even read-only inspection), the SHA-256 hash of the input file is computed.
 - **Pre-Publish Verification**: In mutating operations (`update_parameter`, `run_study`), the hash of the source model is re-verified **before** any attempt to publish the final output file.
 - If the source hash mutated during execution, the staging file is safely quarantined as `failed_*`, `ModelValidationError` is raised, and the destination `output_path` is **never published**.
 
 ### 3.2 Task-Isolated Staging, Task Leases, and Cross-Process Atomic Publication Protocol
+The contracts in this subsection describe the general bridge wrappers such as `update_parameter`, `run_study`, and `export_solution_data`. The frozen experiment runners also use explicit independent run directories and identity checks; they must not be assumed to inherit every wrapper's staging or recovery behavior merely because they call the same Java bridge.
+
 Direct in-place modification or uncoordinated file generation is strictly prohibited:
 - Parameter updates, solver runs, case building, and solution field data exports (TXT) require an `output_path` distinct from the baseline model and adhere to the unified staging transaction protocol.
 - Symbolic links are strictly rejected (`output_path.is_symlink()`).
@@ -122,6 +128,8 @@ In addition to staging isolation, `export_solution_data()` enforces strict data-
 For complex multi-file diagnostics (7 time series + dynamic vorticity snapshot images), `export_s1_diagnostics()` enforces complete atomic transaction semantics:
 - **Dedicated Lock File Guarantee**: `file_publish_lock()` validates the lock target path. When the publication target is a directory `output_dir`, it derives a dedicated lock file (`.publish_{output_dir.name}.lock`) in the parent directory, strictly preventing `open()` calls with write mode on directories.
 - **Dynamic Snapshot Time Discovery**: In `ComsolBridge.java`, snapshot generation no longer relies on hardcoded solution frame indices. It queries `model.sol("sol1").getPVals()` to dynamically match target timestamps (e.g. $t \in \{10, 40, 100, 195, 200\}$ s) to the nearest available solver solution index (`solnum`), ensuring seamless support for arbitrary simulation lengths and output schedules.
+
+  This is the legacy diagnostic-image path. The newer Cartesian field-sampling path below requires an exact saved time and rejects nearest-frame substitution; the two contracts are different.
 - **Two-Phase Staging & Verification**: All diagnostic files are generated inside an isolated staging directory (`output_dir / ".staging" / f"stage_{stage_id}"`). Before any file is published, all 7 time-series files and PNG snapshots undergo full validation (step count, header tokens, physical units, finiteness, non-empty image size).
 - **Cryptographic Commit Token (`manifest.json`)**: Upon successful generation and validation, a `manifest.json` is computed in staging. It records:
   - Source model SHA-256 hash (verified before and after solver execution);
@@ -134,7 +142,7 @@ For complex multi-file diagnostics (7 time series + dynamic vorticity snapshot i
 - **Failure Quarantine & Staging Preservation**: If an error occurs at any point (e.g. COMSOL crash, data validation rejection, or failure promoting file 1, 5, or 11), temporary `.tmp_` files are cleaned up, pre-existing results remain completely untouched, and the full staging directory is safely moved to `quarantine/` via `quarantine_staging_dir` with a detailed `quarantine_reason.txt`. Staging files are never silently deleted with `ignore_errors=True`.
 
 ### 3.3 Dynamic Discovery & Live Geometric Evidence (Zero Guessing)
-- Node tags (`comp1`, `geom1`, `mesh1`, `spf`, `std1`, `sol1`) are dynamically extracted from the actual model object.
+- General inspection and case-building operations discover nodes and associations from the live model. Frozen M3 runners additionally use previously inspected tags and selections, then verify their expected types, source links, and identities. They are guarded experiment-specific entry points, not adapters for arbitrary uninspected models.
 - Parameters (`U_mean`, `H`, `L`, `W`, `R`) are verified for existence and units prior to applying changes.
 - **Live Geometric Boundary Query**: Geometry boundaries are dynamically queried using official COMSOL methods (`geom.getNBoundaries()`, `geom.getBoundingBox()`, `geom.getUpDown()`, `geom.edgeParamRange()`, and `geom.edgeX()`). No hardcoded boundary coordinate maps are emitted. Every boundary's bounding box, length, up/down domain references, and spatial sample coordinates are dynamically computed from the live geometry kernel in memory.
 - **Geometric Selection Verification**: In `build_re100_case`, boundary entities for inlet, outlet, lateral symmetry, and cylinder wall are classified directly from live `edgeX` spatial samples against the domain bounding box and cylinder center/radius. Physics feature selections (`inl1`, `out1`, `sym1`, `wallbc1`) and mesh features (`bl1`, `size1`) are read back and required to match geometric classification with zero tolerance.
@@ -147,11 +155,10 @@ To maintain clear separation of concerns, the system defines two independent acc
   3. **NaN / Inf Scanning**: Verifies that every component in the solution vector is finite and non-NaN.
   4. **Non-Triviality**: Verifies that the field contains non-zero physical flow data.
   5. If any numerical check fails, the bridge aborts with `SOLVER_FAILED`, and the model is not saved.
-- **Grade 2: CFD Physical Benchmark Validation (Round 2 Scope)**
-  Reserved for the second development round:
-  1. True Reynolds number calibration ($Re = 100$ based on fluid properties $\rho, \mu$, cylinder diameter $D$, and inlet velocity $U_\infty$).
-  2. Low-blockage domain definition (adequate blockage ratio $< 5\%$, inlet $10D$, outlet $30D$, lateral $10D$).
-  3. Physical wake metrics: vortex shedding frequency Strouhal number ($St \approx 0.164 \pm 0.005$), drag coefficient ($C_D$), and lift oscillation ($C_L$).
+- **Grade 2: Experiment-specific numerical and physical checks**
+  Re=100 calibration, periodic lift/drag statistics, M0–M3 native-mesh comparisons, and the M3 time-step cross-check have execution evidence. [M3 mesh results](STAGE_S1B2_M3_20261105.md) and [M3 time-step results](STAGE_S1B3_M3_TIME_20261105.md) passed their stated four-metric engineering criteria. The retained native domain is 0.4×0.24 m, with a 0.01 m cylinder; it is distinct from the planner's original candidate geometry.
+
+  These results do not establish domain-size independence, a pointwise full-field error bound, formal GCI/Richardson uncertainty, or agreement with every literature setup. Source-force integrals and impulses in the later pulse experiments are not a full fluid momentum budget. Keep those remaining checks separate from the completed API and selected-statistic gates; see [VALIDATION.md](VALIDATION.md).
 
 ### 3.5 Error Codes and Exception Hierarchy
 The interface enforces typed error categories:
@@ -192,12 +199,41 @@ The following official COMSOL Java API methods are compiled and verified in `Com
 
 ## 5. Command-Line Interface (CLI)
 
-The CLI exposed via `hydrobench` supports both the legacy MPh adapter and the official Java API bridge:
+The installed `hydrobench` command and `python -m hydro_disturb_bench.cli` use the same parser. The Java subcommands use named options and accept neither `--out` nor `--log-out`. Structured results are printed to stdout. The examples below use placeholder model/output names and are not instructions to rerun an accepted experiment.
 
-- `hydrobench java-inspect-api`: Query installation version and API methods.
-- `hydrobench java-inspect <model.mph> [--out <report.json>]`: Structured model tree inspection.
-- `hydrobench java-update-param <model.mph> <output.mph> <param> <expr> [--descr <text>]`: Safe parameter mutation with readback.
-- `hydrobench java-solve <model.mph> <output.mph> [--study <tag>] [--tlist <range>] [--log-out <file>]`: Run study on working copy and capture logs.
-- `hydrobench java-build-re100 <baseline.mph> <output.mph>`: Programmatically construct the low-blockage Re=100 benchmark model.
-- `hydrobench java-export-data <model.mph> <output.txt>`: Export node-level solution fields ($u, v, p, \omega$).
-- `hydrobench java-export-s1-diagnostics <model.mph> <output-dir>`: Export 1D time-series ($C_L, C_D, u_{\rm wake}, v_{\rm wake}, u_{\rm inlet}, p_{\rm inlet}, p_{\rm stag}$) and 2D vorticity snapshot images.
+| Operation | Actual CLI syntax |
+| --- | --- |
+| Installation inspection | `hydrobench java-inspect-api` |
+| Read-only model inspection | `hydrobench java-inspect --model MODEL.mph` |
+| Parameter update on a copy | `hydrobench java-update-param --model MODEL.mph --output COPY.mph --name PARAM --expr '1.2[m/s]' --descr 'Description'` |
+| Study execution | `hydrobench java-solve --model MODEL.mph --output SOLVED.mph --study std1 --tlist 'range(0,0.2,200)'` |
+| Re=100 case construction | `hydrobench java-build-re100 --model TEMPLATE.mph --output BENCHMARK.mph` |
+| Generic five-channel text export | `hydrobench java-export-data --model SOLVED.mph --output FIELDS.txt` |
+| Legacy diagnostics and PNGs | `hydrobench java-export-s1-diagnostics --model SOLVED.mph --output-dir NEW_DIAGNOSTICS` |
+
+`java-solve` requires `--study`; `--tlist` is optional. The mutating/export commands expose `--allow-overwrite`, defaulting to false; the dedicated experiments below preserve prior runs and use separate output directories. The generic text export contains `u,v,p,vx-uy,spf.U`; it is not the `(T,3,Ny,Nx)` sampling interface.
+
+## 6. Saved M3 Fields and Native Branches
+
+The implemented Cartesian sampler exports `[u,v,p]` in `[m/s,m/s,Pa]`, with explicit increasing x/y axes, actual saved times, and separate cylinder/invalid masks. It writes compressed NPZ arrays plus metadata and original COMSOL TXT exports. Fluid values must be finite; masked tensor entries are NaN. These are evaluated point samples, not a claim of conservative cell-average projection. HDF5/Zarr training packaging and trajectory splits remain future work.
+
+| Entry point | Scope and prerequisites |
+| --- | --- |
+| `python scripts/sample_re100_m3_fields.py --output NEW_SAMPLE_DIR` | Existing pinned M3 solution, five saved times, 81×49 and 161×97 grids; no CFD solve or model save. |
+| `python scripts/sample_re100_m3_sequence.py --output NEW_SEQUENCE_DIR` | Existing M3 and accepted five-frame overlap reference; 151 frames from 170–200 s, 32-frame batches, 161×97. No CFD solve. |
+| `hydro_disturb_bench.field_sampling.load_full_field_sample(path)` | Offline NPZ/metadata validation for one sample batch. |
+| `hydro_disturb_bench.field_sequence.load_full_field_sequence(path)` | Offline manifest/hash validation of all seven arrays; concatenates time-dependent arrays while checking shared axes and cylinder masks. |
+| `python scripts/run_m3_branch_pulse.py --help` | Frozen zero/0.005 m/s² branch experiment; explicit prepare/solve/sample/analyze stages and optional verified checkpoint reuse. |
+| `python scripts/run_m3_pulse_amplitude_series.py --help` | Frozen 0.0025/0.010 m/s² additions; reuse of accepted zero/0.005 controls. Stages: precheck, solve, sample, analyze, all. |
+
+The sampling scripts and original branch runner resolve historical data relative to their checkout. The amplitude-series runner separately supports `HYDRO_DATA_ROOT`; its default is the checkout root. This variable does not globally relocate every legacy test or script. `precheck` and `analyze` need the pinned local data but do not solve CFD; `sample` calls COMSOL to evaluate existing solutions; `solve` and `all` execute new Time solves. Both branch runners default to `all`, so use explicit stages when reproducing a single operation.
+
+Native continuation uses a full `copySolution` checkpoint with the original t=180 s saved frame 901 and its U/UDot. It does not reconstruct finite-element state from the NPZ grid and does not claim to restore the original BDF step history. The frozen `native-restart-consistent-off-v2` protocol changes initialization to `consistent=off` for both branches; `rtol=1e-4` and `const / 0.05 s` remain fixed. Source/selected input hashes, Variables probes, and actual first-frame differences are recorded separately. The original branch command accepts only 0/0.005 m/s²; the distinct amplitude-series command accepts only 0.0025/0.010 with its required series ID.
+
+Evidence navigation:
+
+- [Five-frame, two-grid sampling](STAGE_M3_FIELD_SAMPLING_20261105.md) and [151-frame sequence](STAGE_M3_FIELD_SEQUENCE_20261105.md).
+- [Native zero/pulse restart](STAGE_M3_BRANCH_PULSE_20261105.md) and [three-amplitude comparison](reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md).
+- [Amplitude-series Git-blob auditor](evidence/m3_pulse_amplitude_series_20261106/audit_delivery.py), which needs no local model or full field data; use its fixed delivery commit, as described in [PUBLISHING.md](PUBLISHING.md).
+
+The archived Windows regression record and a new local test execution are different evidence. `pytest -m 'not integration'` prevents tests marked as integration from running, but some legacy unmarked tests still require ignored MPH/diagnostic files. A fresh clone is not a complete data fixture. See the development instructions and [publishing evidence boundaries](PUBLISHING.md) before interpreting missing-data failures as new solver failures.
