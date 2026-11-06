@@ -10,7 +10,8 @@ Updated **2026-11-06**, against the accepted experiment delivery [`195d613`](htt
 | Data interface | Saved `[u,v,p]` sequences now support bounded batch/range reads and lightweight window indexes | Preserve exact saved-time selection, provenance, masks and explicit learner-visible fields |
 | Native-state branching | Zero and 0.005 m/s² pulse branches accepted; 0.0025 and 0.010 m/s² added from the same checkpoint | Freeze this small amplitude group as a controlled prototype |
 | Dataset design | One checkpoint family, five sequences, 105 windows from a 5-history/5-future/stride-5 example; all train, no independent holdout | Add independently justified trajectory families before claiming validation/test generalization |
-| New mechanisms and forecasting | Not implemented or evaluated as a dataset/model benchmark | Separate future tasks; do not combine them with routine evidence review |
+| Forecasting | Persistence and last-two-frame linear extrapolation evaluated on existing train windows; no fitting | Keep this one-family smoke result separate from independent held-out or trained-model evaluation |
+| New mechanisms | No additional controlled mechanism implemented | Separate future tasks; do not combine them with routine evidence review |
 
 The existing groups show distinct physical futures above the measured restart difference. They do not establish generalization to unseen disturbances or a globally linear response law. All three reported response peaks lie at the right boundary of the preregistered `(181,186] s` window; they are window maxima, not full-trajectory maxima.
 
@@ -32,7 +33,7 @@ Correct anticipation of an independent random future event is not an expected de
 | Within history window | Partial response observed | Disturbance-conditioned latent state estimation |
 | Within future forecast window | Forcing may be independent of history | Probabilistic forecasting and post-event update |
 
-The implemented branches start at 180 s from native `sol1 / solnum 901`; the pulse acts during 181–183 s. Source position, direction, amplitude and timing are retained for evaluation. No prediction model or visibility filter has been trained or validated yet.
+The implemented branches start at 180 s from native `sol1 / solnum 901`; the pulse acts during 181–183 s. Source position, direction, amplitude and timing are retained for evaluation. The baseline predictor receives only history and known times; future values and disturbance labels stay outside its interface. No fitted prediction model has been trained or independently validated.
 
 ## Physical regime and accepted configuration
 
@@ -65,4 +66,4 @@ Before a larger run, specify the number of independent starting states, paramete
 | Observation changes | Noise, missing regions, sparse sensors | Future observation operators, not physical force labels |
 | Numerical discrepancy | Mesh/time/model uncertainty | Studied for selected baseline statistics; not a physical disturbance label |
 
-Future model evaluation can compare persistence, reduced-order and neural baselines using rollout errors, force/frequency statistics and event-aligned recovery. For independent future events, use calibration, coverage and proper probabilistic scores. No model benchmark, unknown-disturbance generalization result or production dataset release is currently claimed.
+The [first baseline evaluation](FORECAST_BASELINES.md) compares persistence and local linear extrapolation with raw sampled-node MAE/RMSE at 0.2–1.0 s leads. Each window starts from observed history; this is not a free-running rollout. Reduced-order/neural models, force/frequency metrics, event-aligned recovery and independent-family validation remain future work. For independent future events, use calibration, coverage and proper probabilistic scores. No trained-model benchmark, unknown-disturbance generalization result or production dataset release is currently claimed.

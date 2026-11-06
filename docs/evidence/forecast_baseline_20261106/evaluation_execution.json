@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "elapsed_seconds": 31.2962167263031,
+  "source_sha256_before": {
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scripts\\evaluate_m3_baselines.py": "bf0423c25c235c43e9f0929850a4e46e393d2f4dca301f8396803d1579442211",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\configs\\m3_forecast_baseline.json": "d80f8421ef4dd536712274b0f7e284a6e24355d17903fe2568066a362436fa7a",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\data_usage_20261106\\index.json": "63004756d70b381a51a63106fd81035dbd6f5594ae3865d66ef1daf9543575b5",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\forecast_baselines.py": "a850efa37c1fa478ea0fc549a505afd13de811a9f584d44497ce575d06317786",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\forecast_evaluation.py": "220c0b9b3c62560a2512559efc774a194345c8c28889921ed855a6157cd3544b",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\field_sequence.py": "55a07019067b7b696f274d780a507bcd0ea754f20a77da6154447766aa192e02",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\field_sampling.py": "b2edf67200d0909567b58d0b4426f66df1f26f4b4fc36ab9f776f4f3c0c49224"
+  },
+  "source_sha256_after": {
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scripts\\evaluate_m3_baselines.py": "bf0423c25c235c43e9f0929850a4e46e393d2f4dca301f8396803d1579442211",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\configs\\m3_forecast_baseline.json": "d80f8421ef4dd536712274b0f7e284a6e24355d17903fe2568066a362436fa7a",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\data_usage_20261106\\index.json": "63004756d70b381a51a63106fd81035dbd6f5594ae3865d66ef1daf9543575b5",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\forecast_baselines.py": "a850efa37c1fa478ea0fc549a505afd13de811a9f584d44497ce575d06317786",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\forecast_evaluation.py": "220c0b9b3c62560a2512559efc774a194345c8c28889921ed855a6157cd3544b",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\field_sequence.py": "55a07019067b7b696f274d780a507bcd0ea754f20a77da6154447766aa192e02",
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\field_sampling.py": "b2edf67200d0909567b58d0b4426f66df1f26f4b4fc36ab9f776f4f3c0c49224"
+  },
+  "source_files_unchanged": true,
+  "report_sha256": "2a25d01579a26d98360a8663610f0b1d2c16d42a983209e1ec5623aa62cb5c49",
+  "comsol_started": false,
+  "fitted_model": false,
+  "prediction_tensor_files": 0
+}

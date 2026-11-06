@@ -70,6 +70,8 @@ The subsequent [filesystem transaction extraction](docs/reports/FILE_TRANSACTION
 
 Saved field data now support [bounded batch/range reads and family-separated window indexes](docs/DATA_USAGE.md). The registered M3 example uses five existing sequences (555 frames) to build 105 windows from 5 history + 5 future frames with stride 5. All five sequences share one ancestor family and stay in train; validation/test remain empty. The learner-facing reader returns only flow, masks, coordinates and times. [Actual-data audit and regression evidence](docs/reports/DATA_USAGE_20261106.md) are lightweight; models and full tensors remain in local data storage.
 
+The [forecast baseline layer](docs/FORECAST_BASELINES.md) evaluates persistence and last-two-frame linear extrapolation using only observed history and the known prediction schedule. It reports sampled-node MAE/RMSE separately by lead and physical channel, with independent raw-NPZ arithmetic audit. The registered 105-window run is a one-family train pipeline check, not held-out generalization or a free-running rollout. See the [baseline evaluation report](docs/reports/FORECAST_BASELINE_20261106.md).
+
 ## Physical and data scope
 
 The accepted Java benchmark is 2-D, single-phase, constant-density laminar flow around a fixed circular cylinder. The domain is 0.40×0.24 m, with a 0.01 m cylinder centered at (0.10, 0.12) m; density is 998.2 kg/m³ and dynamic viscosity is 1.004e−3 Pa·s, giving `U∞ ≈ 0.0100581 m/s` at Re=100. This differs from the original channel-flow API fixture and from the generic planner's candidate values.
