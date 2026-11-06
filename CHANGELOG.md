@@ -11,6 +11,12 @@
 - 独立读取原始 NPZ 并用 `math.fsum` 复算全部分轨迹/总体指标；保留长提前量下压力线性外推更差的结果，没有准确率通过门槛。
 - 新增 108 项测试包含于 **768 passed, 13 deselected** 的本地完整离线回归；不启动 COMSOL、不拟合模型、不上传模型或完整张量。[使用说明](docs/FORECAST_BASELINES.md)、[实测报告与日志](docs/reports/FORECAST_BASELINE_20261106.md)。
 
+### 局部体力参数入口与真实续算
+
+- 新增严格的局部高斯体力配置：全局米制位置、方向角、加速度峰值、Gaussian σ、对齐保存表的起止时间；三分量 VolumeForce、源积分和 Dataset/Solution 实际回读。
+- 从同一 M3 原生 checkpoint 完成全参数变化案例 `(0.17,0.13) m / 45° / 0.0075 m/s² / σ=0.008 m / 182–184 s`，101 帧场采样与重启/响应门槛通过；不覆盖历史模型和张量。
+- 冷构建复现 `csutil.dll` 依赖失败后，窄匹配回退到同安装 bundled Java 编译；非相关编译失败仍拒绝。参数、验证、Java parser 和 runner 定向测试 **253 passed**，完整离线回归 **1021 passed, 13 deselected**。[参数说明](docs/LOCAL_PULSE_PARAMETERS.md) · [真实报告](docs/reports/LOCAL_PULSE_PARAMETERS_20261106.md)
+
 ### 连续数据使用层
 
 - 新增 `FieldSequenceReader` 按批遍历、跨批窗口及无拼接全批核验；保留旧全量 loader 与导出校验兼容。

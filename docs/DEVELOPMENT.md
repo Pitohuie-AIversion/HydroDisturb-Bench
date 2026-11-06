@@ -23,6 +23,8 @@
 
 预测层在同一固定索引上增加末帧保持和末两帧线性外推，两者都不拟合参数。只向预测器提供历史与已知时间表；报告按提前量/通道计算原始单位 MAE/RMSE，并以独立原始 NPZ 读取及 `math.fsum` 核对。当前是一个 train 族的管线验证，不是独立留出或自由滚动结果。见 [预测接口](FORECAST_BASELINES.md) 与 [实际评估报告](reports/FORECAST_BASELINE_20261106.md)。
 
+PDF 规划中的局部定向高斯体力已新增独立参数入口，实际回读位置、方向、幅值、σ、时间门、Fx/Fy/Fz、单位和 Dataset/Solution，并从共同 M3 原生起点完成一次全参数变化续算。入口变化、移动源、复合事件和移动几何仍未接入。见 [局部体力参数说明](LOCAL_PULSE_PARAMETERS.md) 与 [真实报告](reports/LOCAL_PULSE_PARAMETERS_20261106.md)。
+
 ## 已合入的阶段与复核入口
 
 下表描述最终阶段结论，不把早期失败或待修复报告当作最终证据。历史报告保留原样；其中旧措辞与当前状态不一致时，以最终结构化结果、修复提交和本页限定范围为准。
@@ -100,6 +102,7 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 | [prepare_m3_data_usage.py](../scripts/prepare_m3_data_usage.py) `--output <新目录>` | 只读核验已有数据的来源族，创建小型窗口索引；不加载 MPH 或启动 COMSOL；可选固定旧 reader 对照 |
 | [evaluate_m3_baselines.py](../scripts/evaluate_m3_baselines.py) `--output <新目录>` | 从固定窗口索引逐窗评估两个无拟合基线，输出小型指标/执行 JSON；不保存预测张量 |
 | [audit_forecast_baselines.py](../scripts/audit_forecast_baselines.py) | 显式提供固定索引及 SHA、报告和新输出路径，独立重读原始 NPZ 复算；[完整命令](FORECAST_BASELINES.md) |
+| [run_m3_local_pulse.py](../scripts/run_m3_local_pulse.py) `--stage precheck/inspect/all` | 读取严格局部体力配置；真实回读和续算均使用新输出目录，不修改已验收模型 |
 | [check_git_attributes.py](../check_git_attributes.py) `--attributes .gitattributes` | Git 属性、真实暂存行为及清单检查；仅在归档规则或相应证据改变时按需运行 |
 
 旧五帧/151 帧脚本按源码定位仓库内的固定历史 `runs/` 路径。幅值系列入口支持 `HYDRO_DATA_ROOT`，其冻结相对路径必须指向持有旧模型、checkpoint 和样本的数据根目录；该环境变量不是所有旧入口统一支持的重定向参数。不要以改哈希、删除检查或重算历史模型来绕过缺数据。
@@ -145,6 +148,6 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 
 按批读取、窗口索引和两个无拟合预测基线已用现有数据贯通；5 帧历史、5 帧未来、步幅 5 是管线样例，不是最终训练规格。共享 checkpoint 的兄弟分支与重叠窗口仍不能随机分散到训练/验证两侧。下一次模型实验前须补充独立轨迹族并明确任务与留出策略，或明确只做当前族内的管线试运行，不包装为独立泛化评估。
 
-保持已验收基线、配置和历史证据不变；下一次实验先明确独立起点/轨迹族、隐藏信息、时间窗口、数据划分和数据预算，再扩展受控分支。参见 [研究计划](RESEARCH_PLAN.md)。当前不新增网格、时间步、扰动机制或训练任务。
+保持已验收基线、配置和历史证据不变；局部体力参数入口已完成一组全参数变化验证，下一次扩展仍须为入口/移动源/复合事件单独冻结范围。独立起点/轨迹族、隐藏信息、时间窗口、数据划分和数据预算仍须在训练任务前明确。参见 [研究计划](RESEARCH_PLAN.md)。
 
 文档随实际开发更新：将新能力记入 CHANGELOG，并提供固定提交、报告、真实回读、测试范围与数据位置。发布继续采用轻量方式，避免上传完整模型和张量，也避免用“全部验证”代替具体的验收范围。

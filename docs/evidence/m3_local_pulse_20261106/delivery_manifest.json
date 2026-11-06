@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "storage": "git",
+  "files": [
+    {
+      "path": "analysis.json",
+      "bytes": 40681,
+      "sha256": "39b623d113de74e71da1d215d34776092a0d5e714d22245d24e137c81caab932"
+    },
+    {
+      "path": "compile_compiler.log",
+      "bytes": 13444,
+      "sha256": "1ea4d8be85cc59c76ae44dd973efd4eac9c38b4ad366a42e51e4ff2194ef86dd"
+    },
+    {
+      "path": "compile_execution.json",
+      "bytes": 1920,
+      "sha256": "f4ffd83c0ee10f7802adc82519fb517ca4dccad99aa9aa9f6d6ecd06610239c5"
+    },
+    {
+      "path": "compile_helper_visibility_audit.json",
+      "bytes": 788,
+      "sha256": "886176290488f9999b3121194317698c8f34b2653f0fe4fbbea4b46d8978a9f2"
+    },
+    {
+      "path": "config.json",
+      "bytes": 298,
+      "sha256": "5a645bfd3ea8d743ce7fd6a167d25c28ee84fee0749ac7c52b2f1639b6c721ff"
+    },
+    {
+      "path": "field_sequence_manifest.json",
+      "bytes": 5406,
+      "sha256": "821c51789c3d86132ee8d24f81c3555820320f5f65ca6f8d8c1e87f62093140e"
+    },
+    {
+      "path": "field_sequence_report.json",
+      "bytes": 9957,
+      "sha256": "be65b9b8365a5231c14c950b7f47d73caac8bec7c5c5747e7d4b6d10b2fc18ec"
+    },
+    {
+      "path": "inspect_readback_summary.json",
+      "bytes": 23463,
+      "sha256": "76205bc63d9b281365a5d077903eb2b4ed62c160e91a10df49e25b1968b083af"
+    },
+    {
+      "path": "inspect_validation.json",
+      "bytes": 6930,
+      "sha256": "cae4bb992215803a8c012b65b2ef9e0e1f18c8c3de61bf180cbb1c4649a5616b"
+    },
+    {
+      "path": "logs/analyze_execution.json",
+      "bytes": 13411,
+      "sha256": "30adc350aae6fd8e786f26275aab59bb6dfdf369ff2c38eecdffc91e902eec6e"
+    },
+    {
+      "path": "logs/inspect_execution.json",
+      "bytes": 13409,
+      "sha256": "3dd382d8a1979266f902973aa9d086d55da1f27d04b74f62a118a159dc9699e0"
+    },
+    {
+      "path": "logs/sample_execution.json",
+      "bytes": 13410,
+      "sha256": "00b8e079251f3374c9909cc4b14197a1e97a4dfcbeae40f59096d02e05d9dffa"
+    },
+    {
+      "path": "logs/solve_execution.json",
+      "bytes": 13409,
+      "sha256": "29feaf53091b1a3d70f7774a4c8432b2574762d8ecaa8c7dd1f12f73ae07b45b"
+    },
+    {
+      "path": "native_inspect_recheck.json",
+      "bytes": 8055,
+      "sha256": "dd7699a13f52de4836b1ea4a8bbc69db7114bfc858bc30c2189ab8e6faedc1a8"
+    },
+    {
+      "path": "plan.json",
+      "bytes": 8180,
+      "sha256": "29cd3a90b727efc406c139e04c9a82c1ab47b438fe102bf504b650267a551bb3"
+    },
+    {
+      "path": "run_execution.json",
+      "bytes": 7553,
+      "sha256": "bb1e64c6516ac99a0b43bdcef67e07524dca33ef6fa1f512affa8a4fe2ee5970"
+    },
+    {
+      "path": "sample_execution.json",
+      "bytes": 7341,
+      "sha256": "36da7a642f0bf4548ec5dff93db6a2a64269705442ec68432ef579d5c224dcdc"
+    },
+    {
+      "path": "solve_readback_summary.json",
+      "bytes": 52581,
+      "sha256": "89d29963ed3856b8eebbc08332669c573f7bd50fa1522e74e088105f71e30b19"
+    },
+    {
+      "path": "solve_validation.json",
+      "bytes": 11728,
+      "sha256": "22adb0d863831cfbddb96d78bf6a2442f13fbd2d4a49c4e28a5ae8bea06ef0b0"
+    },
+    {
+      "path": "solver_step_log.txt",
+      "bytes": 30027,
+      "sha256": "8e0e64dd58c01032e30130e657b405ba406705245b8db29ba98d95cd2c53fc51"
+    },
+    {
+      "path": "tests/regression_execution.json",
+      "bytes": 20080,
+      "sha256": "321967846ce67b4edb14c07c32979271049d68fe5b43be6ccc740bdffca03db3"
+    },
+    {
+      "path": "tests/regression_junit.xml",
+      "bytes": 147611,
+      "sha256": "c9d31467a7584ea97288fe317cf1b567123c7ee134c6802a9151e40934cb4192"
+    },
+    {
+      "path": "tests/regression_stdout.txt",
+      "bytes": 1264,
+      "sha256": "89cfc9d4ea8eec44cb5c1e040ed1a70ac1a3a2083757e9393eb54a941e1fe4e7"
+    },
+    {
+      "path": "tests/targeted_execution.json",
+      "bytes": 20183,
+      "sha256": "15f8faab292e3e5d1f10cc41b66113dd8f1c0b766070723a5c9c9a5796aacf9c"
+    },
+    {
+      "path": "tests/targeted_junit.xml",
+      "bytes": 36806,
+      "sha256": "0e4c2bdebf2373d1ae69778828ed8b9a41949d4cd8fe8361fb002860b7eb4f3d"
+    },
+    {
+      "path": "tests/targeted_stdout.txt",
+      "bytes": 346,
+      "sha256": "06d8cf1de66f9dd9708c2250fa24da3596881d7d4c467a2813ddf502e7ab4a93"
+    }
+  ],
+  "models_or_native_vectors_or_full_tensors_added": 0,
+  "local_run_root": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\runs\\re100_m3_local_pulse_20261106_verified_v2",
+  "note": "Compact readback and identity evidence only. The original model, native vectors and complete NPZ batches remain in local data storage."
+}

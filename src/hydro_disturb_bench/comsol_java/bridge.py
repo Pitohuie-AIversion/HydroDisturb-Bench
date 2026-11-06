@@ -124,12 +124,53 @@ def get_comsol_bin_dir(root: Path | None = None) -> Path:
     return bin_dir
 
 
+def _native_compile_dependency_failure(proc: subprocess.CompletedProcess, started: float) -> bool:
+    """Recognize only the observed Windows csutil dependency startup failure."""
+    details = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    match = re.search(r"log file\s+([^\r\n]+\.log)", details)
+    if match:
+        log = Path(match.group(1).strip()).resolve()
+        profile = (Path.home() / ".comsol").resolve()
+        try:
+            if (log.is_relative_to(profile) and log.parent.name == "logs"
+                    and log.name.startswith("compile") and log.stat().st_mtime >= started - 2):
+                details += "\n" + log.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            pass
+    return (sys.platform == "win32" and "UnsatisfiedLinkError" in details
+            and "csutil.dll" in details and "Can't find dependent libraries" in details)
+
+
+def _compile_bundled_java(root, sources, required_classes, run_process):
+    """Compile unchanged sources with the installed JDK after native startup fails."""
+    compiler = root / "java" / "win64" / "jre" / "bin" / "javac.exe"
+    if not compiler.is_file():
+        raise ComsolConnectionError("Bundled javac is absent after native compiler startup failure")
+    with tempfile.TemporaryDirectory(prefix="hydrobench_compile_") as temporary:
+        work = Path(temporary)
+        if not str(work).isascii() or not str(root).isascii():
+            raise ComsolConnectionError("Bundled Java compilation requires ASCII temporary and installation paths")
+        for source in sources:
+            shutil.copy2(source, work / source.name)
+        proc = run_process(
+            [str(compiler), "-encoding", "UTF-8", "-proc:none", "-cp", str(root / "plugins" / "*"),
+             *(source.name for source in sources)], cwd=work, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", check=False,
+        )
+        if proc.returncode != 0:
+            raise ComsolConnectionError(f"Bundled javac compilation failed:\n{proc.stderr}\n{proc.stdout}")
+        if any(not (work / target.name).is_file() for target in required_classes):
+            raise ComsolConnectionError("Bundled javac did not produce all required bridge/helper classes")
+        for target in required_classes:
+            shutil.copy2(work / target.name, target)
+
+
 def ensure_bridge_compiled(
     root: Path | None = None,
     *,
     process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
 ) -> Path:
-    """Ensure ComsolBridge.class is compiled and up-to-date."""
+    """Compile the bridge and its owned helper classes when any source changes."""
     root = root or find_comsol_root()
     bin_dir = get_comsol_bin_dir(root)
     comsolcompile = bin_dir / ("comsolcompile.exe" if sys.platform == "win32" else "comsolcompile")
@@ -143,15 +184,22 @@ def ensure_bridge_compiled(
     if not java_src.is_file():
         raise ComsolConnectionError(f"ComsolBridge.java source file missing: {java_src}")
 
-    needs_compile = False
-    if not java_class.is_file():
-        needs_compile = True
-    elif java_src.stat().st_mtime > java_class.stat().st_mtime:
-        needs_compile = True
+    sources = [java_src]
+    required_classes = [java_class]
+    helper_source = java_dir / "ConfigurablePulseBranch.java"
+    if helper_source.is_file():
+        sources.append(helper_source)
+        required_classes.extend(java_dir / name for name in (
+            "ConfigurablePulseBranch.class", "ConfigurablePulseBranch$Spec.class",
+            "ConfigurablePulseBranch$StrictProperties.class", "ConfigurablePulseBranch$Raw.class"))
+    newest_source = max(source.stat().st_mtime for source in sources)
+    needs_compile = any(not target.is_file() or target.stat().st_mtime < newest_source
+                        for target in required_classes)
 
     if needs_compile:
-        cmd = [str(comsolcompile), str(java_src)]
+        cmd = [str(comsolcompile), *(str(source) for source in sources)]
         run_process = subprocess.run if process_runner is None else process_runner
+        started = time.time()
         proc = run_process(
             cmd,
             cwd=str(java_dir),
@@ -166,9 +214,14 @@ def ensure_bridge_compiled(
             or "ERROR: Compilation failed" in proc.stdout
             or "ERROR: Compilation failed" in proc.stderr
         ):
-            raise ComsolConnectionError(
-                f"Failed to compile ComsolBridge.java (exit code {proc.returncode}):\n{proc.stderr}\n{proc.stdout}"
-            )
+            if _native_compile_dependency_failure(proc, started):
+                _compile_bundled_java(root, sources, required_classes, run_process)
+            else:
+                raise ComsolConnectionError(
+                    f"Failed to compile ComsolBridge.java (exit code {proc.returncode}):\n{proc.stderr}\n{proc.stdout}"
+                )
+        if len(sources) > 1 and any(not path.is_file() for path in required_classes):
+            raise ComsolConnectionError("Compilation did not produce all required bridge/helper classes")
 
     return java_class
 
@@ -204,6 +257,18 @@ def _run_standalone(
         if not str(work).isascii() or not str(root).isascii():
             raise ComsolConnectionError("Standalone Java launcher requires ASCII temp and installation paths")
         shutil.copy2(class_file, work / "ComsolBridge.class")
+        # A fresh ASCII runtime directory must contain the complete helper class
+        # family, including nested classes; copying only the dispatcher is unsafe.
+        helpers = sorted(path for path in class_file.parent.glob("ConfigurablePulseBranch*.class")
+                         if path.name == "ConfigurablePulseBranch.class"
+                         or path.name.startswith("ConfigurablePulseBranch$"))
+        if args and args[0] in ("inspect-local-pulse", "run-local-pulse"):
+            required = {"ConfigurablePulseBranch.class", "ConfigurablePulseBranch$Spec.class",
+                        "ConfigurablePulseBranch$StrictProperties.class", "ConfigurablePulseBranch$Raw.class"}
+            if not required.issubset(path.name for path in helpers):
+                raise ComsolConnectionError("Configurable pulse helper bytecode is incomplete")
+        for helper in helpers:
+            shutil.copy2(helper, work / helper.name)
         source = work / "ComsolStandalone.java"
         shutil.copy2(Path(__file__).with_name("ComsolStandalone.java"), source)
         classpath = str(root / "plugins" / "*") + os.pathsep + str(work)

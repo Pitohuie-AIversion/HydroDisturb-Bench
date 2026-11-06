@@ -1,0 +1,280 @@
+{
+  "status": "PASS",
+  "validation": {
+    "status": "PASS",
+    "mode": "inspect",
+    "event_id": "m3-local-pulse-diagonal-debug",
+    "properties_sha256": "9817465f5de80e2738f658eb0bcda1e3ae7a4fd62642b4b7c4eaa6baebcb605d",
+    "time_solver_executed": false,
+    "actual_times": [
+      180.0
+    ],
+    "native_identity": {
+      "source_seed_input_U_bytes_equal": true,
+      "source_seed_input_UDot_bytes_equal": true,
+      "dof_count": 88483,
+      "source_U_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+      "source_UDot_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696",
+      "variables_probe_role": "Separate diagnostic; not observed internal Time input",
+      "variables_probe_difference_by_field": [
+        {
+          "name": "comp1.p",
+          "count": 17910,
+          "different_count": 13890,
+          "max_absolute_difference": 3.469446951953614e-17,
+          "source_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ],
+          "initialized_range": [
+            -0.06389526700145892,
+            0.05801056223942997
+          ]
+        },
+        {
+          "name": "comp1.spf.dt2Inv_u",
+          "count": 34752,
+          "different_count": 34752,
+          "max_absolute_difference": 2499.999977096854,
+          "source_range": [
+            2.2903145966173807e-05,
+            399.99999837684845
+          ],
+          "initialized_range": [
+            2500.0,
+            2500.0
+          ]
+        },
+        {
+          "name": "comp1.spf.isFluidHasBeenSolved",
+          "count": 1,
+          "different_count": 0,
+          "max_absolute_difference": 0.0,
+          "source_range": [
+            1.0,
+            1.0
+          ],
+          "initialized_range": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "comp1.u",
+          "count": 17910,
+          "different_count": 14223,
+          "max_absolute_difference": 8.673617379884035e-18,
+          "source_range": [
+            -0.0024168766495414563,
+            0.013277398018436477
+          ],
+          "initialized_range": [
+            -0.0024168766495414554,
+            0.013277398018436472
+          ]
+        },
+        {
+          "name": "comp1.v",
+          "count": 17910,
+          "different_count": 13579,
+          "max_absolute_difference": 4.336808689942018e-18,
+          "source_range": [
+            -0.006295526362407304,
+            0.00679673317186789
+          ],
+          "initialized_range": [
+            -0.006295526362407303,
+            0.006796733171867888
+          ]
+        }
+      ]
+    },
+    "independent_source_reference": {
+      "method": "Analytic rectangular Gaussian integral minus scipy.quad cylinder slices; compact sin-squared time integral",
+      "gaussian_rectangle_area_m2": 0.00040212385965949344,
+      "gaussian_cylinder_area_m2": 1.0566428169315514e-20,
+      "cylinder_quadrature_absolute_error_m2": 6.036975635568871e-21,
+      "gaussian_area_m2": 0.00040212385965949344,
+      "direction": [
+        0.7071067811865476,
+        0.7071067811865476
+      ],
+      "peak_force_density_N_m3": 7.4865,
+      "peak_force_per_depth_N_m": 0.0030105002753407976,
+      "peak_force_vector_N_per_m": [
+        0.0021287451594574464,
+        0.0021287451594574464
+      ],
+      "temporal_integral_s": 1.0,
+      "impulse_per_depth_N_s_m": 0.0030105002753407976,
+      "impulse_vector_Ns_per_m": [
+        0.0021287451594574464,
+        0.0021287451594574464
+      ],
+      "scope": "Applied source per unit out-of-plane depth, not net fluid momentum change"
+    },
+    "prescribed_source_diagnostics": {
+      "passed": true,
+      "peak_force_vector_N_per_m": [
+        0.0021287451607064248,
+        0.0021287451607064243
+      ],
+      "peak_Fz_N_per_m": 0.0,
+      "impulse_vector_Ns_per_m": [
+        0.0021287451607064248,
+        0.0021287451607064243
+      ],
+      "impulse_Fz_Ns_per_m": 0.0,
+      "max_spatial_vector_absolute_error_N_per_m": 1.7663218168575232e-12,
+      "spatial_vector_relative_error": 5.867203638297526e-10,
+      "impulse_vector_relative_error": 5.867203638297526e-10,
+      "native_integral_relative_tolerance": 0.01,
+      "impulse_method": "Diagnostic peak spatial integral times analytic sin-squared time integral",
+      "scope": "Applied source per unit out-of-plane depth; not net fluid momentum change"
+    },
+    "actual_saved_time_source": null,
+    "unreadable_properties": [
+      {
+        "snapshot": "before",
+        "path": "r1",
+        "property": "arrowdispl"
+      },
+      {
+        "snapshot": "before",
+        "path": "r1",
+        "property": "input"
+      },
+      {
+        "snapshot": "before",
+        "path": "r1",
+        "property": "posvertex"
+      },
+      {
+        "snapshot": "before",
+        "path": "c1",
+        "property": "input"
+      },
+      {
+        "snapshot": "before",
+        "path": "c1",
+        "property": "posvertex"
+      },
+      {
+        "snapshot": "before",
+        "path": "dif1",
+        "property": "input"
+      },
+      {
+        "snapshot": "before",
+        "path": "dif1",
+        "property": "input2"
+      },
+      {
+        "snapshot": "before",
+        "path": "spf",
+        "property": "_properties"
+      },
+      {
+        "snapshot": "before",
+        "path": "mat1",
+        "property": "customize"
+      },
+      {
+        "snapshot": "configured",
+        "path": "r1",
+        "property": "arrowdispl"
+      },
+      {
+        "snapshot": "configured",
+        "path": "r1",
+        "property": "input"
+      },
+      {
+        "snapshot": "configured",
+        "path": "r1",
+        "property": "posvertex"
+      },
+      {
+        "snapshot": "configured",
+        "path": "c1",
+        "property": "input"
+      },
+      {
+        "snapshot": "configured",
+        "path": "c1",
+        "property": "posvertex"
+      },
+      {
+        "snapshot": "configured",
+        "path": "dif1",
+        "property": "input"
+      },
+      {
+        "snapshot": "configured",
+        "path": "dif1",
+        "property": "input2"
+      },
+      {
+        "snapshot": "configured",
+        "path": "spf",
+        "property": "_properties"
+      },
+      {
+        "snapshot": "configured",
+        "path": "mat1",
+        "property": "customize"
+      },
+      {
+        "snapshot": "after",
+        "path": "r1",
+        "property": "arrowdispl"
+      },
+      {
+        "snapshot": "after",
+        "path": "r1",
+        "property": "input"
+      },
+      {
+        "snapshot": "after",
+        "path": "r1",
+        "property": "posvertex"
+      },
+      {
+        "snapshot": "after",
+        "path": "c1",
+        "property": "input"
+      },
+      {
+        "snapshot": "after",
+        "path": "c1",
+        "property": "posvertex"
+      },
+      {
+        "snapshot": "after",
+        "path": "dif1",
+        "property": "input"
+      },
+      {
+        "snapshot": "after",
+        "path": "dif1",
+        "property": "input2"
+      },
+      {
+        "snapshot": "after",
+        "path": "spf",
+        "property": "_properties"
+      },
+      {
+        "snapshot": "after",
+        "path": "mat1",
+        "property": "customize"
+      }
+    ],
+    "settings_scope": "Readable snapshots and native mesh/DOF evidence; unreadable properties are not independently certified",
+    "source_scope": "Applied source per unit depth, not net fluid momentum change; prescribed diagnostics are not future solved states"
+  },
+  "validator_sha256": "e6bf308e55d82c80378df0c2ca60e6c7e53afb4d8e744c2ac5fed1e2ca254721",
+  "readback_sha256": "d03e676715ac34843e7263bc4cc9edf30a8a9e1aaf1e6a83182768eb9a6713de",
+  "original_execution_unchanged": true,
+  "comsol_executed_by_this_recheck": false
+}

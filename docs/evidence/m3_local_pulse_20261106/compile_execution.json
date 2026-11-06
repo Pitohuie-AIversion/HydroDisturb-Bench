@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "cold_build": true,
+  "processes": [
+    {
+      "command": [
+        "D:\\Program Files\\COMSOL64\\Multiphysics\\bin\\win64\\comsolcompile.exe",
+        "C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydro_localpulse_cold_pmkmeaza\\ComsolBridge.java",
+        "C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydro_localpulse_cold_pmkmeaza\\ConfigurablePulseBranch.java"
+      ],
+      "cwd": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydro_localpulse_cold_pmkmeaza",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "D:\\Program Files\\COMSOL64\\Multiphysics\\java\\win64\\jre\\bin\\javac.exe",
+        "-encoding",
+        "UTF-8",
+        "-proc:none",
+        "-cp",
+        "D:\\Program Files\\COMSOL64\\Multiphysics\\plugins\\*",
+        "ComsolBridge.java",
+        "ConfigurablePulseBranch.java"
+      ],
+      "cwd": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydrobench_compile_7lsrtuiw",
+      "returncode": 0
+    }
+  ],
+  "classes": {
+    "ComsolBridge.class": "c00fd7e641dab9bf1fb6520aa89a677c60ade4ac15e8e5a427118ce8efe70ed0",
+    "ConfigurablePulseBranch$Raw.class": "797ef3ff4cb7ffe8cfab79ccf856a62e0ce3d96e94d0b1650875b27790494376",
+    "ConfigurablePulseBranch$Spec.class": "61cc05393ac43bc609926310526d1b48a726910d7187ee3e670e80d9c43cc8b6",
+    "ConfigurablePulseBranch$StrictProperties.class": "83fbed138dc009146039406833a8b8c9c5b4d08726ce93f81d501f164e61bf15",
+    "ConfigurablePulseBranch.class": "900c2442117839521179ac42ee7c7b1822ddc825d58800b4ccfb58bf0318be61"
+  },
+  "source_sha256": {
+    "ComsolBridge.java": "c0effe2ba27b7ea260d0c4ccbd3d667b113af8ad731ea2391d90b384c07853da",
+    "ConfigurablePulseBranch.java": "127b9dcd6ac7607fd6c809c940c1876058e1b41dd8ab3bcedddfec53d3ca3343"
+  },
+  "bridge_sha256": "acd11f87f8257c3cdcb711394740f9fcc33de645dbc7c1b0d78d99a2396f6495",
+  "solver_called": false
+}

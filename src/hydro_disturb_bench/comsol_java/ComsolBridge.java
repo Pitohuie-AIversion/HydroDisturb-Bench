@@ -102,6 +102,12 @@ public class ComsolBridge {
                     return;
                 }
                 handleRunPulseBranch(args[1], args[2], args[3], args[4], args[5]);
+            } else if ("inspect-local-pulse".equals(command) || "run-local-pulse".equals(command)) {
+                if (args.length != 4) {
+                    outputError("INVALID_PARAMETER", "Usage: " + command + " <checkpoint> <output> <base64:properties>", "");
+                    return;
+                }
+                ConfigurablePulseBranch.handle(args[1], args[2], args[3], "run-local-pulse".equals(command));
             } else if ("export-full-field-sample".equals(command)
                     || "export-full-field-sequence-batch".equals(command)) {
                 if (args.length < 10) {
@@ -567,7 +573,7 @@ public class ComsolBridge {
         throw new IllegalStateException("Unsupported native value class: " + value.getClass().getName());
     }
 
-    private static void appendNativeFeature(StringBuilder sb, Object feature, String path) {
+    static void appendNativeFeature(StringBuilder sb, Object feature, String path) {
         sb.append("{\"tag\":").append(quote(invokeStringMethod(feature, "tag")))
           .append(",\"path\":").append(quote(path))
           .append(",\"type\":").append(quote(invokeStringMethod(feature, "getType")));
@@ -1434,7 +1440,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void branchDistinctPaths(String source, String output) {
+    static void branchDistinctPaths(String source, String output) {
         String a = java.nio.file.Paths.get(source).toAbsolutePath().normalize().toString();
         String b = java.nio.file.Paths.get(output).toAbsolutePath().normalize().toString();
         if (a.equalsIgnoreCase(b)) throw new IllegalArgumentException("Source and output must differ");
@@ -1442,7 +1448,7 @@ public class ComsolBridge {
     }
 
     /** Resolve associations from the live M3 nodes already inspected before this experiment. */
-    private static String[] branchTags(Model model) {
+    static String[] branchTags(Model model) {
         DatasetFeature dataset = model.result().dataset("dset1");
         if (!"Solution".equals(dataset.getType())) throw new IllegalStateException("dset1 is not a Solution dataset");
         String component = dataset.getString("comp"), solution = dataset.getString("solution");
@@ -1473,7 +1479,7 @@ public class ComsolBridge {
         return new String[]{component, geometry, mesh, physics, study, step, solution, vars, time, dataset.tag()};
     }
 
-    private static int branchExactTime(double[] times, double wanted) {
+    static int branchExactTime(double[] times, double wanted) {
         int index = -1;
         for (int i = 0; i < times.length; i++) {
             if (!Double.isFinite(times[i])) throw new IllegalStateException("Nonfinite saved solution time");
@@ -1486,7 +1492,7 @@ public class ComsolBridge {
         return index;
     }
 
-    private static void branchConfigureInitialization(Model model, String[] tags) {
+    static void branchConfigureInitialization(Model model, String[] tags) {
         model.study(tags[4]).feature(tags[5]).set("tlist", "range(180,0.2,200)");
         SolverFeature time = model.sol(tags[6]).feature(tags[8]);
         time.set("tlist", "range(180,0.2,200)");
@@ -1510,7 +1516,7 @@ public class ComsolBridge {
         }
     }
 
-    private static int branchManualSolutionIndex(SolverFeature vars) {
+    static int branchManualSolutionIndex(SolverFeature vars) {
         double[] indices = vars.getDoubleArray("manualsolnum");
         if (indices.length != 1 || !Double.isFinite(indices[0]) || indices[0] != Math.rint(indices[0])) {
             throw new IllegalStateException("Actual Variables initialization must select one saved index");
@@ -1518,7 +1524,7 @@ public class ComsolBridge {
         return (int) indices[0];
     }
 
-    private static void branchCheckTimeSettings(SolverFeature time) {
+    static void branchCheckTimeSettings(SolverFeature time) {
         if (Math.abs(time.getDouble("rtol") - 1e-4) > 1e-15
                 || !"const".equals(time.getString("maxstepconstraintbdf"))
                 || Math.abs(time.getDouble("maxstepbdf") - 0.05) > 1e-15) {
@@ -1526,7 +1532,7 @@ public class ComsolBridge {
         }
     }
 
-    private static byte[] branchVectorBytes(double[] values) {
+    static byte[] branchVectorBytes(double[] values) {
         java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(values.length * 8).order(java.nio.ByteOrder.LITTLE_ENDIAN);
         for (double value : values) {
             if (!Double.isFinite(value)) throw new IllegalStateException("Nonfinite native degree of freedom");
@@ -1535,7 +1541,7 @@ public class ComsolBridge {
         return bytes.array();
     }
 
-    private static String branchHash(byte[] bytes) {
+    static String branchHash(byte[] bytes) {
         try {
             byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(bytes);
             StringBuilder result = new StringBuilder();
@@ -1544,7 +1550,7 @@ public class ComsolBridge {
         } catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
     }
 
-    private static String branchVectorJson(SolverSequence sol, int index) {
+    static String branchVectorJson(SolverSequence sol, int index) {
         double[] values = sol.getU(index), time = sol.getPVals(index);
         if (time.length != 1 || !Double.isFinite(time[0]) || !sol.isRealU(index)) throw new IllegalStateException("Invalid native real transient state");
         byte[] bytes = branchVectorBytes(values);
@@ -1555,7 +1561,7 @@ public class ComsolBridge {
     }
 
     /** Preserve undefined derivative entries explicitly; never replace them by zero. */
-    private static String branchDerivativeJson(SolverSequence sol, int index) {
+    static String branchDerivativeJson(SolverSequence sol, int index) {
         try {
             double[] values = sol.getUDot(index), times = sol.getPVals(index);
             java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(values.length * 8).order(java.nio.ByteOrder.LITTLE_ENDIAN);
@@ -1578,7 +1584,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void branchRequireVector(SolverSequence sol, int index, double time, String hash, int count) {
+    static void branchRequireVector(SolverSequence sol, int index, double time, String hash, int count) {
         double[] values = sol.getU(index), actualTime = sol.getPVals(index);
         if (actualTime.length != 1 || Math.abs(actualTime[0] - time) > 1e-12 || values.length != count
                 || !branchHash(branchVectorBytes(values)).equals(hash)) {
@@ -1586,7 +1592,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void branchRequireDerivative(SolverSequence sol, int index, String hash, int count) {
+    static void branchRequireDerivative(SolverSequence sol, int index, String hash, int count) {
         double[] values = sol.getUDot(index);
         if (values.length != count || !branchHash(branchVectorBytes(values)).equals(hash)) {
             throw new IllegalStateException("Actual native time derivative differs from original branch state: " + sol.tag());
@@ -1594,7 +1600,7 @@ public class ComsolBridge {
     }
 
     /** Public XmeshInfo maps every named DOF to its native solution-vector index. */
-    private static String branchDofMapping(SolverSequence sol) {
+    static String branchDofMapping(SolverSequence sol) {
         XmeshInfo info = sol.xmeshInfo();
         XmeshInfoDofs dofs = info.dofs();
         String payload = "{\"n_dofs\":" + info.nDofs() + ",\"field_names\":" + stringArrayToJson(info.fieldNames())
@@ -1619,7 +1625,7 @@ public class ComsolBridge {
             + ",\"sha256\":" + quote(branchHash(bytes.array())) + ",\"base64\":" + quote(java.util.Base64.getEncoder().encodeToString(bytes.array())) + "}";
     }
 
-    private static String branchFieldDifferences(SolverSequence sol, double[] source, double[] initialized) {
+    static String branchFieldDifferences(SolverSequence sol, double[] source, double[] initialized) {
         if (source.length != initialized.length) throw new IllegalStateException("Native vector length changed");
         XmeshInfoDofs dofs = sol.xmeshInfo().dofs();
         String[] names = dofs.dofNames();
@@ -1649,7 +1655,7 @@ public class ComsolBridge {
         return result.append("]").toString();
     }
 
-    private static String branchMeshFingerprint(Model model, String[] tags) {
+    static String branchMeshFingerprint(Model model, String[] tags) {
         MeshSequence mesh = model.component(tags[0]).mesh(tags[2]);
         StringBuilder data = new StringBuilder();
         data.append(nativeValueJson(mesh.getVertex()));
@@ -1662,7 +1668,7 @@ public class ComsolBridge {
             + ",\"hash_input\":\"ordered native vertices, sorted element-type connectivity/entity arrays, mesh feature tree; UTF-8 JSON values\"}";
     }
 
-    private static String branchSnapshot(Model model, String[] tags) {
+    static String branchSnapshot(Model model, String[] tags) {
         StringBuilder sb = new StringBuilder("{\"parameters\":{");
         String[] names = model.param().varnames(); Arrays.sort(names);
         for (int i = 0; i < names.length; i++) {
@@ -1728,7 +1734,7 @@ public class ComsolBridge {
             + ",\"units\":" + stringArrayToJson(integralUnits) + ",\"Fy_per_depth\":" + doubleArrayToJson(totals[0]) + "}}";
     }
 
-    private static double[][] branchResultMatrix(double[][] matrix, int expressions, int times) {
+    static double[][] branchResultMatrix(double[][] matrix, int expressions, int times) {
         if (matrix.length != expressions) throw new IllegalStateException("Unexpected numerical expression row count");
         for (double[] row : matrix) {
             if (row.length != times) throw new IllegalStateException("Unexpected numerical time count");
@@ -2823,13 +2829,13 @@ public class ComsolBridge {
         return sb.toString();
     }
 
-    private static void emitResult(String json) {
+    static void emitResult(String json) {
         System.out.println(JSON_START);
         System.out.println(json);
         System.out.println(JSON_END);
     }
 
-    private static String quote(String s) {
+    static String quote(String s) {
         if (s == null) return "null";
         StringBuilder sb = new StringBuilder("\"");
         for (char c : s.toCharArray()) {
@@ -2886,7 +2892,7 @@ public class ComsolBridge {
         }
     }
 
-    private static String getStackTrace(Throwable t) {
+    static String getStackTrace(Throwable t) {
         StringWriter sw = new StringWriter();
         t.printStackTrace(new PrintWriter(sw));
         return sw.toString();

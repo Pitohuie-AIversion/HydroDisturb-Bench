@@ -11,7 +11,8 @@ Updated **2026-11-06**, against the accepted experiment delivery [`195d613`](htt
 | Native-state branching | Zero and 0.005 m/s² pulse branches accepted; 0.0025 and 0.010 m/s² added from the same checkpoint | Freeze this small amplitude group as a controlled prototype |
 | Dataset design | One checkpoint family, five sequences, 105 windows from a 5-history/5-future/stride-5 example; all train, no independent holdout | Add independently justified trajectory families before claiming validation/test generalization |
 | Forecasting | Persistence and last-two-frame linear extrapolation evaluated on existing train windows; no fitting | Keep this one-family smoke result separate from independent held-out or trained-model evaluation |
-| New mechanisms | No additional controlled mechanism implemented | Separate future tasks; do not combine them with routine evidence review |
+| Local body-force parameters | Position, direction, amplitude, Gaussian σ and aligned time gate now run through a strict M3 entry and one real continuation | Keep source-unit/readback evidence separate from future inlet, moving-source and geometry mechanisms |
+| New mechanisms | Inlet, vortex, moving source, composite events and moving geometry remain unimplemented | Separate future tasks; do not combine them with routine evidence review |
 
 The existing groups show distinct physical futures above the measured restart difference. They do not establish generalization to unseen disturbances or a globally linear response law. All three reported response peaks lie at the right boundary of the preregistered `(181,186] s` window; they are window maxima, not full-trajectory maxima.
 

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "event_id": "m3-local-pulse-diagonal-debug",
+  "mechanism": "gaussian_body_acceleration",
+  "pulse": {
+    "center_m": [
+      0.17,
+      0.13
+    ],
+    "direction_deg": 45,
+    "acceleration_m_s2": 0.0075,
+    "sigma_m": 0.008,
+    "on_s": 182,
+    "off_s": 184
+  }
+}

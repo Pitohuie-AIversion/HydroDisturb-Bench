@@ -72,6 +72,8 @@ Saved field data now support [bounded batch/range reads and family-separated win
 
 The [forecast baseline layer](docs/FORECAST_BASELINES.md) evaluates persistence and last-two-frame linear extrapolation using only observed history and the known prediction schedule. It reports sampled-node MAE/RMSE separately by lead and physical channel, with independent raw-NPZ arithmetic audit. The registered 105-window run is a one-family train pipeline check, not held-out generalization or a free-running rollout. See the [baseline evaluation report](docs/reports/FORECAST_BASELINE_20261106.md).
 
+The [configurable local-pulse entrypoint](docs/LOCAL_PULSE_PARAMETERS.md) now wires global position, direction, acceleration, Gaussian width and aligned start/stop times through actual COMSOL parameters, source-unit readback and a native M3 continuation. It retains the accepted mesh, checkpoint and solver protocol and delivers compact evidence only; the other PDF event types remain planned.
+
 ## Physical and data scope
 
 The accepted Java benchmark is 2-D, single-phase, constant-density laminar flow around a fixed circular cylinder. The domain is 0.40×0.24 m, with a 0.01 m cylinder centered at (0.10, 0.12) m; density is 998.2 kg/m³ and dynamic viscosity is 1.004e−3 Pa·s, giving `U∞ ≈ 0.0100581 m/s` at Re=100. This differs from the original channel-flow API fixture and from the generic planner's candidate values.
