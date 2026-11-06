@@ -1,0 +1,41 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "comsol-cae-plugin",
+  "version": "1.0.0",
+  "displayName": "COMSOL Multiphysics Automation Plugin",
+  "description": "Production-grade CAE automation, introspection, parametric mutation, and solver orchestration for COMSOL Multiphysics.",
+  "author": {
+    "name": "CAE Engineering AI Team",
+    "email": "engineer@enterprise.internal"
+  },
+  "keywords": [
+    "comsol",
+    "cfd",
+    "fea",
+    "simulation",
+    "mcp",
+    "engineering"
+  ],
+  "mcpServers": "./mcp.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "COMSOL CAE",
+        "shortDescription": "Inspect, mutate parameters, and solve COMSOL models safely",
+        "longDescription": "Automates heavy industrial simulations in COMSOL Multiphysics via official Java API and Subprocess Bridge. Enforces Copy-on-Write immutability, floating license queueing, and heavy data downsampling.",
+        "category": "Engineering & Simulation",
+        "capabilities": [
+          "Deep model tree reflection (tags, domains, physics)",
+          "Copy-on-Write parameter variation with SHA-256 validation",
+          "Asynchronous study solving with progress streaming",
+          "Lightweight KPI and 2D diagnostic image extraction"
+        ],
+        "defaultPrompt": [
+          "Inspect the baseline cylinder model case/cylinder_flow.mph and report active physics tags.",
+          "Run a parameter sweep on inlet velocity U_mean from 0.8 to 1.2 m/s using Copy-on-Write.",
+          "Solve study std1 and extract the 2D vorticity contour without dumping raw 3D mesh fields."
+        ]
+      }
+    }
+  }
+}

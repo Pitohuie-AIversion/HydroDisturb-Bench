@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "name": "comsol-cae-plugin",
+  "mcpServers": "../mcp.json",
+  "description": "Production-grade CAE automation, introspection, parametric mutation, and solver orchestration for COMSOL Multiphysics.",
+  "author": {
+    "name": "CAE Engineering AI Team"
+  }
+}

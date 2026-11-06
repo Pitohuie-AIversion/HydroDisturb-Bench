@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "comsol_bridge": {
+      "command": "python",
+      "args": [
+        "-m",
+        "hydro_disturb_bench.mcp.server"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "COMSOL_JAVA_HEAP": "16G"
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "comsol_bridge": {
+      "command": "python",
+      "args": [
+        "-m",
+        "hydro_disturb_bench.mcp.server"
+      ],
+      "cwd": ".",
+      "enabled": true,
+      "default_tools_approval_mode": "prompt",
+      "tools": {
+        "inspect_environment": {
+          "approval_mode": "auto"
+        },
+        "inspect_model": {
+          "approval_mode": "auto"
+        },
+        "update_parameter": {
+          "approval_mode": "prompt"
+        },
+        "solve_study": {
+          "approval_mode": "prompt"
+        },
+        "export_diagnostics": {
+          "approval_mode": "auto"
+        }
+      },
+      "env_vars": [
+        "COMSOL_ROOT",
+        "PATH",
+        "LOCALAPPDATA",
+        "USERPROFILE",
+        "TEMP"
+      ],
+      "startup_timeout_sec": 30,
+      "tool_timeout_sec": 3600,
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "COMSOL_JAVA_HEAP": "16G",
+        "QT_QPA_PLATFORM": "offscreen"
+      }
+    }
+  }
+}
