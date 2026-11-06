@@ -44,8 +44,10 @@ def _same(a, b, atol=TIME_ATOL):
 
 def _cylinder_mask(x, y, geometry):
     circle = geometry["circle"]
-    X, Y = np.meshgrid(x, y, indexing="xy")
-    return np.hypot(X - circle["center"][0], Y - circle["center"][1]) <= circle["radius"] + COORD_ATOL
+    # ⚡ Bolt: using NumPy broadcasting instead of np.meshgrid to avoid (Ny, Nx) memory allocation
+    dx = x[None, :] - circle["center"][0]
+    dy = y[:, None] - circle["center"][1]
+    return np.hypot(dx, dy) <= circle["radius"] + COORD_ATOL
 
 
 def _parse_grid(path, x, y, actual_time):
