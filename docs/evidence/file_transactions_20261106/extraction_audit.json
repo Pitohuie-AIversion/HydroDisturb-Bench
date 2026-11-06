@@ -1,0 +1,379 @@
+{
+  "baseline_commit": "c28aded6090fecdf287fee7f5b6cbc27f3ff651d",
+  "comparison": "Python AST including signatures, decorators, statements and docstrings; source locations excluded",
+  "files": {
+    "src/hydro_disturb_bench/comsol_java/bridge.py": {
+      "working_sha256": "81aa339a58c79f2bdc77636123c0f16b6eff1110c142fa770abdeb185734c9d2",
+      "lines": 1240
+    },
+    "src/hydro_disturb_bench/comsol_java/errors.py": {
+      "working_sha256": "9bc89f1c3053277a24aa47377c7c6c77796fa8ad42b7da45e0acb67dc1e50121",
+      "lines": 80
+    },
+    "src/hydro_disturb_bench/comsol_java/file_transactions.py": {
+      "working_sha256": "eab11ef4bdce0b9b4d08344167fc97e3fa67a1cbcd56e61a2984e65e6c851269",
+      "lines": 656
+    }
+  },
+  "baseline_bridge_lines": 1925,
+  "definitions": [
+    {
+      "name": "ComsolError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "46bfebb981b0185d301209e1df660d783c77f9b246641e28313d07d7c46e843d",
+      "current_ast_sha256": "46bfebb981b0185d301209e1df660d783c77f9b246641e28313d07d7c46e843d",
+      "identical": true
+    },
+    {
+      "name": "ModelNotFoundError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "08eefb7c60753d0416c27028c63e67eeec59d59394540f337a920d7fcf4055d0",
+      "current_ast_sha256": "08eefb7c60753d0416c27028c63e67eeec59d59394540f337a920d7fcf4055d0",
+      "identical": true
+    },
+    {
+      "name": "ApiUnsupportedError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "62460b4ba19aa35aa482c5b2aa6a15c06bfc50305ed85fe8edd78ee358a65874",
+      "current_ast_sha256": "62460b4ba19aa35aa482c5b2aa6a15c06bfc50305ed85fe8edd78ee358a65874",
+      "identical": true
+    },
+    {
+      "name": "NodeNotFoundError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "6d3502695ea4fc2087f080df044d34d9cc7d2758dcb9795b3dcdfa1329819ba5",
+      "current_ast_sha256": "6d3502695ea4fc2087f080df044d34d9cc7d2758dcb9795b3dcdfa1329819ba5",
+      "identical": true
+    },
+    {
+      "name": "InvalidParameterError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "337faec4f1ef69aa34ece4e26d5bce2bb0c7660032a306bc62db78cc5e973919",
+      "current_ast_sha256": "337faec4f1ef69aa34ece4e26d5bce2bb0c7660032a306bc62db78cc5e973919",
+      "identical": true
+    },
+    {
+      "name": "InvalidUnitError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "277fb598c6456a123049ae0d557c45dcd0f2448bebf8d3fc266b33e6efef2413",
+      "current_ast_sha256": "277fb598c6456a123049ae0d557c45dcd0f2448bebf8d3fc266b33e6efef2413",
+      "identical": true
+    },
+    {
+      "name": "ComsolConnectionError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "c70fcde2818c4c08fc78bfbcb4878010169af1f46ca90cfb66b81caed8dbc47b",
+      "current_ast_sha256": "c70fcde2818c4c08fc78bfbcb4878010169af1f46ca90cfb66b81caed8dbc47b",
+      "identical": true
+    },
+    {
+      "name": "ModelValidationError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "ab51891b0bd90352e37bd6e2a88902fd499fecdc9d17b45642d52a4ef1673009",
+      "current_ast_sha256": "ab51891b0bd90352e37bd6e2a88902fd499fecdc9d17b45642d52a4ef1673009",
+      "identical": true
+    },
+    {
+      "name": "SolverFailedError",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "491dc129e0f6775183847ccde9c4d6a788c7280b9894923b46a4a3a0d1f84896",
+      "current_ast_sha256": "491dc129e0f6775183847ccde9c4d6a788c7280b9894923b46a4a3a0d1f84896",
+      "identical": true
+    },
+    {
+      "name": "map_error",
+      "destination": "src/hydro_disturb_bench/comsol_java/errors.py",
+      "baseline_ast_sha256": "33d2bf8ec172df26dd9329e165077a7b223cf9b197f997e2a969073ea7e9df83",
+      "current_ast_sha256": "33d2bf8ec172df26dd9329e165077a7b223cf9b197f997e2a969073ea7e9df83",
+      "identical": true
+    },
+    {
+      "name": "compute_file_hash",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "4204c15ef00f93f00cfccbac7c53488c5b043ab6924893262220389928ab815c",
+      "current_ast_sha256": "4204c15ef00f93f00cfccbac7c53488c5b043ab6924893262220389928ab815c",
+      "identical": true
+    },
+    {
+      "name": "find_comsol_root",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "8111392d573f492894c87ca4725f551f2e5faa5f8fd6f040d6a8a80e67740ec7",
+      "current_ast_sha256": "8111392d573f492894c87ca4725f551f2e5faa5f8fd6f040d6a8a80e67740ec7",
+      "identical": true
+    },
+    {
+      "name": "get_comsol_bin_dir",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "a1a76a84d2c9ca3495361b2f2325115e6028df83342b6a917d035d99f9e9c9d5",
+      "current_ast_sha256": "a1a76a84d2c9ca3495361b2f2325115e6028df83342b6a917d035d99f9e9c9d5",
+      "identical": true
+    },
+    {
+      "name": "ensure_bridge_compiled",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "f198474dfc4859daea18ef63edeafbfe56ab1d62d26ff0ba787799b0c9c127fb",
+      "current_ast_sha256": "f198474dfc4859daea18ef63edeafbfe56ab1d62d26ff0ba787799b0c9c127fb",
+      "identical": true
+    },
+    {
+      "name": "_graphics_preference_seed_dir",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "91c689f65c7190934cabc119c36d02b52606f283a06b34669b908acfe6134d8a",
+      "current_ast_sha256": "91c689f65c7190934cabc119c36d02b52606f283a06b34669b908acfe6134d8a",
+      "identical": true
+    },
+    {
+      "name": "_run_standalone",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "5540ee4ee1d463232c50536c6ede08c6accede8f31d4d4ca0b812336ed328baf",
+      "current_ast_sha256": "5540ee4ee1d463232c50536c6ede08c6accede8f31d4d4ca0b812336ed328baf",
+      "identical": true
+    },
+    {
+      "name": "_run_bridge",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "bc6564eb317904b1c2c997f6667df05e3e1106d399e77fa670ee8f31ddc6125c",
+      "current_ast_sha256": "bc6564eb317904b1c2c997f6667df05e3e1106d399e77fa670ee8f31ddc6125c",
+      "identical": true
+    },
+    {
+      "name": "run_command",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "99f62f41d0304d164092326378bc299cb3aadb586eb2446eb95b9841ff192127",
+      "current_ast_sha256": "99f62f41d0304d164092326378bc299cb3aadb586eb2446eb95b9841ff192127",
+      "identical": true
+    },
+    {
+      "name": "inspect_api",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "d15a0f0e2704ba4466db1499e95bbadd5377f35e766be99833d933c87338bd12",
+      "current_ast_sha256": "d15a0f0e2704ba4466db1499e95bbadd5377f35e766be99833d933c87338bd12",
+      "identical": true
+    },
+    {
+      "name": "inspect_model",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "4a854bb3a120e09aa33be65dcaed3e86d890658474fad7b00cbdd5615f69ff78",
+      "current_ast_sha256": "4a854bb3a120e09aa33be65dcaed3e86d890658474fad7b00cbdd5615f69ff78",
+      "identical": true
+    },
+    {
+      "name": "inspect_native_mesh",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "203eda6a9127644d9be2e477fab224ecb36869331d88f383c909fd1a580c2baa",
+      "current_ast_sha256": "203eda6a9127644d9be2e477fab224ecb36869331d88f383c909fd1a580c2baa",
+      "identical": true
+    },
+    {
+      "name": "refine_native_mesh",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "20c80aaa76269574148e0bb035884a13317f194176278aeb24161b6b9e71fcb3",
+      "current_ast_sha256": "20c80aaa76269574148e0bb035884a13317f194176278aeb24161b6b9e71fcb3",
+      "identical": true
+    },
+    {
+      "name": "inspect_probe_and_solver",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "d1685db7b0c36b9731c7ec999544fdaae801a3a33c4e0dd774523762b1e5e172",
+      "current_ast_sha256": "d1685db7b0c36b9731c7ec999544fdaae801a3a33c4e0dd774523762b1e5e172",
+      "identical": true
+    },
+    {
+      "name": "is_pid_alive",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "03dd0caa4f62e8e62c661cfa5fc29529d93b1928dc3bb284430a13a1388478c7",
+      "current_ast_sha256": "03dd0caa4f62e8e62c661cfa5fc29529d93b1928dc3bb284430a13a1388478c7",
+      "identical": true
+    },
+    {
+      "name": "is_task_active",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "ae26400cc070a1a872dae9ba43bdb58273e0b61246cf333059e5dadeaa1d24b9",
+      "current_ast_sha256": "ae26400cc070a1a872dae9ba43bdb58273e0b61246cf333059e5dadeaa1d24b9",
+      "identical": true
+    },
+    {
+      "name": "task_staging_session",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "d7725a41cb0fe8ec04e5ebea7c6b6b02791c32eea864e9f4e1d1a4bfbe0ebbf7",
+      "current_ast_sha256": "d7725a41cb0fe8ec04e5ebea7c6b6b02791c32eea864e9f4e1d1a4bfbe0ebbf7",
+      "identical": true
+    },
+    {
+      "name": "_is_file_locked",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "51d51f3e17d438dd4ddd74792b890cb2586a1accabba37f1e5264617f04eefe8",
+      "current_ast_sha256": "51d51f3e17d438dd4ddd74792b890cb2586a1accabba37f1e5264617f04eefe8",
+      "identical": true
+    },
+    {
+      "name": "_safe_quarantine_move",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "f5c64ed7705f6d62c231168f5be6233ff08618483eb4a00ffe478f7b24db76e3",
+      "current_ast_sha256": "f5c64ed7705f6d62c231168f5be6233ff08618483eb4a00ffe478f7b24db76e3",
+      "identical": true
+    },
+    {
+      "name": "quarantine_staging_file",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "0ecc76ed236786428960859091159b1344f8314318ffd0f67a859ac059e5405a",
+      "current_ast_sha256": "0ecc76ed236786428960859091159b1344f8314318ffd0f67a859ac059e5405a",
+      "identical": true
+    },
+    {
+      "name": "_safe_quarantine_move_dir",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "4e09e65b2cb0342d6c15fb24b30c45f28f093a0bd67cdbbbf9af500d5e86b3d3",
+      "current_ast_sha256": "4e09e65b2cb0342d6c15fb24b30c45f28f093a0bd67cdbbbf9af500d5e86b3d3",
+      "identical": true
+    },
+    {
+      "name": "quarantine_staging_dir",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "7b9374f4ed554bdd16fc15ee78d62732ae59365ec28c2090d153a8c6ed7522a2",
+      "current_ast_sha256": "7b9374f4ed554bdd16fc15ee78d62732ae59365ec28c2090d153a8c6ed7522a2",
+      "identical": true
+    },
+    {
+      "name": "file_publish_lock",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "c3128c60c08fc6988ad13d3081171401b2fb025b2bfd2e0104c9553c08d0734e",
+      "current_ast_sha256": "c3128c60c08fc6988ad13d3081171401b2fb025b2bfd2e0104c9553c08d0734e",
+      "identical": true
+    },
+    {
+      "name": "_atomic_publish_new_file",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "589ed4c8ba9287f635dbdb0345d5048993589d540f5f9ce039cc3d19eeb2fb0c",
+      "current_ast_sha256": "589ed4c8ba9287f635dbdb0345d5048993589d540f5f9ce039cc3d19eeb2fb0c",
+      "identical": true
+    },
+    {
+      "name": "_posix_rename_noreplace",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "229858182cb2030f9dabc64241bcd01c57969c7c4a0f6fc851c01c46ee6228f0",
+      "current_ast_sha256": "229858182cb2030f9dabc64241bcd01c57969c7c4a0f6fc851c01c46ee6228f0",
+      "identical": true
+    },
+    {
+      "name": "publish_staging_file",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "027c8913567722e8cb0e272eaeb0248376249c2a5b465d8b15f9ef4c4c8d7852",
+      "current_ast_sha256": "027c8913567722e8cb0e272eaeb0248376249c2a5b465d8b15f9ef4c4c8d7852",
+      "identical": true
+    },
+    {
+      "name": "list_quarantine_records",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "667b89ea572b472a32cc74727181d8da45d1d4af211e4cfa49d710bb8c84470b",
+      "current_ast_sha256": "667b89ea572b472a32cc74727181d8da45d1d4af211e4cfa49d710bb8c84470b",
+      "identical": true
+    },
+    {
+      "name": "recover_unclaimed_staging",
+      "destination": "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+      "baseline_ast_sha256": "d96276230b489365e072bfd2c82549aa5e5d43b1cfc31e9453fb4587fa5d4fe5",
+      "current_ast_sha256": "d96276230b489365e072bfd2c82549aa5e5d43b1cfc31e9453fb4587fa5d4fe5",
+      "identical": true
+    },
+    {
+      "name": "update_parameter",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "854e0328b3f1b192a2c1fa8e45cbfacee1e7a5c9dd471f769e9ad577c6a648f0",
+      "current_ast_sha256": "854e0328b3f1b192a2c1fa8e45cbfacee1e7a5c9dd471f769e9ad577c6a648f0",
+      "identical": true
+    },
+    {
+      "name": "run_study",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "99b15df57c0e205cf544f0f11806e3e4a97bae6d0619382cfea379aa9d1f121f",
+      "current_ast_sha256": "99b15df57c0e205cf544f0f11806e3e4a97bae6d0619382cfea379aa9d1f121f",
+      "identical": true
+    },
+    {
+      "name": "build_re100_benchmark",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "15e95856bfe6c7ae42a943eb4d34f7e27a08042415b0d45b4d64cbc2e6e80fe6",
+      "current_ast_sha256": "15e95856bfe6c7ae42a943eb4d34f7e27a08042415b0d45b4d64cbc2e6e80fe6",
+      "identical": true
+    },
+    {
+      "name": "export_solution_data",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "1297fb480636864688608b0b67f2f2f542eaa3fec0148c1addb388372672f2c1",
+      "current_ast_sha256": "1297fb480636864688608b0b67f2f2f542eaa3fec0148c1addb388372672f2c1",
+      "identical": true
+    },
+    {
+      "name": "export_full_field_sample",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "fa099ee4d0880249e9f7850f3b19b81c1dea79b2ea9e53a616a8cf33ef4d5732",
+      "current_ast_sha256": "fa099ee4d0880249e9f7850f3b19b81c1dea79b2ea9e53a616a8cf33ef4d5732",
+      "identical": true
+    },
+    {
+      "name": "_archive_existing_diagnostic_set",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "da7f84fff0375187faf52603e4f1a949f06779a406aa01d81a053fac786c5741",
+      "current_ast_sha256": "da7f84fff0375187faf52603e4f1a949f06779a406aa01d81a053fac786c5741",
+      "identical": true
+    },
+    {
+      "name": "list_s1_diagnostic_versions",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "920856c22d753f7cd057802ef17c2ca6d5f6df1bee274b4759795297d13a7dd8",
+      "current_ast_sha256": "920856c22d753f7cd057802ef17c2ca6d5f6df1bee274b4759795297d13a7dd8",
+      "identical": true
+    },
+    {
+      "name": "recover_s1_diagnostic_version",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "bf6652a770b7d0ae08d22bd089d97da8ba7037fc7e5378ad579becb453d55786",
+      "current_ast_sha256": "bf6652a770b7d0ae08d22bd089d97da8ba7037fc7e5378ad579becb453d55786",
+      "identical": true
+    },
+    {
+      "name": "export_s1_diagnostics",
+      "destination": "src/hydro_disturb_bench/comsol_java/bridge.py",
+      "baseline_ast_sha256": "8027e334efbfc7979f8157d310b6b7e93a8c552bf1ebdc534c4144e368ad8e22",
+      "current_ast_sha256": "8027e334efbfc7979f8157d310b6b7e93a8c552bf1ebdc534c4144e368ad8e22",
+      "identical": true
+    }
+  ],
+  "error_constants": [
+    {
+      "name": "ERR_MODEL_NOT_FOUND",
+      "identical": true
+    },
+    {
+      "name": "ERR_API_UNSUPPORTED",
+      "identical": true
+    },
+    {
+      "name": "ERR_NODE_NOT_FOUND",
+      "identical": true
+    },
+    {
+      "name": "ERR_INVALID_PARAMETER",
+      "identical": true
+    },
+    {
+      "name": "ERR_INVALID_UNIT",
+      "identical": true
+    },
+    {
+      "name": "ERR_COMSOL_CONNECTION_FAILED",
+      "identical": true
+    },
+    {
+      "name": "ERR_MODEL_VALIDATION_FAILED",
+      "identical": true
+    },
+    {
+      "name": "ERR_SOLVER_FAILED",
+      "identical": true
+    }
+  ],
+  "all_definitions_identical": true,
+  "all_error_constants_identical": true
+}

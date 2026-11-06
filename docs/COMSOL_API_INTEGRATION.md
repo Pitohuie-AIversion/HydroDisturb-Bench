@@ -242,6 +242,14 @@ Evidence navigation:
 
 The branch scripts use shared services in `hydro_disturb_bench.experiments` for execution evidence, raw process recording, completed-stage checks, sampling and solver-step analysis. The amplitude script no longer executes the original CLI through `importlib` or depends on its private helpers. Raw stdout/stderr, partial payloads and failure records remain separate files; implementation evidence includes the extracted service modules and the calling entrypoint. Old saved records remain readable.
 
-Process recording does not patch global `subprocess.run`. Overlapping fake executions verify isolated runner/log ownership; this does not certify concurrent COMSOL solves or shared Java compilation. The Java sources and numerical acceptance contracts are unchanged by this extraction. Splitting Java classes and the bridge's filesystem transaction layer remains separate work.
+Process recording does not patch global `subprocess.run`. Overlapping fake executions verify isolated runner/log ownership; this does not certify concurrent COMSOL solves or shared Java compilation. The Java sources and numerical acceptance contracts are unchanged by this extraction. Java class splitting remains separate work; the subsequent filesystem extraction is described below.
 
 The archived Windows regression record and a new local test execution are different evidence. Data-free checks select `not integration and not artifact`. Selecting `artifact` requires the retained MPH/diagnostic files; selecting `integration` requires COMSOL. See [the software-maintenance report](reports/CODE_HEALTH_CI_20261106.md) and [publishing evidence boundaries](PUBLISHING.md).
+
+## 8. Filesystem Transaction Ownership
+
+`comsol_java.file_transactions` owns staging leases, publication locks, no-overwrite file publication, quarantine and orphan recovery. It uses the standard library and the typed errors in `comsol_java.errors`; it does not import the bridge or start COMSOL. The existing `comsol_java` and `comsol_java.bridge` public imports remain available and refer to these same functions and error classes.
+
+The extraction preserves the existing transaction function bodies, including failure retention, collision handling, lock timeouts and platform-specific primitives. Private-helper fault injection now targets the owning module; the bridge retains the private aliases already used by older callers. New branch and sample execution records include both new source files in their implementation hashes. Existing execution records are still read without modification.
+
+This extraction does not fix the previously observed Windows directory `WinError 5`, change diagnostic-directory publication policy, or certify concurrent native solves. See [the extraction report and regression evidence](reports/FILE_TRANSACTION_REFACTOR_20261106.md).

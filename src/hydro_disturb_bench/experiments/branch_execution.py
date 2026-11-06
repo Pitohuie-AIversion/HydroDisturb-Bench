@@ -22,6 +22,8 @@ def snapshot_sources(entrypoint, additional_sources=()):
     package = Path(__file__).resolve().parent
     bridge_path = Path(bridge.__file__).resolve()
     paths = [Path(entrypoint).resolve(), bridge_path,
+             bridge_path.with_name("errors.py"),
+             bridge_path.with_name("file_transactions.py"),
              bridge_path.with_name("ComsolBridge.java"),
              bridge_path.with_name("ComsolStandalone.java")]
     paths.extend(package / name for name in ("__init__.py", "branch_execution.py",

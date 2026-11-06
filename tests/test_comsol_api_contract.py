@@ -661,7 +661,7 @@ def test_quarantine_failure_preserves_staging_file_in_place(tmp_path):
 
     # Simulate quarantine filesystem failure (e.g. permission denied)
     with patch(
-        "hydro_disturb_bench.comsol_java.bridge._safe_quarantine_move",
+        "hydro_disturb_bench.comsol_java.file_transactions._safe_quarantine_move",
         side_effect=OSError("Quarantine storage unavailable"),
     ):
         res = quarantine_staging_file(staging_file, out, "test_id", reason="failed")
@@ -956,7 +956,7 @@ def test_publish_failure_preserves_staging_file(tmp_path):
     out = tmp_path / "final_model.mph"
 
     with patch(
-        "hydro_disturb_bench.comsol_java.bridge._atomic_publish_new_file",
+        "hydro_disturb_bench.comsol_java.file_transactions._atomic_publish_new_file",
         side_effect=OSError("Disk write error"),
     ):
         with pytest.raises(OSError, match="Disk write error"):

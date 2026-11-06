@@ -1,6 +1,24 @@
 """COMSOL Java API integration package."""
 
 from .bridge import (
+    build_re100_benchmark,
+    compute_file_hash,
+    export_full_field_sample,
+    export_s1_diagnostics,
+    export_solution_data,
+    find_comsol_root,
+    inspect_api,
+    inspect_model,
+    inspect_native_mesh,
+    inspect_probe_and_solver,
+    list_s1_diagnostic_versions,
+    recover_s1_diagnostic_version,
+    refine_native_mesh,
+    run_command,
+    run_study,
+    update_parameter,
+)
+from .errors import (
     ERR_API_UNSUPPORTED,
     ERR_COMSOL_CONNECTION_FAILED,
     ERR_INVALID_PARAMETER,
@@ -18,30 +36,16 @@ from .bridge import (
     ModelValidationError,
     NodeNotFoundError,
     SolverFailedError,
-    build_re100_benchmark,
-    compute_file_hash,
-    export_full_field_sample,
-    export_s1_diagnostics,
-    export_solution_data,
+)
+from .file_transactions import (
     file_publish_lock,
-    find_comsol_root,
-    inspect_api,
-    inspect_model,
-    inspect_native_mesh,
-    inspect_probe_and_solver,
     is_task_active,
     list_quarantine_records,
-    list_s1_diagnostic_versions,
     publish_staging_file,
     quarantine_staging_dir,
     quarantine_staging_file,
-    recover_s1_diagnostic_version,
     recover_unclaimed_staging,
-    refine_native_mesh,
-    run_command,
-    run_study,
     task_staging_session,
-    update_parameter,
 )
 
 __all__ = [

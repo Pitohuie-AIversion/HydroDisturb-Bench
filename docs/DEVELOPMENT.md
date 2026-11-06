@@ -1,8 +1,8 @@
 # 开发状态与证据索引
 
-更新：**2026-11-06**。本次检索覆盖 `main` 的开发历史、当前远端功能分支、正式 Python/Java 入口、测试源码、阶段报告和已归档日志。它是文档同步，不是一次新的 CFD 求解或全库回归。
+更新：**2026-11-06**。本页汇总 `main` 的开发历史、功能分支、正式 Python/Java 入口、测试、阶段报告和归档日志。数值实验与后续软件维护分别列示；软件回归不增加一次 CFD 求解或科学精度验证。
 
-数值成果以 [`195d613decee0f960b86f2dd588592f60fc01856`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856) 为最新实验交付。后续文档提交不改变该固定证据身份。开发变更按日期见 [CHANGELOG](../CHANGELOG.md)，科学验收边界见 [VALIDATION](VALIDATION.md)。
+数值成果以 [`195d613decee0f960b86f2dd588592f60fc01856`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856) 为最新实验交付。后续软件维护不改变该固定证据身份。开发变更按日期见 [CHANGELOG](../CHANGELOG.md)，科学验收边界见 [VALIDATION](VALIDATION.md)。
 
 ## 当前状态
 
@@ -10,12 +10,14 @@
 
 | 开发线 | 本次核实的提交 | 处理状态 |
 | --- | --- | --- |
-| `main` | `195d613decee0f960b86f2dd588592f60fc01856` | 当前实验交付；本次文档在其上同步 |
+| `main` | 实验基线 `195d613`；CI 修复基线 `c28aded6090fecdf287fee7f5b6cbc27f3ff651d` | 数值结果保留；后续软件维护记录见下文 |
 | `feat/comsol-mcp` | `d1ba0af0041f029db5124414d8f72bf2f8f45206` | 已推送、尚未合入；MCP/插件原型单列如下 |
 | `codex/m3-pulse-amplitudes` | 本次核查时与实验提交 `195d613` 相同 | 已完成工作的工作分支，不是另一套实验结果 |
 | `codex/m3-pulse-full-local` | `6ab889cc160d74cf779dee85fcfee442bdb2f5d7` | 保留的历史大型归档方案，不属于 `main` 当前交付 |
 
 本次直接复用原仓库，不新建副本或 worktree。后续以当前主工作目录开发，代码与大型数据位置分别记录；历史分支或仍被会话占用的工作区不等于需要重新求解或再次交付。
+
+软件维护已完成 uv 锁定安装、测试分层和分支执行服务抽取；`c28aded` 的 [Windows/Linux CI](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/actions/runs/42202843334) 各有 522 passed、37 deselected。随后将 bridge 的文件锁、staging、发布与恢复抽到独立模块，保留公开入口和失败留存语义，见 [第二轮拆分报告](reports/FILE_TRANSACTION_REFACTOR_20261106.md)。各次执行的测试范围和数量分别记录，不累计为同一次验证。
 
 ## 已合入的阶段与复核入口
 
@@ -112,7 +114,7 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 当前可见限制：
 
 - **测试分层**：历史产物检查现单列 `artifact`，真实求解/安装检查标 `integration`，模拟事务测试使用临时假模型保留在普通 CI。首次幅值回归缺夹具的 29 项历史失败保留原记录，不改写成当时通过。CI 显式安装锁定依赖并排除这两类外部环境检查；实际运行结果以对应提交的 Actions 为准。
-- **Windows 发布可靠性 P2**：曾出现目录 rename 的 `WinError 5`。失败现场保留、重测通过不等于根因已解决；本次不扩展接口重构。
+- **Windows 发布可靠性 P2**：曾出现目录 rename 的 `WinError 5`。失败现场保留、重测通过不等于根因已解决；将事务代码抽成独立模块也不等于修复该故障。
 - **初始化边界**：分支协议把 `consistent` 从连续基线的 `bweuler` 改成 `off`，用 Z−B 测量影响，不能称所有求解设置未变。
 - **科学边界**：未完成计算域扫描、独立求解器验证、完整动量收支、全域真解误差估计或 ML 泛化评估；施加源项积分不等于流体净动量变化。
 - **存储边界**：Git 保存必要证据，完整 MPH/向量/TXT/NPZ 在本地；清单中独立备份为 `not_configured`，不宣称已备份，也不作为本轮数值通过的门禁。见 [交付规则](PUBLISHING.md)。
@@ -133,6 +135,8 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 该原型仍有具体待核验项：服务工具为同步函数；`configure_solver.maxstep` 与 `solve_study.timeout_sec` 未在相应实现中使用；插件审批配置有与当前工具名不匹配的条目；CI 未显式安装该分支新增的 `mcp` extra。插件配置实际仍指向 COMSOL 服务，不代表已提供其他软件后端或完成客户端安装验收。异步/HPC/OAuth/全面 API 覆盖属于规划或模板，不能记为已验证能力。本次仅如实记录，不合并或修复该分支。
 
 ## 后续开发约定
+
+下一块功能工作优先围绕现有连续序列做按批读取与窗口索引，先规定历史/预测长度、学习器可见字段和轨迹族划分。共享 checkpoint 的兄弟分支与重叠窗口不能随机分散到训练/验证两侧。当前只有一个轨迹族，足以验证数据管线，不能包装为独立泛化评估；这部分接口尚未实现。
 
 保持已验收基线、配置和历史证据不变；下一次实验先明确独立起点/轨迹族、隐藏信息、时间窗口、数据划分和数据预算，再扩展受控分支。参见 [研究计划](RESEARCH_PLAN.md)。当前不新增网格、时间步、扰动机制或训练任务。
 

@@ -92,6 +92,7 @@ def test_runner_persists_vectors_readback_and_model_hashes(runner, tmp_path, sou
     assert record["implementation"]["all_source_files_unchanged"] is True
     assert {Path(path).name for path in record["implementation"]["source_files"]} == {
         "run_m3_branch_pulse.py", "bridge.py", "ComsolBridge.java", "ComsolStandalone.java",
+        "errors.py", "file_transactions.py",
         "__init__.py", "branch_execution.py", "process_recording.py", "evidence_io.py", "solver_steps.py",
     }
     assert runner._hash(stage / "native_seed.bin") == response["native_vectors"]["seed"]["sha256"]
@@ -117,7 +118,7 @@ def test_runner_preserves_failure_and_refuses_overwrite(runner, tmp_path, source
     failure = (stage / "failure.json").read_bytes()
     failed = json.loads(failure)
     assert failed["implementation"]["all_source_files_unchanged"] is True
-    assert len(failed["implementation"]["source_files"]) == 9
+    assert len(failed["implementation"]["source_files"]) == 11
     with patch.object(runner.bridge, "run_command") as fake:
         with pytest.raises(FileExistsError):
             _run(runner, stage, source)
@@ -594,7 +595,8 @@ def test_sample_service_records_explicit_process_and_binds_sampling_sources(runn
     record = runner._read(directory / "execution.json")
     names = {Path(path).name for path in record["implementation"]["source_files"]}
     assert {"branch_execution.py", "process_recording.py", "field_sequence.py", "field_sampling.py",
-            "run_m3_branch_pulse.py", "bridge.py", "ComsolBridge.java"} <= names
+            "run_m3_branch_pulse.py", "bridge.py", "ComsolBridge.java",
+            "errors.py", "file_transactions.py"} <= names
     assert record["implementation"]["all_source_files_unchanged"] is True
     assert runner.load_full_field_sequence(directory / "fields")["values"].shape == (3, 3, 9, 17)
     original_log = (directory / "processes.json").read_bytes()

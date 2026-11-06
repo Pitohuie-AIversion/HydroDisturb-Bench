@@ -15,6 +15,8 @@ for rel in [
     "docs/VALIDATION.md",
     "src/hydro_disturb_bench/cli.py",
     "src/hydro_disturb_bench/comsol_java/bridge.py",
+    "src/hydro_disturb_bench/comsol_java/errors.py",
+    "src/hydro_disturb_bench/comsol_java/file_transactions.py",
     "src/hydro_disturb_bench/comsol_java/ComsolBridge.java",
     "src/hydro_disturb_bench/field_sampling.py",
     "src/hydro_disturb_bench/field_sequence.py",

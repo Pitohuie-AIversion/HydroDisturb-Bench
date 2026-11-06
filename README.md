@@ -66,6 +66,8 @@ uv run --no-sync python scripts/check_repo.py
 
 Tests marked `artifact` verify retained local models/results and fail if the required data are missing; they are not part of data-free CI. In a checkout with those historical fixtures, `python -m pytest -q -m "not integration"` includes that audit. Tests marked `integration` require COMSOL and may solve models. The archived 514-test result predates this test separation and remains a record of that execution. See [test scope and known limits](docs/DEVELOPMENT.md#测试与已知限制) and the [CI and Python refactoring report](docs/reports/CODE_HEALTH_CI_20261106.md).
 
+The subsequent [filesystem transaction extraction](docs/reports/FILE_TRANSACTION_REFACTOR_20261106.md) preserves the existing public API and transaction behavior, with separate compatibility, failure-retention and cross-process lock checks. It does not add a new CFD accuracy result.
+
 ## Physical and data scope
 
 The accepted Java benchmark is 2-D, single-phase, constant-density laminar flow around a fixed circular cylinder. The domain is 0.40×0.24 m, with a 0.01 m cylinder centered at (0.10, 0.12) m; density is 998.2 kg/m³ and dynamic viscosity is 1.004e−3 Pa·s, giving `U∞ ≈ 0.0100581 m/s` at Re=100. This differs from the original channel-flow API fixture and from the generic planner's candidate values.

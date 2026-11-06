@@ -4,6 +4,13 @@
 
 ## 2026-11-06
 
+### 文件事务层拆分
+
+- 将 bridge 的 staging 租约、发布锁、文件发布、失败隔离和孤立文件恢复提取到 `comsol_java.file_transactions`；错误契约独立到 `errors`，原公开导入路径保留。
+- 分支及采样留证纳入新模块的实际源码哈希；已有模型、冻结配置和历史执行记录不迁移、不改写。
+- 故障注入定位到实现所属模块，旧 bridge 与 package 入口继续参与兼容性测试。这是行为保持的结构拆分，不宣称修复历史 Windows `WinError 5`。[报告与回归记录](docs/reports/FILE_TRANSACTION_REFACTOR_20261106.md)。
+- 固定基线 AST 对照中 46 个函数/类、8 个错误常量一致；新增 7 项兼容、真实进程锁与失败恢复测试。本地完整离线回归 **553 passed, 13 deselected**，未运行真实 COMSOL 集成测试。
+
 ### CI 修复与 Python 执行服务抽取
 
 - 修复 uv 已安装但 Ruff extra 未安装造成的真实 Actions 失败；固定 uv 0.13.7，显式同步锁定的 dev/analysis 依赖，后续命令不重复同步，上传 JUnit。

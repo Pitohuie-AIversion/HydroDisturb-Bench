@@ -1,0 +1,13 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_file_transactions.py",
+    "tests/test_comsol_api_contract.py"
+  ],
+  "cwd": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench",
+  "returncode": 0,
+  "elapsed_seconds": 5.8813700675964355
+}
