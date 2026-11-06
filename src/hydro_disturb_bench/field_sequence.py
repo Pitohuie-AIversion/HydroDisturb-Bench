@@ -130,7 +130,8 @@ def _check_overlap(sequence, reference_dir):
 
 
 def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200., step=.2,
-                               grid_shape=(161, 97), batch_size=32, overlap_reference=None, root=None):
+                                grid_shape=(161, 97), batch_size=32, overlap_reference=None,
+                                root=None, process_runner=None):
     """Export a contiguous saved-time sequence to a new directory; retain failures."""
     model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
     if not model_path.is_file():
@@ -153,12 +154,14 @@ def export_full_field_sequence(model_path, output_dir, *, start=170., stop=200.,
                 "solution_numbers": [], "solver_called": False}
     metrics = []
     try:
+        process_options = {} if process_runner is None else {"process_runner": process_runner}
         first_data = None
         for batch_index, begin in enumerate(range(0, len(times), batch_size)):
             end = min(begin + batch_size, len(times))
             batch_dir = stage / f"batch_{batch_index:04d}"
             metric = sampling._export_grid_sample(model_path, batch_dir, times[begin:end], grid_shape,
-                np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch")
+                np.array([0., .4, 0., .24]), before, root=root, command="export-full-field-sequence-batch",
+                **process_options)
             sampling._require(bridge.compute_file_hash(model_path) == before, "Source model changed during sequence sampling")
             data = sampling.load_full_field_sample(batch_dir)
             _same_grid_and_source(first_data or data, data)

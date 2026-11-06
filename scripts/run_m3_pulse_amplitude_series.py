@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import importlib.util
 import os
 import re
 import sys
@@ -12,6 +11,7 @@ import traceback
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 DATA_ROOT = Path(os.environ.get("HYDRO_DATA_ROOT", str(ROOT))).resolve()
 SERIES_ID = "m3-pulse-amplitude-series-v1"
 SERIES_PLAN_PATH = ROOT / "docs/evidence/m3_pulse_amplitude_series_20261106/preregistered_plan.json"
@@ -19,13 +19,23 @@ SERIES_PLAN_SHA = "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4
 BASE_PLAN_SHA = "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad"
 RESTART_PROTOCOL_SHA = "586a7065a7e9da4560501a368ab68037b0bbdaebf4957e6bab9541bb16e8acb8"
 PROTOCOL_ID = "native-restart-consistent-off-v2"
-spec = importlib.util.spec_from_file_location("accepted_branch_runner", ROOT / "scripts/run_m3_branch_pulse.py")
-legacy = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(legacy)
 from hydro_disturb_bench.branch_pulse import compare_branch_fields, validate_native_branch_evidence
+from hydro_disturb_bench.experiments import branch_execution as execution
+from hydro_disturb_bench.experiments.evidence_io import (
+    file_sha256 as sha,
+)
+from hydro_disturb_bench.experiments.evidence_io import (
+    read_json as read,
+)
+from hydro_disturb_bench.experiments.evidence_io import (
+    require,
+)
+from hydro_disturb_bench.experiments.evidence_io import (
+    write_json as write,
+)
+from hydro_disturb_bench.experiments.solver_steps import validate_branch_steps
 from hydro_disturb_bench.field_sequence import load_full_field_sequence
 
-require, read, write, sha = legacy._require, legacy._read, legacy._write, legacy._hash
 SCALED_REFERENCES = ("peak_force_density_N_m3", "peak_force_per_depth_N_m", "impulse_per_depth_N_s_m")
 ALLOWED_CHANGES = ["pulse.acceleration_amplitude_m_s2"] + [
     "source_integral_reference." + key for key in SCALED_REFERENCES
@@ -209,7 +219,7 @@ def _completed_new(output, branch, amplitude, series, checkpoint):
             and all(item["sha256_before"] == item["sha256_after"] for item in implementations.values())
             and implementations[str(Path(series["_frozen_plan_path"]))]["sha256_before"] == series["_frozen_plan_sha256"],
             "Series implementation/plan version binding differs")
-    result = legacy._completed(directory)
+    result = execution.completed_stage(directory)
     require(result[1].resolve() == (directory / f"{branch}.mph").resolve(), "Completed branch model is at another path")
     _validate_new(*result, checkpoint, amplitude, series)
     return result
@@ -227,8 +237,9 @@ def _solve_new(output, checkpoint, branch, amplitude, series_plan, derived_plan)
     status, error = "FAIL", None
     started = time.time()
     try:
-        result = legacy._execute(directory, ["run-pulse-series-branch", str(checkpoint), str(target), str(amplitude), PROTOCOL_ID, SERIES_ID],
-                                 checkpoint, target, "run_pulse_branch")
+        result = execution.execute_branch(directory, ["run-pulse-series-branch", str(checkpoint), str(target), str(amplitude), PROTOCOL_ID, SERIES_ID],
+                                 checkpoint, target, "run_pulse_branch", entrypoint=Path(__file__),
+                                 additional_sources=(Path(series_plan["_frozen_plan_path"]),))
         _validate_new(*result, checkpoint, amplitude, series_plan)
         require(all(sha(Path(path)) == value for path, value in before.items()), "New runner or series plan changed during solve")
         status = "COMPLETE"
@@ -256,7 +267,7 @@ def _analyze_case(output, case, series, refs):
         fields = load_full_field_sequence(output / f"sample_{name}/fields")
         validate_sample(fields, model, execution)
         native = validate_native_branch_evidence(refs["prepare"], refs["zero"], response, derived)
-        steps = legacy._branch_step_validation(output / name, response, derived)
+        steps = validate_branch_steps(output / name, response, derived)
         comparison = compare_branch_fields(refs["baseline"], refs["zero_fields"], fields, derived)
         for filename, data in (("native_validation.json", native), ("step_validation.json", steps), ("field_comparison.json", comparison)):
             write(directory / filename, data)
@@ -319,8 +330,9 @@ def run_series(series_plan, output, stage="all"):
             _solve_new(output, refs["checkpoint"], name, amplitude, series_plan, derived)
         if stage in ("all", "sample"):
             _completed_new(output, name, amplitude, series_plan, refs["checkpoint"])
-            legacy._sample(output, name, derived)
-            _, model, record = legacy._completed(output / name)
+            execution.sample_branch(output, name, derived, entrypoint=Path(__file__),
+                                    additional_sources=(Path(series_plan["_frozen_plan_path"]),))
+            _, model, record = execution.completed_stage(output / name)
             validate_sample(load_full_field_sequence(output / f"sample_{name}/fields"), model, record)
         if stage in ("all", "analyze"):
             item = _analyze_case(output, case, series_plan, refs)

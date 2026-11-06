@@ -37,6 +37,7 @@ U_INF = 0.010058104588
 D = 0.01
 
 
+@pytest.mark.artifact
 def test_baseline_and_s1a_models_immutability():
     """Verify that original baseline, S0 benchmark, and S1-A solved models are strictly unmodified."""
     assert BASELINE_CASE.is_file(), f"Missing {BASELINE_CASE}"
@@ -52,6 +53,7 @@ def test_baseline_and_s1a_models_immutability():
     assert h_s1a == EXPECTED_S1A_HASH, f"S1-A solved model mutated: {h_s1a} != {EXPECTED_S1A_HASH}"
 
 
+@pytest.mark.artifact
 def test_s1a2_solution_time_table_alignment():
     """Verify that S1-A2 solved model metadata matches the 200s extended schedule."""
     import json
@@ -79,6 +81,7 @@ def test_s1a2_solution_time_table_alignment():
     assert s_settings.get("rtol") == 0.001
 
 
+@pytest.mark.artifact
 def test_s1a2_diagnostics_data_contract_and_manifest():
     """Verify full data contract, timestamp alignment, and manifest token for S1-A2 diagnostics."""
     assert S1A2_DIR.is_dir(), f"Missing S1-A2 diagnostics directory: {S1A2_DIR}"
@@ -151,6 +154,7 @@ def test_growing_amplitude_signal_rejected_as_limit_cycle():
     )
 
 
+@pytest.mark.artifact
 def test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds():
     """Verify that real COMSOL S1-A2 data meets the recommended engineering stability criteria over the last 5 cycles."""
     t_cl, cl = load_comsol_1d_timeseries(S1A2_DIR / "lift_coeff.txt")[:2]
@@ -207,6 +211,7 @@ def test_s1a2_real_data_cycle_by_cycle_statistics_and_stability_thresholds():
     assert abs(poly_wv[0]) < 1e-4, f"Wake v linear drift {poly_wv[0]:.2e} exceeded tolerance"
 
 
+@pytest.mark.artifact
 def test_s1a2_multi_window_statistics_consistency():
     """Verify that Window 1 [120, 160]s and Window 2 [160, 200]s show consistent limit-cycle properties."""
     t_cl, cl = load_comsol_1d_timeseries(S1A2_DIR / "lift_coeff.txt")[:2]
@@ -227,6 +232,7 @@ def test_s1a2_multi_window_statistics_consistency():
     assert cl_drift < 2.0, f"Window Cl amplitude drift {cl_drift:.3f}% exceeded 2.0%"
 
 
+@pytest.mark.artifact
 def test_s1a_legacy_100s_interface_unaffected():
     """Verify that validating existing S1-A 100s results remains 100% functional and backward-compatible."""
     s1a_dir = Path("runs/re100_s1a_trial")
@@ -244,6 +250,7 @@ def test_s1a_legacy_100s_interface_unaffected():
     assert val.get("manifest", {}).get("status") == "COMPLETED"
 
 
+@pytest.mark.artifact
 def test_s1a2_upgraded_vorticity_snapshots_and_comparison():
     """Verify that upgraded wake-zoom vorticity snapshots and t=195s comparison figure exist and meet quality specs."""
     from PIL import Image
@@ -274,6 +281,7 @@ def test_s1a2_upgraded_vorticity_snapshots_and_comparison():
     assert montage_img.stat().st_size > 100_000, "Montage figure too small"
 
 
+@pytest.mark.artifact
 def test_s1a2_visualization_specification_and_data_contract():
     """Verify that upgraded Karman street visualization adheres to all scientific visualization specifications."""
     stats_file = S1A2_DIR / "re100_s1a2_vorticity_stats.json"
@@ -340,6 +348,7 @@ def test_s1a2_visualization_specification_and_data_contract():
     assert overall.get("pooled_clipping_pct_at_2_5") < 0.50, "Pooled clipping exceeded 0.50%"
 
 
+@pytest.mark.artifact
 def test_s1a2_visualization_all_output_artifacts_exist_and_valid():
     """Verify that all required visualization figures (Version A, Version B PNG/PDF, Overview, SymLog, Enhanced) exist and are non-empty."""
     from PIL import Image
@@ -384,6 +393,7 @@ def test_s1a2_visualization_all_output_artifacts_exist_and_valid():
         assert grid_p.stat().st_size > 5_000_000, f"Grid file {grid_p.name} too small"
 
 
+@pytest.mark.artifact
 def test_vorticity_grid_real_five_snapshots_strict_admission():
     """Verify that all 5 real COMSOL 2D vorticity grid files pass strict admission criteria."""
     for t_s in [10, 40, 100, 195, 200]:
@@ -516,6 +526,7 @@ def test_vorticity_grid_rejection_duplicate_points(tmp_path: Path):
         )
 
 
+@pytest.mark.artifact
 def test_s1a2_three_panel_comparison_and_clipping_stats():
     """Verify the three-way comparison figure and spatial clipping statistics."""
     from PIL import Image

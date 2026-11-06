@@ -174,12 +174,24 @@ def _write_manifest(output, manifest):
     (output / "sequence_manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
 
-def test_sequence_roundtrips_151_saved_frames_across_uneven_batches(sequence_case):
+@pytest.mark.parametrize("explicit_runner", [False, True])
+def test_sequence_roundtrips_151_saved_frames_across_uneven_batches(sequence_case, monkeypatch, explicit_runner):
     from hydro_disturb_bench.field_sequence import load_full_field_sequence
 
     model, output, fake, reference = sequence_case
+    options = {}
+    if explicit_runner:
+        def recording_process(*args, **kwargs):
+            raise AssertionError("Only the external bridge boundary is replaced in this test")
+
+        def external(args, root=None, *, process_runner=None):
+            assert process_runner is recording_process
+            return fake(args, root=root)
+
+        monkeypatch.setattr(bridge, "_run_bridge", external)
+        options["process_runner"] = recording_process
     original_model = model.read_bytes()
-    result = _export(sequence_case)
+    result = _export(sequence_case, **options)
     assert result["status"] == "PASS"
     assert model.read_bytes() == original_model
     assert [len(call[3].split(",")) for call in fake.calls] == [32, 32, 32, 32, 23]

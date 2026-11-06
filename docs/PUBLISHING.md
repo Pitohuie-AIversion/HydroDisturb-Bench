@@ -25,7 +25,7 @@ git diff --cached --stat
 git status --short
 ```
 
-Run checks appropriate to the change and retain their exact commands, exit codes, test counts, and code revision. Historical Windows test logs are evidence of those executions, not a claim that a fresh clone has rerun them. Some unmarked legacy tests require ignored local model and diagnostic files: `pytest -m "not integration"` excludes marked integration tests but is not a guarantee of data-free execution. See [development instructions](DEVELOPMENT.md) and [validation scope](VALIDATION.md).
+Run checks appropriate to the change and retain their exact commands, exit codes, test counts, and code revision. Historical Windows test logs are evidence of those executions, not a claim that a fresh clone has rerun them. Data-free CI selects `not integration and not artifact`; `pytest -m "not integration"` additionally runs the historical model/result audits and requires their local data. Missing artifact inputs remain failures when those tests are selected. See [development instructions](DEVELOPMENT.md) and [validation scope](VALIDATION.md).
 
 Commit only the reviewed changes, then push the intended branch. For an authorized direct delivery on `main`, the command is `git push origin main`; a pull-request branch should be pushed under its own name. Verify the resulting remote commit and provide fixed-commit links to the report and evidence. Archiving or pushing completed results does not require rerunning CFD.
 

@@ -55,13 +55,16 @@ This checks committed evidence and provenance records; it does not recompute ful
 
 The [developer guide](docs/DEVELOPMENT.md) maps scripts to their effects and required data. The [Java API guide](docs/COMSOL_API_INTEGRATION.md) provides CLI syntax and execution contracts. Install `.[analysis]` when plotting; install `.[comsol]` only for the MPh adapter.
 
-Run the existing offline regression in a checkout with the required historical fixtures:
+The GitHub Actions workflow uses uv with a committed lockfile, explicit development/analysis dependencies, and separate test categories. To run the same data-free checks locally:
 
 ```bash
-python -m pytest -q -m "not integration"
+uv sync --locked --extra dev --extra analysis
+uv run --no-sync ruff check .
+uv run --no-sync pytest -q --strict-markers -m "not integration and not artifact"
+uv run --no-sync python scripts/check_repo.py
 ```
 
-Some legacy tests read gitignored models or historical `runs/` files without an `integration` marker. A clean clone therefore cannot be assumed to reproduce the archived 514-test result. Tests marked `integration` require the local COMSOL installation and may solve models; run them deliberately. See [test scope and known limits](docs/DEVELOPMENT.md#测试与已知限制).
+Tests marked `artifact` verify retained local models/results and fail if the required data are missing; they are not part of data-free CI. In a checkout with those historical fixtures, `python -m pytest -q -m "not integration"` includes that audit. Tests marked `integration` require COMSOL and may solve models. The archived 514-test result predates this test separation and remains a record of that execution. See [test scope and known limits](docs/DEVELOPMENT.md#测试与已知限制) and the [CI and Python refactoring report](docs/reports/CODE_HEALTH_CI_20261106.md).
 
 ## Physical and data scope
 

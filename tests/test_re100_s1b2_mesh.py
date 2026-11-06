@@ -6,10 +6,10 @@ evidence. Wake tests use actual exported-text parsing and analytical signals.
 
 from __future__ import annotations
 
-from copy import deepcopy
 import json
-from pathlib import Path
 import sys
+from copy import deepcopy
+from pathlib import Path
 from unittest.mock import Mock
 
 import numpy as np
@@ -20,8 +20,8 @@ for location in (ROOT_DIR, ROOT_DIR / "src"):
     if str(location) not in sys.path:
         sys.path.insert(0, str(location))
 
-from scripts import run_re100_s1b2_mesh as mesh_run
 from hydro_disturb_bench.comsol_java import bridge as comsol_bridge
+from scripts import run_re100_s1b2_mesh as mesh_run
 
 
 def _time_policy():

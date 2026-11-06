@@ -103,14 +103,15 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 | --- | --- |
 | 干净克隆的规划示例 | `python -m pytest -q tests/test_planning.py`，不要求 COMSOL 或历史模型 |
 | 采样、序列与分支修改 | 按变更选择 `tests/test_full_field_sampling.py`、`tests/test_field_sequence.py`、`tests/test_branch_pulse.py`、`tests/test_branch_pulse_runner.py`、`tests/test_pulse_amplitude_series.py` |
-| 配有历史夹具的离线回归 | `python -m pytest -q -m "not integration"`；最新归档为 514 passed，30 deselected |
+| 干净环境 CI | `uv sync --locked --extra dev --extra analysis`，随后 `uv run --no-sync pytest -q --strict-markers -m "not integration and not artifact"`；无需 COMSOL 或本地历史数据 |
+| 配有历史夹具的离线回归 | `python -m pytest -q -m "not integration"`，包含 `artifact` 历史验收；缺文件时仍失败 |
 | 真实接口验证 | `tests/test_comsol_integration.py` 及对应阶段运行证据；需要真实环境，部分测试会求解，不与离线通过数混算 |
 
-定向测试是相关回归的子集，不能相加为独立总数。最新 514 项记录是实验交付时的 Windows 离线执行；本次文档同步没有重新运行全库或旧集成测试。真实两条新分支另有回读、步进和场验证记录。
+定向测试是相关回归的子集，不能相加为独立总数。514 项记录是实验交付时的 Windows 离线执行；新的 CI/测试分层及 Python 服务抽取记录见 [代码健康修复报告](reports/CODE_HEALTH_CI_20261106.md)。测试数随新增覆盖和标记校正变化，不将旧数量作为永久验收目标。真实两条新分支另有回读、步进和场验证记录。
 
 当前可见限制：
 
-- **旧测试夹具依赖**：部分未标 `integration` 的测试仍读取 gitignored 的历史模型/结果。干净克隆的全离线命令不能保证通过；首次幅值回归缺夹具的 29 项失败已保留，随后补齐访问得到通过。现有 CI 配置使用离线命令，不据此推断远端 CI 已通过。
+- **测试分层**：历史产物检查现单列 `artifact`，真实求解/安装检查标 `integration`，模拟事务测试使用临时假模型保留在普通 CI。首次幅值回归缺夹具的 29 项历史失败保留原记录，不改写成当时通过。CI 显式安装锁定依赖并排除这两类外部环境检查；实际运行结果以对应提交的 Actions 为准。
 - **Windows 发布可靠性 P2**：曾出现目录 rename 的 `WinError 5`。失败现场保留、重测通过不等于根因已解决；本次不扩展接口重构。
 - **初始化边界**：分支协议把 `consistent` 从连续基线的 `bweuler` 改成 `off`，用 Z−B 测量影响，不能称所有求解设置未变。
 - **科学边界**：未完成计算域扫描、独立求解器验证、完整动量收支、全域真解误差估计或 ML 泛化评估；施加源项积分不等于流体净动量变化。

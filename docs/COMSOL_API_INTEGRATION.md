@@ -236,4 +236,12 @@ Evidence navigation:
 - [Native zero/pulse restart](STAGE_M3_BRANCH_PULSE_20261105.md) and [three-amplitude comparison](reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md).
 - [Amplitude-series Git-blob auditor](evidence/m3_pulse_amplitude_series_20261106/audit_delivery.py), which needs no local model or full field data; use its fixed delivery commit, as described in [PUBLISHING.md](PUBLISHING.md).
 
-The archived Windows regression record and a new local test execution are different evidence. `pytest -m 'not integration'` prevents tests marked as integration from running, but some legacy unmarked tests still require ignored MPH/diagnostic files. A fresh clone is not a complete data fixture. See the development instructions and [publishing evidence boundaries](PUBLISHING.md) before interpreting missing-data failures as new solver failures.
+## 7. Invocation-local Process Recording and Branch Services
+
+`comsol_java.run_command(args, root=None, *, process_runner=None)` is the public low-level command entry. A supplied runner follows the `subprocess.run`/`CompletedProcess` contract and is passed explicitly to bridge compilation, batch execution and standalone fallback. The default path retains the previous launch and error behavior. Sample and sequence exports also accept `process_runner` and forward it through every batch.
+
+The branch scripts use shared services in `hydro_disturb_bench.experiments` for execution evidence, raw process recording, completed-stage checks, sampling and solver-step analysis. The amplitude script no longer executes the original CLI through `importlib` or depends on its private helpers. Raw stdout/stderr, partial payloads and failure records remain separate files; implementation evidence includes the extracted service modules and the calling entrypoint. Old saved records remain readable.
+
+Process recording does not patch global `subprocess.run`. Overlapping fake executions verify isolated runner/log ownership; this does not certify concurrent COMSOL solves or shared Java compilation. The Java sources and numerical acceptance contracts are unchanged by this extraction. Splitting Java classes and the bridge's filesystem transaction layer remains separate work.
+
+The archived Windows regression record and a new local test execution are different evidence. Data-free checks select `not integration and not artifact`. Selecting `artifact` requires the retained MPH/diagnostic files; selecting `integration` requires COMSOL. See [the software-maintenance report](reports/CODE_HEALTH_CI_20261106.md) and [publishing evidence boundaries](PUBLISHING.md).

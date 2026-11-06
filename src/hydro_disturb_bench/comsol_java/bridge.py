@@ -21,6 +21,7 @@ import sys
 import tempfile
 import time
 import uuid
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -170,7 +171,11 @@ def get_comsol_bin_dir(root: Path | None = None) -> Path:
     return bin_dir
 
 
-def ensure_bridge_compiled(root: Path | None = None) -> Path:
+def ensure_bridge_compiled(
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> Path:
     """Ensure ComsolBridge.class is compiled and up-to-date."""
     root = root or find_comsol_root()
     bin_dir = get_comsol_bin_dir(root)
@@ -193,7 +198,8 @@ def ensure_bridge_compiled(root: Path | None = None) -> Path:
 
     if needs_compile:
         cmd = [str(comsolcompile), str(java_src)]
-        proc = subprocess.run(
+        run_process = subprocess.run if process_runner is None else process_runner
+        proc = run_process(
             cmd,
             cwd=str(java_dir),
             capture_output=True,
@@ -225,13 +231,20 @@ def _graphics_preference_seed_dir(root: Path) -> Path:
     return Path.home() / ".comsol" / match.group(1)
 
 
-def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess.CompletedProcess:
+def _run_standalone(
+    root: Path,
+    class_file: Path,
+    args: list[str],
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> subprocess.CompletedProcess:
     """Use the official single-process Java API after a native batch startup failure.
 
     DLL search changes affect only this JVM. ASCII temporary class paths and
     base64 UTF-8 arguments avoid the bundled Java launcher's Windows argv loss.
     No model is copied and no installed file is changed.
     """
+    run_process = subprocess.run if process_runner is None else process_runner
     java_bin = root / "java" / "win64" / "jre" / "bin"
     with tempfile.TemporaryDirectory(prefix="hydrobench_comsol_") as temp:
         work = Path(temp)
@@ -241,7 +254,7 @@ def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess
         source = work / "ComsolStandalone.java"
         shutil.copy2(Path(__file__).with_name("ComsolStandalone.java"), source)
         classpath = str(root / "plugins" / "*") + os.pathsep + str(work)
-        compiled = subprocess.run(
+        compiled = run_process(
             [str(java_bin / "javac.exe"), "-cp", classpath, str(source)],
             cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
@@ -267,7 +280,7 @@ def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess
                 (isolated_preferences / name).write_bytes(contents)
                 preference_seed_hashes[name] = hashlib.sha256(contents).hexdigest()
             graphics_options = ["-Dcs.3drend=sw", f"-Dcs.prefsdir={isolated_preferences}"]
-        process = subprocess.run(
+        process = run_process(
             [str(java_bin / "java.exe"), "-Xmx2g", "-Xss4m", *graphics_options, "-cp", classpath,
              "ComsolStandalone", *encoded],
             cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
@@ -278,7 +291,12 @@ def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess
         return process
 
 
-def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+def _run_bridge(
+    args: list[str],
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
     """Execute ComsolBridge with given arguments and parse JSON result."""
     root = root or find_comsol_root()
     bin_dir = get_comsol_bin_dir(root)
@@ -286,18 +304,21 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     if not comsolbatch.is_file():
         raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
 
-    class_file = ensure_bridge_compiled(root)
+    # Omit the optional keyword on the default path to retain existing adapters.
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    run_process = subprocess.run if process_runner is None else process_runner
+    class_file = ensure_bridge_compiled(root, **process_options)
 
     # On Windows, image export requires headless software rendering and isolated preferences
     # via the standalone Java launcher. comsolbatch without a display skips PNG rendering.
     if sys.platform == "win32" and args and args[0] == "export-s1-diagnostics":
-        proc = _run_standalone(root, class_file, args)
+        proc = _run_standalone(root, class_file, args, **process_options)
         launch_mode = "standalone_java_api"
         startup_failure = None
     else:
         cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
 
-        proc = subprocess.run(
+        proc = run_process(
             cmd,
             cwd=str(class_file.parent),
             capture_output=True,
@@ -314,7 +335,7 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
                 and "Failed to start COMSOL" in (proc.stdout or "")
                 and "FlNativeException" in (proc.stdout or "")):
             startup_failure = {"stdout": proc.stdout, "stderr": proc.stderr, "returncode": proc.returncode}
-            proc = _run_standalone(root, class_file, args)
+            proc = _run_standalone(root, class_file, args, **process_options)
             launch_mode = "standalone_java_api"
 
     # Clean up comsolbatch status file if created in the directory
@@ -432,6 +453,24 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     if startup_failure is not None:
         data["batch_startup_failure"] = startup_failure
     return data
+
+
+def run_command(
+    args: list[str],
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
+    """Run one bridge command with an optional invocation-local process runner.
+
+    The runner follows ``subprocess.run``'s argument and CompletedProcess contract,
+    including requested text decoding. It handles every compilation, batch launch,
+    and standalone fallback for this call without changing global subprocess state.
+    Model/output identity and experiment-specific admission remain caller contracts.
+    """
+    if process_runner is None:
+        return _run_bridge(args, root=root)
+    return _run_bridge(args, root=root, process_runner=process_runner)
 
 
 def inspect_api(root: Path | None = None) -> dict[str, Any]:
@@ -1576,11 +1615,14 @@ def export_full_field_sample(
     bounds=(0.0, 0.4, 0.0, 0.24),
     allow_overwrite: bool = False,
     root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
 ) -> dict[str, Any]:
     """Read an existing solution into two validated Cartesian sample archives."""
     from ..field_sampling import export_full_field_sample as sample
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
     return sample(model_path, output_dir, requested_times, grid_shapes, bounds,
-                  allow_overwrite=allow_overwrite, root=root)
+                  allow_overwrite=allow_overwrite, root=root, **process_options)
 
 
 def _archive_existing_diagnostic_set(output_dir: Path) -> str | None:

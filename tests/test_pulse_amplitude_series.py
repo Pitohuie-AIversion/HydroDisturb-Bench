@@ -316,7 +316,7 @@ def reference_world(runner, tmp_path, monkeypatch):
         monkeypatch.setattr(runner, name, value)
     loader = Mock(side_effect=lambda path: loaded[Path(path).resolve()])
     monkeypatch.setattr(runner, "load_full_field_sequence", loader)
-    monkeypatch.setattr(runner.legacy, "load_full_field_sequence", loader)
+    monkeypatch.setattr(runner.execution, "load_full_field_sequence", loader)
     frozen = runner.load_frozen_plan(plan_path, _hash(plan_path))
     return {"plan": frozen, "spec": spec, "plan_path": plan_path,
             "source": source, "checkpoint": checkpoint, "reference": reference,
@@ -341,7 +341,7 @@ def _repin_reference(world, path, value=None):
 
 def test_reference_reuse_checks_real_native_and_field_identities(runner, reference_world, monkeypatch):
     external = Mock(side_effect=AssertionError("Reference validation must not launch COMSOL"))
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     result = runner.validate_reference(reference_world["plan"])
     assert result["zero"]["amplitude_m_s2"] == 0
     assert result["a0050"]["amplitude_m_s2"] == .005
@@ -358,7 +358,7 @@ def test_reference_byte_failures_stop_before_any_new_solve(runner, reference_wor
     else:
         (world["reference"] / "zero/readback.json").unlink()
     external = Mock(side_effect=AssertionError("Unverified reference triggered COMSOL"))
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     with pytest.raises((bridge.ModelValidationError, FileNotFoundError)):
         runner.run_series(world["plan"], world["data_root"] / "new_series", stage="solve")
     external.assert_not_called()
@@ -411,7 +411,7 @@ def test_reused_field_provenance_must_match_the_accepted_model(runner, reference
 
 
 def _new_bridge(world, *, fault=None, fail_amplitude=None):
-    def call(args):
+    def call(args, **kwargs):
         amplitude = float(args[3])
         if amplitude == fail_amplitude:
             raise bridge.ModelValidationError("Injected second new Time failure")
@@ -447,8 +447,8 @@ def _new_bridge(world, *, fault=None, fail_amplitude=None):
 
 
 def _mock_sample(runner, world, monkeypatch, *, fault=None):
-    def sample(output, name, plan):
-        _, model, record = runner.legacy._completed(output / name)
+    def sample(output, name, plan, **kwargs):
+        _, model, record = runner.execution.completed_stage(output / name)
         directory = output / f"sample_{name}/fields"
         fields = _fields(np.linspace(180, 200, 101), model, pulse=fault != "undetectable")
         if fault == "wrong_source":
@@ -461,7 +461,7 @@ def _mock_sample(runner, world, monkeypatch, *, fault=None):
             "source_sha256": record["output_sha256"],
             "manifest_sha256": _hash(directory / "sequence_manifest.json"),
         })
-    monkeypatch.setattr(runner.legacy, "_sample", sample)
+    monkeypatch.setattr(runner.execution, "sample_branch", sample)
 
 
 def test_series_entrypoint_solves_only_two_new_amplitudes_and_reuses_controls(
@@ -471,7 +471,7 @@ def test_series_entrypoint_solves_only_two_new_amplitudes_and_reuses_controls(
     before = {item["path"]: _hash(world["data_root"] / item["path"])
               for item in world["plan"]["reference_files"]}
     external = _new_bridge(world)
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     _mock_sample(runner, world, monkeypatch)
     output = world["data_root"] / "new_series"
     report = runner.run_series(world["plan"], output)
@@ -496,7 +496,7 @@ def test_new_solve_rejects_actual_identity_faults_and_retains_returned_evidence(
 ):
     world = reference_world
     external = _new_bridge(world, fault=fault)
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     output = world["data_root"] / "new_series"
     output.mkdir()
     with pytest.raises(bridge.ModelValidationError):
@@ -529,7 +529,7 @@ def test_new_solve_cannot_relax_thresholds_or_fit_source_reference_to_observed_v
     else:
         derived["source_integral_reference"]["peak_force_per_depth_N_m"] *= 1.03
     external = Mock()
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     with pytest.raises(bridge.ModelValidationError):
         runner._solve_new(world["data_root"] / "new_series", world["checkpoint"], "a0025", .0025,
                           world["plan"], derived)
@@ -541,7 +541,7 @@ def test_new_sample_cannot_be_relabelled_from_the_reused_a0050_case(
 ):
     world = reference_world
     external = _new_bridge(world)
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     _mock_sample(runner, world, monkeypatch, fault="wrong_source")
     with pytest.raises(bridge.ModelValidationError, match="Sampled fields"):
         runner.run_series(world["plan"], world["data_root"] / "new_series")
@@ -554,7 +554,7 @@ def test_numerical_failure_stops_series_without_tuning_amplitude_or_acceptance(
 ):
     world = reference_world
     external = _new_bridge(world, fault=fault)
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     _mock_sample(runner, world, monkeypatch, fault=fault)
     report = runner.run_series(world["plan"], world["data_root"] / "new_series")
     assert report["status"] == "FAIL"
@@ -571,7 +571,7 @@ def test_second_new_solve_failure_preserves_first_case_and_all_old_artifacts(
     before = {item["path"]: _hash(world["data_root"] / item["path"])
               for item in world["plan"]["reference_files"]}
     external = _new_bridge(world, fail_amplitude=.010)
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     output = world["data_root"] / "new_series"
     with pytest.raises(bridge.ModelValidationError, match="Injected second"):
         runner.run_series(world["plan"], output, stage="solve")
@@ -585,7 +585,7 @@ def test_second_new_solve_failure_preserves_first_case_and_all_old_artifacts(
 def test_existing_completed_new_model_is_checked_before_reuse(runner, reference_world, monkeypatch):
     world = reference_world
     external = _new_bridge(world)
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     output = world["data_root"] / "new_series"
     output.mkdir()
     derived = runner.derive_plan(world["plan"], .0025)
@@ -605,7 +605,7 @@ def test_sample_only_stage_cannot_bypass_new_series_provenance(
     output = world["data_root"] / "new_series"
     runner.run_series(world["plan"], output, stage="precheck")
     external = _new_bridge(world)
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     runner._solve_new(output, world["checkpoint"], "a0025", .0025,
                       world["plan"], runner.derive_plan(world["plan"], .0025))
     path = output / "a0025/series_execution.json"
@@ -616,7 +616,7 @@ def test_sample_only_stage_cannot_bypass_new_series_provenance(
         record["readback_sha256"] = "0" * 64
     _write(path, record)
     sampler = Mock(side_effect=AssertionError("Unverified new model reached sampling"))
-    monkeypatch.setattr(runner.legacy, "_sample", sampler)
+    monkeypatch.setattr(runner.execution, "sample_branch", sampler)
     with pytest.raises(bridge.ModelValidationError):
         runner.run_series(world["plan"], output, stage="sample")
     sampler.assert_not_called()
@@ -629,7 +629,7 @@ def test_unrelated_existing_output_is_not_overwritten(runner, reference_world, m
     sentinel = output / "history.txt"
     sentinel.write_bytes(b"must remain unchanged")
     external = Mock()
-    monkeypatch.setattr(runner.legacy.bridge, "_run_bridge", external)
+    monkeypatch.setattr(bridge, "run_command", external)
     with pytest.raises((bridge.ModelValidationError, FileNotFoundError)):
         runner.run_series(world["plan"], output, stage="solve")
     external.assert_not_called()

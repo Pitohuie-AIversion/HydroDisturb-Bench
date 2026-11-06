@@ -203,13 +203,14 @@ def load_full_field_sample(grid_dir):
 
 
 def _export_grid_sample(model_path, grid_dir, times, shape, bounds, before, *, root=None,
-                        command="export-full-field-sample"):
+                        command="export-full-field-sample", process_runner=None):
     """Run the shared per-grid validation and write one immutable NPZ batch."""
     nx, ny = shape
     grid_dir.mkdir()
-    response = bridge._run_bridge([command, str(model_path), str(grid_dir),
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    response = bridge.run_command([command, str(model_path), str(grid_dir),
         ",".join(format(t, ".17g") for t in times), str(nx), str(ny),
-        *(format(v, ".17g") for v in bounds)], root=root)
+        *(format(v, ".17g") for v in bounds)], root=root, **process_options)
     _write_json(grid_dir / "bridge_response.json", response)
     if command == "export-full-field-sequence-batch":
         _require(response.get("batch_mode") is True, "Missing explicit sequence batch mode")
@@ -247,7 +248,7 @@ def _export_grid_sample(model_path, grid_dir, times, shape, bounds, before, *, r
 
 def export_full_field_sample(model_path, output_dir, requested_times=(180., 185., 190., 195., 200.),
                              grid_shapes=((81, 49), (161, 97)), bounds=(0., .4, 0., .24),
-                             *, allow_overwrite=False, root=None):
+                             *, allow_overwrite=False, root=None, process_runner=None):
     """Export two small samples into a new directory; retain failed staging evidence."""
     model_path, output_dir = Path(model_path).resolve(), Path(output_dir).absolute()
     if not model_path.is_file():
@@ -274,10 +275,12 @@ def export_full_field_sample(model_path, output_dir, requested_times=(180., 185.
               "source_sha256": before, "requested_times": times.tolist(), "tensor_layout": LAYOUT,
               "channel_order": list(CHANNELS), "units": list(UNITS), "grids": [], "solver_called": False}
     try:
+        process_options = {} if process_runner is None else {"process_runner": process_runner}
         for nx, ny in grid_shapes:
             grid_dir = stage / f"grid_{nx}x{ny}"
             report["grids"].append(_export_grid_sample(
-                model_path, grid_dir, times, (nx, ny), bounds, before, root=root))
+                model_path, grid_dir, times, (nx, ny), bounds, before, root=root,
+                **process_options))
         _require(bridge.compute_file_hash(model_path) == before, "Source model changed during sampling")
         report.update(status="PASS", output_dir=str(output_dir.resolve()), source_unchanged=True)
         _write_json(stage / "sample_report.json", report)

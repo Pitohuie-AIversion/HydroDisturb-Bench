@@ -42,7 +42,7 @@ def _vector(values=(1.0, 2.0)):
 
 
 def _success(source):
-    def respond(args):
+    def respond(args, **kwargs):
         target = Path(args[2])
         target.write_bytes(b"offline fake saved branch")
         return {
@@ -84,13 +84,16 @@ def _reusable(runner, tmp_path, source, wrong_hash=False):
 
 def test_runner_persists_vectors_readback_and_model_hashes(runner, tmp_path, source):
     stage = tmp_path / "zero"
-    with patch.object(runner.bridge, "_run_bridge", side_effect=_success(source)) as fake:
+    with patch.object(runner.bridge, "run_command", side_effect=_success(source)) as fake:
         response, target, record = _run(runner, stage, source)
     assert fake.call_count == 1
     assert record["source_sha256_before"] == record["source_sha256_after"] == runner._hash(source)
     assert record["output_sha256"] == runner._hash(target)
     assert record["implementation"]["all_source_files_unchanged"] is True
-    assert len(record["implementation"]["source_files"]) == 3
+    assert {Path(path).name for path in record["implementation"]["source_files"]} == {
+        "run_m3_branch_pulse.py", "bridge.py", "ComsolBridge.java", "ComsolStandalone.java",
+        "__init__.py", "branch_execution.py", "process_recording.py", "evidence_io.py", "solver_steps.py",
+    }
     assert runner._hash(stage / "native_seed.bin") == response["native_vectors"]["seed"]["sha256"]
     assert runner._hash(stage / "native_derivative_seed.bin") == response["native_derivatives"]["seed"]["sha256"]
     assert (stage / "native_derivative_vectors.json").is_file()
@@ -99,7 +102,7 @@ def test_runner_persists_vectors_readback_and_model_hashes(runner, tmp_path, sou
 
 def test_runner_rejects_changed_completed_model(runner, tmp_path, source):
     stage = tmp_path / "zero"
-    with patch.object(runner.bridge, "_run_bridge", side_effect=_success(source)):
+    with patch.object(runner.bridge, "run_command", side_effect=_success(source)):
         _run(runner, stage, source)
     (stage / "zero.mph").write_bytes(b"corrupted offline fixture")
     with pytest.raises(runner.bridge.ModelValidationError, match="Completed model bytes changed"):
@@ -108,14 +111,14 @@ def test_runner_rejects_changed_completed_model(runner, tmp_path, source):
 
 def test_runner_preserves_failure_and_refuses_overwrite(runner, tmp_path, source):
     stage = tmp_path / "zero"
-    with patch.object(runner.bridge, "_run_bridge", side_effect=runner.bridge.ModelValidationError("injected")):
+    with patch.object(runner.bridge, "run_command", side_effect=runner.bridge.ModelValidationError("injected")):
         with pytest.raises(runner.bridge.ModelValidationError, match="injected"):
             _run(runner, stage, source)
     failure = (stage / "failure.json").read_bytes()
     failed = json.loads(failure)
     assert failed["implementation"]["all_source_files_unchanged"] is True
-    assert len(failed["implementation"]["source_files"]) == 3
-    with patch.object(runner.bridge, "_run_bridge") as fake:
+    assert len(failed["implementation"]["source_files"]) == 9
+    with patch.object(runner.bridge, "run_command") as fake:
         with pytest.raises(FileExistsError):
             _run(runner, stage, source)
     fake.assert_not_called()
@@ -125,7 +128,7 @@ def test_runner_preserves_failure_and_refuses_overwrite(runner, tmp_path, source
 
 def test_runner_reuses_verified_checkpoint_without_bridge(runner, tmp_path, source):
     output, args, plan = _reusable(runner, tmp_path, source)
-    with patch.object(runner.bridge, "_run_bridge") as fake:
+    with patch.object(runner.bridge, "run_command") as fake:
         result = runner._prepare(output, source, args, plan)
     fake.assert_not_called()
     assert result[2]["reused"] is True
@@ -136,11 +139,11 @@ def test_runner_reuses_verified_checkpoint_without_bridge(runner, tmp_path, sour
 
 def test_runner_rejects_derivative_hash_mismatch_and_retains_readback(runner, tmp_path, source):
     stage = tmp_path / "zero"
-    def corrupt(args):
+    def corrupt(args, **kwargs):
         result = _success(source)(args)
         result["native_derivatives"]["seed"]["sha256"] = "0" * 64
         return result
-    with patch.object(runner.bridge, "_run_bridge", side_effect=corrupt):
+    with patch.object(runner.bridge, "run_command", side_effect=corrupt):
         with pytest.raises(runner.bridge.ModelValidationError, match="vector bytes"):
             _run(runner, stage, source)
     assert (stage / "failure.json").is_file()
@@ -151,7 +154,7 @@ def test_runner_rejects_derivative_hash_mismatch_and_retains_readback(runner, tm
 
 def test_runner_rejects_checkpoint_hash_before_stage_creation(runner, tmp_path, source):
     output, args, plan = _reusable(runner, tmp_path, source, wrong_hash=True)
-    with patch.object(runner.bridge, "_run_bridge") as fake:
+    with patch.object(runner.bridge, "run_command") as fake:
         with pytest.raises(runner.bridge.ModelValidationError, match="output_sha256"):
             runner._prepare(output, source, args, plan)
     fake.assert_not_called()
@@ -163,16 +166,16 @@ def test_runner_passes_explicit_frozen_protocol_to_each_branch(runner, tmp_path,
     protocol = runner._read(runner.RESTART_PROTOCOL_PATH)
     plan = {"restart_protocol": protocol,
             "pulse": {"zero_branch_amplitude_m_s2": 0., "acceleration_amplitude_m_s2": .005}}
-    with patch.object(runner.bridge, "_run_bridge", side_effect=_success(source)) as fake:
+    with patch.object(runner.bridge, "run_command", side_effect=_success(source)) as fake:
         runner._solve(tmp_path, source, name, plan)
     assert fake.call_args.args[0][4:] == ["native-restart-consistent-off-v2"]
-    with patch.object(runner.bridge, "_run_bridge") as unused:
+    with patch.object(runner.bridge, "run_command") as unused:
         runner._solve(tmp_path, source, name, plan)
     unused.assert_not_called()
 
 
 def test_runner_rejects_reusing_old_solve_without_explicit_protocol(runner, tmp_path, source):
-    with patch.object(runner.bridge, "_run_bridge", side_effect=_success(source)):
+    with patch.object(runner.bridge, "run_command", side_effect=_success(source)):
         _run(runner, tmp_path / "zero", source)
     plan = {"restart_protocol": runner._read(runner.RESTART_PROTOCOL_PATH)}
     with pytest.raises(runner.bridge.ModelValidationError, match="explicit restart protocol"):
@@ -242,8 +245,8 @@ def test_runner_rejects_vector_bytes_hash_mismatch(runner, tmp_path):
 
 
 def test_runner_preserves_raw_process_bytes_before_decoding(runner, tmp_path):
-    with runner._capture_processes(tmp_path):
-        result = subprocess.run(
+    with runner._capture_processes(tmp_path) as record_process:
+        result = record_process(
             [sys.executable, "-c", "import sys;sys.stdout.buffer.write(b'\\xff\\n');sys.stderr.buffer.write(b'\\xfe')"],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
@@ -269,7 +272,7 @@ def test_analysis_rejects_valid_sequence_from_wrong_branch_model(runner, tmp_pat
     for name in ("zero", "pulse"):
         stage = output / name
         target = stage / f"{name}.mph"
-        with patch.object(runner.bridge, "_run_bridge", side_effect=_success(checkpoint)):
+        with patch.object(runner.bridge, "run_command", side_effect=_success(checkpoint)):
             _, models[name], _ = runner._execute(
                 stage, ["run-pulse-branch", str(checkpoint), str(target), "0", plan["restart_protocol"]["id"]],
                 checkpoint, target, "run_pulse_branch",
@@ -283,7 +286,7 @@ def test_analysis_rejects_valid_sequence_from_wrong_branch_model(runner, tmp_pat
         (models["pulse"], output / "sample_pulse/fields"),
     ):
         external = fixtures.AnalyticComsol(model)
-        with patch.object(runner.bridge, "_run_bridge", side_effect=external):
+        with patch.object(runner.bridge, "run_command", side_effect=external):
             runner.export_full_field_sequence(
                 model, directory, start=180.0, stop=180.4, step=0.2,
                 grid_shape=fixtures.SHAPE, batch_size=32,
@@ -446,3 +449,155 @@ def test_step_gate_missing_both_real_sources_fails(runner, tmp_path):
     result = runner._branch_step_validation(tmp_path, {}, plan)
     assert result["status"] == "FAIL"
     assert result["source"] is None
+
+
+def test_concurrent_executions_keep_process_logs_isolated(runner, tmp_path, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    barrier = Barrier(3)
+    original_run = subprocess.run
+
+    def external(args, *, process_runner):
+        source = Path(args[1])
+        response = _success(source)(args)
+        barrier.wait(timeout=10)
+        assert subprocess.run is original_run
+        label = source.stem
+        process_runner(
+            [sys.executable, "-c", "import sys;print(sys.argv[1]);print(sys.argv[1], file=sys.stderr)", label],
+            capture_output=True, text=True, encoding="utf-8",
+        )
+        return response
+
+    monkeypatch.setattr(runner.bridge, "run_command", external)
+    sources = [tmp_path / f"source_{index}.mph" for index in range(2)]
+    for index, source in enumerate(sources):
+        source.write_bytes(f"offline source {index}".encode())
+    stages = [tmp_path / f"stage_{index}" for index in range(2)]
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        pending = [pool.submit(_run, runner, stage, source) for stage, source in zip(stages, sources)]
+        barrier.wait(timeout=10)
+        assert subprocess.run is original_run
+        unrelated = subprocess.run([sys.executable, "-c", "print('unrelated process')"], capture_output=True)
+        assert unrelated.stdout.strip() == b"unrelated process"
+        for future in pending:
+            assert future.result(timeout=15)[2]["status"] == "COMPLETE"
+    for stage, source in zip(stages, sources):
+        for channel in ("stdout", "stderr"):
+            assert (stage / f"process_000_{channel}.log").read_bytes().strip() == source.stem.encode()
+        assert len(runner._read(stage / "processes.json")) == 1
+        assert not (stage / "process_001_stdout.log").exists()
+    assert subprocess.run is original_run
+
+
+def test_typed_bridge_error_retains_raw_streams_and_partial_native_payload(runner, tmp_path, source, monkeypatch):
+    binary_dir = tmp_path / "fake_bin"
+    binary_dir.mkdir()
+    (binary_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")).write_bytes(b"not executed")
+    class_file = binary_dir / "ComsolBridge.class"
+    class_file.write_bytes(b"not a JVM class; process is injected")
+    monkeypatch.setattr(runner.bridge, "find_comsol_root", lambda: binary_dir)
+    monkeypatch.setattr(runner.bridge, "get_comsol_bin_dir", lambda root: binary_dir)
+    monkeypatch.setattr(runner.bridge, "ensure_bridge_compiled", lambda root, **kwargs: class_file)
+    payload = {
+        "status": "ERROR", "error_code": "SOLVER_FAILED", "message": "native Time failed",
+        "details": "original COMSOL detail", "partial_native_vectors": {"input": _vector()},
+        "partial_native_derivatives": {"input": _vector((.25, -.5))},
+    }
+    stdout = b"\xffnative prefix\r\n<<<JSON_START>>>" + json.dumps(payload).encode() + b"<<<JSON_END>>>\r\n"
+    stderr = b"\xfefatal native stderr\r\n"
+
+    def binary_run(command, **kwargs):
+        assert not kwargs.get("text") and "encoding" not in kwargs
+        return subprocess.CompletedProcess(command, 1, stdout, stderr)
+
+    stage = tmp_path / "failed_native"
+    target = stage / "failed.mph"
+    with pytest.raises(runner.bridge.SolverFailedError, match="native Time failed") as error:
+        runner.execution.execute_branch(
+            stage, ["run-pulse-branch", str(source), str(target), "0"], source, target,
+            "run_pulse_branch", entrypoint=Path(runner.__file__), process_runner=binary_run,
+        )
+    assert error.value.details == "original COMSOL detail"
+    assert (stage / "process_000_stdout.log").read_bytes() == stdout
+    assert (stage / "process_000_stderr.log").read_bytes() == stderr
+    assert runner._read(stage / "process_000_payload.json") == payload
+    for field, suffix in (("partial_native_vectors", "partial"),
+                          ("partial_native_derivatives", "partial_derivative")):
+        assert runner._hash(stage / f"process_000_{suffix}_input.bin") == payload[field]["input"]["sha256"]
+    assert runner._read(stage / "failure.json")["details"] == "original COMSOL detail"
+    assert runner._read(stage / "processes.json")[0]["returncode"] == 1
+    assert not (stage / "execution.json").exists()
+
+
+def test_process_timeout_retains_partial_streams_and_exception(runner, tmp_path):
+    error = subprocess.TimeoutExpired(["offline"], 1, output=b"partial\xff", stderr=b"timeout\xfe")
+
+    def expired(command, **kwargs):
+        raise error
+
+    with pytest.raises(subprocess.TimeoutExpired) as caught:
+        with runner._capture_processes(tmp_path, expired) as record:
+            record(["offline"], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    assert caught.value is error
+    assert (tmp_path / "process_000_stdout.log").read_bytes() == b"partial\xff"
+    assert (tmp_path / "process_000_stderr.log").read_bytes() == b"timeout\xfe"
+    assert runner._read(tmp_path / "processes.json")[0]["error"]["type"] == "TimeoutExpired"
+
+
+def test_invalid_process_payload_is_retained_without_masking_bridge_handling(runner, tmp_path):
+    raw = b"<<<JSON_START>>>{invalid JSON<<<JSON_END>>>"
+    with runner._capture_processes(
+        tmp_path, lambda command, **kwargs: subprocess.CompletedProcess(command, 1, raw, b"original error")
+    ) as record:
+        result = record(["offline"], capture_output=True, text=True, encoding="utf-8")
+    assert result.returncode == 1
+    assert (tmp_path / "process_000_stdout.log").read_bytes() == raw
+    assert (tmp_path / "process_000_payload_decode_failure.json").is_file()
+
+
+def test_sample_service_records_explicit_process_and_binds_sampling_sources(runner, tmp_path, source, monkeypatch):
+    fixture_path = Path(__file__).with_name("test_field_sequence.py")
+    spec = importlib.util.spec_from_file_location("sequence_fixture_for_recorded_sample", fixture_path)
+    fixtures = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fixtures)
+    output = tmp_path / "run"
+    output.mkdir()
+    with patch.object(runner.bridge, "run_command", side_effect=_success(source)):
+        _, model, _ = _run(runner, output / "zero", source)
+    binary_dir = tmp_path / "fake_bin"
+    binary_dir.mkdir()
+    (binary_dir / ("comsolbatch.exe" if sys.platform == "win32" else "comsolbatch")).write_bytes(b"not executed")
+    class_file = binary_dir / "ComsolBridge.class"
+    class_file.write_bytes(b"not executed")
+    monkeypatch.setattr(runner.bridge, "find_comsol_root", lambda: binary_dir)
+    monkeypatch.setattr(runner.bridge, "get_comsol_bin_dir", lambda root: binary_dir)
+    monkeypatch.setattr(runner.bridge, "ensure_bridge_compiled", lambda root, **kwargs: class_file)
+    external = fixtures.AnalyticComsol(model)
+    original_streams = []
+
+    def binary_run(command, **kwargs):
+        assert command[4] == "export-full-field-sequence-batch"
+        assert not kwargs.get("text") and "encoding" not in kwargs
+        payload = external(command[4:])
+        raw = b"actual sampling prefix\r\n<<<JSON_START>>>" + json.dumps(payload).encode() + b"<<<JSON_END>>>"
+        original_streams.append(raw)
+        return subprocess.CompletedProcess(command, 0, raw, b"sampling stderr\r\n")
+
+    plan = {"branch_time_s": 180., "stop_s": 180.4, "output_step_s": .2,
+            "grid_shape_nx_ny": fixtures.SHAPE}
+    runner.execution.sample_branch(output, "zero", plan, entrypoint=Path(runner.__file__), process_runner=binary_run)
+    directory = output / "sample_zero"
+    assert (directory / "process_000_stdout.log").read_bytes() == original_streams[0]
+    assert (directory / "process_000_stderr.log").read_bytes() == b"sampling stderr\r\n"
+    record = runner._read(directory / "execution.json")
+    names = {Path(path).name for path in record["implementation"]["source_files"]}
+    assert {"branch_execution.py", "process_recording.py", "field_sequence.py", "field_sampling.py",
+            "run_m3_branch_pulse.py", "bridge.py", "ComsolBridge.java"} <= names
+    assert record["implementation"]["all_source_files_unchanged"] is True
+    assert runner.load_full_field_sequence(directory / "fields")["values"].shape == (3, 3, 9, 17)
+    original_log = (directory / "processes.json").read_bytes()
+    runner.execution.sample_branch(output, "zero", plan, entrypoint=Path(runner.__file__),
+                                   process_runner=lambda *args, **kwargs: pytest.fail("Completed sample must not run again"))
+    assert (directory / "processes.json").read_bytes() == original_log

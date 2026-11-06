@@ -15,11 +15,11 @@ dependencies = []
 dev = [
     "pytest>=8",
     "pytest-xdist>=3.5",
-    "numpy>=1.24",
+    "numpy>=2.0",
     "scipy>=1.10",
     "ruff>=0.8",
 ]
-analysis = ["matplotlib>=3.7", "numpy>=1.24", "scipy>=1.10"]
+analysis = ["matplotlib>=3.7", "numpy>=2.0", "scipy>=1.10"]
 comsol = ["MPh>=1.2"]
 
 [project.scripts]
@@ -33,6 +33,7 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 markers = [
     "integration: marks tests as requiring real COMSOL installation (deselect with '-m \"not integration\"')",
+    "artifact: validates historical local models/results; missing artifacts fail when selected (CI excludes this marker)",
 ]
 
 [tool.ruff]
@@ -45,6 +46,7 @@ exclude = [
     "runs",
     "build",
     "dist",
+    "docs/evidence",
 ]
 
 [tool.ruff.lint]

@@ -1097,6 +1097,7 @@ def test_standalone_launcher_preserves_unicode_arguments(tmp_path, monkeypatch):
 )
 def test_standalone_image_export_requires_one_software_renderer_readback(tmp_path, monkeypatch, renderer_lines, verified, directory_matches):
     import base64
+
     from hydro_disturb_bench.comsol_java import bridge
 
     _make_fake_comsolbatch(tmp_path)
@@ -1137,6 +1138,7 @@ def test_standalone_image_export_requires_one_software_renderer_readback(tmp_pat
 @pytest.mark.parametrize("operation", ["export-s1-diagnostics", "inspect-api"])
 def test_standalone_software_graphics_options_are_preinit_and_export_only(tmp_path, monkeypatch, operation):
     import hashlib
+
     from hydro_disturb_bench.comsol_java import bridge
 
     class_file = tmp_path / "ComsolBridge.class"

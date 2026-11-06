@@ -66,6 +66,7 @@ D = 0.01
 # ---------------------------------------------------------------------------
 # 1. Baseline & Solved Models Hash Immutability
 # ---------------------------------------------------------------------------
+@pytest.mark.artifact
 def test_all_baseline_and_prior_models_immutability():
     """Verify that cylinder_flow.mph, re100_benchmark.mph, and solved models are strictly immutable."""
     for path, expected in [
@@ -291,6 +292,7 @@ def test_verify_probe_metadata_rejects_unspecified_units_and_missing_actual_t():
 # ---------------------------------------------------------------------------
 # 3. Solver Request vs Live Readback Consistency
 # ---------------------------------------------------------------------------
+@pytest.mark.artifact
 def test_solver_requested_vs_readback_consistency():
     """Verify that requested rtol matches live solver readback and rejects inconsistencies."""
     meta_path = S1B1_DIR / "solver_metadata.json"
@@ -319,6 +321,7 @@ def test_solver_requested_vs_readback_consistency():
 # ---------------------------------------------------------------------------
 # 4. Non-Target Settings Equality (Case A vs Case B)
 # ---------------------------------------------------------------------------
+@pytest.mark.artifact
 def test_case_a_and_b_non_target_settings_strictly_identical():
     """Verify that mesh, physics, BCs, ICs, and stepping policy are identical between Case A and Case B."""
     meta_b = json.loads((S1B1_DIR / "solver_metadata.json").read_text(encoding="utf-8"))
@@ -578,6 +581,7 @@ def test_compare_cases_sensitive_when_lift_amplitude_or_rms_exceeds_threshold():
 # ---------------------------------------------------------------------------
 # 7. Physical Indicators & Tolerance Insensitivity (Case A vs B Production Data)
 # ---------------------------------------------------------------------------
+@pytest.mark.artifact
 def test_case_a_and_b_real_cfd_production_analysis():
     """Verify Case A and Case B real CFD runs using production analyze_case and compare_cases."""
     case_a_dir = ROOT_DIR / "runs" / "re100_s1a2_trial"
@@ -637,6 +641,7 @@ def test_case_a_and_b_real_cfd_production_analysis():
 # ---------------------------------------------------------------------------
 # 8. S1-B1 Diagnostics Completeness & Quarantine Protection
 # ---------------------------------------------------------------------------
+@pytest.mark.artifact
 def test_s1b1_diagnostics_completeness_and_manifest():
     """Verify that Case B diagnostic artifacts are fully validated and complete."""
     val = validate_s1_diagnostics(

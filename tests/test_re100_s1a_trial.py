@@ -53,6 +53,14 @@ BASELINE_SHA256 = "CE72D06EB181ACA2D152505A138F472B7EF424FE7A2CC20C900C670002F00
 BENCHMARK_SHA256 = "3087119AF52A8B59DBBA4500F370A46044E71BC17CDD031A53710A74FBA0BEB0"
 
 
+@pytest.fixture
+def offline_model(tmp_path: Path) -> Path:
+    """Provide source bytes for mocked export tests without a historical MPH."""
+    model = tmp_path / "offline_model.mph"
+    model.write_bytes(b"offline source model; external COMSOL execution is mocked")
+    return model
+
+
 def comsol_available() -> bool:
     try:
         find_comsol_root()
@@ -61,6 +69,7 @@ def comsol_available() -> bool:
         return False
 
 
+@pytest.mark.artifact
 def test_s1a_models_immutability():
     """Verify both baseline and S0 benchmark models have strictly unchanged SHA-256 hashes."""
     assert BASELINE_MODEL.is_file(), f"Baseline model not found at {BASELINE_MODEL}"
@@ -74,6 +83,7 @@ def test_s1a_models_immutability():
     )
 
 
+@pytest.mark.artifact
 def test_s1a_diagnostics_presence_fail_closed_no_silent_skip():
     """Verify S1-A diagnostic outputs exist. If missing, fail closed; DO NOT silently skip!"""
     assert S1_TRIAL_DIR.is_dir(), f"S1 trial directory missing: {S1_TRIAL_DIR}"
@@ -99,6 +109,7 @@ def test_s1a_diagnostics_presence_fail_closed_no_silent_skip():
             )
 
 
+@pytest.mark.artifact
 def test_s1a_data_contract_and_alignment():
     """Validate full S1 data contract: sample count, timestamp alignment, units, and finite values."""
     res = validate_s1_diagnostics(
@@ -177,6 +188,7 @@ def test_s1a_data_contract_rejection_on_corruptions(tmp_path: Path):
         validate_s1_diagnostics(mock_dir, expected_steps=11, expected_dt=1.0, expected_t_final=10.0)
 
 
+@pytest.mark.artifact
 def test_aerodynamic_coefficients_normalization_consistency():
     """Verify force normalization scale and aerodynamic coefficient formulas."""
     rho = 998.2
@@ -286,6 +298,7 @@ def test_growing_amplitude_signal_not_falsely_classified_as_limit_cycle():
     )
 
 
+@pytest.mark.artifact
 def test_s1a_pressure_surge_physical_bounds():
     """Verify startup pressure surge bounds and decay to steady hydrodynamic stagnation pressure."""
     t, ip, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "inlet_p.txt")
@@ -306,6 +319,7 @@ def test_s1a_pressure_surge_physical_bounds():
     )
 
 
+@pytest.mark.artifact
 def test_s1a_multi_window_statistics_and_cycle_analysis():
     """Verify multi-window comparison, cycle stability, and Strouhal number on actual S1-A data."""
     t, cl, _ = load_comsol_1d_timeseries(S1_TRIAL_DIR / "lift_coeff.txt")
@@ -415,7 +429,7 @@ def test_file_publish_lock_lifecycle_and_directory_target(tmp_path: Path):
         assert True
 
 
-def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path):
+def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path, offline_model: Path):
     """When target directory contains results, allow_overwrite=False refuses publish and preserves originals."""
     target_dir = tmp_path / "diag_existing"
     target_dir.mkdir()
@@ -452,7 +466,7 @@ def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path):
         with pytest.raises(
             FileExistsError, match="Refusing to overwrite existing diagnostic result set"
         ):
-            export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+            export_s1_diagnostics(offline_model, target_dir, allow_overwrite=False)
 
     # Destination files are strictly untouched!
     assert (target_dir / "lift_coeff.txt").read_bytes() == orig_lift_bytes
@@ -463,7 +477,7 @@ def test_export_s1_diagnostics_refuses_overwrite_by_default(tmp_path: Path):
     assert (quarantine_dirs[0] / "lift_coeff.txt").is_file()
 
 
-def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
+def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path, offline_model: Path):
     """When allow_overwrite=True, old results are preserved in versions/ and both versions are recoverable."""
     target_dir = tmp_path / "diag_versioned"
     target_dir.mkdir()
@@ -483,7 +497,7 @@ def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
             return {"status": "SUCCESS"}
 
         mock_bridge.side_effect = side_effect_v1
-        res1 = export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+        res1 = export_s1_diagnostics(offline_model, target_dir, allow_overwrite=False)
 
     assert (target_dir / "manifest.json").is_file()
     assert (target_dir / "lift_coeff.txt").read_text(encoding="utf-8").startswith("% Header V1")
@@ -503,7 +517,7 @@ def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
             return {"status": "SUCCESS"}
 
         mock_bridge.side_effect = side_effect_v2
-        res2 = export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+        res2 = export_s1_diagnostics(offline_model, target_dir, allow_overwrite=True)
 
     # Active target_dir is now Version 2
     assert (target_dir / "lift_coeff.txt").read_text(encoding="utf-8").startswith("% Header V2")
@@ -528,7 +542,7 @@ def test_export_s1_diagnostics_versioning_and_full_recovery(tmp_path: Path):
 
 @pytest.mark.parametrize("fail_file_idx", [1, 5, 11])
 def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
-    tmp_path: Path, fail_file_idx: int
+    tmp_path: Path, fail_file_idx: int, offline_model: Path
 ):
     """Simulate failure transferring the 1st, 5th, or 11th file: ensure no mixed result set is left marked as completed."""
     target_dir = tmp_path / f"fail_sim_{fail_file_idx}"
@@ -567,7 +581,7 @@ def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
 
         with patch("shutil.copy2", side_effect=faulty_copy2):
             with pytest.raises(OSError, match="Simulated filesystem failure"):
-                export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=True)
+                export_s1_diagnostics(offline_model, target_dir, allow_overwrite=True)
 
     # 1. manifest.json must NOT exist in target_dir!
     assert not (target_dir / "manifest.json").exists(), (
@@ -591,7 +605,7 @@ def test_simulated_publish_failure_at_file_1_5_11_prevents_mixed_results(
     assert sentinel_file.read_text(encoding="utf-8") == "DO_NOT_TOUCH"
 
 
-def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path):
+def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path, offline_model: Path):
     """When COMSOL aborts or data validation fails, staging artifacts are quarantined, never deleted with ignore_errors."""
     target_dir = tmp_path / "abort_target"
 
@@ -606,7 +620,7 @@ def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path)
         mock_bridge.side_effect = side_effect_abort
 
         with pytest.raises(ComsolConnectionError, match="COMSOL batch process terminated"):
-            export_s1_diagnostics(BASELINE_MODEL, target_dir, allow_overwrite=False)
+            export_s1_diagnostics(offline_model, target_dir, allow_overwrite=False)
 
     # Staging directory must be in quarantine as failed_*
     quarantined = list((tmp_path / "quarantine").glob("failed_*"))
@@ -615,7 +629,7 @@ def test_export_failure_preserves_staging_evidence_in_quarantine(tmp_path: Path)
     assert not target_dir.exists() or len(list(target_dir.iterdir())) == 0
 
 
-def test_multiprocess_concurrent_publish_race_no_corruption_or_loss(tmp_path: Path):
+def test_multiprocess_concurrent_publish_race_no_corruption_or_loss(tmp_path: Path, offline_model: Path):
     """Two concurrent processes racing to export/publish to the same output_dir serialize via lock without data loss."""
     import subprocess
 
@@ -650,13 +664,13 @@ with patch("hydro_disturb_bench.comsol_java.bridge._run_bridge", side_effect=moc
 """
     sub_env = {**os.environ, "PYTHONPATH": "src"}
     p1 = subprocess.Popen(
-        [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P1"],
+        [sys.executable, "-c", worker_code, str(offline_model), str(target_dir), "P1"],
         env=sub_env,
         stdout=subprocess.PIPE,
         text=True,
     )
     p2 = subprocess.Popen(
-        [sys.executable, "-c", worker_code, str(BASELINE_MODEL), str(target_dir), "P2"],
+        [sys.executable, "-c", worker_code, str(offline_model), str(target_dir), "P2"],
         env=sub_env,
         stdout=subprocess.PIPE,
         text=True,

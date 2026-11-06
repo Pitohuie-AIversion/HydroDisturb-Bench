@@ -1,4 +1,4 @@
-name: Python scaffold & offline checks
+name: Python offline checks
 on:
   push:
   pull_request:
@@ -17,16 +17,27 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          version: "latest"
+          version: "0.13.7"
 
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
+      - name: Sync locked development and analysis dependencies
+        run: uv sync --locked --python ${{ matrix.python-version }} --extra dev --extra analysis
+
       - name: Code style & static lint check (Ruff)
-        run: uv run ruff check .
+        run: uv run --no-sync --python ${{ matrix.python-version }} ruff check .
 
-      - name: Offline unit & contract tests (NO COMSOL required)
-        run: uv run --python ${{ matrix.python-version }} --extra dev pytest -q -m "not integration"
+      - name: Offline unit and contract tests (no COMSOL or local results)
+        run: uv run --no-sync --python ${{ matrix.python-version }} pytest -q --strict-markers -m "not integration and not artifact" --junitxml=test-results/offline.xml
 
-      - name: Repository scaffold static check
-        run: uv run --python ${{ matrix.python-version }} python scripts/check_repo.py
+      - name: Upload offline test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-tests-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: test-results/offline.xml
+          if-no-files-found: warn
+
+      - name: Repository entry point and documentation check
+        run: uv run --no-sync --python ${{ matrix.python-version }} python scripts/check_repo.py

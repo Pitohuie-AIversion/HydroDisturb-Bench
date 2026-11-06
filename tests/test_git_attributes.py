@@ -6,12 +6,11 @@ test_git_attributes.py - Regression test verifying that .gitattributes enforces:
 """
 
 from pathlib import Path
-import pytest
+
 from scripts.check_git_attributes import (
-    VALID_PNG_BYTES,
-    verify_isolated_git_staging,
     verify_check_attr_in_workspace,
     verify_git_blobs_against_manifests,
+    verify_isolated_git_staging,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
