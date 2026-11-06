@@ -7,13 +7,13 @@ Every invocation uses a new directory; previous runs are never reused.
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
 import json
-from pathlib import Path
 import re
 import sys
 import time
 import uuid
+from datetime import datetime, timezone
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 for location in (ROOT, ROOT / "src"):
