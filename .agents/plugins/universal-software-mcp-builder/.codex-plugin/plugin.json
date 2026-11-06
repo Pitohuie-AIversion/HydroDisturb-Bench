@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "name": "universal-software-mcp-builder",
+  "mcpServers": "../mcp.json",
+  "description": "Production-grade framework and scaffolding to design, build, audit, and deploy Model Context Protocol (MCP) servers for any desktop, scientific, and industrial software.",
+  "author": {
+    "name": "CAE & Agentic AI Architecture Team"
+  }
+}

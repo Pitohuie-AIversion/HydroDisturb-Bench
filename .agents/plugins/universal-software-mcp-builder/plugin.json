@@ -1,0 +1,48 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "universal-software-mcp-builder",
+  "version": "1.0.0",
+  "displayName": "Universal Software MCP Builder",
+  "description": "Production-grade engineering framework and scaffolding to design, build, audit, and deploy Model Context Protocol (MCP) servers for any desktop, scientific, and industrial software (CAE/CAD/EDA/simulation tools).",
+  "author": {
+    "name": "CAE & Agentic AI Architecture Team",
+    "email": "architecture@enterprise.internal"
+  },
+  "homepage": "https://github.com/Pitohuie-AIversion/HydroDisturb-Bench",
+  "keywords": [
+    "mcp",
+    "mcp-builder",
+    "model-context-protocol",
+    "scaffolding",
+    "cae",
+    "cad",
+    "simulation",
+    "fastmcp",
+    "desktop-software",
+    "industrial-ai"
+  ],
+  "mcpServers": "./mcp.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Universal Software MCP Builder",
+        "shortDescription": "Scaffold and build production MCP servers for any heavy software",
+        "longDescription": "The definitive engineering workflow, architectural standards, and scaffolding for building bulletproof Model Context Protocol (MCP) servers for complex desktop, scientific, and industrial software (COMSOL, ANSYS, Abaqus, MATLAB, SolidWorks, Star-CCM+, etc.).\n\nFeatures:\n- 7 Core Architectural Pillars: Crash isolation, Base64 zero-escape IPC, Copy-on-Write immutability, floating license management, offscreen rendering, and heavy data downsampling.\n- Ready-to-use FastMCP production server template.\n- 6-Stage implementation workflow from runtime audit to MCP exposition.\n- Enterprise OAuth 2.1 authentication and Human-in-the-Loop (HITL) dangerous action guards.\n- 4-Layer MCP testing pyramid and CI pipeline configurations.",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Architectural blueprint generation for any native desktop software",
+          "FastMCP production scaffolding generator (async tasks, license queue, CoW)",
+          "Native bridge design (JNA/Java, C++/CLI, COM/ActiveX, IPC pipes)",
+          "Security, OAuth 2.1, and Human-in-the-Loop (HITL) guardrail templates",
+          "4-layer MCP testing pyramid and CI pipeline configurations"
+        ],
+        "defaultPrompt": [
+          "Guide me through building a production-grade MCP server for ANSYS Fluent / Mechanical.",
+          "Generate a FastMCP server scaffold with floating license lock and Copy-on-Write sandboxing.",
+          "Audit my desktop software bridge architecture against the 7 Core Architectural Pillars.",
+          "Design a heavy data downsampling contract for 3D simulation field exports."
+        ]
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
-    "comsol_bridge": {
+    "software_mcp_scaffold": {
       "command": "python",
       "args": [
         "-m",
@@ -28,7 +28,6 @@
         }
       },
       "env_vars": [
-        "COMSOL_ROOT",
         "PATH",
         "LOCALAPPDATA",
         "USERPROFILE",
@@ -38,7 +37,6 @@
       "tool_timeout_sec": 3600,
       "env": {
         "PYTHONUNBUFFERED": "1",
-        "COMSOL_JAVA_HEAP": "16G",
         "QT_QPA_PLATFORM": "offscreen"
       }
     }
