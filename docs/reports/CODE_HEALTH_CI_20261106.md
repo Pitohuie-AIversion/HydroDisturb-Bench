@@ -8,6 +8,8 @@
 
 当前工作流固定 uv 0.13.7，先执行 `uv sync --locked --python 3.11 --extra dev --extra analysis`，后续均使用 `uv run --no-sync`。`analysis` 提供图片测试所需的 Pillow 依赖。NumPy 声明从 ≥1.24 修正为 ≥2.0，与实际使用的 `np.trapezoid` 一致；37 个锁定包的版本保持不变，仅更新锁文件中的对应要求。
 
+首次修复提交 `6651d4f` 的[远端运行](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/actions/runs/42201572180) 已在 Windows/Linux 上通过安装和 Ruff，随后收集测试时报告 `No module named 'scripts'`。原因是本地使用 `python -m pytest`，工作流直接使用 `pytest`，后者不自动提供相同的仓库根搜索路径。后续显式将 pytest 的 `pythonpath` 设置为 `["src", "."]`，使两种入口一致；原失败运行和 JUnit 保留，不记为通过。
+
 测试现在分为三类：
 
 | 类别 | 执行位置与含义 |
@@ -40,6 +42,7 @@
 | 检查 | 本地结果 |
 | --- | --- |
 | 完整离线回归，含本地产物验收 | **546 passed, 13 deselected in 79.49s**，Python 3.10.21，退出码 0 |
+| console pytest，采用 CI 的无本地产物选择 | **522 passed, 37 deselected in 67.60s**，Python 3.14.7，退出码 0；验证根导入路径修正 |
 | 桥接执行器、采样与序列定向 | 143 passed（包含在后续完整回归中） |
 | 两个分支入口及服务定向 | 100 passed（包含在后续完整回归中） |
 | Ruff | `ruff check .` 通过，0 项诊断 |
@@ -47,6 +50,8 @@
 | 仓库入口与 diff | `scripts/check_repo.py`、`git diff --check` 通过 |
 
 原始 [stdout](../evidence/code_health_ci_20261106/offline_stdout.txt)、[stderr](../evidence/code_health_ci_20261106/offline_stderr.txt)、[JUnit](../evidence/code_health_ci_20261106/offline_regression.xml) 与 [执行记录](../evidence/code_health_ci_20261106/offline_execution.json) 保存实际命令、解释器和返回码。[源码身份](../evidence/code_health_ci_20261106/source_identity.json) 是回归前工作目录字节的 SHA-256；测试前后相同，明确区别于 Git 可能进行 LF 规范化后的 blob 字节。
+
+根导入路径修正后的 console 入口另存 [stdout](../evidence/code_health_ci_20261106/console_ci_stdout.txt)、[stderr](../evidence/code_health_ci_20261106/console_ci_stderr.txt)、[JUnit](../evidence/code_health_ci_20261106/console_ci_regression.xml) 和 [执行记录](../evidence/code_health_ci_20261106/console_ci_execution.json)。这 522 项属于上表离线覆盖的无本地产物子集，不能与 546 相加；本地两次使用不同现有解释器，远端固定 Python 3.11。
 
 暂存检查另发现两个新增模块末尾有多余空白行；测试后仅移除这些行，Python AST 相同，实际前后哈希见 [格式变化记录](../evidence/code_health_ci_20261106/post_test_formatting.json)。远端 CI 检查最终提交字节。
 

@@ -7,10 +7,11 @@
 ### CI 修复与 Python 执行服务抽取
 
 - 修复 uv 已安装但 Ruff extra 未安装造成的真实 Actions 失败；固定 uv 0.13.7，显式同步锁定的 dev/analysis 依赖，后续命令不重复同步，上传 JUnit。
+- 根据首次修复后的远端收集失败，显式配置 pytest 的源码与仓库根导入路径，统一 console pytest 与 `python -m pytest` 对脚本模块的导入。
 - 分离 `artifact` 与真实 `integration` 测试；7 个模拟事务实例使用临时模型，恢复 S0 的 15 项离线覆盖；历史产物缺失仍明确失败。
 - 修正 NumPy 最低版本为 2.0，清理当前维护代码的 lint；冻结证据退出样式扫描，原字节与清单核验保留。
 - 抽取公共分支执行、进程留证、步进与证据 IO 服务；幅值入口不再加载旧 CLI，生产代码移除全局 subprocess patch。显式执行器覆盖编译、启动回退及逐批采样，保留来源、失败现场和旧记录读取。
-- 本地完整离线回归 **546 passed, 13 deselected**，未启动 COMSOL；Java、物理参数、统计公式和历史证据未修改。[修复报告与验证范围](docs/reports/CODE_HEALTH_CI_20261106.md)。
+- 本地完整离线回归 **546 passed, 13 deselected**；修正导入路径后，console pytest 的 CI 子集为 **522 passed, 37 deselected**。未启动 COMSOL；Java、物理参数、统计公式和历史证据未修改。[修复报告与验证范围](docs/reports/CODE_HEALTH_CI_20261106.md)。
 
 ### 开发文档同步
 
