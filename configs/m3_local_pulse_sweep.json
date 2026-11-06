@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "sweep_id": "m3-local-pulse-matrix-v1",
+  "base_config_path": "configs/m3_local_pulse.json",
+  "base_config_sha256": "1a1d61a984d343af37e5889a613adea7572e8cbee2245a74311d329db452f897",
+  "cases": [
+    {
+      "event_id": "m3-local-pulse-default",
+      "config": {
+        "schema_version": 1,
+        "event_id": "m3-local-pulse-default",
+        "mechanism": "gaussian_body_acceleration",
+        "pulse": {
+          "center_m": [0.15, 0.12],
+          "direction_deg": 90,
+          "acceleration_m_s2": 0.005,
+          "sigma_m": 0.01,
+          "on_s": 181,
+          "off_s": 183
+        }
+      }
+    },
+    {
+      "event_id": "m3-local-pulse-diagonal-debug",
+      "config": {
+        "schema_version": 1,
+        "event_id": "m3-local-pulse-diagonal-debug",
+        "mechanism": "gaussian_body_acceleration",
+        "pulse": {
+          "center_m": [0.17, 0.13],
+          "direction_deg": 45,
+          "acceleration_m_s2": 0.0075,
+          "sigma_m": 0.008,
+          "on_s": 182,
+          "off_s": 184
+        }
+      }
+    },
+    {
+      "event_id": "m3-local-pulse-downward",
+      "config": {
+        "schema_version": 1,
+        "event_id": "m3-local-pulse-downward",
+        "mechanism": "gaussian_body_acceleration",
+        "pulse": {
+          "center_m": [0.15, 0.12],
+          "direction_deg": -90,
+          "acceleration_m_s2": 0.005,
+          "sigma_m": 0.01,
+          "on_s": 181,
+          "off_s": 183
+        }
+      }
+    }
+  ]
+}

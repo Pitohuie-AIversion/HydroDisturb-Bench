@@ -2,7 +2,7 @@
 
 **Reproducible COMSOL cylinder-wake experiments and controlled hidden-disturbance branches.**
 
-As of **2026-11-06**, `main` contains a Re=100 baseline, time/mesh sensitivity studies, verified `[u,v,p]` sampling, a continuous 151-frame baseline, and native-checkpoint pulse branches at three nonzero amplitudes. The latest experiment delivery is [`195d613`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856).
+As of **2026-11-06**, `main` contains a Re=100 baseline, time/mesh sensitivity studies, verified `[u,v,p]` sampling, a continuous 151-frame baseline, and native-checkpoint pulse branches at three nonzero amplitudes. The accepted experiment delivery remains [`195d613`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856); the configurable local-pulse entrypoint is in [`a91a2e2`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/a91a2e241246d60f994018e1eb4439a32322086f).
 
 The numerical acceptance applies to the documented configurations and selected statistics. This is a **controlled experiment prototype**, not a completed unknown-disturbance generalization benchmark or a bound on the full-field error relative to an exact solution.
 
@@ -19,7 +19,7 @@ Start with the [development status and evidence index](docs/DEVELOPMENT.md), [ch
 | Field sampling | Five saved times on two grids, then 151 consecutive frames at 161×97 | [Small sample](docs/STAGE_M3_FIELD_SAMPLING_20261105.md), [continuous sequence](docs/STAGE_M3_FIELD_SEQUENCE_20261105.md) |
 | Controlled futures | Shared native state at 180 s; zero branch plus acceleration amplitudes 0.0025, 0.005 and 0.010 m/s² | [Amplitude series](docs/reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md) |
 
-The latest archived offline regression is **514 passed, 30 deselected** ([raw log](docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/stdout.txt)). The two new physical solves have separate COMSOL evidence. These are recorded execution results, not a claim that every fresh clone or platform has rerun them.
+The latest archived offline regression for the local-pulse parameter delivery is **1021 passed, 13 deselected** (recorded in [the parameter report](docs/reports/LOCAL_PULSE_PARAMETERS_20261106.md)). The two new physical solves have separate COMSOL evidence. These are recorded execution results, not a claim that every fresh clone or platform has rerun them.
 
 The **COMSOL MCP server and Universal Software MCP Builder plugin are on the separate, unmerged `feat/comsol-mcp` branch**. Their implementation and verification boundaries are listed in the [development index](docs/DEVELOPMENT.md#未合入的开发).
 

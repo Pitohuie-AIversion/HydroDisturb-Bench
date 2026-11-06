@@ -2,7 +2,7 @@
 
 更新：**2026-11-06**。本页汇总 `main` 的开发历史、功能分支、正式 Python/Java 入口、测试、阶段报告和归档日志。数值实验与后续软件维护分别列示；软件回归不增加一次 CFD 求解或科学精度验证。
 
-数值成果以 [`195d613decee0f960b86f2dd588592f60fc01856`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856) 为最新实验交付。后续软件维护不改变该固定证据身份。开发变更按日期见 [CHANGELOG](../CHANGELOG.md)，科学验收边界见 [VALIDATION](VALIDATION.md)。
+数值成果以 [`195d613decee0f960b86f2dd588592f60fc01856`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856) 为实验基线；局部体力参数与真实续算入口已在 [`a91a2e2`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/a91a2e241246d60f994018e1eb4439a32322086f) 补齐。后续软件维护不改变历史证据身份。开发变更按日期见 [CHANGELOG](../CHANGELOG.md)，科学验收边界见 [VALIDATION](VALIDATION.md)。
 
 ## 当前状态
 
@@ -10,7 +10,7 @@
 
 | 开发线 | 本次核实的提交 | 处理状态 |
 | --- | --- | --- |
-| `main` | 实验基线 `195d613`；CI 修复基线 `c28aded6090fecdf287fee7f5b6cbc27f3ff651d` | 数值结果保留；后续软件维护记录见下文 |
+| `main` | 实验基线 `195d613`；局部体力入口 `a91a2e2`；当前维护继续增加轻量矩阵登记 | 数值结果保留；后续软件维护记录见下文 |
 | `feat/comsol-mcp` | `d1ba0af0041f029db5124414d8f72bf2f8f45206` | 已推送、尚未合入；MCP/插件原型单列如下 |
 | `codex/m3-pulse-amplitudes` | 本次核查时与实验提交 `195d613` 相同 | 已完成工作的工作分支，不是另一套实验结果 |
 | `codex/m3-pulse-full-local` | `6ab889cc160d74cf779dee85fcfee442bdb2f5d7` | 保留的历史大型归档方案，不属于 `main` 当前交付 |
@@ -24,6 +24,8 @@
 预测层在同一固定索引上增加末帧保持和末两帧线性外推，两者都不拟合参数。只向预测器提供历史与已知时间表；报告按提前量/通道计算原始单位 MAE/RMSE，并以独立原始 NPZ 读取及 `math.fsum` 核对。当前是一个 train 族的管线验证，不是独立留出或自由滚动结果。见 [预测接口](FORECAST_BASELINES.md) 与 [实际评估报告](reports/FORECAST_BASELINE_20261106.md)。
 
 PDF 规划中的局部定向高斯体力已新增独立参数入口，实际回读位置、方向、幅值、σ、时间门、Fx/Fy/Fz、单位和 Dataset/Solution，并从共同 M3 原生起点完成一次全参数变化续算。入口变化、移动源、复合事件和移动几何仍未接入。见 [局部体力参数说明](LOCAL_PULSE_PARAMETERS.md) 与 [真实报告](reports/LOCAL_PULSE_PARAMETERS_20261106.md)。
+
+当前还保留一个不启动 COMSOL 的小规模参数矩阵预注册入口。它只提交三组局部体力配置、基础配置哈希和同一 checkpoint 族策略；实际续算仍须逐案新建输出目录并保留真实回读。见 [矩阵配置](../configs/m3_local_pulse_sweep.json) 与 `hydro_disturb_bench.pulse_sweep`。
 
 ## 已合入的阶段与复核入口
 
@@ -74,9 +76,10 @@ PDF 规划中的局部定向高斯体力已新增独立参数入口，实际回�
 | 两支真实回读 | [a0025](evidence/m3_pulse_amplitude_series_20261106/a0025_readback_summary.json)、[a0100](evidence/m3_pulse_amplitude_series_20261106/a0100_readback_summary.json) |
 | 两支完整步进 stdout | [a0025](evidence/m3_pulse_amplitude_series_20261106/a0025_solver_stdout.txt)、[a0100](evidence/m3_pulse_amplitude_series_20261106/a0100_solver_stdout.txt) |
 | 原生来源及实际源积分 | [a0025](evidence/m3_pulse_amplitude_series_20261106/analysis/a0025/native_validation.json)、[a0100](evidence/m3_pulse_amplitude_series_20261106/analysis/a0100/native_validation.json) |
-| 完整离线回归 | [同步后 stdout：514 passed / 30 deselected](evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/stdout.txt) |
+| 历史幅值归档回归 | [同步后 stdout：514 passed / 30 deselected](evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/stdout.txt)；局部体力参数入口另有 1021 passed / 13 deselected 记录 |
 | 同步后正式 loader 重验 | [post_sync_validation.json](evidence/m3_pulse_amplitude_series_20261106/post_sync_validation.json) |
 | Git 与本地数据身份 | [轻量交付清单](evidence/m3_pulse_amplitude_series_20261106/lightweight_export_manifest.json)、[本地文件清单](evidence/m3_pulse_amplitude_series_20261106/local_artifact_inventory.json) |
+| 局部体力矩阵预注册 | [矩阵配置](../configs/m3_local_pulse_sweep.json)；校验与 manifest 入口为 `hydro_disturb_bench.pulse_sweep`；本项不含 COMSOL 或大文件 |
 
 纯远程材料复核使用固定的实验提交，输出路径必须尚不存在：
 

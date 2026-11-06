@@ -17,6 +17,11 @@
 - 从同一 M3 原生 checkpoint 完成全参数变化案例 `(0.17,0.13) m / 45° / 0.0075 m/s² / σ=0.008 m / 182–184 s`，101 帧场采样与重启/响应门槛通过；不覆盖历史模型和张量。
 - 冷构建复现 `csutil.dll` 依赖失败后，窄匹配回退到同安装 bundled Java 编译；非相关编译失败仍拒绝。参数、验证、Java parser 和 runner 定向测试 **253 passed**，完整离线回归 **1021 passed, 13 deselected**。[参数说明](docs/LOCAL_PULSE_PARAMETERS.md) · [真实报告](docs/reports/LOCAL_PULSE_PARAMETERS_20261106.md)
 
+### 局部体力矩阵预注册
+
+- 新增轻量 `m3_local_pulse_sweep.json` 与 `pulse_sweep` 校验入口，登记默认、对角线和反向三个局部体力案例；基础配置哈希、六个物理参数、重复配置和同一 M3 checkpoint 族策略均在发布前检查。
+- 该步骤只生成带哈希的计划 manifest，不启动 COMSOL、不提交 `.mph`、原生状态向量或完整张量；实际续算必须按案例使用独立输出目录并保存真实回读证据。
+
 ### 连续数据使用层
 
 - 新增 `FieldSequenceReader` 按批遍历、跨批窗口及无拼接全批核验；保留旧全量 loader 与导出校验兼容。
