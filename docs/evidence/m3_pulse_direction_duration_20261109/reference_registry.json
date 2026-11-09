@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "series_id": "m3-pulse-amplitude-series-v1",
+  "base_commit": "1f4d74e68b05c29d2ab62d3bb7486f54b22136dd",
+  "base_plan": {
+    "path": "docs/evidence/m3_branch_pulse_20261105/preregistered_plan.json",
+    "sha256": "72343d29335f761b82a5c3aa5b269b027fca82217c6cb69adbd537e8787125ad"
+  },
+  "restart_protocol": {
+    "path": "docs/evidence/m3_branch_pulse_20261105/restart_protocol_v2.json",
+    "sha256": "586a7065a7e9da4560501a368ab68037b0bbdaebf4957e6bab9541bb16e8acb8",
+    "id": "native-restart-consistent-off-v2"
+  },
+  "source_model": {
+    "path": "runs/re100_s1b2_m3_20261105_verified/re100_s1b2_m3_solved.mph",
+    "sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4"
+  },
+  "checkpoint": {
+    "path": "scratch/m3_branch_pulse_20261105/prepare_08/common_checkpoint.mph",
+    "sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c"
+  },
+  "reference_run": "runs/re100_m3_branch_pulse_20261105_verified_v6",
+  "baseline_fields": "runs/re100_m3_field_sequence_20261105_verified",
+  "references": {
+    "zero": {
+      "stage_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero",
+      "fields_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_zero/fields",
+      "amplitude_m_s2": 0.0
+    },
+    "a0050": {
+      "stage_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse",
+      "fields_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_pulse/fields",
+      "amplitude_m_s2": 0.005
+    }
+  },
+  "reference_files": [
+    {
+      "path": "runs/re100_s1b2_m3_20261105_verified/re100_s1b2_m3_solved.mph",
+      "bytes": 1428754269,
+      "sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+      "role": "source_M3_model"
+    },
+    {
+      "path": "scratch/m3_branch_pulse_20261105/prepare_08/common_checkpoint.mph",
+      "bytes": 1432724223,
+      "sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+      "role": "shared_native_checkpoint"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/prepare/execution.json",
+      "bytes": 911,
+      "sha256": "9984f0531816778e388a3fd1c14d93f173c168715c14aff4ed8e8c4fe8d7f839",
+      "role": "native_prepare_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/prepare/readback.json",
+      "bytes": 29003626,
+      "sha256": "66784e78d9e453d34cc2f60ea865db2bd3f2b68bf9d0c89afa64b223387caf4c",
+      "role": "native_prepare_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero/zero.mph",
+      "bytes": 1575117487,
+      "sha256": "3b80751413d7c811f6ce710ccb53d1db8a3c224c448a1bdf0d16d606d3b1b6d4",
+      "role": "zero_model"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero/execution.json",
+      "bytes": 2536,
+      "sha256": "da9de30335e4fad2de7283dcd035e837d207ac9ec40d348c4f4871103eb1782d",
+      "role": "zero_native_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero/readback.json",
+      "bytes": 32238866,
+      "sha256": "19deb7c18e19676d4d792e5d4150d71c62281944ad4f7c16b93ac73c62d145f4",
+      "role": "zero_native_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero/process_002_stdout.log",
+      "bytes": 13924033,
+      "sha256": "8b0ea64d628442469c78710f6e41e2b45e95d3048761395a71ab068645249294",
+      "role": "zero_native_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_zero/execution.json",
+      "bytes": 445,
+      "sha256": "60d6c8834268e9b1d561b6350200df8541253f6f72a8bccd9f5df1b0853c36f7",
+      "role": "zero_sample_execution"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_zero/fields/sequence_manifest.json",
+      "bytes": 5762,
+      "sha256": "1abd74b56526848d0654ad76a8dd0427cfbfeab8c81d0a32c95151493efe4baf",
+      "role": "zero_sequence_manifest"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse/pulse.mph",
+      "bytes": 1575117636,
+      "sha256": "7f122c41162e8ddf4f923c91eb984f252fcbf9833f93708864a9b379a6e40a91",
+      "role": "a0050_model"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse/execution.json",
+      "bytes": 2542,
+      "sha256": "f22d722f5dcd721c444bda5dc1809d3c399f77965febae941466c0530a9b2065",
+      "role": "a0050_native_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse/readback.json",
+      "bytes": 32238911,
+      "sha256": "2a2262fa40144e14e3f576088c0afe7f9ba4c280bc988ee6cd9fede4f8890ea2",
+      "role": "a0050_native_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse/process_002_stdout.log",
+      "bytes": 13923794,
+      "sha256": "f4bf7558e6d1cf8a2b2ed944a5d358fdc67a14d8faa932f2066e06d7b9c2c790",
+      "role": "a0050_native_evidence"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_pulse/execution.json",
+      "bytes": 446,
+      "sha256": "f49a87e1334ee8f0fff4f7eb5f5ef64a2f518c1af64cf8dab73a74121dcc58e6",
+      "role": "a0050_sample_execution"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_pulse/fields/sequence_manifest.json",
+      "bytes": 5764,
+      "sha256": "8d464d43b20e04da66b56bf1cd3afc51e9e3a5229f14bf7f677f93ec9f6defe1",
+      "role": "a0050_sequence_manifest"
+    },
+    {
+      "path": "runs/re100_m3_field_sequence_20261105_verified/sequence_manifest.json",
+      "bytes": 9146,
+      "sha256": "db52cf07e4cea0541f3c4b086a2b3a69149e1bec4f55bea0b114d0ae4fda4e2d",
+      "role": "uninterrupted_baseline_sequence_manifest"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/analysis/report.json",
+      "bytes": 584,
+      "sha256": "cd968fe480b80eb687d36571413ad18aefdbdcded1e667647d945aeaf3a0d477",
+      "role": "accepted_reference_analysis"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/analysis/native_validation.json",
+      "bytes": 26232,
+      "sha256": "ad0065c3080589b806caa1870c2e6ca43bc7bff01229c14873818af48cad6471",
+      "role": "accepted_reference_analysis"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/analysis/step_validation.json",
+      "bytes": 2484,
+      "sha256": "dcc48288c4792a5684d781a7bc368652ebdd97873bf588a0ab1187cb170af44b",
+      "role": "accepted_reference_analysis"
+    },
+    {
+      "path": "runs/re100_m3_branch_pulse_20261105_verified_v6/analysis/field_comparison.json",
+      "bytes": 27916,
+      "sha256": "d1447d045589fbafe17ef2e4e8ae52d67c2c3a84b9a440e7c5032fa00d38a157",
+      "role": "accepted_reference_analysis"
+    }
+  ],
+  "new_amplitudes_m_s2": [
+    0.0025,
+    0.01
+  ],
+  "cases": [
+    {
+      "name": "a0025",
+      "amplitude_m_s2": 0.0025,
+      "mode": "new"
+    },
+    {
+      "name": "a0050",
+      "amplitude_m_s2": 0.005,
+      "mode": "reuse"
+    },
+    {
+      "name": "a0100",
+      "amplitude_m_s2": 0.01,
+      "mode": "new"
+    }
+  ],
+  "parameter_authority": "This independently frozen series authorizes only the two additional amplitudes. The old physical plan and restart protocol files remain immutable; the old protocol supplies the identical restart procedure, not permission to edit its historical pulse.",
+  "derived_plan_allowed_changes": [
+    "pulse.acceleration_amplitude_m_s2",
+    "source_integral_reference.peak_force_density_N_m3",
+    "source_integral_reference.peak_force_per_depth_N_m",
+    "source_integral_reference.impulse_per_depth_N_s_m",
+    "source_model resolved to the same pinned file under HYDRO_DATA_ROOT",
+    "restart_protocol attached from its immutable file"
+  ],
+  "source_reference_scaling": "Three force/impulse references multiply by A/0.005; Gaussian area, source integration tolerance and every field gate stay unchanged.",
+  "unchanged_contract": {
+    "source_solnum": 901,
+    "branch_time_s": 180.0,
+    "stop_s": 200.0,
+    "output_step_s": 0.2,
+    "frames": 101,
+    "grid_shape_nx_ny": [
+      161,
+      97
+    ],
+    "pulse_center_m": [
+      0.15,
+      0.12
+    ],
+    "pulse_sigma_m": 0.01,
+    "direction": [
+      0.0,
+      1.0
+    ],
+    "pulse_on_s": 181.0,
+    "pulse_off_s": 183.0,
+    "rtol": 0.0001,
+    "maxstepconstraintbdf": "const",
+    "maxstepbdf_s": 0.05,
+    "consistent": "off",
+    "native_mesh_and_physics": "Reuse the same native checkpoint; no remeshing or other physical changes"
+  },
+  "native_identity": {
+    "native_state_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+    "native_derivative_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696",
+    "native_dof_mapping_sha256": "18d2ec51d199ff754d69dee97f2288cf0b09b666104eec596d674a6d0e910330",
+    "mesh_fingerprint": {
+      "component_tag": "comp1",
+      "geometry_tag": "geom1",
+      "mesh_tag": "mesh1",
+      "vertex_count": 17910,
+      "element_count": 34752,
+      "sha256": "3a5072314b6f98241205654c5010ce9e1bae474924aad5d65f6493d315de6a3f",
+      "hash_input": "ordered native vertices, sorted element-type connectivity/entity arrays, mesh feature tree; UTF-8 JSON values"
+    },
+    "native_dof_count": 88483
+  },
+  "acceptance": {
+    "per_case": "Require pinned reference evidence, actual new amplitude/series ID, identical native checkpoint and solver protocol, applied-source integral, actual internal steps, sampling provenance and original restart/pre-event/response gates.",
+    "reused_cases": "No new zero or 0.005 solve; validate their immutable identities and reuse their actual fields.",
+    "trend": "Report response-vs-amplitude and distinguishability descriptively. No linearity or monotonicity assumption or post-hoc amplitude/threshold tuning.",
+    "failure": "Keep partial artifacts and stop; do not relabel failed or undetectable cases as passing."
+  },
+  "retention": {
+    "git_max_file_bytes": 1048576,
+    "git": "code, frozen config, tests, compact readbacks, solver/test logs, metrics and identity manifests",
+    "local_only": "MPH models, native arrays, full TXT/NPZ and large archives",
+    "independent_backup": "not_configured; no target supplied; not a numerical acceptance gate"
+  },
+  "data_root": "Reference paths resolve relative to HYDRO_DATA_ROOT, default repository root. Code and frozen configuration belong to the checkout; source identities must match regardless of location."
+}

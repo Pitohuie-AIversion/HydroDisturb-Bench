@@ -1,0 +1,97 @@
+{
+  "status": "COMPLETE",
+  "operation": "inspect_local_pulse",
+  "command": [
+    "inspect-local-pulse",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\prepare_08\\common_checkpoint.mph",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_short_20261109_verified\\inspect\\model.mph",
+    "base64:ZXZlbnRfaWQ9bTMtbG9jYWwtcHVsc2UtZHVyYXRpb24tMXAyCmFtcGxpdHVkZV9tX3MyPTAuMDA1CnhjX209MC4xNQp5Y19tPTAuMTIKc2lnbWFfbT0wLjAxCmRpcmVjdGlvbl9kZWc9OTAKb25fcz0xODEKb2ZmX3M9MTgyLjIK"
+  ],
+  "source_model": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\prepare_08\\common_checkpoint.mph",
+  "source_sha256_before": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+  "source_sha256_after": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+  "output_model": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_short_20261109_verified\\inspect\\model.mph",
+  "output_sha256": "67a21b9fbd3afdc3dc5825c47b5221b375f214acfe1e46fd741da0c3180eae0c",
+  "readback_sha256": "6bda0a3fea6a0bfe5c689a1a08695b97f3db5abbee557519ebe63cfdeeb5e57b",
+  "implementation": {
+    "source_files": {
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scripts\\run_m3_local_pulse.py": {
+        "sha256_before": "d839b31e5f23be4fb7e4eef44701238b5931dc3bd68825293fa2f359c85254a4",
+        "sha256_after": "d839b31e5f23be4fb7e4eef44701238b5931dc3bd68825293fa2f359c85254a4"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\bridge.py": {
+        "sha256_before": "acd11f87f8257c3cdcb711394740f9fcc33de645dbc7c1b0d78d99a2396f6495",
+        "sha256_after": "acd11f87f8257c3cdcb711394740f9fcc33de645dbc7c1b0d78d99a2396f6495"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\errors.py": {
+        "sha256_before": "9bc89f1c3053277a24aa47377c7c6c77796fa8ad42b7da45e0acb67dc1e50121",
+        "sha256_after": "9bc89f1c3053277a24aa47377c7c6c77796fa8ad42b7da45e0acb67dc1e50121"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\file_transactions.py": {
+        "sha256_before": "eab11ef4bdce0b9b4d08344167fc97e3fa67a1cbcd56e61a2984e65e6c851269",
+        "sha256_after": "eab11ef4bdce0b9b4d08344167fc97e3fa67a1cbcd56e61a2984e65e6c851269"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\ComsolBridge.java": {
+        "sha256_before": "c0effe2ba27b7ea260d0c4ccbd3d667b113af8ad731ea2391d90b384c07853da",
+        "sha256_after": "c0effe2ba27b7ea260d0c4ccbd3d667b113af8ad731ea2391d90b384c07853da"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\ComsolStandalone.java": {
+        "sha256_before": "a3672869146ef2f0d328619ea30419ea539ca7c04f5da4f5007d4b524647633a",
+        "sha256_after": "a3672869146ef2f0d328619ea30419ea539ca7c04f5da4f5007d4b524647633a"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\experiments\\__init__.py": {
+        "sha256_before": "59fe7f3c560ccd7d26906e5c4597f829b2a78d8062e635dca0ef7cf13b75d2de",
+        "sha256_after": "59fe7f3c560ccd7d26906e5c4597f829b2a78d8062e635dca0ef7cf13b75d2de"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\experiments\\branch_execution.py": {
+        "sha256_before": "68eab08eb2fcfa0b2caa1038f63fba916ba325bb024abc91c84dd3e22118bea3",
+        "sha256_after": "68eab08eb2fcfa0b2caa1038f63fba916ba325bb024abc91c84dd3e22118bea3"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\experiments\\evidence_io.py": {
+        "sha256_before": "e4afc4289ea1202ac03beef229b6efc20f31dba1e659cdffd80940ba777ff1dc",
+        "sha256_after": "e4afc4289ea1202ac03beef229b6efc20f31dba1e659cdffd80940ba777ff1dc"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\experiments\\process_recording.py": {
+        "sha256_before": "b5dde4feb8771ccf5726306ac8d8b194e5b4d376c4d48e1217949eedd3291636",
+        "sha256_after": "b5dde4feb8771ccf5726306ac8d8b194e5b4d376c4d48e1217949eedd3291636"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\experiments\\solver_steps.py": {
+        "sha256_before": "9a7524859e694e98f95deb13650a4689492497a85ec9c960d42db3fb97a07c06",
+        "sha256_after": "9a7524859e694e98f95deb13650a4689492497a85ec9c960d42db3fb97a07c06"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\pulse_parameters.py": {
+        "sha256_before": "0569552fdbc90428cb863f9e4523e6d29f9e085441ff07373a19b4eeefa161b7",
+        "sha256_after": "0569552fdbc90428cb863f9e4523e6d29f9e085441ff07373a19b4eeefa161b7"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\pulse_validation.py": {
+        "sha256_before": "e6bf308e55d82c80378df0c2ca60e6c7e53afb4d8e744c2ac5fed1e2ca254721",
+        "sha256_after": "e6bf308e55d82c80378df0c2ca60e6c7e53afb4d8e744c2ac5fed1e2ca254721"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\branch_pulse.py": {
+        "sha256_before": "55aa3f692919c956cb8791a6b113d11d34696e92d39d01ff59b522ab09b97614",
+        "sha256_after": "55aa3f692919c956cb8791a6b113d11d34696e92d39d01ff59b522ab09b97614"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\ConfigurablePulseBranch.java": {
+        "sha256_before": "30dc2c26c5ee591fc97aefacd96f85534d43c7ca4a684e21d34567579f57b96f",
+        "sha256_after": "30dc2c26c5ee591fc97aefacd96f85534d43c7ca4a684e21d34567579f57b96f"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_short_20261109_verified\\plan.json": {
+        "sha256_before": "703547eb0263dbcd141e6a145947161c0d35cf3f1f486060431003518523e50d",
+        "sha256_after": "703547eb0263dbcd141e6a145947161c0d35cf3f1f486060431003518523e50d"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_short_20261109_verified\\event.properties": {
+        "sha256_before": "4b0eb37785d9c2637c84931b2b688f13ed8a5aa3da359484d3a69c9df6da598c",
+        "sha256_after": "4b0eb37785d9c2637c84931b2b688f13ed8a5aa3da359484d3a69c9df6da598c"
+      },
+      "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_short_20261109_verified\\config.input.json": {
+        "sha256_before": "13a8f39ef59736f722c6622d1ed167b44f7b6ba791715919276724b9b92b01d6",
+        "sha256_after": "13a8f39ef59736f722c6622d1ed167b44f7b6ba791715919276724b9b92b01d6"
+      }
+    },
+    "all_source_files_unchanged": true,
+    "compiled_class_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\src\\hydro_disturb_bench\\comsol_java\\ComsolBridge.class",
+    "compiled_class_sha256_after": "c00fd7e641dab9bf1fb6520aa89a677c60ade4ac15e8e5a427118ce8efe70ed0",
+    "compiled_class_note": "End-of-operation bytes; compilation may occur during the operation"
+  },
+  "elapsed_seconds": 56.31289505958557
+}

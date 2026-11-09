@@ -1,0 +1,496 @@
+{
+  "status": "PASS",
+  "mode": "run",
+  "event_id": "m3-local-pulse-duration-1p2",
+  "properties_sha256": "4b0eb37785d9c2637c84931b2b688f13ed8a5aa3da359484d3a69c9df6da598c",
+  "time_solver_executed": true,
+  "actual_times": [
+    180.0,
+    180.2,
+    180.4,
+    180.6,
+    180.8,
+    181.0,
+    181.2,
+    181.4,
+    181.6,
+    181.8,
+    182.0,
+    182.2,
+    182.4,
+    182.6,
+    182.8,
+    183.0,
+    183.2,
+    183.4,
+    183.6,
+    183.8,
+    184.0,
+    184.2,
+    184.4,
+    184.6,
+    184.8,
+    185.0,
+    185.2,
+    185.4,
+    185.6,
+    185.8,
+    186.0,
+    186.2,
+    186.4,
+    186.6,
+    186.8,
+    187.0,
+    187.2,
+    187.4,
+    187.6,
+    187.8,
+    188.0,
+    188.2,
+    188.4,
+    188.6,
+    188.8,
+    189.0,
+    189.2,
+    189.4,
+    189.6,
+    189.8,
+    190.0,
+    190.2,
+    190.4,
+    190.6,
+    190.8,
+    191.0,
+    191.2,
+    191.4,
+    191.6,
+    191.8,
+    192.0,
+    192.2,
+    192.4,
+    192.6,
+    192.8,
+    193.0,
+    193.2,
+    193.4,
+    193.6,
+    193.8,
+    194.0,
+    194.2,
+    194.4,
+    194.6,
+    194.8,
+    195.0,
+    195.2,
+    195.4,
+    195.6,
+    195.8,
+    196.0,
+    196.2,
+    196.4,
+    196.6,
+    196.8,
+    197.0,
+    197.2,
+    197.4,
+    197.6,
+    197.8,
+    198.0,
+    198.2,
+    198.4,
+    198.6,
+    198.8,
+    199.0,
+    199.2,
+    199.4,
+    199.6,
+    199.8,
+    200.0
+  ],
+  "native_identity": {
+    "source_seed_input_U_bytes_equal": true,
+    "source_seed_input_UDot_bytes_equal": true,
+    "dof_count": 88483,
+    "source_U_sha256": "c614d848b3688de967916432f7f06d3df32b42273f54dec6c76c3563a960733b",
+    "source_UDot_sha256": "a91258fc0f7fd9c9ea4b8ff67cb0a9efc597960892b4e7d285d733b87e358696",
+    "variables_probe_role": "Separate diagnostic; not observed internal Time input",
+    "variables_probe_difference_by_field": [
+      {
+        "name": "comp1.p",
+        "count": 17910,
+        "different_count": 13889,
+        "max_absolute_difference": 3.469446951953614e-17,
+        "source_range": [
+          -0.06389526700145892,
+          0.05801056223942997
+        ],
+        "initialized_range": [
+          -0.06389526700145892,
+          0.05801056223942997
+        ]
+      },
+      {
+        "name": "comp1.spf.dt2Inv_u",
+        "count": 34752,
+        "different_count": 34752,
+        "max_absolute_difference": 2499.999977096854,
+        "source_range": [
+          2.2903145966173807e-05,
+          399.99999837684845
+        ],
+        "initialized_range": [
+          2500.0,
+          2500.0
+        ]
+      },
+      {
+        "name": "comp1.spf.isFluidHasBeenSolved",
+        "count": 1,
+        "different_count": 0,
+        "max_absolute_difference": 0.0,
+        "source_range": [
+          1.0,
+          1.0
+        ],
+        "initialized_range": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "comp1.u",
+        "count": 17910,
+        "different_count": 14225,
+        "max_absolute_difference": 8.673617379884035e-18,
+        "source_range": [
+          -0.0024168766495414563,
+          0.013277398018436477
+        ],
+        "initialized_range": [
+          -0.0024168766495414554,
+          0.013277398018436472
+        ]
+      },
+      {
+        "name": "comp1.v",
+        "count": 17910,
+        "different_count": 13579,
+        "max_absolute_difference": 4.336808689942018e-18,
+        "source_range": [
+          -0.006295526362407304,
+          0.00679673317186789
+        ],
+        "initialized_range": [
+          -0.006295526362407303,
+          0.006796733171867888
+        ]
+      }
+    ],
+    "solver_first_difference_by_field": [
+      {
+        "name": "comp1.p",
+        "count": 17910,
+        "different_count": 13915,
+        "max_absolute_difference": 3.469446951953614e-17,
+        "source_range": [
+          -0.06389526700145892,
+          0.05801056223942997
+        ],
+        "initialized_range": [
+          -0.06389526700145892,
+          0.05801056223942997
+        ]
+      },
+      {
+        "name": "comp1.spf.dt2Inv_u",
+        "count": 34752,
+        "different_count": 34752,
+        "max_absolute_difference": 2117.5941502380365,
+        "source_range": [
+          2.2903145966173807e-05,
+          399.99999837684845
+        ],
+        "initialized_range": [
+          1625.0000003068812,
+          2500.0
+        ]
+      },
+      {
+        "name": "comp1.spf.isFluidHasBeenSolved",
+        "count": 1,
+        "different_count": 0,
+        "max_absolute_difference": 0.0,
+        "source_range": [
+          1.0,
+          1.0
+        ],
+        "initialized_range": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "comp1.u",
+        "count": 17910,
+        "different_count": 14283,
+        "max_absolute_difference": 8.673617379884035e-18,
+        "source_range": [
+          -0.0024168766495414563,
+          0.013277398018436477
+        ],
+        "initialized_range": [
+          -0.0024168766495414554,
+          0.013277398018436472
+        ]
+      },
+      {
+        "name": "comp1.v",
+        "count": 17910,
+        "different_count": 13676,
+        "max_absolute_difference": 4.336808689942018e-18,
+        "source_range": [
+          -0.006295526362407304,
+          0.00679673317186789
+        ],
+        "initialized_range": [
+          -0.006295526362407303,
+          0.006796733171867888
+        ]
+      }
+    ]
+  },
+  "independent_source_reference": {
+    "method": "Analytic rectangular Gaussian integral minus scipy.quad cylinder slices; compact sin-squared time integral",
+    "gaussian_rectangle_area_m2": 0.0006283185307179585,
+    "gaussian_cylinder_area_m2": 5.474376112110129e-10,
+    "cylinder_quadrature_absolute_error_m2": 1.0001701038078882e-17,
+    "gaussian_area_m2": 0.0006283179832803473,
+    "direction": [
+      0.0,
+      1.0
+    ],
+    "peak_force_density_N_m3": 4.9910000000000005,
+    "peak_force_per_depth_N_m": 0.0031359350545522137,
+    "peak_force_vector_N_per_m": [
+      0.0,
+      0.0031359350545522137
+    ],
+    "temporal_integral_s": 0.6,
+    "impulse_per_depth_N_s_m": 0.0018815610327313282,
+    "impulse_vector_Ns_per_m": [
+      0.0,
+      0.0018815610327313282
+    ],
+    "scope": "Applied source per unit out-of-plane depth, not net fluid momentum change"
+  },
+  "prescribed_source_diagnostics": {
+    "passed": true,
+    "peak_force_vector_N_per_m": [
+      0.0,
+      0.0031359350552924645
+    ],
+    "peak_Fz_N_per_m": 0.0,
+    "impulse_vector_Ns_per_m": [
+      0.0,
+      0.0018815610331754786
+    ],
+    "impulse_Fz_Ns_per_m": 0.0,
+    "max_spatial_vector_absolute_error_N_per_m": 7.40250742647941e-13,
+    "spatial_vector_relative_error": 2.3605423255605106e-10,
+    "impulse_vector_relative_error": 2.360541864580653e-10,
+    "native_integral_relative_tolerance": 0.01,
+    "impulse_method": "Diagnostic peak spatial integral times analytic sin-squared time integral",
+    "scope": "Applied source per unit out-of-plane depth; not net fluid momentum change"
+  },
+  "actual_saved_time_source": {
+    "passed": true,
+    "peak_force_vector_N_per_m": [
+      0.0,
+      0.0031359350552924645
+    ],
+    "peak_Fz_N_per_m": 0.0,
+    "impulse_vector_Ns_per_m": [
+      0.0,
+      0.0018815610331754506
+    ],
+    "impulse_Fz_Ns_per_m": 0.0,
+    "max_spatial_vector_absolute_error_N_per_m": 7.40250742647941e-13,
+    "spatial_vector_relative_error": 2.3605423255605106e-10,
+    "impulse_vector_relative_error": 2.360393198576396e-10,
+    "native_integral_relative_tolerance": 0.01,
+    "impulse_method": "Trapezoidal actual saved-time source integrals",
+    "scope": "Applied source per unit out-of-plane depth; not net fluid momentum change"
+  },
+  "unreadable_properties": [
+    {
+      "snapshot": "before",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "before",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "before",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "before",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "before",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "before",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "before",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "before",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "before",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "configured",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "configured",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "configured",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "configured",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "configured",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "configured",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "configured",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "configured",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "configured",
+      "path": "mat1",
+      "property": "customize"
+    },
+    {
+      "snapshot": "after",
+      "path": "r1",
+      "property": "arrowdispl"
+    },
+    {
+      "snapshot": "after",
+      "path": "r1",
+      "property": "input"
+    },
+    {
+      "snapshot": "after",
+      "path": "r1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "after",
+      "path": "c1",
+      "property": "input"
+    },
+    {
+      "snapshot": "after",
+      "path": "c1",
+      "property": "posvertex"
+    },
+    {
+      "snapshot": "after",
+      "path": "dif1",
+      "property": "input"
+    },
+    {
+      "snapshot": "after",
+      "path": "dif1",
+      "property": "input2"
+    },
+    {
+      "snapshot": "after",
+      "path": "spf",
+      "property": "_properties"
+    },
+    {
+      "snapshot": "after",
+      "path": "mat1",
+      "property": "customize"
+    }
+  ],
+  "settings_scope": "Readable snapshots and native mesh/DOF evidence; unreadable properties are not independently certified",
+  "source_scope": "Applied source per unit depth, not net fluid momentum change; prescribed diagnostics are not future solved states",
+  "steps": {
+    "status": "PASS",
+    "headers_seen": 1,
+    "accepted_step_count": 457,
+    "first_step_number": 1,
+    "last_step_number": 457,
+    "initial_time_s": 180.0,
+    "first_accepted_time_s": 180.0,
+    "final_internal_time_s": 200.0,
+    "output_only_rows_excluded": 101,
+    "dt_min_s": 0.00096408,
+    "dt_max_s": 0.05,
+    "cap_s": 0.05,
+    "cap_display_relative_tolerance": 0.0001,
+    "contiguous_unique_accepted_step_ids": true,
+    "displayed_time_nondecreasing": true,
+    "last_internal_step_may_exceed_last_output_time": true,
+    "source": "process_002_stdout.log",
+    "getter_diagnostic": {
+      "available": true,
+      "character_count": 29947,
+      "has_step_table_header": false,
+      "complete_step_table": false,
+      "truncated_or_invalid": true,
+      "text_utf8_sha256": "0fda38b19b176ca0dc174d4701ba0d55fd18127949c37946c80b6ee69f81097f",
+      "validation_error": "[MODEL_VALIDATION_FAILED] Missing actual Step Time Stepsize header"
+    },
+    "stdout_table_candidates": [
+      "process_002_stdout.log"
+    ],
+    "source_bytes_sha256": "6106dd94e159c391ca26f76e7ab4be219f431184699fbfb7fc20425add818f25",
+    "reason": "Original process stdout is the primary actual step-log source"
+  }
+}

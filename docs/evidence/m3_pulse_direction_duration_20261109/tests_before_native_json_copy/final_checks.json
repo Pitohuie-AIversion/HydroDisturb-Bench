@@ -1,0 +1,44 @@
+{
+  "recorded_at_utc": "2026-11-09T03:38:02.142689+00:00",
+  "checks": [
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "ruff",
+        "check",
+        ".",
+        "--extend-exclude",
+        "reports,scripts/export_vorticity_videos.py"
+      ],
+      "returncode": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "python",
+        "scripts/check_repo.py"
+      ],
+      "returncode": 0,
+      "stdout": "Repository entry points and development documents are present; this check does not validate CFD results.\r\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "warning: in the working copy of '.gitattributes', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'CHANGELOG.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/DEVELOPMENT.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/LOCAL_PULSE_PARAMETERS.md', LF will be replaced by CRLF the next time Git touches it\n"
+    }
+  ],
+  "lint_scope_note": "Exclude only pre-existing unrelated untracked reports/ and scripts/export_vorticity_videos.py; task source and tests included.",
+  "status": "PASS"
+}

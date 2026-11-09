@@ -8,3 +8,9 @@ docs/evidence/**/*.xml text eol=lf
 docs/evidence/**/*.log text eol=lf
 docs/evidence/**/*.md text eol=lf
 docs/evidence/**/*.py text eol=lf
+
+# Frozen event inputs are bound by their exact bytes on both Windows and Linux.
+configs/m3_pulse_direction_duration/*.json text eol=lf
+
+# Exact native JSON originals accompany the readable LF JSON; do not text-diff them.
+docs/evidence/m3_pulse_direction_duration_20261109/**/*.json.raw -text -diff

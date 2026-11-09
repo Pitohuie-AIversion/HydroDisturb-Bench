@@ -1,0 +1,48 @@
+{
+  "status": "FAIL",
+  "error": "[WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\runs\\\\re100_m3_pulse_reverse_20261109_verified\\\\sample_solve\\\\.staging_field_sequence_7ea812cff784' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\runs\\\\re100_m3_pulse_reverse_20261109_verified\\\\sample_solve\\\\fields'",
+  "details": "",
+  "source_sha256_before": "BE99E3EA0FF62D67C485DCA4F039C52A1BD62F387338C20E2BB669681C8745D7",
+  "source_sha256_after": "BE99E3EA0FF62D67C485DCA4F039C52A1BD62F387338C20E2BB669681C8745D7",
+  "source_unchanged": true,
+  "completed_batches": [
+    {
+      "path": "batch_0000",
+      "start_index": 0,
+      "stop_index": 32,
+      "count": 32,
+      "npz_sha256": "9F6481F30D4067F1D0C86CBE8CC8721D975D24B8CDE4742DCB689B470204122E",
+      "metadata_sha256": "953E105DA1AAF5259E985862513E592D46811321C81FE009DDB835B745E5795C",
+      "response_sha256": "5801FB1DACB9B271F42784D22B04AB47A4B128BADAE58B485D21968DD193D88E"
+    },
+    {
+      "path": "batch_0001",
+      "start_index": 32,
+      "stop_index": 64,
+      "count": 32,
+      "npz_sha256": "73F4F4E5C503436CCF246E3788C922166B45BA5EF8B4D5C25A5A4B63BFBB1EA7",
+      "metadata_sha256": "9646CC5E36A7C615864D4A9685B1194661C19E3B1290B3064DA449ED7F744C74",
+      "response_sha256": "096789EF359F22DDC3C2DF40AE3CF2D553F8972783696178B5D9AB0636B48FC1"
+    },
+    {
+      "path": "batch_0002",
+      "start_index": 64,
+      "stop_index": 96,
+      "count": 32,
+      "npz_sha256": "D2630A5BA652EEF3D066A031FF41007F099BA3B302C7E927D10A01664827F958",
+      "metadata_sha256": "EE469AC6DE505B8AC931EE015E22FC2E0D37C924BC95E7873DCD30DFB9B5230C",
+      "response_sha256": "F07E4D50A669496557612772ED3B64A0B04489A403C2FC7AACEC6E7A81951893"
+    },
+    {
+      "path": "batch_0003",
+      "start_index": 96,
+      "stop_index": 101,
+      "count": 5,
+      "npz_sha256": "F26C6212FFAD0E46E50647E472600668E89A2BE8F80A03E5A8CCC0D779E06712",
+      "metadata_sha256": "C3C966525AEA636B0DACCE666AE8B2F9E752CF964BC4BCE54F27F6686445FFEF",
+      "response_sha256": "B7ED53C0B76A651C16AABEA6E1E4F1A221CFB8195EDE0190825E98041611660F"
+    }
+  ],
+  "preserved_staging_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_reverse_20261109_verified\\sample_solve\\.staging_field_sequence_7ea812cff784",
+  "intended_output": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_reverse_20261109_verified\\sample_solve\\fields"
+}

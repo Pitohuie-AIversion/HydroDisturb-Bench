@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "study_id": "m3-pulse-direction-duration-20261109",
+  "frozen_at_utc": "2026-11-09T03:01:50.027012+00:00",
+  "base_commit": "cf6f10b3f0bcb2b4070123ddf11307c82bfacea3",
+  "checkpoint": {
+    "path": "scratch/m3_branch_pulse_20261105/prepare_08/common_checkpoint.mph",
+    "sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c"
+  },
+  "cases": {
+    "reverse": {
+      "config_path": "configs/m3_pulse_direction_duration/reverse.json",
+      "config_sha256": "222397f3cbbabae27b8b754a4532b4bea5c37c4f873143ae18f92424f1967ff4",
+      "config": {
+        "schema_version": 1,
+        "event_id": "m3-local-pulse-downward",
+        "mechanism": "gaussian_body_acceleration",
+        "pulse": {
+          "center_m": [
+            0.15,
+            0.12
+          ],
+          "direction_deg": -90,
+          "acceleration_m_s2": 0.005,
+          "sigma_m": 0.01,
+          "on_s": 181,
+          "off_s": 183
+        }
+      },
+      "run_dir": "runs/re100_m3_pulse_reverse_20261109_verified",
+      "run_plan_sha256": "0613bf1e72c91a36d8622867a83604cdc84105f65d39d68b6537a1123bc3d56b",
+      "source_reference": {
+        "method": "Analytic rectangular Gaussian integral minus scipy.quad cylinder slices; compact sin-squared time integral",
+        "gaussian_rectangle_area_m2": 0.0006283185307179585,
+        "gaussian_cylinder_area_m2": 5.474376112110129e-10,
+        "cylinder_quadrature_absolute_error_m2": 1.0001701038078882e-17,
+        "gaussian_area_m2": 0.0006283179832803473,
+        "direction": [
+          0.0,
+          -1.0
+        ],
+        "peak_force_density_N_m3": 4.9910000000000005,
+        "peak_force_per_depth_N_m": 0.0031359350545522137,
+        "peak_force_vector_N_per_m": [
+          0.0,
+          -0.0031359350545522137
+        ],
+        "temporal_integral_s": 1.0,
+        "impulse_per_depth_N_s_m": 0.0031359350545522137,
+        "impulse_vector_Ns_per_m": [
+          0.0,
+          -0.0031359350545522137
+        ],
+        "scope": "Applied source per unit out-of-plane depth, not net fluid momentum change"
+      }
+    },
+    "short": {
+      "config_path": "configs/m3_pulse_direction_duration/short.json",
+      "config_sha256": "13a8f39ef59736f722c6622d1ed167b44f7b6ba791715919276724b9b92b01d6",
+      "config": {
+        "schema_version": 1,
+        "event_id": "m3-local-pulse-duration-1p2",
+        "mechanism": "gaussian_body_acceleration",
+        "pulse": {
+          "center_m": [
+            0.15,
+            0.12
+          ],
+          "direction_deg": 90,
+          "acceleration_m_s2": 0.005,
+          "sigma_m": 0.01,
+          "on_s": 181,
+          "off_s": 182.2
+        }
+      },
+      "run_dir": "runs/re100_m3_pulse_short_20261109_verified",
+      "run_plan_sha256": "703547eb0263dbcd141e6a145947161c0d35cf3f1f486060431003518523e50d",
+      "source_reference": {
+        "method": "Analytic rectangular Gaussian integral minus scipy.quad cylinder slices; compact sin-squared time integral",
+        "gaussian_rectangle_area_m2": 0.0006283185307179585,
+        "gaussian_cylinder_area_m2": 5.474376112110129e-10,
+        "cylinder_quadrature_absolute_error_m2": 1.0001701038078882e-17,
+        "gaussian_area_m2": 0.0006283179832803473,
+        "direction": [
+          0.0,
+          1.0
+        ],
+        "peak_force_density_N_m3": 4.9910000000000005,
+        "peak_force_per_depth_N_m": 0.0031359350545522137,
+        "peak_force_vector_N_per_m": [
+          0.0,
+          0.0031359350545522137
+        ],
+        "temporal_integral_s": 0.6,
+        "impulse_per_depth_N_s_m": 0.0018815610327313282,
+        "impulse_vector_Ns_per_m": [
+          0.0,
+          0.0018815610327313282
+        ],
+        "scope": "Applied source per unit out-of-plane depth, not net fluid momentum change"
+      }
+    },
+    "long": {
+      "config_path": "configs/m3_pulse_direction_duration/long.json",
+      "config_sha256": "2055a9636e76535646a664b05a59f8aa9f9613eb53c40ce3db0c5dfb547243ed",
+      "config": {
+        "schema_version": 1,
+        "event_id": "m3-local-pulse-duration-3p2",
+        "mechanism": "gaussian_body_acceleration",
+        "pulse": {
+          "center_m": [
+            0.15,
+            0.12
+          ],
+          "direction_deg": 90,
+          "acceleration_m_s2": 0.005,
+          "sigma_m": 0.01,
+          "on_s": 181,
+          "off_s": 184.2
+        }
+      },
+      "run_dir": "runs/re100_m3_pulse_long_20261109_verified",
+      "run_plan_sha256": "a4c6858c9b5186be3c4717d4644689b34c7ed9d79875f9f1a0f170060aab57d7",
+      "source_reference": {
+        "method": "Analytic rectangular Gaussian integral minus scipy.quad cylinder slices; compact sin-squared time integral",
+        "gaussian_rectangle_area_m2": 0.0006283185307179585,
+        "gaussian_cylinder_area_m2": 5.474376112110129e-10,
+        "cylinder_quadrature_absolute_error_m2": 1.0001701038078882e-17,
+        "gaussian_area_m2": 0.0006283179832803473,
+        "direction": [
+          0.0,
+          1.0
+        ],
+        "peak_force_density_N_m3": 4.9910000000000005,
+        "peak_force_per_depth_N_m": 0.0031359350545522137,
+        "peak_force_vector_N_per_m": [
+          0.0,
+          0.0031359350545522137
+        ],
+        "temporal_integral_s": 1.6,
+        "impulse_per_depth_N_s_m": 0.005017496087283542,
+        "impulse_vector_Ns_per_m": [
+          0.0,
+          0.005017496087283542
+        ],
+        "scope": "Applied source per unit out-of-plane depth, not net fluid momentum change"
+      }
+    }
+  },
+  "default_reference": {
+    "stage_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/pulse",
+    "fields_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_pulse/fields",
+    "amplitude_m_s2": 0.005
+  },
+  "zero_reference": {
+    "stage_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/zero",
+    "fields_dir": "runs/re100_m3_branch_pulse_20261105_verified_v6/sample_zero/fields",
+    "amplitude_m_s2": 0.0
+  },
+  "baseline_fields": "runs/re100_m3_field_sequence_20261105_verified",
+  "common_analysis_plan": {
+    "schema_version": 1,
+    "experiment": "M3_native_state_zero_vs_single_local_body_force_pulse",
+    "base_commit": "301088dd8b7bd7a6c4bc88f827693cbcfbfd2c4b",
+    "source_model": "runs/re100_s1b2_m3_20261105_verified/re100_s1b2_m3_solved.mph",
+    "source_sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+    "source_solution": "sol1",
+    "branch_time_s": 180.0,
+    "source_solnum": 901,
+    "stop_s": 200.0,
+    "output_step_s": 0.2,
+    "frames": 101,
+    "grid_shape_nx_ny": [
+      161,
+      97
+    ],
+    "solver": {
+      "rtol": 0.0001,
+      "maxstepconstraintbdf": "const",
+      "maxstepbdf_s": 0.05,
+      "preserve_other_settings": true
+    },
+    "native_initialization": "Use the original native finite-element state at solnum 901, preserving its mesh/DOF ordering. Both branches must install identical native vector bytes. BDF history is restarted; it is not restored from sampled tensors.",
+    "pulse": {
+      "acceleration_amplitude_m_s2": 0.005,
+      "zero_branch_amplitude_m_s2": 0.0,
+      "center_m": [
+        0.15,
+        0.12
+      ],
+      "sigma_m": 0.01,
+      "direction": [
+        0.0,
+        1.0
+      ],
+      "on_s": 181.0,
+      "off_s": 183.0,
+      "temporal_gate": "sin(pi*(t-on)/(off-on))^2 for on<t<off, else 0; compact C1",
+      "spatial_gate": "exp(-((x-xc)^2+(y-yc)^2)/(2*sigma^2))",
+      "force_density": "rho_f * acceleration_amplitude * spatial_gate * temporal_gate * direction",
+      "unit_contract": "N/m^3; read actual physics-node expressions and COMSOL numerical unit resolution",
+      "parameter_prefix": "branch_",
+      "interpretation": "A finite localized body force prototype; not a linear-response or actuator-fidelity claim"
+    },
+    "scales": {
+      "U_inf_m_s": 0.010058104588258865,
+      "rho_f_kg_m3": 998.2,
+      "pressure_scale": "rho_f*U_inf^2"
+    },
+    "spatial_norm": "Tensor-product trapezoidal area weights over full-domain x/y arrays, excluding the actual cylinder/invalid mask; velocity uses u and v jointly. Pressure removes the weighted spatial mean separately in each field; raw pressure mean offset is reported.",
+    "time_norm": "Trapezoidal time-weighted RMS of per-frame spatial RMS, over 180..200 s",
+    "restart_acceptance": {
+      "native_installed_input_hashes_equal": true,
+      "velocity_time_rms_over_U_max": 0.005,
+      "velocity_frame_rms_over_U_max": 0.01,
+      "centered_pressure_time_rms_over_rhoU2_max": 0.01,
+      "centered_pressure_frame_rms_over_rhoU2_max": 0.03,
+      "comparison": "new zero branch minus the frozen uninterrupted M3 baseline at matched saved times",
+      "nature": "Preregistered engineering restart-equivalence thresholds, not an exact-solution error bound"
+    },
+    "response_acceptance": {
+      "roi_m": [
+        0.12,
+        0.18,
+        0.09,
+        0.15
+      ],
+      "pre_event_end_s": 181.0,
+      "pre_event_floor_over_U": 0.0001,
+      "pre_event_noise_multiplier": 2.0,
+      "response_window_s": [
+        181.0,
+        188.0
+      ],
+      "response_window_left_open": true,
+      "response_floor_over_U": 0.005,
+      "response_noise_multiplier": 5.0,
+      "response_metric": "peak ROI velocity-vector spatial RMS(pulse-zero)/U",
+      "noise_metric": "maximum ROI velocity-vector spatial RMS(zero-baseline)/U over the full 180..200 window",
+      "pre_event_metric": "maximum ROI RMS(pulse-zero)/U for t<=181; compare against max(pre_event_floor,2*maximum zero-baseline ROI error on the same pre-event window)",
+      "required": "restart gates pass, no pre-event signal above its bound, and response peak >= max(response_floor,5*noise_metric)",
+      "failure_policy": "Report restart failure or response below numerical floor; do not enlarge amplitude, change the pulse, or relax thresholds after seeing results"
+    },
+    "source_integral_reference": {
+      "method": "Analytical rectangular Gaussian area integral minus adaptive 1D quadrature of the cylinder exclusion; sin^2 temporal integral is duration/2",
+      "gaussian_area_m2": 0.0006283179832803473,
+      "peak_force_density_N_m3": 4.991,
+      "peak_force_per_depth_N_m": 0.0031359350545522137,
+      "impulse_per_depth_N_s_m": 0.0031359350545522137,
+      "native_integral_relative_tolerance": 0.01,
+      "scope": "Applied source per unit out-of-plane depth; not net fluid momentum change, which also depends on boundary forces and fluxes"
+    },
+    "exclusions": [
+      "new mesh or time-step sweeps",
+      "re-solving the original baseline",
+      "passive scalar",
+      "moving geometry",
+      "multiple Reynolds numbers",
+      "random parameter batches",
+      "training a predictor"
+    ],
+    "freeze_policy": "Written and hashed before any Time solver execution for this experiment. Preserve failures and actual readback; changes require a new explicitly versioned experiment."
+  },
+  "acceptance_policy": "Keep each runner individual response gate unchanged. Additionally compare all four cases on a predeclared shared ROI/window. No assumed flow sign reversal or linear response to impulse.",
+  "sample_contract": {
+    "shape": [
+      101,
+      3,
+      97,
+      161
+    ],
+    "time_range_s": [
+      180,
+      200
+    ],
+    "step_s": 0.2
+  },
+  "historical_protection_sha256": "23f5f17b1bb03655a9829a1f06415a3e0fc25c946470a3c596eae1257e0993eb",
+  "scope": "Direction reversal and 1.2/2/3.2 second duration contrast on the same M3 checkpoint; existing default and zero are reused. Not a parameter-space accuracy certification."
+}

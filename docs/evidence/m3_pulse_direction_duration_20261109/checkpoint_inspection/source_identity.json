@@ -1,0 +1,7 @@
+{
+  "path": "scratch/m3_branch_pulse_20261105/prepare_08/common_checkpoint.mph",
+  "before": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+  "after": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+  "unchanged": true,
+  "previous_attempt": "Scratch prepare.py supplied unsupported process_runner to inspect_model; Python rejected the keyword before any COMSOL invocation. This retry uses the existing run_command API."
+}

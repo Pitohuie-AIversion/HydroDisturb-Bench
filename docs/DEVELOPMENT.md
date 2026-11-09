@@ -1,6 +1,6 @@
 # 开发状态与证据索引
 
-更新：**2026-11-06**。本页汇总 `main` 的开发历史、功能分支、正式 Python/Java 入口、测试、阶段报告和归档日志。数值实验与后续软件维护分别列示；软件回归不增加一次 CFD 求解或科学精度验证。
+更新：**2026-11-09**。本页汇总 `main` 的开发历史、功能分支、正式 Python/Java 入口、测试、阶段报告和归档日志。数值实验与后续软件维护分别列示；软件回归不增加一次 CFD 求解或科学精度验证。
 
 数值成果以 [`195d613decee0f960b86f2dd588592f60fc01856`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856) 为实验基线；局部体力参数与真实续算入口已在 [`a91a2e2`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/a91a2e241246d60f994018e1eb4439a32322086f) 补齐。后续软件维护不改变历史证据身份。开发变更按日期见 [CHANGELOG](../CHANGELOG.md)，科学验收边界见 [VALIDATION](VALIDATION.md)。
 
@@ -26,6 +26,12 @@
 PDF 规划中的局部定向高斯体力已新增独立参数入口，实际回读位置、方向、幅值、σ、时间门、Fx/Fy/Fz、单位和 Dataset/Solution，并从共同 M3 原生起点完成一次全参数变化续算。入口变化、移动源、复合事件和移动几何仍未接入。见 [局部体力参数说明](LOCAL_PULSE_PARAMETERS.md) 与 [真实报告](reports/LOCAL_PULSE_PARAMETERS_20261106.md)。
 
 当前还保留一个不启动 COMSOL 的小规模参数矩阵预注册入口。它只提交三组局部体力配置、基础配置哈希和同一 checkpoint 族策略；实际续算仍须逐案新建输出目录并保留真实回读。见 [矩阵配置](../configs/m3_local_pulse_sweep.json) 与 `hydro_disturb_bench.pulse_sweep`。
+
+2026-11-09 的局部体力验证进一步固定位置、幅值和宽度，仅比较方向与持续时间：复用默认 +90°／2 s，新增 −90°／2 s、+90°／1.2 s 和 +90°／3.2 s。共同中心 `(0.15,0.12) m`、`A=0.005 m/s²`、`sigma=0.01 m`、`on=181 s`，保持同一 180 s 原生 checkpoint、网格、时间策略及 `(101,3,97,161)` 采样。各案原窗口门槛保留，横向比较另用共同 ROI `[0.12,0.18,0.09,0.15] m` 和窗口 `(181,188] s`；不直接引用历史幅值报告中不同 ROI／窗口的峰值，也不假设施力反向导致流场逐点反号或响应随冲量线性变化。实际完成状态与证据见 [方向／持续时间报告](reports/M3_PULSE_DIRECTION_DURATION_20261109.md)。
+
+三个新增案例的真实 `inspect/solve/sample/analyze` 均已完成并逐案通过；各有 457 个接受的内部步、实际最大步长 0.05 s 和 101 帧输出。824 个历史文件的哈希保持一致。共同窗口比较及本轮测试范围另由阶段报告记录。
+
+反向采样的目录发布曾出现 `WinError 5`；原失败记录保留，核验 117 个 staging 文件及七个数组后仅重试发布并成功，未重新求解或采样，不宣称根因修复。本次仍按轻量方式交付，不提交模型和完整张量，不生成新训练索引；新增兄弟分支仍属于同一祖先族。
 
 ## 已合入的阶段与复核入口
 
@@ -68,10 +74,13 @@ PDF 规划中的局部定向高斯体力已新增独立参数入口，实际回�
 
 三档的响应窗口 `(181,186] s` 内 ROI 速度 RMS 峰值/U 分别为 **2.922887%、5.847157%、11.688384%**，约为同 ROI 重启差异峰值的 **55.5、111.0、222.0 倍**。三个峰值均出现在窗口右端 186 s；这不代表完整轨迹的全局峰值或一般线性定律。
 
+上段为历史幅值系列的固定统计口径。2026-11-09 方向／持续时间对照已从默认案原场数据重新计算共同 ROI／窗口指标，两组数值不可直接混用。
+
 ## 最新交付的直接入口
 
 | 内容 | 入口 |
 | --- | --- |
+| 方向／持续时间对照 | [本轮报告](reports/M3_PULSE_DIRECTION_DURATION_20261109.md)、[参数与对照口径](LOCAL_PULSE_PARAMETERS.md#2026-11-09-方向与持续时间对照)、[只读比较入口](../scripts/compare_m3_pulse_direction_duration.py)；三份配置见 [reverse](../configs/m3_pulse_direction_duration/reverse.json)、[short](../configs/m3_pulse_direction_duration/short.json)、[long](../configs/m3_pulse_direction_duration/long.json) |
 | 报告与冻结计划 | [报告](reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md)、[计划](evidence/m3_pulse_amplitude_series_20261106/preregistered_plan.json)、[冻结记录](evidence/m3_pulse_amplitude_series_20261106/plan_freeze_record.json) |
 | 两支真实回读 | [a0025](evidence/m3_pulse_amplitude_series_20261106/a0025_readback_summary.json)、[a0100](evidence/m3_pulse_amplitude_series_20261106/a0100_readback_summary.json) |
 | 两支完整步进 stdout | [a0025](evidence/m3_pulse_amplitude_series_20261106/a0025_solver_stdout.txt)、[a0100](evidence/m3_pulse_amplitude_series_20261106/a0100_solver_stdout.txt) |
