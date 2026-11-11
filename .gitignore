@@ -27,4 +27,11 @@ runs/
 *.status
 .comsol/
 scratch*
+# Temporary locks and staging
+**/.locks/*
+!**/.locks/.gitkeep
+**/.staging*/*
+!**/.staging*/.gitkeep
 
+# Root temporary archives
+/*.zip
