@@ -312,6 +312,191 @@ def test_c04_atomic_save_refuses_overwrite_when_forbidden(tmp_path):
         save_c04_dataset(target, fields, grid, times, allow_overwrite=False)
 
 
+def test_c04_sequence_rejects_missing_source_time(tmp_path, monkeypatch):
+    """Verify unsteady sequence export strictly rejects frames missing physical source time."""
+    from hydro_disturb_bench.comsol_java import bridge
+    from hydro_disturb_bench.comsol_java.errors import ModelValidationError
+
+    dummy_model = tmp_path / "dummy.mph"
+    dummy_model.write_text("dummy", encoding="utf-8")
+    out_npz = tmp_path / "seq.npz"
+
+    def fake_run_bridge(args, root=None):
+        base_path = Path(args[2])
+        grid = create_c04_2d_slice_grid(D=0.30)
+        # Write step files WITHOUT @ t= in header
+        for sn in ["1", "2"]:
+            step_file = base_path.parent / f"{base_path.name}.step_{sn}"
+            lines = ["% Header line without time tag"]
+            for y in grid.y_1d:
+                for x in grid.x_1d:
+                    lines.append(f"{x:.6f} {y:.6f} 0.5 0.0 0.0 100.0")
+            step_file.write_text("\n".join(lines), encoding="utf-8")
+
+    monkeypatch.setattr(bridge, "_run_bridge", fake_run_bridge)
+
+    with pytest.raises(ModelValidationError, match="missing physical source time"):
+        bridge.export_c04_slice_sequence(
+            dummy_model,
+            out_npz,
+            solnums=["1", "2"],
+            times_s=[9.9, 10.0],
+            allow_overwrite=True,
+        )
+
+
+def test_c04_sequence_handles_header_time_whitespace(tmp_path, monkeypatch):
+    """Verify regex handles variable whitespace around @ t= and rejects mismatched times."""
+    from hydro_disturb_bench.comsol_java import bridge
+    from hydro_disturb_bench.comsol_java.errors import ModelValidationError
+    from hydro_disturb_bench.sampling_3d import load_c04_dataset
+
+    dummy_model = tmp_path / "dummy.mph"
+    dummy_model.write_text("dummy", encoding="utf-8")
+    out_npz = tmp_path / "seq.npz"
+
+    def fake_run_bridge(args, root=None):
+        base_path = Path(args[2])
+        grid = create_c04_2d_slice_grid(D=0.30)
+        # Header with whitespace after =
+        headers = ["% u (m/s) @ t= 0.0", "% u (m/s) @ t =  0.06"]
+        for idx, sn in enumerate(["1", "2"]):
+            step_file = base_path.parent / f"{base_path.name}.step_{sn}"
+            lines = [headers[idx]]
+            for y in grid.y_1d:
+                for x in grid.x_1d:
+                    lines.append(f"{x:.6f} {y:.6f} 0.5 0.0 0.0 100.0")
+            step_file.write_text("\n".join(lines), encoding="utf-8")
+
+    monkeypatch.setattr(bridge, "_run_bridge", fake_run_bridge)
+
+    # 1. Matching times [0.0, 0.06] succeeds
+    bridge.export_c04_slice_sequence(
+        dummy_model,
+        out_npz,
+        solnums=["1", "2"],
+        times_s=[0.0, 0.06],
+        allow_overwrite=True,
+    )
+    loaded = load_c04_dataset(out_npz)
+    assert np.allclose(loaded["times"], [0.0, 0.06])
+
+    # 2. Mismatched times [9.9, 10.0] must be caught and rejected
+    with pytest.raises(ModelValidationError, match="does not match expected"):
+        bridge.export_c04_slice_sequence(
+            dummy_model,
+            out_npz,
+            solnums=["1", "2"],
+            times_s=[9.9, 10.0],
+            allow_overwrite=True,
+        )
+
+
+def test_c04_volume_rejects_spanwise_reversal(tmp_path, monkeypatch):
+    """Verify 3D volume export fails if spanwise coordinate order is reversed or corrupt."""
+    from hydro_disturb_bench.comsol_java import bridge
+    from hydro_disturb_bench.comsol_java.errors import ModelValidationError
+
+    dummy_model = tmp_path / "dummy.mph"
+    dummy_model.write_text("dummy", encoding="utf-8")
+    out_npz = tmp_path / "vol.npz"
+
+    def fake_run_bridge(args, root=None):
+        out_txt = Path(args[2])
+        grid = create_c04_sampling_grid(D=0.30)
+        # In COMSOL, outer=z(96), mid=y(64), inner=x(192)
+        # Intentionally reverse y values (spanwise)
+        x_vals = grid.x_1d
+        y_rev = (-2.1 + (np.arange(64)[::-1] + 0.5) * grid.cell_spacing).astype(np.float32)
+        z_vals = grid.y_1d
+        lines = ["% Header line @ t=0.0"]
+        for z in z_vals:
+            for y in y_rev:
+                for x in x_vals:
+                    lines.append(f"{x:.6f} {y:.6f} {z:.6f} 0.5 0.0 0.0 100.0")
+        out_txt.write_text("\n".join(lines), encoding="utf-8")
+
+    monkeypatch.setattr(bridge, "_run_bridge", fake_run_bridge)
+
+    with pytest.raises(ModelValidationError, match="across all 3 axes"):
+        bridge.export_c04_volume_dataset(dummy_model, out_npz, time_s=0.0, allow_overwrite=True)
+
+
+def test_c04_sequence_rejects_subsequent_frame_coordinate_divergence(tmp_path, monkeypatch):
+    """Verify multi-frame sequence export checks coordinates on every step, catching frame 2 divergence."""
+    from hydro_disturb_bench.comsol_java import bridge
+    from hydro_disturb_bench.comsol_java.errors import ModelValidationError
+
+    dummy_model = tmp_path / "dummy.mph"
+    dummy_model.write_text("dummy", encoding="utf-8")
+    out_npz = tmp_path / "seq.npz"
+
+    def fake_run_bridge(args, root=None):
+        base_path = Path(args[2])
+        grid = create_c04_2d_slice_grid(D=0.30)
+        # Step 1: correct coordinates
+        step1 = base_path.parent / f"{base_path.name}.step_1"
+        lines1 = ["% Header @ t=0.0"]
+        for y in grid.y_1d:
+            for x in grid.x_1d:
+                lines1.append(f"{x:.6f} {y:.6f} 0.5 0.0 0.0 100.0")
+        step1.write_text("\n".join(lines1), encoding="utf-8")
+
+        # Step 2: diverged coordinates (shifted x)
+        step2 = base_path.parent / f"{base_path.name}.step_2"
+        lines2 = ["% Header @ t=0.06"]
+        for y in grid.y_1d:
+            for x in (grid.x_1d + 0.1):
+                lines2.append(f"{x:.6f} {y:.6f} 0.5 0.0 0.0 100.0")
+        step2.write_text("\n".join(lines2), encoding="utf-8")
+
+    monkeypatch.setattr(bridge, "_run_bridge", fake_run_bridge)
+
+    with pytest.raises(ModelValidationError, match="coordinates do not match canonical grid"):
+        bridge.export_c04_slice_sequence(
+            dummy_model,
+            out_npz,
+            solnums=["1", "2"],
+            times_s=[0.0, 0.06],
+            allow_overwrite=True,
+        )
+
+
+def test_c04_atomic_save_preserves_staging_when_quarantine_fails(tmp_path, monkeypatch):
+    """Verify that if quarantine move fails during a conflict, staging file is retained in place."""
+    from hydro_disturb_bench import sampling_3d
+    from hydro_disturb_bench.comsol_java import file_transactions
+
+    grid = create_c04_2d_slice_grid(D=0.30)
+    target = tmp_path / "dest.npz"
+    times = np.array([0.0], dtype=np.float32)
+    fields = np.zeros((1, 4, 96, 192), dtype=np.float32)
+
+    # Establish target file
+    sampling_3d.save_c04_dataset(target, fields, grid, times, allow_overwrite=True)
+    orig_bytes = target.read_bytes()
+
+    # Mock quarantine_staging_file to fail (simulate disk or permission error, returning None)
+    def fake_quarantine(staging_path, output_path, stage_id, reason="failed"):
+        return None
+
+    monkeypatch.setattr(file_transactions, "quarantine_staging_file", fake_quarantine)
+
+    with pytest.raises(FileExistsError):
+        sampling_3d.save_c04_dataset(target, fields, grid, times, allow_overwrite=False)
+
+    # Target file must still be intact
+    assert target.is_file()
+    assert target.read_bytes() == orig_bytes
+
+    # Staging file in .staging must NOT be unlinked
+    staging_dir = target.parent / ".staging"
+    staging_files = list(staging_dir.glob(".tmp_*_dest.npz"))
+    assert len(staging_files) == 1
+    assert staging_files[0].is_file()
+    assert staging_files[0].stat().st_size > 0
+
+
 @pytest.mark.artifact
 def test_c04_s0_solved_model_and_datasets():
     """Verify solved Stage 1 model and exported physical slice/volume datasets."""

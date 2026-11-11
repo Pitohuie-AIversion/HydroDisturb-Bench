@@ -47,6 +47,8 @@ exclude = [
     "build",
     "dist",
     "docs/evidence",
+    "tmp",
+    "*budget*",
 ]
 
 [tool.ruff.lint]

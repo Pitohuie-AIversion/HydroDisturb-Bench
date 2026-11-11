@@ -237,6 +237,7 @@ def save_c04_dataset(
     staging_dir.mkdir(parents=True, exist_ok=True)
     staging_file = staging_dir / f".tmp_{uuid.uuid4().hex[:8]}_{out.name}"
 
+    published_or_handed_off = False
     try:
         np.savez_compressed(
             staging_file,
@@ -254,6 +255,7 @@ def save_c04_dataset(
             if "fields" not in check_data or "metadata_json" not in check_data:
                 raise ValueError("Corrupted staging NPZ archive")
 
+        published_or_handed_off = True
         publish_staging_file(
             staging_path=staging_file,
             output_path=out,
@@ -262,7 +264,8 @@ def save_c04_dataset(
         )
         return out
     finally:
-        staging_file.unlink(missing_ok=True)
+        if not published_or_handed_off:
+            staging_file.unlink(missing_ok=True)
 
 
 def load_c04_dataset(archive_path: Path | str) -> dict[str, Any]:

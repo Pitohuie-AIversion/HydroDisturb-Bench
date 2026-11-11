@@ -35,3 +35,10 @@ scratch*
 
 # Root temporary archives
 /*.zip
+tmp/
+qa_budget/
+*budget*
+*.docx
+*.pdf
+export_pdf.ps1
+render_pdf.ps1

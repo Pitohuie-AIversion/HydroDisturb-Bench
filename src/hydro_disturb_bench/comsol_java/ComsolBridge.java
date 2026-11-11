@@ -3,6 +3,8 @@ import com.comsol.model.util.*;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * HydroDisturb-Bench COMSOL Java API Bridge
@@ -867,23 +869,58 @@ public class ComsolBridge {
             } catch (Throwable ignored) {}
         }
 
-        // Apply low-level solver feature parameters (e.g. sol1/t1)
+        // Identify solver sequences that belong specifically to the target study
+        List<SolverSequence> targetSolSeqs = new ArrayList<SolverSequence>();
         for (String sTag : model.sol().tags()) {
-            SolverSequence sSeq = model.sol(sTag);
+            SolverSequence s = model.sol(sTag);
+            boolean matchesStudy = false;
+            try {
+                if (studyTag.equals(s.getString("study"))) {
+                    matchesStudy = true;
+                }
+            } catch (Throwable ignored) {}
+            if (!matchesStudy) {
+                try {
+                    for (String fTag : s.feature().tags()) {
+                        SolverFeature sf = s.feature(fTag);
+                        if ("StudyStep".equalsIgnoreCase(sf.getType())) {
+                            try {
+                                if (studyTag.equals(sf.getString("study"))) {
+                                    matchesStudy = true;
+                                    break;
+                                }
+                            } catch (Throwable ignored) {}
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+            if (matchesStudy) {
+                targetSolSeqs.add(s);
+            }
+        }
+        if (targetSolSeqs.isEmpty() && model.sol().tags().length == 1) {
+            targetSolSeqs.add(model.sol(model.sol().tags()[0]));
+        }
+
+        // Apply low-level solver feature parameters ONLY to target study's solver sequence(s)
+        for (SolverSequence sSeq : targetSolSeqs) {
             for (String fTag : sSeq.feature().tags()) {
                 SolverFeature feat = sSeq.feature(fTag);
                 if ("Time".equalsIgnoreCase(feat.getType())) {
-                    if (tlistOverride != null && !tlistOverride.trim().isEmpty()) {
-                        try { feat.set("tlist", tlistOverride.trim()); } catch (Throwable ignored) {}
-                    }
-                    if (rtolOverride != null && !rtolOverride.trim().isEmpty()) {
-                        try { feat.set("rtol", rtolOverride.trim()); } catch (Throwable ignored) {}
-                    }
-                    if (maxstepOverride != null && !maxstepOverride.trim().isEmpty()) {
-                        try {
+                    try {
+                        if (tlistOverride != null && !tlistOverride.trim().isEmpty()) {
+                            feat.set("tlist", tlistOverride.trim());
+                        }
+                        if (rtolOverride != null && !rtolOverride.trim().isEmpty()) {
+                            feat.set("rtol", rtolOverride.trim());
+                        }
+                        if (maxstepOverride != null && !maxstepOverride.trim().isEmpty()) {
                             feat.set("maxstepconstraintbdf", "const");
                             feat.set("maxstepbdf", maxstepOverride.trim());
-                        } catch (Throwable ignored) {}
+                        }
+                    } catch (Throwable t) {
+                        outputError("INVALID_PARAMETER", "Failed to apply solver parameter override to " + sSeq.tag() + "/" + fTag + ": " + t.getMessage(), getStackTrace(t));
+                        return;
                     }
                 }
             }

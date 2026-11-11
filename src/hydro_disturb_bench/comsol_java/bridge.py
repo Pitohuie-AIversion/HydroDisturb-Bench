@@ -1160,8 +1160,8 @@ def _extract_header_time_and_coords_2d(
     data_rows: list[list[float]] = []
     for line in lines:
         if line.startswith("%"):
-            if header_time is None and "@" in line and "t=" in line:
-                m = re.search(r"@\s*t=([0-9.eE+-]+)", line)
+            if header_time is None and "@" in line and "t" in line:
+                m = re.search(r"@\s*t\s*=\s*([0-9.eE+-]+)", line)
                 if m:
                     header_time = float(m.group(1))
             continue
@@ -1181,8 +1181,8 @@ def _extract_header_time_and_data_3d(
             line = f.readline()
             if not line:
                 break
-            if line.startswith("%") and "@" in line and "t=" in line:
-                m = re.search(r"@\s*t=([0-9.eE+-]+)", line)
+            if line.startswith("%") and "@" in line and "t" in line:
+                m = re.search(r"@\s*t\s*=\s*([0-9.eE+-]+)", line)
                 if m:
                     header_time = float(m.group(1))
                     break
@@ -1238,10 +1238,15 @@ def export_c04_slice_dataset(
                 f"Max diff X: {np.max(np.abs(cx - grid.X)):.6e}, Y: {np.max(np.abs(cy - grid.Y)):.6e}"
             )
 
-        # Time verification against COMSOL header if present
-        if header_time is not None and abs(header_time - float(time_s)) > 1e-4:
+        # Time verification: if header carries time, verify match; if unsteady (time_s != 0), require source time
+        if header_time is not None:
+            if abs(header_time - float(time_s)) > 1e-4:
+                raise ModelValidationError(
+                    f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+                )
+        elif abs(float(time_s)) > 1e-4:
             raise ModelValidationError(
-                f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+                f"Missing physical source time in COMSOL export header for non-zero time {time_s:.4f}s"
             )
 
         fields = np.zeros((1, 4, 96, 192), dtype=np.float32)
@@ -1298,19 +1303,38 @@ def export_c04_volume_dataset(
         header_time, data = _extract_header_time_and_data_3d(temp_txt)
         grid = create_c04_sampling_grid(D=0.30)
 
-        # Coordinate verification (COMSOL spreadsheet order: outer=z (96), mid=y (64), inner=x (192))
+        # Coordinate verification across all 3 axes
+        # COMSOL spreadsheet order: outer=z (transverse, 96), mid=y (spanwise, 64), inner=x (streamwise, 192)
+        # Coordinate mapping convention:
+        # Streamwise: X_proj = x_comsol
+        # Transverse: Y_proj = z_comsol
+        # Spanwise:   Z_proj = y_comsol + 3.0 m (offset by 10.0 * D to align [-2.1, -0.9] with [0.9, 2.1])
         raw_x = data[:, 0].reshape((96, 64, 192)).transpose((1, 0, 2))
+        raw_y_span = data[:, 1].reshape((96, 64, 192)).transpose((1, 0, 2))
         raw_z_trans = data[:, 2].reshape((96, 64, 192)).transpose((1, 0, 2))
-        if not np.allclose(raw_x, grid.X, atol=1e-4) or not np.allclose(raw_z_trans, grid.Y, atol=1e-4):
+        span_offset = 3.0
+
+        if (
+            not np.allclose(raw_x, grid.X, atol=1e-4)
+            or not np.allclose(raw_z_trans, grid.Y, atol=1e-4)
+            or not np.allclose(raw_y_span + span_offset, grid.Z, atol=1e-4)
+        ):
             raise ModelValidationError(
-                f"Exported 3D volume coordinates do not match canonical grid. "
-                f"Max diff X: {np.max(np.abs(raw_x - grid.X)):.6e}, Y: {np.max(np.abs(raw_z_trans - grid.Y)):.6e}"
+                "Exported 3D volume coordinates do not match canonical grid coordinates across all 3 axes. "
+                f"Max diff X: {np.max(np.abs(raw_x - grid.X)):.6e}, "
+                f"Y: {np.max(np.abs(raw_z_trans - grid.Y)):.6e}, "
+                f"Z: {np.max(np.abs(raw_y_span + span_offset - grid.Z)):.6e}"
             )
 
-        # Time verification against COMSOL header if present
-        if header_time is not None and abs(header_time - float(time_s)) > 1e-4:
+        # Time verification: if header carries time, verify match; if unsteady (time_s != 0), require source time
+        if header_time is not None:
+            if abs(header_time - float(time_s)) > 1e-4:
+                raise ModelValidationError(
+                    f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+                )
+        elif abs(float(time_s)) > 1e-4:
             raise ModelValidationError(
-                f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+                f"Missing physical source time in COMSOL export header for non-zero time {time_s:.4f}s"
             )
 
         fields = np.zeros((1, 4, 64, 96, 192), dtype=np.float32)
@@ -1388,16 +1412,25 @@ def export_c04_slice_sequence(
                     raise ModelValidationError(f"No data rows found in {step_file}")
                 arr = np.array(data_rows, dtype=np.float32)
 
-                # Coordinate verification on first step
-                if step_idx == 0:
-                    cx = arr[:, 0].reshape((96, 192))
-                    cy = arr[:, 1].reshape((96, 192))
-                    if not np.allclose(cx, grid.X, atol=1e-4) or not np.allclose(cy, grid.Y, atol=1e-4):
-                        raise ModelValidationError("Exported 2D slice coordinates do not match canonical grid coordinates")
+                # Coordinate verification on every step
+                cx = arr[:, 0].reshape((96, 192))
+                cy = arr[:, 1].reshape((96, 192))
+                if not np.allclose(cx, grid.X, atol=1e-4) or not np.allclose(cy, grid.Y, atol=1e-4):
+                    raise ModelValidationError(
+                        f"Step {sn} exported 2D slice coordinates do not match canonical grid coordinates"
+                    )
 
-                # Verify actual time against expected times_s[step_idx]
+                # Mandatory physical source time verification for unsteady sequence
+                if header_time is None:
+                    raise ModelValidationError(
+                        f"Step {sn} missing physical source time in COMSOL export header"
+                    )
+                if not math.isfinite(header_time):
+                    raise ModelValidationError(
+                        f"Step {sn} physical source time in COMSOL export header is non-finite: {header_time}"
+                    )
                 expected_t = times_s[step_idx]
-                if header_time is not None and abs(header_time - expected_t) > 1e-4:
+                if abs(header_time - expected_t) > 1e-4:
                     raise ModelValidationError(
                         f"Step {sn} exported time {header_time:.4f}s does not match expected {expected_t:.4f}s"
                     )
@@ -1472,14 +1505,35 @@ def export_c04_volume_sequence(
             try:
                 header_time, data = _extract_header_time_and_data_3d(step_file)
 
-                if step_idx == 0:
-                    raw_x = data[:, 0].reshape((96, 64, 192)).transpose((1, 0, 2))
-                    raw_z_trans = data[:, 2].reshape((96, 64, 192)).transpose((1, 0, 2))
-                    if not np.allclose(raw_x, grid.X, atol=1e-4) or not np.allclose(raw_z_trans, grid.Y, atol=1e-4):
-                        raise ModelValidationError("Exported 3D volume coordinates do not match canonical grid coordinates")
+                # Coordinate verification on every step across all 3 axes
+                raw_x = data[:, 0].reshape((96, 64, 192)).transpose((1, 0, 2))
+                raw_y_span = data[:, 1].reshape((96, 64, 192)).transpose((1, 0, 2))
+                raw_z_trans = data[:, 2].reshape((96, 64, 192)).transpose((1, 0, 2))
+                span_offset = 3.0
 
+                if (
+                    not np.allclose(raw_x, grid.X, atol=1e-4)
+                    or not np.allclose(raw_z_trans, grid.Y, atol=1e-4)
+                    or not np.allclose(raw_y_span + span_offset, grid.Z, atol=1e-4)
+                ):
+                    raise ModelValidationError(
+                        f"Step {sn} exported 3D volume coordinates do not match canonical grid coordinates across all 3 axes. "
+                        f"Max diff X: {np.max(np.abs(raw_x - grid.X)):.6e}, "
+                        f"Y: {np.max(np.abs(raw_z_trans - grid.Y)):.6e}, "
+                        f"Z: {np.max(np.abs(raw_y_span + span_offset - grid.Z)):.6e}"
+                    )
+
+                # Mandatory physical source time verification for unsteady sequence
+                if header_time is None:
+                    raise ModelValidationError(
+                        f"Step {sn} missing physical source time in COMSOL export header"
+                    )
+                if not math.isfinite(header_time):
+                    raise ModelValidationError(
+                        f"Step {sn} physical source time in COMSOL export header is non-finite: {header_time}"
+                    )
                 expected_t = times_s[step_idx]
-                if header_time is not None and abs(header_time - expected_t) > 1e-4:
+                if abs(header_time - expected_t) > 1e-4:
                     raise ModelValidationError(
                         f"Step {sn} exported time {header_time:.4f}s does not match expected {expected_t:.4f}s"
                     )
