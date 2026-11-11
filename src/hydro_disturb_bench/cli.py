@@ -105,6 +105,59 @@ def main(argv: list[str] | None = None) -> int:
         help="Allow overwriting destination if it already exists",
     )
 
+    j_build_c04 = sub.add_parser(
+        "java-build-c04",
+        help="Build independent C04 (Re=126k, 30Dx20Dx10D) 3D cylinder benchmark model from baseline template",
+    )
+    j_build_c04.add_argument(
+        "--model",
+        default="models/cylinder_3d/cylinder_flow_turbulent.mph",
+        help="Baseline official 3D model path (default: models/cylinder_3d/cylinder_flow_turbulent.mph)",
+    )
+    j_build_c04.add_argument(
+        "--output",
+        default="models/cylinder_3d/c04_re126k_benchmark.mph",
+        help="Output C04 benchmark model path (default: models/cylinder_3d/c04_re126k_benchmark.mph)",
+    )
+    j_build_c04.add_argument(
+        "--allow-overwrite",
+        action="store_true",
+        default=False,
+        help="Allow overwriting destination if it already exists",
+    )
+
+    j_mesh2 = sub.add_parser(
+        "java-build-c04-mesh2",
+        help="Build tuned 1.55M element mesh2 on C04 3D benchmark model",
+    )
+    j_mesh2.add_argument("--model", required=True, help="Input C04 model path")
+    j_mesh2.add_argument("--output", required=True, help="Output model path with built mesh2")
+    j_mesh2.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_exp_slice = sub.add_parser(
+        "java-export-c04-slice",
+        help="Export 2D mid-span slice (192 x 96) from solved C04 model to NPZ dataset",
+    )
+    j_exp_slice.add_argument("--model", required=True, help="Solved C04 model path")
+    j_exp_slice.add_argument("--output", required=True, help="Output .npz file path")
+    j_exp_slice.add_argument("--time", type=float, default=0.0, help="Physical time (seconds)")
+    j_exp_slice.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_exp_vol = sub.add_parser(
+        "java-export-c04-volume",
+        help="Export 3D regular volume (192 x 96 x 64) from solved C04 model to NPZ dataset",
+    )
+    j_exp_vol.add_argument("--model", required=True, help="Solved C04 model path")
+    j_exp_vol.add_argument("--output", required=True, help="Output .npz file path")
+    j_exp_vol.add_argument("--time", type=float, default=0.0, help="Physical time (seconds)")
+    j_exp_vol.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
     j_exp = sub.add_parser(
         "java-export-data", help="Export solution field data (u, v, p, vx-uy, spf.U) to text file"
     )
@@ -210,6 +263,44 @@ def main(argv: list[str] | None = None) -> int:
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-build-c04":
+        from .comsol_java import build_c04_benchmark
+
+        res = build_c04_benchmark(
+            baseline_path=Path(args.model),
+            output_path=Path(args.output),
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-build-c04-mesh2":
+        from .comsol_java import build_c04_mesh2
+
+        res = build_c04_mesh2(
+            model_path=Path(args.model),
+            output_path=Path(args.output),
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-export-c04-slice":
+        from .comsol_java import export_c04_slice_dataset
+
+        saved_path = export_c04_slice_dataset(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            time_s=args.time,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
+    elif args.cmd == "java-export-c04-volume":
+        from .comsol_java import export_c04_volume_dataset
+
+        saved_path = export_c04_volume_dataset(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            time_s=args.time,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
     elif args.cmd == "java-export-data":
         from .comsol_java import export_solution_data
 

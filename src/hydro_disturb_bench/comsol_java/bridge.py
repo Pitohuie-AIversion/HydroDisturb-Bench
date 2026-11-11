@@ -23,6 +23,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 # Explicit re-exports preserve the established bridge import surface.
 from .errors import ERR_API_UNSUPPORTED as ERR_API_UNSUPPORTED
 from .errors import ERR_COMSOL_CONNECTION_FAILED as ERR_COMSOL_CONNECTION_FAILED
@@ -132,13 +134,21 @@ def _native_compile_dependency_failure(proc: subprocess.CompletedProcess, starte
         log = Path(match.group(1).strip()).resolve()
         profile = (Path.home() / ".comsol").resolve()
         try:
-            if (log.is_relative_to(profile) and log.parent.name == "logs"
-                    and log.name.startswith("compile") and log.stat().st_mtime >= started - 2):
+            if (
+                log.is_relative_to(profile)
+                and log.parent.name == "logs"
+                and log.name.startswith("compile")
+                and log.stat().st_mtime >= started - 2
+            ):
                 details += "\n" + log.read_text(encoding="utf-8", errors="replace")
         except OSError:
             pass
-    return (sys.platform == "win32" and "UnsatisfiedLinkError" in details
-            and "csutil.dll" in details and "Can't find dependent libraries" in details)
+    return (
+        sys.platform == "win32"
+        and "UnsatisfiedLinkError" in details
+        and "csutil.dll" in details
+        and "Can't find dependent libraries" in details
+    )
 
 
 def _compile_bundled_java(root, sources, required_classes, run_process):
@@ -149,18 +159,36 @@ def _compile_bundled_java(root, sources, required_classes, run_process):
     with tempfile.TemporaryDirectory(prefix="hydrobench_compile_") as temporary:
         work = Path(temporary)
         if not str(work).isascii() or not str(root).isascii():
-            raise ComsolConnectionError("Bundled Java compilation requires ASCII temporary and installation paths")
+            raise ComsolConnectionError(
+                "Bundled Java compilation requires ASCII temporary and installation paths"
+            )
         for source in sources:
             shutil.copy2(source, work / source.name)
         proc = run_process(
-            [str(compiler), "-encoding", "UTF-8", "-proc:none", "-cp", str(root / "plugins" / "*"),
-             *(source.name for source in sources)], cwd=work, capture_output=True, text=True,
-            encoding="utf-8", errors="replace", check=False,
+            [
+                str(compiler),
+                "-encoding",
+                "UTF-8",
+                "-proc:none",
+                "-cp",
+                str(root / "plugins" / "*"),
+                *(source.name for source in sources),
+            ],
+            cwd=work,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
         )
         if proc.returncode != 0:
-            raise ComsolConnectionError(f"Bundled javac compilation failed:\n{proc.stderr}\n{proc.stdout}")
+            raise ComsolConnectionError(
+                f"Bundled javac compilation failed:\n{proc.stderr}\n{proc.stdout}"
+            )
         if any(not (work / target.name).is_file() for target in required_classes):
-            raise ComsolConnectionError("Bundled javac did not produce all required bridge/helper classes")
+            raise ComsolConnectionError(
+                "Bundled javac did not produce all required bridge/helper classes"
+            )
         for target in required_classes:
             shutil.copy2(work / target.name, target)
 
@@ -189,12 +217,20 @@ def ensure_bridge_compiled(
     helper_source = java_dir / "ConfigurablePulseBranch.java"
     if helper_source.is_file():
         sources.append(helper_source)
-        required_classes.extend(java_dir / name for name in (
-            "ConfigurablePulseBranch.class", "ConfigurablePulseBranch$Spec.class",
-            "ConfigurablePulseBranch$StrictProperties.class", "ConfigurablePulseBranch$Raw.class"))
+        required_classes.extend(
+            java_dir / name
+            for name in (
+                "ConfigurablePulseBranch.class",
+                "ConfigurablePulseBranch$Spec.class",
+                "ConfigurablePulseBranch$StrictProperties.class",
+                "ConfigurablePulseBranch$Raw.class",
+            )
+        )
     newest_source = max(source.stat().st_mtime for source in sources)
-    needs_compile = any(not target.is_file() or target.stat().st_mtime < newest_source
-                        for target in required_classes)
+    needs_compile = any(
+        not target.is_file() or target.stat().st_mtime < newest_source
+        for target in required_classes
+    )
 
     if needs_compile:
         cmd = [str(comsolcompile), *(str(source) for source in sources)]
@@ -221,7 +257,9 @@ def ensure_bridge_compiled(
                     f"Failed to compile ComsolBridge.java (exit code {proc.returncode}):\n{proc.stderr}\n{proc.stdout}"
                 )
         if len(sources) > 1 and any(not path.is_file() for path in required_classes):
-            raise ComsolConnectionError("Compilation did not produce all required bridge/helper classes")
+            raise ComsolConnectionError(
+                "Compilation did not produce all required bridge/helper classes"
+            )
 
     return java_class
 
@@ -230,8 +268,12 @@ def _graphics_preference_seed_dir(root: Path) -> Path:
     """Locate this installation's existing Windows profile without assuming a version."""
     ini = root / "bin" / "win64" / "comsolbatch.ini"
     if not ini.is_file():
-        raise ComsolConnectionError("Cannot locate COMSOL profile configuration for isolated graphics export")
-    match = re.search(r"@user\.home/\.comsol/(v[0-9]+)/", ini.read_text(encoding="utf-8", errors="replace"))
+        raise ComsolConnectionError(
+            "Cannot locate COMSOL profile configuration for isolated graphics export"
+        )
+    match = re.search(
+        r"@user\.home/\.comsol/(v[0-9]+)/", ini.read_text(encoding="utf-8", errors="replace")
+    )
     if not match:
         raise ComsolConnectionError("COMSOL launcher does not identify its user preference profile")
     return Path.home() / ".comsol" / match.group(1)
@@ -255,16 +297,25 @@ def _run_standalone(
     with tempfile.TemporaryDirectory(prefix="hydrobench_comsol_") as temp:
         work = Path(temp)
         if not str(work).isascii() or not str(root).isascii():
-            raise ComsolConnectionError("Standalone Java launcher requires ASCII temp and installation paths")
+            raise ComsolConnectionError(
+                "Standalone Java launcher requires ASCII temp and installation paths"
+            )
         shutil.copy2(class_file, work / "ComsolBridge.class")
         # A fresh ASCII runtime directory must contain the complete helper class
         # family, including nested classes; copying only the dispatcher is unsafe.
-        helpers = sorted(path for path in class_file.parent.glob("ConfigurablePulseBranch*.class")
-                         if path.name == "ConfigurablePulseBranch.class"
-                         or path.name.startswith("ConfigurablePulseBranch$"))
+        helpers = sorted(
+            path
+            for path in class_file.parent.glob("ConfigurablePulseBranch*.class")
+            if path.name == "ConfigurablePulseBranch.class"
+            or path.name.startswith("ConfigurablePulseBranch$")
+        )
         if args and args[0] in ("inspect-local-pulse", "run-local-pulse"):
-            required = {"ConfigurablePulseBranch.class", "ConfigurablePulseBranch$Spec.class",
-                        "ConfigurablePulseBranch$StrictProperties.class", "ConfigurablePulseBranch$Raw.class"}
+            required = {
+                "ConfigurablePulseBranch.class",
+                "ConfigurablePulseBranch$Spec.class",
+                "ConfigurablePulseBranch$StrictProperties.class",
+                "ConfigurablePulseBranch$Raw.class",
+            }
             if not required.issubset(path.name for path in helpers):
                 raise ComsolConnectionError("Configurable pulse helper bytecode is incomplete")
         for helper in helpers:
@@ -274,12 +325,20 @@ def _run_standalone(
         classpath = str(root / "plugins" / "*") + os.pathsep + str(work)
         compiled = run_process(
             [str(java_bin / "javac.exe"), "-cp", classpath, str(source)],
-            cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            cwd=work,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         if compiled.returncode != 0:
-            raise ComsolConnectionError(f"Standalone launcher compilation failed: {compiled.stderr}")
-        encoded = [base64.b64encode(value.encode("utf-8")).decode("ascii")
-                   for value in [str(root.resolve()), *args]]
+            raise ComsolConnectionError(
+                f"Standalone launcher compilation failed: {compiled.stderr}"
+            )
+        encoded = [
+            base64.b64encode(value.encode("utf-8")).decode("ascii")
+            for value in [str(root.resolve()), *args]
+        ]
         graphics_options = []
         isolated_preferences = None
         preference_seed_hashes = {}
@@ -293,15 +352,29 @@ def _run_standalone(
             for name in ("comsol.prefs", "comsolserver.prefs"):
                 seed_file = seed_dir / name
                 if not seed_file.is_file():
-                    raise ComsolConnectionError(f"Missing existing COMSOL preferences needed for isolated export: {seed_file}")
+                    raise ComsolConnectionError(
+                        f"Missing existing COMSOL preferences needed for isolated export: {seed_file}"
+                    )
                 contents = seed_file.read_bytes()
                 (isolated_preferences / name).write_bytes(contents)
                 preference_seed_hashes[name] = hashlib.sha256(contents).hexdigest()
             graphics_options = ["-Dcs.3drend=sw", f"-Dcs.prefsdir={isolated_preferences}"]
         process = run_process(
-            [str(java_bin / "java.exe"), "-Xmx2g", "-Xss4m", *graphics_options, "-cp", classpath,
-             "ComsolStandalone", *encoded],
-            cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            [
+                str(java_bin / "java.exe"),
+                "-Xmx2g",
+                "-Xss4m",
+                *graphics_options,
+                "-cp",
+                classpath,
+                "ComsolStandalone",
+                *encoded,
+            ],
+            cwd=work,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         if isolated_preferences is not None:
             process.graphics_preferences_dir = str(isolated_preferences)
@@ -349,10 +422,17 @@ def _run_bridge(
         # Never retry solver/model errors or a process that emitted bridge JSON.
         launch_mode = "comsolbatch"
         startup_failure = None
-        if (sys.platform == "win32" and "<<<JSON_START>>>" not in (proc.stdout or "")
-                and "Failed to start COMSOL" in (proc.stdout or "")
-                and "FlNativeException" in (proc.stdout or "")):
-            startup_failure = {"stdout": proc.stdout, "stderr": proc.stderr, "returncode": proc.returncode}
+        if (
+            sys.platform == "win32"
+            and "<<<JSON_START>>>" not in (proc.stdout or "")
+            and "Failed to start COMSOL" in (proc.stdout or "")
+            and "FlNativeException" in (proc.stdout or "")
+        ):
+            startup_failure = {
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "returncode": proc.returncode,
+            }
             proc = _run_standalone(root, class_file, args, **process_options)
             launch_mode = "standalone_java_api"
 
@@ -449,16 +529,28 @@ def _run_bridge(
     data.setdefault("log", stdout)
     data["launch_mode"] = launch_mode
     if launch_mode == "standalone_java_api" and args and args[0] == "export-s1-diagnostics":
-        renderer_values = re.findall(r"^COMSOL_GRAPHICS_RENDERER_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE)
+        renderer_values = re.findall(
+            r"^COMSOL_GRAPHICS_RENDERER_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE
+        )
         if renderer_values != ["sw"]:
-            raise ComsolConnectionError("Standalone image export lacks a verified software-renderer preference readback")
-        preference_dirs = re.findall(r"^COMSOL_GRAPHICS_PREFSDIR_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE)
+            raise ComsolConnectionError(
+                "Standalone image export lacks a verified software-renderer preference readback"
+            )
+        preference_dirs = re.findall(
+            r"^COMSOL_GRAPHICS_PREFSDIR_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE
+        )
         try:
             actual_directory = base64.b64decode(preference_dirs[0], validate=True).decode("utf-8")
         except (IndexError, ValueError, UnicodeDecodeError) as exc:
-            raise ComsolConnectionError("Standalone image export lacks isolated preference-directory readback") from exc
-        if len(preference_dirs) != 1 or actual_directory != getattr(proc, "graphics_preferences_dir", None):
-            raise ComsolConnectionError("Standalone image export preference directory does not match its temporary launch directory")
+            raise ComsolConnectionError(
+                "Standalone image export lacks isolated preference-directory readback"
+            ) from exc
+        if len(preference_dirs) != 1 or actual_directory != getattr(
+            proc, "graphics_preferences_dir", None
+        ):
+            raise ComsolConnectionError(
+                "Standalone image export preference directory does not match its temporary launch directory"
+            )
         data["graphics_renderer"] = {
             "source": "ModelUtil.getPreference",
             "preference": "graphics.rendering.3drend",
@@ -552,18 +644,24 @@ def refine_native_mesh(
         raise FileExistsError(f"Mesh output already exists: {output_path}")
     before_hash = compute_file_hash(model_path)
     if str(plan.get("source_sha256", "")).upper() != before_hash.upper():
-        raise ModelValidationError("Mesh plan source SHA-256 does not match the actual source model")
+        raise ModelValidationError(
+            "Mesh plan source SHA-256 does not match the actual source model"
+        )
     factor = float(plan.get("refinement_factor", 0))
     if not math.isfinite(factor) or factor <= 1:
         raise InvalidParameterError("Refinement factor must be finite and greater than one")
     component, mesh = plan.get("component_tag", ""), plan.get("mesh_tag", "")
-    if not all(isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in (component, mesh)):
+    if not all(
+        isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in (component, mesh)
+    ):
         raise InvalidParameterError("Plan must name verified component and mesh tags")
     rows, seen, size_changes = [], set(), set()
     for change in plan.get("changes", []):
         path, prop = change.get("feature_path"), change.get("property")
-        if not isinstance(path, list) or not path or not all(
-            isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in path
+        if (
+            not isinstance(path, list)
+            or not path
+            or not all(isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in path)
         ):
             raise InvalidParameterError("Each change requires a verified mesh feature path")
         key = (tuple(path), prop)
@@ -576,10 +674,20 @@ def refine_native_mesh(
                 raise InvalidParameterError("The only custom-mode change is off to on")
             kind = "string"
         elif prop in {"hmax", "hmin"}:
-            if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v <= 0 for v in (old, new)):
-                raise InvalidParameterError("Mesh size before/after values must be finite positive numbers")
+            if any(
+                isinstance(v, bool)
+                or not isinstance(v, (int, float))
+                or not math.isfinite(v)
+                or v <= 0
+                for v in (old, new)
+            ):
+                raise InvalidParameterError(
+                    "Mesh size before/after values must be finite positive numbers"
+                )
             if not math.isclose(new, old / factor, rel_tol=1e-12, abs_tol=0):
-                raise InvalidParameterError("Mesh size change does not follow the declared refinement factor")
+                raise InvalidParameterError(
+                    "Mesh size change does not follow the declared refinement factor"
+                )
             kind = "number"
             size_changes.add(prop)
         else:
@@ -593,7 +701,14 @@ def refine_native_mesh(
     staging_dir.mkdir(exist_ok=True)
     stage_id = uuid.uuid4().hex[:12]
     staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
-    args = ["refine-native-mesh", str(model_path.resolve()), str(staging_path.resolve()), component, mesh, encoded]
+    args = [
+        "refine-native-mesh",
+        str(model_path.resolve()),
+        str(staging_path.resolve()),
+        component,
+        mesh,
+        encoded,
+    ]
     with task_staging_session(staging_path, stage_id):
         try:
             result = _run_bridge(args, root=root)
@@ -601,7 +716,9 @@ def refine_native_mesh(
                 raise ModelValidationError("Source model changed during native mesh refinement")
             if result.get("stored_solution_data_empty") is not True:
                 raise ModelValidationError("Refined input must not retain the source CFD solution")
-            publish_staging_file(staging_path, output_path, stage_id, allow_overwrite=allow_overwrite)
+            publish_staging_file(
+                staging_path, output_path, stage_id, allow_overwrite=allow_overwrite
+            )
         except Exception:
             quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
             raise
@@ -664,7 +781,6 @@ def inspect_probe_and_solver(
             json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8"
         )
     return res
-
 
 
 def update_parameter(
@@ -890,6 +1006,227 @@ def build_re100_benchmark(
     return res
 
 
+def build_c04_benchmark(
+    baseline_path: Path | str,
+    output_path: Path | str,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Build independent C04 3D cylinder benchmark case from baseline official model.
+
+    Enforces baseline model immutability, atomic staging, and isolation.
+    """
+    baseline_path = Path(baseline_path)
+    output_path = Path(output_path)
+
+    if not baseline_path.is_file():
+        raise ModelNotFoundError(f"Source baseline model file does not exist: {baseline_path}")
+
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
+    if baseline_path.resolve() == output_path.resolve():
+        raise ModelValidationError(
+            "Refusing to overwrite baseline model: source and output path are identical"
+        )
+
+    hash_before = compute_file_hash(baseline_path)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
+
+    args = [
+        "build-c04-case",
+        str(baseline_path.resolve()),
+        str(staging_path.resolve()),
+    ]
+
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
+
+        hash_after = compute_file_hash(baseline_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise ModelValidationError(
+                f"Safety violation: original model file was modified during benchmark building! "
+                f"Original SHA-256 changed from {hash_before} to {hash_after}. "
+                f"Staging artifact quarantined; output file was NOT published."
+            )
+
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
+        )
+
+    res["source_sha256"] = hash_before
+    res["output_model"] = str(output_path.resolve())
+    res["output_sha256"] = compute_file_hash(output_path)
+    return res
+
+
+def build_c04_mesh2(
+    model_path: Path | str,
+    output_path: Path | str,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Build tuned 1.55M element mesh2 on C04 model with staging isolation."""
+    model_path = Path(model_path)
+    output_path = Path(output_path)
+
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Source model file does not exist: {model_path}")
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
+    hash_before = compute_file_hash(model_path)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
+
+    args = [
+        "build-c04-mesh2",
+        str(model_path.resolve()),
+        str(staging_path.resolve()),
+    ]
+
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
+
+        hash_after = compute_file_hash(model_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise ModelValidationError(
+                f"Safety violation: original model file was modified during mesh2 building! "
+                f"Original SHA-256 changed from {hash_before} to {hash_after}."
+            )
+
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
+        )
+
+    res["source_sha256"] = hash_before
+    res["output_model"] = str(output_path.resolve())
+    res["output_sha256"] = compute_file_hash(output_path)
+    return res
+
+
+def export_c04_slice_dataset(
+    model_path: Path | str,
+    output_npz: Path | str,
+    time_s: float = 0.0,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export 2D mid-span slice (192 x 96) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_2d_slice_grid, save_c04_dataset
+
+    model_path = Path(model_path)
+    output_npz = Path(output_npz)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    temp_txt = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_slice.txt"
+    try:
+        temp_txt.parent.mkdir(parents=True, exist_ok=True)
+        args = ["export-c04-slice", str(model_path.resolve()), str(temp_txt.resolve())]
+        _run_bridge(args, root=root)
+
+        lines = temp_txt.read_text(encoding="utf-8").strip().splitlines()
+        data_rows = []
+        for line in lines:
+            if line.startswith("%"):
+                continue
+            parts = line.split()
+            if len(parts) >= 6:
+                data_rows.append([float(x) for x in parts])
+
+        arr = np.array(data_rows, dtype=np.float32)
+        grid = create_c04_2d_slice_grid(D=0.30)
+        fields = np.zeros((1, 4, 96, 192), dtype=np.float32)
+
+        # Map to channels [u, v_transverse, w_spanwise, p]
+        fields[0, 0] = arr[:, 2].reshape((96, 192))
+        fields[0, 1] = arr[:, 4].reshape((96, 192))
+        fields[0, 2] = arr[:, 3].reshape((96, 192))
+        fields[0, 3] = arr[:, 5].reshape((96, 192))
+
+        # Enforce cylinder solid mask & clean NaNs
+        fields[0, :, grid.solid_mask] = 0.0
+        fields = np.nan_to_num(fields, nan=0.0)
+
+        times = np.array([time_s], dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times)
+        return output_npz
+    finally:
+        temp_txt.unlink(missing_ok=True)
+
+
+def export_c04_volume_dataset(
+    model_path: Path | str,
+    output_npz: Path | str,
+    time_s: float = 0.0,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export 3D regular volume (192 x 96 x 64) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_sampling_grid, save_c04_dataset
+
+    model_path = Path(model_path)
+    output_npz = Path(output_npz)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    temp_txt = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_vol.txt"
+    try:
+        temp_txt.parent.mkdir(parents=True, exist_ok=True)
+        args = ["export-c04-volume", str(model_path.resolve()), str(temp_txt.resolve())]
+        _run_bridge(args, root=root)
+
+        data = np.loadtxt(temp_txt, comments="%", dtype=np.float32)
+        grid = create_c04_sampling_grid(D=0.30)
+        fields = np.zeros((1, 4, 64, 96, 192), dtype=np.float32)
+
+        # data cols: 0=x, 1=y(span), 2=z(transverse), 3=u, 4=v(span), 5=w(transverse), 6=p
+        fields[0, 0] = data[:, 3].reshape((64, 96, 192))
+        fields[0, 1] = data[:, 5].reshape((64, 96, 192))
+        fields[0, 2] = data[:, 4].reshape((64, 96, 192))
+        fields[0, 3] = data[:, 6].reshape((64, 96, 192))
+
+        fields[0, :, grid.solid_mask] = 0.0
+        fields = np.nan_to_num(fields, nan=0.0)
+
+        times = np.array([time_s], dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times)
+        return output_npz
+    finally:
+        temp_txt.unlink(missing_ok=True)
+
+
+
 def export_solution_data(
     model_path: Path | str,
     output_txt_path: Path | str,
@@ -1000,9 +1337,18 @@ def export_full_field_sample(
 ) -> dict[str, Any]:
     """Read an existing solution into two validated Cartesian sample archives."""
     from ..field_sampling import export_full_field_sample as sample
+
     process_options = {} if process_runner is None else {"process_runner": process_runner}
-    return sample(model_path, output_dir, requested_times, grid_shapes, bounds,
-                  allow_overwrite=allow_overwrite, root=root, **process_options)
+    return sample(
+        model_path,
+        output_dir,
+        requested_times,
+        grid_shapes,
+        bounds,
+        allow_overwrite=allow_overwrite,
+        root=root,
+        **process_options,
+    )
 
 
 def _archive_existing_diagnostic_set(output_dir: Path) -> str | None:

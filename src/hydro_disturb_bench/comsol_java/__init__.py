@@ -1,8 +1,12 @@
 """COMSOL Java API integration package."""
 
 from .bridge import (
+    build_c04_benchmark,
+    build_c04_mesh2,
     build_re100_benchmark,
     compute_file_hash,
+    export_c04_slice_dataset,
+    export_c04_volume_dataset,
     export_full_field_sample,
     export_s1_diagnostics,
     export_solution_data,
@@ -76,6 +80,10 @@ __all__ = [
     "update_parameter",
     "run_study",
     "run_command",
+    "build_c04_benchmark",
+    "build_c04_mesh2",
+    "export_c04_slice_dataset",
+    "export_c04_volume_dataset",
     "build_re100_benchmark",
     "export_solution_data",
     "export_full_field_sample",

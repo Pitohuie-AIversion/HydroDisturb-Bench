@@ -67,6 +67,30 @@ public class ComsolBridge {
                     return;
                 }
                 handleBuildRe100Case(args[1], args[2]);
+            } else if ("build-c04-case".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: build-c04-case <modelPath> <outputPath>", "");
+                    return;
+                }
+                handleBuildC04Case(args[1], args[2]);
+            } else if ("build-c04-mesh2".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: build-c04-mesh2 <modelPath> <outputPath>", "");
+                    return;
+                }
+                handleBuildC04Mesh2(args[1], args[2]);
+            } else if ("export-c04-slice".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: export-c04-slice <modelPath> <outputTxtPath>", "");
+                    return;
+                }
+                handleExportC04Slice(args[1], args[2]);
+            } else if ("export-c04-volume".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: export-c04-volume <modelPath> <outputTxtPath>", "");
+                    return;
+                }
+                handleExportC04Volume(args[1], args[2]);
             } else if ("export-solution-data".equals(command)) {
                 if (args.length < 3) {
                     outputError("INVALID_PARAMETER", "Usage: export-solution-data <modelPath> <outputTxtPath>", "");
@@ -1127,6 +1151,267 @@ public class ComsolBridge {
 
         } catch (Throwable t) {
             outputError("MODEL_VALIDATION_FAILED", "Failed to build Re=100 benchmark model: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleBuildC04Case(String modelPath, String outputPath) {
+        if (modelPath.equalsIgnoreCase(outputPath)) {
+            outputError("MODEL_VALIDATION_FAILED", "Refusing to overwrite baseline model: source and output path are identical", "");
+            return;
+        }
+
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            String msg = t.getMessage() != null ? t.getMessage() : "";
+            if (msg.toLowerCase().contains("not found") || msg.toLowerCase().contains("no such file") || msg.toLowerCase().contains("cannot find")) {
+                outputError("MODEL_NOT_FOUND", "Source model file not found: " + modelPath, getStackTrace(t));
+            } else {
+                outputError("COMSOL_CONNECTION_FAILED", "Failed to load model: " + msg, getStackTrace(t));
+            }
+            return;
+        }
+
+        try {
+            ModelParam param = model.param();
+            param.set("D", "0.30[m]", "Cylinder diameter");
+            param.set("U0", "0.50[m/s]", "Inflow velocity magnitude");
+            param.set("alpha", "90[deg]", "Inflow angle");
+            param.set("rho0", "1025.8944[kg/m^3]", "Seawater density at 15 degC (ITTC 2024)");
+            param.set("nu0", "1.1889e-6[m^2/s]", "Seawater kinematic viscosity (ITTC 2024)");
+            param.set("mu0", "rho0*nu0", "Seawater dynamic viscosity");
+            param.set("ReD", "U0*D/nu0", "Cylinder Reynolds number");
+            param.set("Ux", "U0*sin(alpha)", "Inflow X velocity");
+            param.set("Uy", "0[m/s]", "Inflow Y velocity");
+            param.set("Uz", "U0*cos(alpha)", "Inflow Z velocity");
+            param.set("L_span", "10*D", "Spanwise domain depth (Lysenko 2025)");
+
+            // Aliases to preserve existing expressions in official model
+            param.set("rhof", "rho0", "Fluid density alias");
+            param.set("visc", "mu0", "Fluid dynamic viscosity alias");
+            param.set("Uin", "U0", "Inlet velocity alias");
+            param.set("Re", "ReD", "Reynolds number alias");
+
+            ModelNode comp = model.component("comp1");
+            GeomSequence geom = comp.geom("geom1");
+            geom.feature("ext1").set("distance", "L_span");
+            geom.run();
+
+            // Mesh 1: scale controls to D = 0.30 m for initial stationary calculation
+            try {
+                MeshSequence mesh1 = comp.mesh("mesh1");
+                double scale = param.evaluate("D") / 0.004548;
+                MeshFeature size = mesh1.feature("size");
+                size.set("hmax", (0.00288 * scale) + "[m]");
+                size.set("hmin", (8.63e-4 * scale) + "[m]");
+                MeshFeature size1 = mesh1.feature("size1");
+                size1.set("hmax", (0.00288 * scale) + "[m]");
+                size1.set("hmin", (6.09e-4 * scale) + "[m]");
+                MeshFeature size2 = mesh1.feature("size2");
+                size2.set("hmax", (0.00193 * scale) + "[m]");
+                size2.set("hmin", (5.75e-4 * scale) + "[m]");
+                mesh1.run();
+            } catch (Throwable ignored) {}
+
+            // Mesh 2: scale and tune controls for transient SST-SAS calculation (1.55M elements)
+            try {
+                MeshSequence mesh2 = comp.mesh("mesh2");
+                double scale = param.evaluate("D") / 0.004548;
+                MeshFeature m2size = mesh2.feature("size");
+                m2size.set("hmax", (0.006 * scale) + "[m]");
+                m2size.set("hmin", (8.63e-4 * scale) + "[m]");
+                MeshFeature m2size2 = mesh2.feature("size2");
+                m2size2.set("hmax", "D/6");
+                m2size2.set("hmin", (1.15e-4 * scale) + "[m]");
+                MeshFeature m2bl1 = mesh2.feature("bl1");
+                MeshFeature m2blp1 = m2bl1.feature("blp1");
+                m2blp1.set("blhtot", (0.001064 * scale) + "[m]");
+            } catch (Throwable ignored) {}
+
+            // Update transient study step tlist for C04 time scale (t* = D/U0 = 0.60 s)
+            try {
+                Study std2 = model.study("std2");
+                std2.feature("time").set("tlist", "range(0, 0.06, 3.0)");
+            } catch (Throwable ignored) {}
+
+            String[] solTags = model.sol().tags();
+            for (String stag : solTags) {
+                try {
+                    model.sol(stag).clearSolutionData();
+                } catch (Throwable ignored) {}
+            }
+
+            model.save(outputPath);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"build_c04_case\",\n");
+            sb.append("  \"source_model\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_model\": ").append(quote(outputPath)).append(",\n");
+            sb.append("  \"parameters\": {\n");
+            sb.append("    \"D\": ").append(param.evaluate("D")).append(",\n");
+            sb.append("    \"U0\": ").append(param.evaluate("U0")).append(",\n");
+            sb.append("    \"alpha\": ").append(param.evaluate("alpha")).append(",\n");
+            sb.append("    \"rho0\": ").append(param.evaluate("rho0")).append(",\n");
+            sb.append("    \"nu0\": ").append(param.evaluate("nu0")).append(",\n");
+            sb.append("    \"mu0\": ").append(param.evaluate("mu0")).append(",\n");
+            sb.append("    \"ReD\": ").append(param.evaluate("ReD")).append(",\n");
+            sb.append("    \"Ux\": ").append(param.evaluate("Ux")).append(",\n");
+            sb.append("    \"Uz\": ").append(param.evaluate("Uz")).append(",\n");
+            sb.append("    \"L_span\": ").append(param.evaluate("L_span")).append("\n");
+            sb.append("  },\n");
+            sb.append("  \"cleared_solution_tags\": ").append(stringArrayToJson(solTags)).append("\n");
+            sb.append("}\n");
+
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("BUILD_C04_FAILED", "Failed to build C04 benchmark model: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleBuildC04Mesh2(String modelPath, String outputPath) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            ModelNode comp = model.component("comp1");
+            MeshSequence mesh2 = comp.mesh("mesh2");
+            double scale = model.param().evaluate("D") / 0.004548;
+
+            MeshFeature m2size = mesh2.feature("size");
+            m2size.set("hmax", (0.006 * scale) + "[m]");
+            m2size.set("hmin", (8.63e-4 * scale) + "[m]");
+
+            MeshFeature m2size2 = mesh2.feature("size2");
+            m2size2.set("hmax", "D/6");
+            m2size2.set("hmin", (1.15e-4 * scale) + "[m]");
+
+            MeshFeature m2bl1 = mesh2.feature("bl1");
+            MeshFeature m2blp1 = m2bl1.feature("blp1");
+            m2blp1.set("blhtot", (0.001064 * scale) + "[m]");
+
+            mesh2.run();
+            model.save(outputPath);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"build_c04_mesh2\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_model\": ").append(quote(outputPath)).append(",\n");
+            sb.append("  \"num_elements\": ").append(mesh2.getNumElem()).append(",\n");
+            sb.append("  \"num_vertices\": ").append(mesh2.getNumVertex()).append("\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("MESH2_BUILD_FAILED", "Failed to build mesh2: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleExportC04Slice(String modelPath, String outputTxtPath) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for slice export: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            DatasetFeature cutPlane = model.result().dataset().create("cpl_c04_slice", "CutPlane");
+            cutPlane.set("data", "dset1");
+            cutPlane.set("planetype", "quick");
+            cutPlane.set("quickplane", "xz");
+            cutPlane.set("quicky", -1.5);
+
+            ExportFeature exporter = model.result().export().create("exp_c04_slice", "Data");
+            exporter.set("data", cutPlane.tag());
+            exporter.set("expr", new String[]{"u", "v", "w", "p"});
+            exporter.set("location", "grid");
+            exporter.set("gridstruct", "spreadsheet");
+
+            double[] gridx = new double[192];
+            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + i * (3.6 / 191.0);
+            double[] gridz = new double[96];
+            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + i * (1.8 / 95.0);
+
+            exporter.set("gridx2", gridx);
+            exporter.set("gridy2", gridz);
+            exporter.set("filename", outputTxtPath);
+            exporter.set("header", "on");
+            exporter.set("fullprec", "on");
+            exporter.set("includecoords", true);
+            exporter.set("includenan", true);
+            exporter.run();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"export_c04_slice\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_txt\": ").append(quote(outputTxtPath)).append(",\n");
+            sb.append("  \"nx\": 192,\n");
+            sb.append("  \"ny\": 96\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("EXPORT_C04_SLICE_FAILED", "Failed to export C04 slice: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleExportC04Volume(String modelPath, String outputTxtPath) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for volume export: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            ExportFeature exporter = model.result().export().create("exp_c04_vol", "Data");
+            exporter.set("data", "dset1");
+            exporter.set("expr", new String[]{"u", "v", "w", "p"});
+            exporter.set("location", "grid");
+            exporter.set("gridstruct", "spreadsheet");
+
+            double[] gridx = new double[192];
+            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + i * (3.6 / 191.0);
+            double[] gridy = new double[64];
+            for (int i = 0; i < 64; i++) gridy[i] = -2.1 + i * (1.2 / 63.0);
+            double[] gridz = new double[96];
+            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + i * (1.8 / 95.0);
+
+            exporter.set("gridx3", gridx);
+            exporter.set("gridy3", gridy);
+            exporter.set("gridz3", gridz);
+            exporter.set("filename", outputTxtPath);
+            exporter.set("header", "on");
+            exporter.set("fullprec", "on");
+            exporter.set("includecoords", true);
+            exporter.set("includenan", true);
+            exporter.run();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"export_c04_volume\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_txt\": ").append(quote(outputTxtPath)).append(",\n");
+            sb.append("  \"nx\": 192,\n");
+            sb.append("  \"ny\": 96,\n");
+            sb.append("  \"nz\": 64\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("EXPORT_C04_VOLUME_FAILED", "Failed to export C04 volume: " + t.getMessage(), getStackTrace(t));
         }
     }
 
