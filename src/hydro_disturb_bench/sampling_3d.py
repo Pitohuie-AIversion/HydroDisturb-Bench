@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
+from .comsol_java.file_transactions import publish_staging_file
 
 C04_CHANNELS = ("u", "v", "w", "p")
 C04_UNITS = ("m/s", "m/s", "m/s", "Pa")
@@ -193,9 +196,10 @@ def save_c04_dataset(
     grid: C04GridCoordinates | C04SliceCoordinates,
     times: np.ndarray,
     metadata: dict[str, Any] | None = None,
+    allow_overwrite: bool = True,
 ) -> Path:
-    """Save C04 dataset to validated NPZ archive with full metadata."""
-    out = Path(output_path)
+    """Save C04 dataset to validated NPZ archive with atomic staging and publish protection."""
+    out = Path(output_path).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
 
     fields = np.asarray(fields, dtype=np.float32)
@@ -229,15 +233,36 @@ def save_c04_dataset(
     if metadata:
         meta.update(metadata)
 
-    np.savez_compressed(
-        out,
-        fields=fields,
-        times=times,
-        solid_mask=grid.solid_mask,
-        sdf=grid.sdf,
-        metadata_json=np.array(json.dumps(meta, indent=2, ensure_ascii=False)),
-    )
-    return out
+    staging_dir = out.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    staging_file = staging_dir / f".tmp_{uuid.uuid4().hex[:8]}_{out.name}"
+
+    try:
+        np.savez_compressed(
+            staging_file,
+            fields=fields,
+            times=times,
+            solid_mask=grid.solid_mask,
+            sdf=grid.sdf,
+            metadata_json=np.array(json.dumps(meta, indent=2, ensure_ascii=False)),
+        )
+
+        if not staging_file.is_file() or staging_file.stat().st_size == 0:
+            raise ValueError(f"Staging file generation failed: {staging_file}")
+
+        with np.load(staging_file, allow_pickle=False) as check_data:
+            if "fields" not in check_data or "metadata_json" not in check_data:
+                raise ValueError("Corrupted staging NPZ archive")
+
+        publish_staging_file(
+            staging_path=staging_file,
+            output_path=out,
+            stage_id="c04_npz",
+            allow_overwrite=allow_overwrite,
+        )
+        return out
+    finally:
+        staging_file.unlink(missing_ok=True)
 
 
 def load_c04_dataset(archive_path: Path | str) -> dict[str, Any]:

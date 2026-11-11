@@ -1152,6 +1152,44 @@ def build_c04_mesh2(
     return res
 
 
+def _extract_header_time_and_coords_2d(
+    lines: list[str],
+) -> tuple[float | None, list[list[float]]]:
+    """Parse header comments for physical time and collect numerical rows for 2D slice export."""
+    header_time: float | None = None
+    data_rows: list[list[float]] = []
+    for line in lines:
+        if line.startswith("%"):
+            if header_time is None and "@" in line and "t=" in line:
+                m = re.search(r"@\s*t=([0-9.eE+-]+)", line)
+                if m:
+                    header_time = float(m.group(1))
+            continue
+        parts = line.split()
+        if len(parts) >= 6:
+            data_rows.append([float(x) for x in parts])
+    return header_time, data_rows
+
+
+def _extract_header_time_and_data_3d(
+    file_path: Path,
+) -> tuple[float | None, np.ndarray]:
+    """Parse header comments for physical time and load data matrix for 3D volume export."""
+    header_time: float | None = None
+    with open(file_path, encoding="utf-8") as f:
+        for _ in range(50):
+            line = f.readline()
+            if not line:
+                break
+            if line.startswith("%") and "@" in line and "t=" in line:
+                m = re.search(r"@\s*t=([0-9.eE+-]+)", line)
+                if m:
+                    header_time = float(m.group(1))
+                    break
+    data = np.loadtxt(file_path, comments="%", dtype=np.float32)
+    return header_time, data
+
+
 def export_c04_slice_dataset(
     model_path: Path | str,
     output_npz: Path | str,
@@ -1164,8 +1202,8 @@ def export_c04_slice_dataset(
     """Export 2D mid-span slice (192 x 96) from solved C04 model to NPZ dataset."""
     from ..sampling_3d import create_c04_2d_slice_grid, save_c04_dataset
 
-    model_path = Path(model_path)
-    output_npz = Path(output_npz)
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
     if not model_path.is_file():
         raise ModelNotFoundError(f"Model file not found: {model_path}")
     if output_npz.is_file() and not allow_overwrite:
@@ -1184,30 +1222,43 @@ def export_c04_slice_dataset(
         _run_bridge(args, root=root)
 
         lines = temp_txt.read_text(encoding="utf-8").strip().splitlines()
-        data_rows = []
-        for line in lines:
-            if line.startswith("%"):
-                continue
-            parts = line.split()
-            if len(parts) >= 6:
-                data_rows.append([float(x) for x in parts])
+        header_time, data_rows = _extract_header_time_and_coords_2d(lines)
+        if not data_rows:
+            raise ModelValidationError(f"No data rows found in exported slice file: {temp_txt}")
 
         arr = np.array(data_rows, dtype=np.float32)
         grid = create_c04_2d_slice_grid(D=0.30)
+
+        # Coordinate verification
+        cx = arr[:, 0].reshape((96, 192))
+        cy = arr[:, 1].reshape((96, 192))
+        if not np.allclose(cx, grid.X, atol=1e-4) or not np.allclose(cy, grid.Y, atol=1e-4):
+            raise ModelValidationError(
+                f"Exported 2D slice coordinates do not match canonical grid. "
+                f"Max diff X: {np.max(np.abs(cx - grid.X)):.6e}, Y: {np.max(np.abs(cy - grid.Y)):.6e}"
+            )
+
+        # Time verification against COMSOL header if present
+        if header_time is not None and abs(header_time - float(time_s)) > 1e-4:
+            raise ModelValidationError(
+                f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+            )
+
         fields = np.zeros((1, 4, 96, 192), dtype=np.float32)
-
         # Map to channels [u, v_transverse, w_spanwise, p]
-        fields[0, 0] = arr[:, 2].reshape((96, 192))
-        fields[0, 1] = arr[:, 4].reshape((96, 192))
-        fields[0, 2] = arr[:, 3].reshape((96, 192))
-        fields[0, 3] = arr[:, 5].reshape((96, 192))
+        fields[0, 0] = arr[:, 2].reshape((96, 192))  # u (streamwise)
+        fields[0, 1] = arr[:, 4].reshape((96, 192))  # w (transverse)
+        fields[0, 2] = arr[:, 3].reshape((96, 192))  # v (spanwise)
+        fields[0, 3] = arr[:, 5].reshape((96, 192))  # p (pressure)
 
-        # Enforce cylinder solid mask & clean NaNs
+        # Strict fluid domain check & solid mask zeroing
+        fluid_mask = ~grid.solid_mask
+        if not np.isfinite(fields[0, :, fluid_mask]).all():
+            raise ModelValidationError("Fluid domain contains non-finite (NaN or Inf) values")
         fields[0, :, grid.solid_mask] = 0.0
-        fields = np.nan_to_num(fields, nan=0.0)
 
         times = np.array([time_s], dtype=np.float32)
-        save_c04_dataset(output_npz, fields, grid, times)
+        save_c04_dataset(output_npz, fields, grid, times, allow_overwrite=allow_overwrite)
         return output_npz
     finally:
         temp_txt.unlink(missing_ok=True)
@@ -1225,8 +1276,8 @@ def export_c04_volume_dataset(
     """Export 3D regular volume (192 x 96 x 64) from solved C04 model to NPZ dataset."""
     from ..sampling_3d import create_c04_sampling_grid, save_c04_dataset
 
-    model_path = Path(model_path)
-    output_npz = Path(output_npz)
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
     if not model_path.is_file():
         raise ModelNotFoundError(f"Model file not found: {model_path}")
     if output_npz.is_file() and not allow_overwrite:
@@ -1244,21 +1295,39 @@ def export_c04_volume_dataset(
         ]
         _run_bridge(args, root=root)
 
-        data = np.loadtxt(temp_txt, comments="%", dtype=np.float32)
+        header_time, data = _extract_header_time_and_data_3d(temp_txt)
         grid = create_c04_sampling_grid(D=0.30)
+
+        # Coordinate verification (COMSOL spreadsheet order: outer=z (96), mid=y (64), inner=x (192))
+        raw_x = data[:, 0].reshape((96, 64, 192)).transpose((1, 0, 2))
+        raw_z_trans = data[:, 2].reshape((96, 64, 192)).transpose((1, 0, 2))
+        if not np.allclose(raw_x, grid.X, atol=1e-4) or not np.allclose(raw_z_trans, grid.Y, atol=1e-4):
+            raise ModelValidationError(
+                f"Exported 3D volume coordinates do not match canonical grid. "
+                f"Max diff X: {np.max(np.abs(raw_x - grid.X)):.6e}, Y: {np.max(np.abs(raw_z_trans - grid.Y)):.6e}"
+            )
+
+        # Time verification against COMSOL header if present
+        if header_time is not None and abs(header_time - float(time_s)) > 1e-4:
+            raise ModelValidationError(
+                f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+            )
+
         fields = np.zeros((1, 4, 64, 96, 192), dtype=np.float32)
+        # Map channels: 0=u (streamwise), 1=w (transverse), 2=v (spanwise), 3=p (pressure)
+        fields[0, 0] = data[:, 3].reshape((96, 64, 192)).transpose((1, 0, 2))
+        fields[0, 1] = data[:, 5].reshape((96, 64, 192)).transpose((1, 0, 2))
+        fields[0, 2] = data[:, 4].reshape((96, 64, 192)).transpose((1, 0, 2))
+        fields[0, 3] = data[:, 6].reshape((96, 64, 192)).transpose((1, 0, 2))
 
-        # data cols: 0=x, 1=y(span), 2=z(transverse), 3=u, 4=v(span), 5=w(transverse), 6=p
-        fields[0, 0] = data[:, 3].reshape((64, 96, 192))
-        fields[0, 1] = data[:, 5].reshape((64, 96, 192))
-        fields[0, 2] = data[:, 4].reshape((64, 96, 192))
-        fields[0, 3] = data[:, 6].reshape((64, 96, 192))
-
+        # Strict fluid domain check & solid mask zeroing
+        fluid_mask = ~grid.solid_mask
+        if not np.isfinite(fields[0, :, fluid_mask]).all():
+            raise ModelValidationError("Fluid domain contains non-finite (NaN or Inf) values")
         fields[0, :, grid.solid_mask] = 0.0
-        fields = np.nan_to_num(fields, nan=0.0)
 
         times = np.array([time_s], dtype=np.float32)
-        save_c04_dataset(output_npz, fields, grid, times)
+        save_c04_dataset(output_npz, fields, grid, times, allow_overwrite=allow_overwrite)
         return output_npz
     finally:
         temp_txt.unlink(missing_ok=True)
@@ -1276,8 +1345,8 @@ def export_c04_slice_sequence(
     """Export multi-frame 2D mid-span slice sequence (T x 4 x 96 x 192) from solved C04 model to NPZ dataset."""
     from ..sampling_3d import create_c04_2d_slice_grid, save_c04_dataset
 
-    model_path = Path(model_path)
-    output_npz = Path(output_npz)
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
     if not model_path.is_file():
         raise ModelNotFoundError(f"Model file not found: {model_path}")
     if output_npz.is_file() and not allow_overwrite:
@@ -1287,6 +1356,9 @@ def export_c04_slice_sequence(
         solnums = ["1", "2", "3", "4"]
     if times_s is None:
         times_s = [0.0, 0.06, 0.12, 0.18]
+
+    if len(solnums) != len(times_s):
+        raise ModelValidationError(f"solnums length ({len(solnums)}) != times_s length ({len(times_s)})")
 
     temp_base = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_seq_slice.txt"
     try:
@@ -1311,26 +1383,39 @@ def export_c04_slice_sequence(
                 raise ModelValidationError(f"Step export file missing: {step_file}")
             try:
                 lines = step_file.read_text(encoding="utf-8").strip().splitlines()
-                data_rows = []
-                for line in lines:
-                    if line.startswith("%"):
-                        continue
-                    parts = line.split()
-                    if len(parts) >= 6:
-                        data_rows.append([float(x) for x in parts])
+                header_time, data_rows = _extract_header_time_and_coords_2d(lines)
+                if not data_rows:
+                    raise ModelValidationError(f"No data rows found in {step_file}")
                 arr = np.array(data_rows, dtype=np.float32)
-                # Map channels [u, v_transverse, w_spanwise, p]
+
+                # Coordinate verification on first step
+                if step_idx == 0:
+                    cx = arr[:, 0].reshape((96, 192))
+                    cy = arr[:, 1].reshape((96, 192))
+                    if not np.allclose(cx, grid.X, atol=1e-4) or not np.allclose(cy, grid.Y, atol=1e-4):
+                        raise ModelValidationError("Exported 2D slice coordinates do not match canonical grid coordinates")
+
+                # Verify actual time against expected times_s[step_idx]
+                expected_t = times_s[step_idx]
+                if header_time is not None and abs(header_time - expected_t) > 1e-4:
+                    raise ModelValidationError(
+                        f"Step {sn} exported time {header_time:.4f}s does not match expected {expected_t:.4f}s"
+                    )
+
                 fields[step_idx, 0] = arr[:, 2].reshape((96, 192))
                 fields[step_idx, 1] = arr[:, 4].reshape((96, 192))
                 fields[step_idx, 2] = arr[:, 3].reshape((96, 192))
                 fields[step_idx, 3] = arr[:, 5].reshape((96, 192))
+
+                fluid_mask = ~grid.solid_mask
+                if not np.isfinite(fields[step_idx, :, fluid_mask]).all():
+                    raise ModelValidationError(f"Step {sn} fluid domain contains non-finite (NaN or Inf) values")
                 fields[step_idx, :, grid.solid_mask] = 0.0
             finally:
                 step_file.unlink(missing_ok=True)
 
-        fields = np.nan_to_num(fields, nan=0.0)
         times_arr = np.array(times_s, dtype=np.float32)
-        save_c04_dataset(output_npz, fields, grid, times_arr)
+        save_c04_dataset(output_npz, fields, grid, times_arr, allow_overwrite=allow_overwrite)
         return output_npz
     finally:
         temp_base.unlink(missing_ok=True)
@@ -1348,8 +1433,8 @@ def export_c04_volume_sequence(
     """Export multi-frame 3D volume sequence (T x 4 x 64 x 96 x 192) from solved C04 model to NPZ dataset."""
     from ..sampling_3d import create_c04_sampling_grid, save_c04_dataset
 
-    model_path = Path(model_path)
-    output_npz = Path(output_npz)
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
     if not model_path.is_file():
         raise ModelNotFoundError(f"Model file not found: {model_path}")
     if output_npz.is_file() and not allow_overwrite:
@@ -1359,6 +1444,9 @@ def export_c04_volume_sequence(
         solnums = ["1", "2", "3", "4"]
     if times_s is None:
         times_s = [0.0, 0.06, 0.12, 0.18]
+
+    if len(solnums) != len(times_s):
+        raise ModelValidationError(f"solnums length ({len(solnums)}) != times_s length ({len(times_s)})")
 
     temp_base = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_seq_vol.txt"
     try:
@@ -1382,19 +1470,34 @@ def export_c04_volume_sequence(
             if not step_file.is_file():
                 raise ModelValidationError(f"Step export file missing: {step_file}")
             try:
-                data = np.loadtxt(step_file, comments="%", dtype=np.float32)
-                # data cols: 0=x, 1=y(span), 2=z(transverse), 3=u, 4=v(span), 5=w(transverse), 6=p
-                fields[step_idx, 0] = data[:, 3].reshape((64, 96, 192))
-                fields[step_idx, 1] = data[:, 5].reshape((64, 96, 192))
-                fields[step_idx, 2] = data[:, 4].reshape((64, 96, 192))
-                fields[step_idx, 3] = data[:, 6].reshape((64, 96, 192))
+                header_time, data = _extract_header_time_and_data_3d(step_file)
+
+                if step_idx == 0:
+                    raw_x = data[:, 0].reshape((96, 64, 192)).transpose((1, 0, 2))
+                    raw_z_trans = data[:, 2].reshape((96, 64, 192)).transpose((1, 0, 2))
+                    if not np.allclose(raw_x, grid.X, atol=1e-4) or not np.allclose(raw_z_trans, grid.Y, atol=1e-4):
+                        raise ModelValidationError("Exported 3D volume coordinates do not match canonical grid coordinates")
+
+                expected_t = times_s[step_idx]
+                if header_time is not None and abs(header_time - expected_t) > 1e-4:
+                    raise ModelValidationError(
+                        f"Step {sn} exported time {header_time:.4f}s does not match expected {expected_t:.4f}s"
+                    )
+
+                fields[step_idx, 0] = data[:, 3].reshape((96, 64, 192)).transpose((1, 0, 2))
+                fields[step_idx, 1] = data[:, 5].reshape((96, 64, 192)).transpose((1, 0, 2))
+                fields[step_idx, 2] = data[:, 4].reshape((96, 64, 192)).transpose((1, 0, 2))
+                fields[step_idx, 3] = data[:, 6].reshape((96, 64, 192)).transpose((1, 0, 2))
+
+                fluid_mask = ~grid.solid_mask
+                if not np.isfinite(fields[step_idx, :, fluid_mask]).all():
+                    raise ModelValidationError(f"Step {sn} fluid domain contains non-finite (NaN or Inf) values")
                 fields[step_idx, :, grid.solid_mask] = 0.0
             finally:
                 step_file.unlink(missing_ok=True)
 
-        fields = np.nan_to_num(fields, nan=0.0)
         times_arr = np.array(times_s, dtype=np.float32)
-        save_c04_dataset(output_npz, fields, grid, times_arr)
+        save_c04_dataset(output_npz, fields, grid, times_arr, allow_overwrite=allow_overwrite)
         return output_npz
     finally:
         temp_base.unlink(missing_ok=True)

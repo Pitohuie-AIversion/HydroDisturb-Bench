@@ -134,6 +134,7 @@ def test_export_sampling_coordinates_csv(tmp_path):
     assert len(lines) == 1 + 96 * 192
 
 
+@pytest.mark.artifact
 def test_c04_benchmark_mph_file_exists():
     """Verify generated C04 benchmark model exists and has clean size."""
     mph_path = Path("models/cylinder_3d/c04_re126k_benchmark.mph")
@@ -192,63 +193,186 @@ def test_c04_dataset_save_and_load_roundtrip(tmp_path):
         save_c04_dataset(tmp_path / "err_nan.npz", bad_fields, grid_2d, times)
 
 
+def test_c04_export_rejects_coordinate_mismatch(tmp_path, monkeypatch):
+    """Verify export fails when COMSOL output coordinates do not match canonical grid."""
+    from hydro_disturb_bench.comsol_java import bridge
+    from hydro_disturb_bench.comsol_java.errors import ModelValidationError
+
+    dummy_model = tmp_path / "dummy.mph"
+    dummy_model.write_text("dummy", encoding="utf-8")
+    out_npz = tmp_path / "slice.npz"
+
+    # Simulate export producing misaligned grid
+    def fake_run_bridge(args, root=None):
+        out_txt = Path(args[2])
+        grid = create_c04_2d_slice_grid(D=0.30)
+        x_bad = np.linspace(-0.6, 3.0, 192)
+        y_good = grid.y_1d
+        lines = ["% Header line"]
+        for y in y_good:
+            for x in x_bad:
+                lines.append(f"{x:.6f} {y:.6f} 0.5 0.0 0.0 100.0")
+        out_txt.write_text("\n".join(lines), encoding="utf-8")
+
+    monkeypatch.setattr(bridge, "_run_bridge", fake_run_bridge)
+
+    with pytest.raises(ModelValidationError, match="coordinates do not match canonical grid"):
+        bridge.export_c04_slice_dataset(dummy_model, out_npz, allow_overwrite=True)
+
+
+def test_c04_export_rejects_fluid_domain_nan(tmp_path, monkeypatch):
+    """Verify export fails when fluid domain contains NaN or Inf, refusing to mask with nan_to_num."""
+    from hydro_disturb_bench.comsol_java import bridge
+    from hydro_disturb_bench.comsol_java.errors import ModelValidationError
+
+    dummy_model = tmp_path / "dummy.mph"
+    dummy_model.write_text("dummy", encoding="utf-8")
+    out_npz = tmp_path / "slice.npz"
+
+    def fake_run_bridge(args, root=None):
+        out_txt = Path(args[2])
+        grid = create_c04_2d_slice_grid(D=0.30)
+        lines = ["% Header line @ t=0.0"]
+        for j, y in enumerate(grid.y_1d):
+            for i, x in enumerate(grid.x_1d):
+                if i == 50 and j == 50:
+                    val = "nan"
+                else:
+                    val = "0.500000"
+                lines.append(f"{x:.6f} {y:.6f} {val} 0.0 0.0 100.0")
+        out_txt.write_text("\n".join(lines), encoding="utf-8")
+
+    monkeypatch.setattr(bridge, "_run_bridge", fake_run_bridge)
+
+    with pytest.raises(ModelValidationError, match="Fluid domain contains non-finite"):
+        bridge.export_c04_slice_dataset(dummy_model, out_npz, allow_overwrite=True)
+
+
+def test_c04_export_rejects_time_mismatch(tmp_path, monkeypatch):
+    """Verify export fails when physical time in COMSOL header comments differs from expected time."""
+    from hydro_disturb_bench.comsol_java import bridge
+    from hydro_disturb_bench.comsol_java.errors import ModelValidationError
+
+    dummy_model = tmp_path / "dummy.mph"
+    dummy_model.write_text("dummy", encoding="utf-8")
+    out_npz = tmp_path / "slice.npz"
+
+    def fake_run_bridge(args, root=None):
+        out_txt = Path(args[2])
+        grid = create_c04_2d_slice_grid(D=0.30)
+        lines = ["% Header with @ t=0.50"]
+        for y in grid.y_1d:
+            for x in grid.x_1d:
+                lines.append(f"{x:.6f} {y:.6f} 0.5 0.0 0.0 100.0")
+        out_txt.write_text("\n".join(lines), encoding="utf-8")
+
+    monkeypatch.setattr(bridge, "_run_bridge", fake_run_bridge)
+
+    with pytest.raises(ModelValidationError, match="does not match expected"):
+        bridge.export_c04_slice_dataset(dummy_model, out_npz, time_s=0.0, allow_overwrite=True)
+
+
+def test_c04_atomic_save_preserves_old_file_on_failure(tmp_path):
+    """Verify atomic transaction preserves original NPZ if new export/save fails."""
+    from hydro_disturb_bench.sampling_3d import load_c04_dataset, save_c04_dataset
+
+    grid = create_c04_2d_slice_grid(D=0.30)
+    target = tmp_path / "protected.npz"
+    times = np.array([0.0], dtype=np.float32)
+
+    orig_fields = np.ones((1, 4, 96, 192), dtype=np.float32) * 42.0
+    save_c04_dataset(target, orig_fields, grid, times, allow_overwrite=True)
+    orig_bytes = target.read_bytes()
+
+    bad_fields = orig_fields.copy()
+    bad_fields[0, 0, 10, 10] = np.nan
+
+    with pytest.raises(ValueError, match="non-finite"):
+        save_c04_dataset(target, bad_fields, grid, times, allow_overwrite=True)
+
+    assert target.is_file()
+    assert target.read_bytes() == orig_bytes
+    loaded = load_c04_dataset(target)
+    assert np.allclose(loaded["fields"], orig_fields)
+
+
+def test_c04_atomic_save_refuses_overwrite_when_forbidden(tmp_path):
+    """Verify save_c04_dataset refuses overwrite when allow_overwrite=False."""
+    from hydro_disturb_bench.sampling_3d import save_c04_dataset
+
+    grid = create_c04_2d_slice_grid(D=0.30)
+    target = tmp_path / "no_overwrite.npz"
+    times = np.array([0.0], dtype=np.float32)
+    fields = np.zeros((1, 4, 96, 192), dtype=np.float32)
+
+    save_c04_dataset(target, fields, grid, times, allow_overwrite=True)
+    assert target.is_file()
+
+    with pytest.raises(FileExistsError, match="already exists and overwrite is forbidden"):
+        save_c04_dataset(target, fields, grid, times, allow_overwrite=False)
+
+
+@pytest.mark.artifact
 def test_c04_s0_solved_model_and_datasets():
     """Verify solved Stage 1 model and exported physical slice/volume datasets."""
     from hydro_disturb_bench.sampling_3d import load_c04_dataset
 
     s0_model = Path("models/cylinder_3d/c04_re126k_s0_solved.mph")
-    if s0_model.is_file():
-        assert s0_model.stat().st_size > 10_000_000
+    assert s0_model.is_file(), f"Stage 1 model missing: {s0_model}"
+    assert s0_model.stat().st_size > 10_000_000
 
     slice_npz = Path("runs/c04_s0_slice.npz")
-    if slice_npz.is_file():
-        ds = load_c04_dataset(slice_npz)
-        assert ds["fields"].shape == (1, 4, 96, 192)
-        assert ds["metadata"]["is_3d"] is False
-        assert np.isfinite(ds["fields"]).all()
-        # Inflow speed is 0.5 m/s; accelerated flow over cylinder exceeds 0.6 m/s
-        assert ds["fields"][0, 0].max() > 0.60
-        # Stagnation pressure around 128 Pa
-        assert ds["fields"][0, 3].max() > 100.0
+    assert slice_npz.is_file(), f"Stage 1 slice dataset missing: {slice_npz}"
+    ds = load_c04_dataset(slice_npz)
+    assert ds["fields"].shape == (1, 4, 96, 192)
+    assert ds["metadata"]["is_3d"] is False
+    assert np.isfinite(ds["fields"]).all()
+    assert ds["solid_mask"].sum() == 208
+    # Inflow speed is 0.5 m/s; accelerated flow over cylinder exceeds 0.6 m/s
+    assert ds["fields"][0, 0].max() > 0.60
+    # Stagnation pressure around 128 Pa
+    assert ds["fields"][0, 3].max() > 100.0
 
     vol_npz = Path("runs/c04_s0_volume.npz")
-    if vol_npz.is_file():
-        ds_vol = load_c04_dataset(vol_npz)
-        assert ds_vol["fields"].shape == (1, 4, 64, 96, 192)
-        assert ds_vol["metadata"]["is_3d"] is True
-        assert np.isfinite(ds_vol["fields"]).all()
-        assert ds_vol["fields"][0, 0].max() > 0.60
+    assert vol_npz.is_file(), f"Stage 1 volume dataset missing: {vol_npz}"
+    ds_vol = load_c04_dataset(vol_npz)
+    assert ds_vol["fields"].shape == (1, 4, 64, 96, 192)
+    assert ds_vol["metadata"]["is_3d"] is True
+    assert np.isfinite(ds_vol["fields"]).all()
+    assert ds_vol["solid_mask"].sum() == 13312
+    assert ds_vol["fields"][0, 0].max() > 0.60
 
 
+@pytest.mark.artifact
 def test_c04_s1_solved_model_and_sequences():
     """Verify solved Stage 2 transient model and multi-frame sequence datasets."""
     from hydro_disturb_bench.sampling_3d import load_c04_dataset
 
     s1_model = Path("models/cylinder_3d/c04_re126k_s1_trial.mph")
-    if s1_model.is_file():
-        assert s1_model.stat().st_size > 200_000_000
+    assert s1_model.is_file(), f"Stage 2 model missing: {s1_model}"
+    assert s1_model.stat().st_size > 200_000_000
 
     slice_seq = Path("runs/c04_s1_slice_sequence.npz")
-    if slice_seq.is_file():
-        ds = load_c04_dataset(slice_seq)
-        assert ds["fields"].shape == (4, 4, 96, 192)
-        assert ds["metadata"]["is_3d"] is False
-        assert np.isfinite(ds["fields"]).all()
-        assert np.allclose(ds["times"], [0.0, 0.06, 0.12, 0.18])
-        assert ds["solid_mask"].shape == (96, 192)
-        assert ds["solid_mask"].sum() == 208
-        # Velocity develops with vortex shedding
-        assert ds["fields"][:, 0].max() > 0.65
-        assert ds["fields"][:, 1].max() > 0.30
+    assert slice_seq.is_file(), f"Stage 2 slice sequence missing: {slice_seq}"
+    ds = load_c04_dataset(slice_seq)
+    assert ds["fields"].shape == (4, 4, 96, 192)
+    assert ds["metadata"]["is_3d"] is False
+    assert np.isfinite(ds["fields"]).all()
+    assert np.allclose(ds["times"], [0.0, 0.06, 0.12, 0.18])
+    assert ds["solid_mask"].shape == (96, 192)
+    assert ds["solid_mask"].sum() == 208
+    # Velocity develops with vortex shedding
+    assert ds["fields"][:, 0].max() > 0.65
+    assert ds["fields"][:, 1].max() > 0.30
 
     vol_seq = Path("runs/c04_s1_volume_sequence.npz")
-    if vol_seq.is_file():
-        ds_vol = load_c04_dataset(vol_seq)
-        assert ds_vol["fields"].shape == (4, 4, 64, 96, 192)
-        assert ds_vol["metadata"]["is_3d"] is True
-        assert np.isfinite(ds_vol["fields"]).all()
-        assert np.allclose(ds_vol["times"], [0.0, 0.06, 0.12, 0.18])
-        assert ds_vol["solid_mask"].shape == (64, 96, 192)
-        assert ds_vol["solid_mask"].sum() == 13312
-        assert ds_vol["fields"][:, 0].max() > 0.65
-        assert ds_vol["fields"][:, 1].max() > 0.30
+    assert vol_seq.is_file(), f"Stage 2 volume sequence missing: {vol_seq}"
+    ds_vol = load_c04_dataset(vol_seq)
+    assert ds_vol["fields"].shape == (4, 4, 64, 96, 192)
+    assert ds_vol["metadata"]["is_3d"] is True
+    assert np.isfinite(ds_vol["fields"]).all()
+    assert np.allclose(ds_vol["times"], [0.0, 0.06, 0.12, 0.18])
+    assert ds_vol["solid_mask"].shape == (64, 96, 192)
+    assert ds_vol["solid_mask"].sum() == 13312
+    assert ds_vol["fields"][:, 0].max() > 0.65
+    assert ds_vol["fields"][:, 1].max() > 0.30

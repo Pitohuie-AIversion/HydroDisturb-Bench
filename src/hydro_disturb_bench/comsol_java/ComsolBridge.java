@@ -873,6 +873,9 @@ public class ComsolBridge {
             for (String fTag : sSeq.feature().tags()) {
                 SolverFeature feat = sSeq.feature(fTag);
                 if ("Time".equalsIgnoreCase(feat.getType())) {
+                    if (tlistOverride != null && !tlistOverride.trim().isEmpty()) {
+                        try { feat.set("tlist", tlistOverride.trim()); } catch (Throwable ignored) {}
+                    }
                     if (rtolOverride != null && !rtolOverride.trim().isEmpty()) {
                         try { feat.set("rtol", rtolOverride.trim()); } catch (Throwable ignored) {}
                     }
@@ -1431,10 +1434,11 @@ public class ComsolBridge {
             exporter.set("location", "grid");
             exporter.set("gridstruct", "spreadsheet");
 
+            double delta = 0.30 / 16.0; // 0.01875 m (cell-centered)
             double[] gridx = new double[192];
-            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + i * (3.6 / 191.0);
+            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + (i + 0.5) * delta;
             double[] gridz = new double[96];
-            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + i * (1.8 / 95.0);
+            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + (i + 0.5) * delta;
 
             exporter.set("gridx2", gridx);
             exporter.set("gridy2", gridz);
@@ -1521,12 +1525,13 @@ public class ComsolBridge {
             exporter.set("location", "grid");
             exporter.set("gridstruct", "spreadsheet");
 
+            double delta = 0.30 / 16.0; // 0.01875 m (cell-centered)
             double[] gridx = new double[192];
-            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + i * (3.6 / 191.0);
+            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + (i + 0.5) * delta;
             double[] gridy = new double[64];
-            for (int i = 0; i < 64; i++) gridy[i] = -2.1 + i * (1.2 / 63.0);
+            for (int i = 0; i < 64; i++) gridy[i] = -2.1 + (i + 0.5) * delta;
             double[] gridz = new double[96];
-            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + i * (1.8 / 95.0);
+            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + (i + 0.5) * delta;
 
             exporter.set("gridx3", gridx);
             exporter.set("gridy3", gridy);

@@ -11,6 +11,8 @@ from scripts.analyze_cl_stability_onset import (
     find_stability_onset,
 )
 
+pytestmark = pytest.mark.artifact
+
 
 @pytest.fixture
 def sample_timeseries():
