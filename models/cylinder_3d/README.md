@@ -114,20 +114,26 @@ flowchart TD
    - 求解耗时：233 s（~3.9 分钟），自由度 DOF = 101,571，残差收敛稳定。
    - 物理校核：驻点最大驻压 $p_{\max} = 127.36\,\text{Pa}$（理论驻压 $p_0 = \frac{1}{2}\rho U_0^2 = 128.24\,\text{Pa}$，相对偏差仅 $0.6\%$）。
    - 尾流回流：圆柱后侧对称分离泡 $u_{\min} = -0.119\,\text{m/s}$。
-2. **第 2 步：Time Dependent SST-SAS（Stage 2 已就绪 ✅）**
-   - 网格架构：`mesh2` 调优完成（1,554,153 单元，273,786 节点，内存峰值 2.2 GB，生成用时 50.8 s）。
-   - 时间步长：$\Delta t = 0.06\,\text{s}$（无量纲步长 $\Delta t^* = 0.10$）。
-   - 初值映射：无缝继承 `sol1`（稳态 SST 解），避免高 Re 直接非定常启动的发散风险。
-3. **第 3 步：LES 高保真训练数据生产（后续扩展）**
-   - 评估资源（1000万~2000万级网格与时间步长）后推进 LES。
+2. **第 2 步：Time Dependent SST-SAS 求解（Stage 2 已成功完成验证 ✅）**
+   - 求解模型：`models/cylinder_3d/c04_re126k_s1_trial.mph`（**277.83 MB**）。
+   - 网格架构：`mesh2` 高精度细化网格（1,554,153 单元，273,786 节点，50.8 s 构建）。
+   - 求解策略：BDF2 隐式非定常推进，继承 `sol1` 稳态解无缝过渡，计算区间 $t \in [0.0, 0.18]\,\text{s}$（4 个物理采样步，$\Delta t = 0.06\,\text{s}$）。
+   - 算力耗费：约 330 核心·分钟（~25 分钟物理耗时），内存峰值 9.1 GB，全步收敛。
+   - 物理演化：横向速度 $v$ 从对称稳态发展至震荡脱落（最大横向速度幅值由 $0.304\,\text{m/s}$ 迅速增强至 $0.375\,\text{m/s}$），展向速度 $w$ 充分激发出三维湍流微扰。
+3. **第 3 步：LES 高保真长序列生产（后续扩展）**
+   - 评估资源（1000万~2000万级网格与时间步长）后推进长时间 LES。
 
 ---
 
 ## 六、目录文件清单与构建工具
 - `c04_re126k_benchmark.mph`：**已生成的 C04 工程三维基准模型**（2.42 MB，参数 $D=0.3\,\text{m}, U_0=0.5\,\text{m/s}, Re=126,167$，计算域 $30D\times 20D\times 10D$，历史解已清空作为全新算例模板）。
 - `c04_re126k_s0_solved.mph`：**已求解完成的 Stage 1 稳态 SST 模型**（14.86 MB，101,571 DOFs，包含完整的稳态速度与压力场）。
+- `c04_re126k_s0_mesh2.mph`：**包含 1.55M 调优网格的就绪模型**（54.06 MB，含 `sol1` 解与预划分 `mesh2`）。
+- `c04_re126k_s1_trial.mph`：**已求解完成的 Stage 2 非定常模型**（277.83 MB，含 4 个非定常时步解 `sol3`）。
 - `runs/c04_s0_slice.npz`：**已采样的二维中心截面数据集**（312 KB，$1 \times 4 \times 96 \times 192$，无量纲时间 $t^*=0.0$）。
 - `runs/c04_s0_volume.npz`：**已采样的完整三维体场数据集**（19.16 MB，$1 \times 4 \times 64 \times 96 \times 192$）。
+- `runs/c04_s1_slice_sequence.npz`：**已采样的非定常二维切面时序数据集**（1.21 MB，$4 \times 4 \times 96 \times 192$，涵盖 $t = 0.0, 0.06, 0.12, 0.18\,\text{s}$）。
+- `runs/c04_s1_volume_sequence.npz`：**已采样的非定常三维体场时序数据集**（76.62 MB，$4 \times 4 \times 64 \times 96 \times 192$，涵盖 $t = 0.0, 0.06, 0.12, 0.18\,\text{s}$）。
 - `cylinder_flow_turbulent.mph`：COMSOL 官方案例基线模板模型（1.46 GB，保持不可变只读）。
 - `cylinder_flow_turbulent.pdf` / `models.cfd.cylinder_flow_turbulent.pdf`：COMSOL 官方 CFD 案例说明。
 - `三维圆柱绕流数据集方案.png`：本方案的整体架构与规模对比示意图。
@@ -142,11 +148,17 @@ python -m hydro_disturb_bench.cli java-build-c04 --allow-overwrite
 # 2. 求解 Stage 1 稳态初始化 (std1)
 python -m hydro_disturb_bench.cli java-solve --model models/cylinder_3d/c04_re126k_benchmark.mph --output models/cylinder_3d/c04_re126k_s0_solved.mph --study std1 --allow-overwrite
 
-# 3. 导出二维中心截面 (192 x 96) 到 NPZ 数据集
-python -m hydro_disturb_bench.cli java-export-c04-slice --model models/cylinder_3d/c04_re126k_s0_solved.mph --output runs/c04_s0_slice.npz --allow-overwrite
+# 3. 在稳态解上预构建 1.55M 高精度 mesh2
+python -m hydro_disturb_bench.cli java-build-c04-mesh2 --model models/cylinder_3d/c04_re126k_s0_solved.mph --output models/cylinder_3d/c04_re126k_s0_mesh2.mph --allow-overwrite
 
-# 4. 导出三维空间体场 (192 x 96 x 64) 到 NPZ 数据集
-python -m hydro_disturb_bench.cli java-export-c04-volume --model models/cylinder_3d/c04_re126k_s0_solved.mph --output runs/c04_s0_volume.npz --allow-overwrite
+# 4. 求解 Stage 2 非定常计算 (std2，步长 0.06s，4个步)
+python -m hydro_disturb_bench.cli java-solve --model models/cylinder_3d/c04_re126k_s0_mesh2.mph --output models/cylinder_3d/c04_re126k_s1_trial.mph --study std2 --allow-overwrite
+
+# 5. 导出非定常二维中心截面时序 (4 x 4 x 96 x 192) 到 NPZ
+python -m hydro_disturb_bench.cli java-export-c04-slice-sequence --model models/cylinder_3d/c04_re126k_s1_trial.mph --output runs/c04_s1_slice_sequence.npz --solnums 1,2,3,4 --times 0.0,0.06,0.12,0.18 --allow-overwrite
+
+# 6. 导出非定常三维空间体场时序 (4 x 4 x 64 x 96 x 192) 到 NPZ
+python -m hydro_disturb_bench.cli java-export-c04-volume-sequence --model models/cylinder_3d/c04_re126k_s1_trial.mph --output runs/c04_s1_volume_sequence.npz --solnums 1,2,3,4 --times 0.0,0.06,0.12,0.18 --allow-overwrite
 ```
 
 

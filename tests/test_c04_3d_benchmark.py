@@ -220,3 +220,35 @@ def test_c04_s0_solved_model_and_datasets():
         assert ds_vol["fields"][0, 0].max() > 0.60
 
 
+def test_c04_s1_solved_model_and_sequences():
+    """Verify solved Stage 2 transient model and multi-frame sequence datasets."""
+    from hydro_disturb_bench.sampling_3d import load_c04_dataset
+
+    s1_model = Path("models/cylinder_3d/c04_re126k_s1_trial.mph")
+    if s1_model.is_file():
+        assert s1_model.stat().st_size > 200_000_000
+
+    slice_seq = Path("runs/c04_s1_slice_sequence.npz")
+    if slice_seq.is_file():
+        ds = load_c04_dataset(slice_seq)
+        assert ds["fields"].shape == (4, 4, 96, 192)
+        assert ds["metadata"]["is_3d"] is False
+        assert np.isfinite(ds["fields"]).all()
+        assert np.allclose(ds["times"], [0.0, 0.06, 0.12, 0.18])
+        assert ds["solid_mask"].shape == (96, 192)
+        assert ds["solid_mask"].sum() == 208
+        # Velocity develops with vortex shedding
+        assert ds["fields"][:, 0].max() > 0.65
+        assert ds["fields"][:, 1].max() > 0.30
+
+    vol_seq = Path("runs/c04_s1_volume_sequence.npz")
+    if vol_seq.is_file():
+        ds_vol = load_c04_dataset(vol_seq)
+        assert ds_vol["fields"].shape == (4, 4, 64, 96, 192)
+        assert ds_vol["metadata"]["is_3d"] is True
+        assert np.isfinite(ds_vol["fields"]).all()
+        assert np.allclose(ds_vol["times"], [0.0, 0.06, 0.12, 0.18])
+        assert ds_vol["solid_mask"].shape == (64, 96, 192)
+        assert ds_vol["solid_mask"].sum() == 13312
+        assert ds_vol["fields"][:, 0].max() > 0.65
+        assert ds_vol["fields"][:, 1].max() > 0.30

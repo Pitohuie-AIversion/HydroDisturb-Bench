@@ -12,6 +12,11 @@ from .sampling import sample_cases
 
 
 def main(argv: list[str] | None = None) -> int:
+    import sys
+
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(
         description="HydroDisturb-Bench (case planning and COMSOL integration)"
     )
@@ -143,6 +148,10 @@ def main(argv: list[str] | None = None) -> int:
     j_exp_slice.add_argument("--model", required=True, help="Solved C04 model path")
     j_exp_slice.add_argument("--output", required=True, help="Output .npz file path")
     j_exp_slice.add_argument("--time", type=float, default=0.0, help="Physical time (seconds)")
+    j_exp_slice.add_argument("--dataset", default="auto", help="Dataset tag (default: auto)")
+    j_exp_slice.add_argument(
+        "--solnum", default="auto", help="Solution number or 'all' (default: auto)"
+    )
     j_exp_slice.add_argument(
         "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
     )
@@ -154,7 +163,45 @@ def main(argv: list[str] | None = None) -> int:
     j_exp_vol.add_argument("--model", required=True, help="Solved C04 model path")
     j_exp_vol.add_argument("--output", required=True, help="Output .npz file path")
     j_exp_vol.add_argument("--time", type=float, default=0.0, help="Physical time (seconds)")
+    j_exp_vol.add_argument("--dataset", default="auto", help="Dataset tag (default: auto)")
     j_exp_vol.add_argument(
+        "--solnum", default="auto", help="Solution number or 'all' (default: auto)"
+    )
+    j_exp_vol.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_seq_slice = sub.add_parser(
+        "java-export-c04-slice-sequence",
+        help="Export multi-frame 2D mid-span slice sequence from solved C04 model to NPZ dataset",
+    )
+    j_seq_slice.add_argument("--model", required=True, help="Solved C04 model path")
+    j_seq_slice.add_argument("--output", required=True, help="Output .npz file path")
+    j_seq_slice.add_argument(
+        "--solnums", default="1,2,3,4", help="Comma-separated solnums (default: 1,2,3,4)"
+    )
+    j_seq_slice.add_argument(
+        "--times", default="0.0,0.06,0.12,0.18", help="Comma-separated physical times in seconds"
+    )
+    j_seq_slice.add_argument("--dataset", default="dset3", help="Dataset tag (default: dset3)")
+    j_seq_slice.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_seq_vol = sub.add_parser(
+        "java-export-c04-volume-sequence",
+        help="Export multi-frame 3D volume sequence from solved C04 model to NPZ dataset",
+    )
+    j_seq_vol.add_argument("--model", required=True, help="Solved C04 model path")
+    j_seq_vol.add_argument("--output", required=True, help="Output .npz file path")
+    j_seq_vol.add_argument(
+        "--solnums", default="1,2,3,4", help="Comma-separated solnums (default: 1,2,3,4)"
+    )
+    j_seq_vol.add_argument(
+        "--times", default="0.0,0.06,0.12,0.18", help="Comma-separated physical times in seconds"
+    )
+    j_seq_vol.add_argument("--dataset", default="dset3", help="Dataset tag (default: dset3)")
+    j_seq_vol.add_argument(
         "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
     )
 
@@ -288,6 +335,8 @@ def main(argv: list[str] | None = None) -> int:
             model_path=Path(args.model),
             output_npz=Path(args.output),
             time_s=args.time,
+            dataset_tag=args.dataset,
+            solnum=args.solnum,
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
@@ -298,6 +347,36 @@ def main(argv: list[str] | None = None) -> int:
             model_path=Path(args.model),
             output_npz=Path(args.output),
             time_s=args.time,
+            dataset_tag=args.dataset,
+            solnum=args.solnum,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
+    elif args.cmd == "java-export-c04-slice-sequence":
+        from .comsol_java import export_c04_slice_sequence
+
+        snums = [s.strip() for s in args.solnums.split(",") if s.strip()]
+        times_list = [float(t.strip()) for t in args.times.split(",") if t.strip()]
+        saved_path = export_c04_slice_sequence(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            solnums=snums,
+            times_s=times_list,
+            dataset_tag=args.dataset,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
+    elif args.cmd == "java-export-c04-volume-sequence":
+        from .comsol_java import export_c04_volume_sequence
+
+        snums = [s.strip() for s in args.solnums.split(",") if s.strip()]
+        times_list = [float(t.strip()) for t in args.times.split(",") if t.strip()]
+        saved_path = export_c04_volume_sequence(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            solnums=snums,
+            times_s=times_list,
+            dataset_tag=args.dataset,
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))

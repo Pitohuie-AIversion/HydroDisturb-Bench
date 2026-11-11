@@ -261,4 +261,3 @@ def load_c04_dataset(archive_path: Path | str) -> dict[str, Any]:
         "sdf": sdf,
         "metadata": meta,
     }
-

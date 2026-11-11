@@ -126,6 +126,28 @@ def get_comsol_bin_dir(root: Path | None = None) -> Path:
     return bin_dir
 
 
+def to_safe_path(p: Path | str) -> str:
+    """Return an ASCII short path on Windows when available to avoid launcher encoding issues."""
+    path = Path(p).resolve()
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            buf = ctypes.create_unicode_buffer(1024)
+            if path.exists():
+                res = ctypes.windll.kernel32.GetShortPathNameW(str(path), buf, 1024)
+                if res > 0 and buf.value:
+                    return buf.value
+            parent = path.parent
+            if parent.exists():
+                res = ctypes.windll.kernel32.GetShortPathNameW(str(parent), buf, 1024)
+                if res > 0 and buf.value:
+                    return str(Path(buf.value) / path.name)
+        except Exception:
+            pass
+    return str(path)
+
+
 def _native_compile_dependency_failure(proc: subprocess.CompletedProcess, started: float) -> bool:
     """Recognize only the observed Windows csutil dependency startup failure."""
     details = (proc.stdout or "") + "\n" + (proc.stderr or "")
@@ -1134,6 +1156,8 @@ def export_c04_slice_dataset(
     model_path: Path | str,
     output_npz: Path | str,
     time_s: float = 0.0,
+    dataset_tag: str = "auto",
+    solnum: str = "auto",
     allow_overwrite: bool = False,
     root: Path | None = None,
 ) -> Path:
@@ -1150,7 +1174,13 @@ def export_c04_slice_dataset(
     temp_txt = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_slice.txt"
     try:
         temp_txt.parent.mkdir(parents=True, exist_ok=True)
-        args = ["export-c04-slice", str(model_path.resolve()), str(temp_txt.resolve())]
+        args = [
+            "export-c04-slice",
+            to_safe_path(model_path),
+            to_safe_path(temp_txt),
+            dataset_tag,
+            solnum,
+        ]
         _run_bridge(args, root=root)
 
         lines = temp_txt.read_text(encoding="utf-8").strip().splitlines()
@@ -1187,6 +1217,8 @@ def export_c04_volume_dataset(
     model_path: Path | str,
     output_npz: Path | str,
     time_s: float = 0.0,
+    dataset_tag: str = "auto",
+    solnum: str = "auto",
     allow_overwrite: bool = False,
     root: Path | None = None,
 ) -> Path:
@@ -1203,7 +1235,13 @@ def export_c04_volume_dataset(
     temp_txt = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_vol.txt"
     try:
         temp_txt.parent.mkdir(parents=True, exist_ok=True)
-        args = ["export-c04-volume", str(model_path.resolve()), str(temp_txt.resolve())]
+        args = [
+            "export-c04-volume",
+            to_safe_path(model_path),
+            to_safe_path(temp_txt),
+            dataset_tag,
+            solnum,
+        ]
         _run_bridge(args, root=root)
 
         data = np.loadtxt(temp_txt, comments="%", dtype=np.float32)
@@ -1225,6 +1263,141 @@ def export_c04_volume_dataset(
     finally:
         temp_txt.unlink(missing_ok=True)
 
+
+def export_c04_slice_sequence(
+    model_path: Path | str,
+    output_npz: Path | str,
+    solnums: list[str] | None = None,
+    times_s: list[float] | None = None,
+    dataset_tag: str = "dset3",
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export multi-frame 2D mid-span slice sequence (T x 4 x 96 x 192) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_2d_slice_grid, save_c04_dataset
+
+    model_path = Path(model_path)
+    output_npz = Path(output_npz)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    if solnums is None:
+        solnums = ["1", "2", "3", "4"]
+    if times_s is None:
+        times_s = [0.0, 0.06, 0.12, 0.18]
+
+    temp_base = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_seq_slice.txt"
+    try:
+        temp_base.parent.mkdir(parents=True, exist_ok=True)
+        solnum_arg = ",".join(solnums)
+        args = [
+            "export-c04-slice",
+            to_safe_path(model_path),
+            to_safe_path(temp_base),
+            dataset_tag,
+            solnum_arg,
+        ]
+        _run_bridge(args, root=root)
+
+        grid = create_c04_2d_slice_grid(D=0.30)
+        n_steps = len(solnums)
+        fields = np.zeros((n_steps, 4, 96, 192), dtype=np.float32)
+
+        for step_idx, sn in enumerate(solnums):
+            step_file = temp_base.parent / f"{temp_base.name}.step_{sn}"
+            if not step_file.is_file():
+                raise ModelValidationError(f"Step export file missing: {step_file}")
+            try:
+                lines = step_file.read_text(encoding="utf-8").strip().splitlines()
+                data_rows = []
+                for line in lines:
+                    if line.startswith("%"):
+                        continue
+                    parts = line.split()
+                    if len(parts) >= 6:
+                        data_rows.append([float(x) for x in parts])
+                arr = np.array(data_rows, dtype=np.float32)
+                # Map channels [u, v_transverse, w_spanwise, p]
+                fields[step_idx, 0] = arr[:, 2].reshape((96, 192))
+                fields[step_idx, 1] = arr[:, 4].reshape((96, 192))
+                fields[step_idx, 2] = arr[:, 3].reshape((96, 192))
+                fields[step_idx, 3] = arr[:, 5].reshape((96, 192))
+                fields[step_idx, :, grid.solid_mask] = 0.0
+            finally:
+                step_file.unlink(missing_ok=True)
+
+        fields = np.nan_to_num(fields, nan=0.0)
+        times_arr = np.array(times_s, dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times_arr)
+        return output_npz
+    finally:
+        temp_base.unlink(missing_ok=True)
+
+
+def export_c04_volume_sequence(
+    model_path: Path | str,
+    output_npz: Path | str,
+    solnums: list[str] | None = None,
+    times_s: list[float] | None = None,
+    dataset_tag: str = "dset3",
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export multi-frame 3D volume sequence (T x 4 x 64 x 96 x 192) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_sampling_grid, save_c04_dataset
+
+    model_path = Path(model_path)
+    output_npz = Path(output_npz)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    if solnums is None:
+        solnums = ["1", "2", "3", "4"]
+    if times_s is None:
+        times_s = [0.0, 0.06, 0.12, 0.18]
+
+    temp_base = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_seq_vol.txt"
+    try:
+        temp_base.parent.mkdir(parents=True, exist_ok=True)
+        solnum_arg = ",".join(solnums)
+        args = [
+            "export-c04-volume",
+            to_safe_path(model_path),
+            to_safe_path(temp_base),
+            dataset_tag,
+            solnum_arg,
+        ]
+        _run_bridge(args, root=root)
+
+        grid = create_c04_sampling_grid(D=0.30)
+        n_steps = len(solnums)
+        fields = np.zeros((n_steps, 4, 64, 96, 192), dtype=np.float32)
+
+        for step_idx, sn in enumerate(solnums):
+            step_file = temp_base.parent / f"{temp_base.name}.step_{sn}"
+            if not step_file.is_file():
+                raise ModelValidationError(f"Step export file missing: {step_file}")
+            try:
+                data = np.loadtxt(step_file, comments="%", dtype=np.float32)
+                # data cols: 0=x, 1=y(span), 2=z(transverse), 3=u, 4=v(span), 5=w(transverse), 6=p
+                fields[step_idx, 0] = data[:, 3].reshape((64, 96, 192))
+                fields[step_idx, 1] = data[:, 5].reshape((64, 96, 192))
+                fields[step_idx, 2] = data[:, 4].reshape((64, 96, 192))
+                fields[step_idx, 3] = data[:, 6].reshape((64, 96, 192))
+                fields[step_idx, :, grid.solid_mask] = 0.0
+            finally:
+                step_file.unlink(missing_ok=True)
+
+        fields = np.nan_to_num(fields, nan=0.0)
+        times_arr = np.array(times_s, dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times_arr)
+        return output_npz
+    finally:
+        temp_base.unlink(missing_ok=True)
 
 
 def export_solution_data(

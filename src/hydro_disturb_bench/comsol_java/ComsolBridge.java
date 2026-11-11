@@ -81,16 +81,20 @@ public class ComsolBridge {
                 handleBuildC04Mesh2(args[1], args[2]);
             } else if ("export-c04-slice".equals(command)) {
                 if (args.length < 3) {
-                    outputError("INVALID_PARAMETER", "Usage: export-c04-slice <modelPath> <outputTxtPath>", "");
+                    outputError("INVALID_PARAMETER", "Usage: export-c04-slice <modelPath> <outputTxtPath> [datasetTag] [solnum]", "");
                     return;
                 }
-                handleExportC04Slice(args[1], args[2]);
+                String dsetTag = (args.length >= 4) ? args[3] : "auto";
+                String solnum = (args.length >= 5) ? args[4] : "auto";
+                handleExportC04Slice(args[1], args[2], dsetTag, solnum);
             } else if ("export-c04-volume".equals(command)) {
                 if (args.length < 3) {
-                    outputError("INVALID_PARAMETER", "Usage: export-c04-volume <modelPath> <outputTxtPath>", "");
+                    outputError("INVALID_PARAMETER", "Usage: export-c04-volume <modelPath> <outputTxtPath> [datasetTag] [solnum]", "");
                     return;
                 }
-                handleExportC04Volume(args[1], args[2]);
+                String dsetTag = (args.length >= 4) ? args[3] : "auto";
+                String solnum = (args.length >= 5) ? args[4] : "auto";
+                handleExportC04Volume(args[1], args[2], dsetTag, solnum);
             } else if ("export-solution-data".equals(command)) {
                 if (args.length < 3) {
                     outputError("INVALID_PARAMETER", "Usage: export-solution-data <modelPath> <outputTxtPath>", "");
@@ -414,6 +418,29 @@ public class ComsolBridge {
             }
             sb.append("      ]\n");
             sb.append("    }").append(i < solTags.length - 1 ? "," : "").append("\n");
+        }
+        sb.append("  ],\n");
+
+        // Datasets
+        sb.append("  \"datasets\": [\n");
+        String[] dtags = model.result().dataset().tags();
+        for (int i = 0; i < dtags.length; i++) {
+            String dtag = dtags[i];
+            DatasetFeature dset = model.result().dataset(dtag);
+            String dtype = dset.getType();
+            String label = "";
+            try { label = dset.label(); } catch (Throwable ignored) {}
+            String sol = "";
+            try { sol = dset.getString("solution"); } catch (Throwable ignored) {}
+            String dataSrc = "";
+            try { dataSrc = dset.getString("data"); } catch (Throwable ignored) {}
+            sb.append("    {\n");
+            sb.append("      \"tag\": ").append(quote(dtag)).append(",\n");
+            sb.append("      \"type\": ").append(quote(dtype)).append(",\n");
+            sb.append("      \"label\": ").append(quote(label)).append(",\n");
+            sb.append("      \"solution\": ").append(quote(sol)).append(",\n");
+            sb.append("      \"data\": ").append(quote(dataSrc)).append("\n");
+            sb.append("    }").append(i < dtags.length - 1 ? "," : "").append("\n");
         }
         sb.append("  ]\n");
         sb.append("}\n");
@@ -878,7 +905,43 @@ public class ComsolBridge {
             return;
         }
 
-        SolverSequence solSeq = model.sol(solTags[0]);
+        // Identify the solver sequence that corresponds to the executed study
+        SolverSequence solSeq = null;
+        for (String sTag : solTags) {
+            SolverSequence s = model.sol(sTag);
+            try {
+                for (String fTag : s.feature().tags()) {
+                    SolverFeature sf = s.feature(fTag);
+                    if ("StudyStep".equalsIgnoreCase(sf.getType())) {
+                        try {
+                            if (studyTag.equals(sf.getString("study"))) {
+                                solSeq = s;
+                                break;
+                            }
+                        } catch (Throwable ignored) {}
+                    }
+                }
+            } catch (Throwable ignored) {}
+            if (solSeq != null) break;
+        }
+
+        if (solSeq == null) {
+            for (String sTag : solTags) {
+                SolverSequence s = model.sol(sTag);
+                try {
+                    double[] pv = s.getPVals();
+                    if (pv != null && pv.length > 0) {
+                        solSeq = s;
+                        break;
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        if (solSeq == null) {
+            solSeq = model.sol(solTags[0]);
+        }
+
         double[] pvals = null;
         try {
             pvals = solSeq.getPVals();
@@ -958,6 +1021,7 @@ public class ComsolBridge {
         sb.append("  \"status\": \"SUCCESS\",\n");
         sb.append("  \"operation\": \"run_study\",\n");
         sb.append("  \"study_tag\": ").append(quote(studyTag)).append(",\n");
+        sb.append("  \"sol_tag\": ").append(quote(solSeq.tag())).append(",\n");
         sb.append("  \"elapsed_ms\": ").append(elapsedMs).append(",\n");
         sb.append("  \"sol_tags\": ").append(stringArrayToJson(solTags)).append(",\n");
         sb.append("  \"solution_stats\": {\n");
@@ -1315,7 +1379,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void handleExportC04Slice(String modelPath, String outputTxtPath) {
+    private static void handleExportC04Slice(String modelPath, String outputTxtPath, String dsetTag, String solnum) {
         Model model;
         try {
             model = ModelUtil.loadCopy("Model", modelPath);
@@ -1325,12 +1389,42 @@ public class ComsolBridge {
         }
 
         try {
+            String targetDset = "dset1";
+            if (dsetTag != null && !dsetTag.trim().isEmpty() && !dsetTag.equalsIgnoreCase("auto")) {
+                targetDset = dsetTag.trim();
+            } else {
+                String[] dtags = model.result().dataset().tags();
+                String fallbackSolDset = null;
+                for (int i = dtags.length - 1; i >= 0; i--) {
+                    try {
+                        DatasetFeature d = model.result().dataset(dtags[i]);
+                        if ("Solution".equals(d.getType())) {
+                            if (fallbackSolDset == null) {
+                                fallbackSolDset = dtags[i];
+                            }
+                            String sol = "";
+                            try { sol = d.getString("solution"); } catch (Throwable ignored) {}
+                            if ("sol3".equals(sol) || "sol5".equals(sol)) {
+                                targetDset = dtags[i];
+                                fallbackSolDset = null;
+                                break;
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                }
+                if (fallbackSolDset != null) {
+                    targetDset = fallbackSolDset;
+                }
+            }
+
+            safeRemoveDataset(model, "cpl_c04_slice");
             DatasetFeature cutPlane = model.result().dataset().create("cpl_c04_slice", "CutPlane");
-            cutPlane.set("data", "dset1");
+            cutPlane.set("data", targetDset);
             cutPlane.set("planetype", "quick");
             cutPlane.set("quickplane", "xz");
             cutPlane.set("quicky", -1.5);
 
+            safeRemoveExport(model, "exp_c04_slice");
             ExportFeature exporter = model.result().export().create("exp_c04_slice", "Data");
             exporter.set("data", cutPlane.tag());
             exporter.set("expr", new String[]{"u", "v", "w", "p"});
@@ -1344,12 +1438,26 @@ public class ComsolBridge {
 
             exporter.set("gridx2", gridx);
             exporter.set("gridy2", gridz);
-            exporter.set("filename", outputTxtPath);
             exporter.set("header", "on");
             exporter.set("fullprec", "on");
             exporter.set("includecoords", true);
             exporter.set("includenan", true);
-            exporter.run();
+
+            if (solnum != null && solnum.contains(",")) {
+                String[] snums = solnum.split(",");
+                for (int s = 0; s < snums.length; s++) {
+                    String sn = snums[s].trim();
+                    exporter.set("solnum", sn);
+                    exporter.set("filename", outputTxtPath + ".step_" + sn);
+                    exporter.run();
+                }
+            } else {
+                if (solnum != null && !solnum.trim().isEmpty() && !solnum.equalsIgnoreCase("auto")) {
+                    exporter.set("solnum", solnum.trim());
+                }
+                exporter.set("filename", outputTxtPath);
+                exporter.run();
+            }
 
             StringBuilder sb = new StringBuilder();
             sb.append("{\n");
@@ -1357,6 +1465,8 @@ public class ComsolBridge {
             sb.append("  \"operation\": \"export_c04_slice\",\n");
             sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
             sb.append("  \"output_txt\": ").append(quote(outputTxtPath)).append(",\n");
+            sb.append("  \"dataset\": ").append(quote(targetDset)).append(",\n");
+            sb.append("  \"solnum\": ").append(quote(solnum != null ? solnum : "auto")).append(",\n");
             sb.append("  \"nx\": 192,\n");
             sb.append("  \"ny\": 96\n");
             sb.append("}\n");
@@ -1366,7 +1476,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void handleExportC04Volume(String modelPath, String outputTxtPath) {
+    private static void handleExportC04Volume(String modelPath, String outputTxtPath, String dsetTag, String solnum) {
         Model model;
         try {
             model = ModelUtil.loadCopy("Model", modelPath);
@@ -1376,8 +1486,37 @@ public class ComsolBridge {
         }
 
         try {
+            String targetDset = "dset1";
+            if (dsetTag != null && !dsetTag.trim().isEmpty() && !dsetTag.equalsIgnoreCase("auto")) {
+                targetDset = dsetTag.trim();
+            } else {
+                String[] dtags = model.result().dataset().tags();
+                String fallbackSolDset = null;
+                for (int i = dtags.length - 1; i >= 0; i--) {
+                    try {
+                        DatasetFeature d = model.result().dataset(dtags[i]);
+                        if ("Solution".equals(d.getType())) {
+                            if (fallbackSolDset == null) {
+                                fallbackSolDset = dtags[i];
+                            }
+                            String sol = "";
+                            try { sol = d.getString("solution"); } catch (Throwable ignored) {}
+                            if ("sol3".equals(sol) || "sol5".equals(sol)) {
+                                targetDset = dtags[i];
+                                fallbackSolDset = null;
+                                break;
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                }
+                if (fallbackSolDset != null) {
+                    targetDset = fallbackSolDset;
+                }
+            }
+
+            safeRemoveExport(model, "exp_c04_vol");
             ExportFeature exporter = model.result().export().create("exp_c04_vol", "Data");
-            exporter.set("data", "dset1");
+            exporter.set("data", targetDset);
             exporter.set("expr", new String[]{"u", "v", "w", "p"});
             exporter.set("location", "grid");
             exporter.set("gridstruct", "spreadsheet");
@@ -1392,12 +1531,26 @@ public class ComsolBridge {
             exporter.set("gridx3", gridx);
             exporter.set("gridy3", gridy);
             exporter.set("gridz3", gridz);
-            exporter.set("filename", outputTxtPath);
             exporter.set("header", "on");
             exporter.set("fullprec", "on");
             exporter.set("includecoords", true);
             exporter.set("includenan", true);
-            exporter.run();
+
+            if (solnum != null && solnum.contains(",")) {
+                String[] snums = solnum.split(",");
+                for (int s = 0; s < snums.length; s++) {
+                    String sn = snums[s].trim();
+                    exporter.set("solnum", sn);
+                    exporter.set("filename", outputTxtPath + ".step_" + sn);
+                    exporter.run();
+                }
+            } else {
+                if (solnum != null && !solnum.trim().isEmpty() && !solnum.equalsIgnoreCase("auto")) {
+                    exporter.set("solnum", solnum.trim());
+                }
+                exporter.set("filename", outputTxtPath);
+                exporter.run();
+            }
 
             StringBuilder sb = new StringBuilder();
             sb.append("{\n");
@@ -1405,6 +1558,8 @@ public class ComsolBridge {
             sb.append("  \"operation\": \"export_c04_volume\",\n");
             sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
             sb.append("  \"output_txt\": ").append(quote(outputTxtPath)).append(",\n");
+            sb.append("  \"dataset\": ").append(quote(targetDset)).append(",\n");
+            sb.append("  \"solnum\": ").append(quote(solnum != null ? solnum : "auto")).append(",\n");
             sb.append("  \"nx\": 192,\n");
             sb.append("  \"ny\": 96,\n");
             sb.append("  \"nz\": 64\n");
