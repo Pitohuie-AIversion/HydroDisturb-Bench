@@ -83,10 +83,22 @@ CALIBRATION_CASES: dict[str, dict[str, str]] = {
         "maxstep_val": "0.1",
     },
     "B_rtol1e3": {
-        "description": "Intermediate BDF relative tolerance (rtol=1e-3, maxstep=auto)",
+        "description": "3D SST baseline tolerance (rtol=1e-3, maxstep=auto)",
         "rtol": "0.001",
         "maxstep_mode": "auto",
         "maxstep_val": "0.1",
+    },
+    "B2_rtol5e4_max005": {
+        "description": "3D-adapted intermediate tolerance & maxstep check (rtol=5e-4, const maxstep=0.05s)",
+        "rtol": "0.0005",
+        "maxstep_mode": "const",
+        "maxstep_val": "0.05",
+    },
+    "C_rtol3e4_max005": {
+        "description": "3D-adapted tightened tolerance & maxstep check (rtol=3e-4, const maxstep=0.05s)",
+        "rtol": "0.0003",
+        "maxstep_mode": "const",
+        "maxstep_val": "0.05",
     },
     "C_rtol1e4_max005": {
         "description": "Tightened reference baseline (rtol=1e-4, const maxstep=0.05s matching VALIDATION.md)",
@@ -665,6 +677,10 @@ def parse_worker_specs(
             raise ValueError("worker_specs_str yielded no valid worker specs")
         return specs
 
+    if workers == 1:
+        return [
+            {"np": int(np_per_worker), "numasets": 1, "numafirst": 0, "mpmode": default_mpmode},
+        ]
     if workers == 2:
         return [
             {"np": int(np_per_worker), "numasets": 1, "numafirst": 0, "mpmode": default_mpmode},
@@ -675,6 +691,13 @@ def parse_worker_specs(
             {"np": 32, "numasets": 1, "numafirst": 0, "mpmode": default_mpmode},
             {"np": 16, "numasets": 1, "numafirst": 1, "mpmode": default_mpmode},
             {"np": 16, "numasets": 1, "numafirst": 1, "mpmode": default_mpmode},
+        ]
+    if workers == 4:
+        return [
+            {"np": int(np_per_worker), "numasets": 1, "numafirst": 0, "mpmode": default_mpmode},
+            {"np": int(np_per_worker), "numasets": 1, "numafirst": 0, "mpmode": default_mpmode},
+            {"np": int(np_per_worker), "numasets": 1, "numafirst": 1, "mpmode": default_mpmode},
+            {"np": int(np_per_worker), "numasets": 1, "numafirst": 1, "mpmode": default_mpmode},
         ]
     raise ValueError(f"Unsupported parallel workers count: {workers}")
 
@@ -1244,6 +1267,10 @@ def _run_one_calibration_case(
     tlist = f"range(0, {dt_out}, {t_end})"
     log_path = case_dir / "comsolbatch.log"
 
+    out_tag = re.sub(r"[^A-Za-z0-9_.-]+", "_", cases_root.name)[:24] or "root"
+    root_hash = hashlib.sha1(str(cases_root).encode("utf-8")).hexdigest()[:6]
+    worker_tag = f"run_{out_tag}_{root_hash}_{case_id}"
+
     proc, wall_s = invoke_comsol_batch(
         comsolbatch=comsolbatch,
         class_file=class_file,
@@ -1263,7 +1290,7 @@ def _run_one_calibration_case(
         ],
         ini_file=ini_file,
         scratch_root=scratch,
-        worker_tag=f"run_{case_id}",
+        worker_tag=worker_tag,
         np_val=worker_np,
         numasets=worker_numasets,
         numafirst=worker_numafirst,
@@ -1373,9 +1400,26 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     by_id: dict[str, dict[str, Any]] = {}
     if args.workers <= 1 or len(selected) == 1:
+        single_spec_str = getattr(args, "worker_specs", None)
+        if single_spec_str and single_spec_str.strip():
+            slot0 = parse_worker_specs(
+                workers=1,
+                np_per_worker=args.np,
+                default_mpmode=args.mpmode,
+                worker_specs_str=single_spec_str,
+            )[0]
+            w_np = int(slot0["np"])
+            w_numasets = int(slot0["numasets"])
+            w_numafirst = int(slot0["numafirst"])
+            w_mpmode = str(slot0["mpmode"])
+        else:
+            w_np = int(args.np)
+            w_numasets = int(args.numasets)
+            w_numafirst = int(getattr(args, "numafirst", 0))
+            w_mpmode = str(args.mpmode)
         for cid in dispatch_order:
             print(
-                f"\n[RUN] {cid} (-np {args.np} -numasets {args.numasets} -mpmode {args.mpmode} save={cid in save_mph_set})",
+                f"\n[RUN] {cid} (-np {w_np} -numasets {w_numasets} -numafirst {w_numafirst} -mpmode {w_mpmode} save={cid in save_mph_set})",
                 flush=True,
             )
             res = _run_one_calibration_case(
@@ -1392,10 +1436,10 @@ def cmd_run(args: argparse.Namespace) -> int:
                 init_step=args.init_step,
                 consistent=args.consistent,
                 save_mph=(cid in save_mph_set),
-                worker_np=args.np,
-                worker_numasets=args.numasets,
-                worker_numafirst=0,
-                mpmode=args.mpmode,
+                worker_np=w_np,
+                worker_numasets=w_numasets,
+                worker_numafirst=w_numafirst,
+                mpmode=w_mpmode,
                 alloc=args.alloc,
                 priority=args.priority,
             )
@@ -1609,9 +1653,10 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional comma-separated subset of cases to save full .mph (e.g. C_rtol1e4_max005, or none/all)",
     )
-    run.add_argument("--workers", type=int, default=1, choices=[1, 2, 3])
+    run.add_argument("--workers", type=int, default=1, choices=[1, 2, 3, 4])
     run.add_argument("--np", type=int, default=32, help="Cores for 1-worker full-node solve (default: 32)")
     run.add_argument("--numasets", type=int, default=2, help="NUMA sets for 1-worker solve (default: 2)")
+    run.add_argument("--numafirst", type=int, default=0, help="Starting NUMA socket for 1-worker solve (default: 0)")
     run.add_argument("--np-per-worker", type=int, default=16, help="Cores per socket for --workers 2")
     run.add_argument(
         "--worker-specs",

@@ -250,6 +250,17 @@ def test_parse_worker_specs_and_save_mph_cases():
     assert custom[2]["mpmode"] == "throughput"
 
     selected = ["B_rtol1e3", "C_rtol1e4_max005", "D_rtol1e4_max0025"]
+    assert "B2_rtol5e4_max005" in c04cal.CALIBRATION_CASES
+    assert "C_rtol3e4_max005" in c04cal.CALIBRATION_CASES
+    specs4 = c04cal.parse_worker_specs(workers=4, np_per_worker=16, default_mpmode="throughput")
+    assert specs4 == [
+        {"np": 16, "numasets": 1, "numafirst": 0, "mpmode": "throughput"},
+        {"np": 16, "numasets": 1, "numafirst": 0, "mpmode": "throughput"},
+        {"np": 16, "numasets": 1, "numafirst": 1, "mpmode": "throughput"},
+        {"np": 16, "numasets": 1, "numafirst": 1, "mpmode": "throughput"},
+    ]
+    assert c04cal.CALIBRATION_CASES["C_rtol3e4_max005"]["rtol"] == "0.0003"
+    assert c04cal.CALIBRATION_CASES["C_rtol3e4_max005"]["maxstep_val"] == "0.05"
     assert c04cal.resolve_save_mph_cases(selected, save_mph=True, save_mph_cases="C_rtol1e4_max005") == {
         "C_rtol1e4_max005"
     }
@@ -329,3 +340,63 @@ def test_cmd_run_preserves_canonical_eval_order_when_dispatched_out_of_order(tmp
     ]
     save_map = {cid: sv for cid, sv, _, _ in dispatched}
     assert save_map == {"D_rtol1e4_max0025": False, "C_rtol1e4_max005": True, "B_rtol1e3": False}
+
+
+def test_cmd_run_single_case_honors_worker_specs_and_isolates_scratch(tmp_path: Path, monkeypatch):
+    base_mph = tmp_path / "base.mph"
+    base_mph.write_bytes(b"dummy-mph")
+    out_dir_a = tmp_path / "mesh2"
+    out_dir_b = tmp_path / "mesh3"
+    scratch = tmp_path / "scratch"
+    ini_file = tmp_path / "perf.ini"
+    ini_file.write_text("batch\n", encoding="utf-8")
+
+    captured: list[tuple[str, int, int, int, str]] = []
+    t = np.linspace(0.0, 60.0, 1001)
+    cl = 0.45 * np.sin(2.0 * math.pi * t / 3.0)
+    cd = 1.20 + 0.03 * np.cos(4.0 * math.pi * t / 3.0)
+
+    def fake_invoke(**kwargs):
+        captured.append(
+            (
+                kwargs["worker_tag"],
+                kwargs["np_val"],
+                kwargs["numasets"],
+                kwargs["numafirst"],
+                kwargs["mpmode"],
+            )
+        )
+        # Write minimal dummy JSON + probe outputs? No, monkeypatch _extract_run_artifacts & verify?
+        raise RuntimeError("stop-after-capture")
+
+    monkeypatch.setattr(c04cal, "find_comsol_root", lambda: tmp_path)
+    monkeypatch.setattr(c04cal, "get_comsol_bin_dir", lambda root: tmp_path)
+    monkeypatch.setattr(c04cal, "ensure_java_compiled", lambda *a, **kw: tmp_path / "Run.class")
+    monkeypatch.setattr(c04cal, "invoke_comsol_batch", fake_invoke)
+
+    for od, spec in [(out_dir_a, "16:1:0:throughput"), (out_dir_b, "16:1:1:turnaround")]:
+        with pytest.raises(RuntimeError, match="stop-after-capture"):
+            c04cal.main(
+                [
+                    "run",
+                    "--base-model",
+                    str(base_mph),
+                    "--out-dir",
+                    str(od),
+                    "--ini",
+                    str(ini_file),
+                    "--scratch",
+                    str(scratch),
+                    "--cases",
+                    "B_rtol1e3",
+                    "--workers",
+                    "1",
+                    "--worker-specs",
+                    spec,
+                ]
+            )
+
+    assert len(captured) == 2
+    assert captured[0][0] != captured[1][0]
+    assert captured[0][1:] == (16, 1, 0, "throughput")
+    assert captured[1][1:] == (16, 1, 1, "turnaround")
