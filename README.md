@@ -19,10 +19,11 @@ Start with the [development status and evidence index](docs/DEVELOPMENT.md), [ch
 | Field sampling | Five saved times on two grids, then 151 consecutive frames at 161×97 | [Small sample](docs/STAGE_M3_FIELD_SAMPLING_20261105.md), [continuous sequence](docs/STAGE_M3_FIELD_SEQUENCE_20261105.md) |
 | Controlled futures | Shared native state at 180 s; zero branch plus acceleration amplitudes 0.0025, 0.005 and 0.010 m/s² | [Amplitude series](docs/reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md) |
 | 3-D High-Re Benchmark (C04) | Re=126,167 LES/SST-SAS baseline, 1.55M mesh, verified 4-frame 2D slice & 3D volume exports, spatial-temporal window indexing, baseline forecasters, and 3D disturbance protocol | [C04 Benchmark](docs/C04_WORLD_MODEL_BENCHMARK.md), [Model README](models/cylinder_3d/README.md) |
+| Observability & Evaluation Suite | Downstream 2D/3D rakes, cylinder surface rings, AUV patrol paths, measurement noise models, moving disturbance sources, and probabilistic/reconstruction metrics (CRPS, SSR, Rel-L2, PSNR) | [Observation Operators](docs/OBSERVATION_OPERATORS.md) |
 
-The latest offline regression for the complete repository (including the C04 3D benchmark) is **1110 passed, 45 deselected**. The real COMSOL physical solves and exported datasets have separate artifact verification tests. These are recorded execution results, not a claim that every fresh clone or platform has rerun them.
+The latest offline regression for the complete repository (including C04 3D benchmark and observability suite) is **1125 passed, 45 deselected**. The real COMSOL physical solves and exported datasets have separate artifact verification tests. These are recorded execution results, not a claim that every fresh clone or platform has rerun them.
 
-The **COMSOL MCP server and Universal Software MCP Builder plugin are on the separate, unmerged `feat/comsol-mcp` branch**. Their implementation and verification boundaries are listed in the [development index](docs/DEVELOPMENT.md#未合入的开发).
+The **COMSOL MCP server and Universal Software MCP Builder plugin are maintained on `feat/comsol-mcp`**, synced with `main` with prototype solver parameters, execution watchdogs, and tool registry alignment. Their implementation boundaries are listed in the [development index](docs/DEVELOPMENT.md#未合入的开发).
 
 ## Stack and supported environment
 

@@ -52,8 +52,18 @@ class C04DisturbanceConfig:
     sigma_m: float  # Gaussian spatial width sigma
     on_s: float  # Start time of pulse in seconds
     off_s: float  # Stop time of pulse in seconds
+    velocity_m_s: tuple[float, float, float] = (0.0, 0.0, 0.0)  # Source translation velocity
     mechanism: str = "gaussian_body_acceleration"
     event_id: str = "c04_pulse_01"
+
+    def center_at_time(self, time_s: float) -> tuple[float, float, float]:
+        """Returns the instantaneous spatial center (xc, yc, zc) at physical time t."""
+        if self.velocity_m_s == (0.0, 0.0, 0.0) or time_s <= self.on_s:
+            return self.center_m
+        dt = min(float(time_s), self.off_s) - self.on_s
+        xc0, yc0, zc0 = self.center_m
+        vx, vy, vz = self.velocity_m_s
+        return (xc0 + vx * dt, yc0 + vy * dt, zc0 + vz * dt)
 
     def __post_init__(self) -> None:
         _require(
@@ -62,9 +72,13 @@ class C04DisturbanceConfig:
         _require(
             len(self.direction) == 3, "direction must be a 3-element tuple (ex, ey, ez)"
         )
+        _require(
+            len(self.velocity_m_s) == 3, "velocity_m_s must be a 3-element tuple (vx, vy, vz)"
+        )
 
         xc, yc, zc = (_number(v, f"center_m[{i}]") for i, v in enumerate(self.center_m))
         ex, ey, ez = (_number(v, f"direction[{i}]") for i, v in enumerate(self.direction))
+        vx, vy, vz = (_number(v, f"velocity_m_s[{i}]") for i, v in enumerate(self.velocity_m_s))
         amplitude = _number(self.acceleration_m_s2, "acceleration_m_s2")
         sigma = _number(self.sigma_m, "sigma_m")
         t_on = _number(self.on_s, "on_s")
@@ -90,29 +104,35 @@ class C04DisturbanceConfig:
         with localcontext() as context:
             context.prec = 60
             radius = 3 * sigma  # 3-sigma support sphere
+            duration = t_off - t_on
 
-            # Geometric containment check: 3-sigma sphere inside CFD domain
-            # x in [-3.0, 6.0], y in [-3.0, 3.0], z in [0.0, 3.0]
-            _require(
-                Decimal("-3.0") + radius <= xc <= Decimal("6.0") - radius,
-                "The complete 3-sigma sphere must lie within CFD streamwise bounds [-3.0, 6.0] m",
-            )
-            _require(
-                Decimal("-3.0") + radius <= yc <= Decimal("3.0") - radius,
-                "The complete 3-sigma sphere must lie within CFD crossflow bounds [-3.0, 3.0] m",
-            )
-            _require(
-                Decimal("0.0") + radius <= zc <= Decimal("3.0") - radius,
-                "The complete 3-sigma sphere must lie within CFD spanwise bounds [0.0, 3.0] m",
-            )
+            # Validate endpoints of trajectory
+            for alpha in (Decimal("0"), Decimal("1")):
+                cur_xc = xc + vx * duration * alpha
+                cur_yc = yc + vy * duration * alpha
+                cur_zc = zc + vz * duration * alpha
 
-            # Obstacle clearance check: cylinder is along z-axis at (x, y) = (0, 0) with radius 0.15 m
-            dist_xy_sq = xc**2 + yc**2
-            min_dist = radius + Decimal(str(C04_CYLINDER_RADIUS_M))
-            _require(
-                dist_xy_sq >= min_dist**2,
-                "The 3-sigma sphere must not intersect or touch the cylinder obstacle",
-            )
+                # Geometric containment check: 3-sigma sphere inside CFD domain
+                _require(
+                    Decimal("-3.0") + radius <= cur_xc <= Decimal("6.0") - radius,
+                    "The complete 3-sigma sphere must lie within CFD streamwise bounds [-3.0, 6.0] m",
+                )
+                _require(
+                    Decimal("-3.0") + radius <= cur_yc <= Decimal("3.0") - radius,
+                    "The complete 3-sigma sphere must lie within CFD crossflow bounds [-3.0, 3.0] m",
+                )
+                _require(
+                    Decimal("0.0") + radius <= cur_zc <= Decimal("3.0") - radius,
+                    "The complete 3-sigma sphere must lie within CFD spanwise bounds [0.0, 3.0] m",
+                )
+
+                # Obstacle clearance check: cylinder is along z-axis at (x, y) = (0, 0) with radius 0.15 m
+                dist_xy_sq = cur_xc**2 + cur_yc**2
+                min_dist = radius + Decimal(str(C04_CYLINDER_RADIUS_M))
+                _require(
+                    dist_xy_sq >= min_dist**2,
+                    "The 3-sigma sphere must not intersect or touch the cylinder obstacle",
+                )
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -121,15 +141,20 @@ class C04DisturbanceConfig:
 def generate_c04_comsol_force_expressions(config: C04DisturbanceConfig) -> dict[str, str]:
     """Generate exact COMSOL VolumeForce formula expressions for Fx, Fy, Fz.
 
-    Formulas use COMSOL syntax:
-    F = rho0 * A * exp(-((x-xc)^2+(y-yc)^2+(z-zc)^2)/(2*sigma^2)) * if((t>on)&&(t<off), sin(pi*(t-on)/(off-on))^2, 0)
+    Formulas use COMSOL syntax, supporting both stationary and moving Gaussian pulse sources.
     """
-    xc, yc, zc = config.center_m
+    xc0, yc0, zc0 = config.center_m
+    vx, vy, vz = config.velocity_m_s
     norm = math.sqrt(sum(d**2 for d in config.direction))
     ex, ey, ez = [d / norm for d in config.direction]
 
+    t_rel = f"(t-{config.on_s:.4f}[s])"
+    xc_expr = f"({xc0:.6f}[m]+{vx:.6f}[m/s]*{t_rel})" if vx != 0.0 else f"{xc0:.6f}[m]"
+    yc_expr = f"({yc0:.6f}[m]+{vy:.6f}[m/s]*{t_rel})" if vy != 0.0 else f"{yc0:.6f}[m]"
+    zc_expr = f"({zc0:.6f}[m]+{vz:.6f}[m/s]*{t_rel})" if vz != 0.0 else f"{zc0:.6f}[m]"
+
     spatial_gauss = (
-        f"exp(-((x-{xc:.6f}[m])^2+(y-{yc:.6f}[m])^2+(z-{zc:.6f}[m])^2)"
+        f"exp(-((x-{xc_expr})^2+(y-{yc_expr})^2+(z-{zc_expr})^2)"
         f"/(2*{config.sigma_m:.6f}[m]^2))"
     )
     time_env = (
@@ -168,15 +193,13 @@ def evaluate_c04_disturbance_field(
     t = float(time_s)
     if t <= config.on_s or t >= config.off_s:
         # Outside pulse active window, acceleration is identically zero
-        if isinstance(grid, C04GridCoordinates):
-            return np.zeros((3, *grid.shape), dtype=np.float32)
         return np.zeros((3, *grid.shape), dtype=np.float32)
 
     # Time envelope
     t_pulse = config.off_s - config.on_s
     t_factor = float(math.sin(math.pi * (t - config.on_s) / t_pulse) ** 2)
 
-    xc, yc, zc = config.center_m
+    xc, yc, zc = config.center_at_time(t)
     sigma = config.sigma_m
 
     norm = math.sqrt(sum(d**2 for d in config.direction))

@@ -266,6 +266,35 @@ def main(argv: list[str] | None = None) -> int:
         help="Baseline forecasting method",
     )
 
+    obs_plan = sub.add_parser(
+        "observation-plan",
+        help="Generate standard sparse sensor observation layout (rake, surface ring, AUV)",
+    )
+    obs_plan.add_argument(
+        "--type",
+        required=True,
+        choices=["rake-2d", "rake-3d", "surface-2d", "auv-2d"],
+        help="Sensor layout geometry type",
+    )
+    obs_plan.add_argument("--out", required=True, help="Output path for sensor layout JSON")
+
+    obs_samp = sub.add_parser(
+        "observation-sample",
+        help="Extract sparse sensor observation time series from 2D or 3D flow dataset",
+    )
+    obs_samp.add_argument("--layout", required=True, help="Path to sensor layout JSON")
+    obs_samp.add_argument("--dataset", required=True, help="Path to 2D or 3D NPZ flow dataset")
+    obs_samp.add_argument("--out", required=True, help="Output path for sampled observations JSON")
+    obs_samp.add_argument("--snr", type=float, default=None, help="Optional SNR in dB for noise injection")
+
+    recon_eval = sub.add_parser(
+        "reconstruction-eval",
+        help="Evaluate fluid-restricted reconstruction accuracy between reconstructed and true fields",
+    )
+    recon_eval.add_argument("--pred", required=True, help="Path to reconstructed field NPZ")
+    recon_eval.add_argument("--true", required=True, help="Path to ground truth field NPZ")
+    recon_eval.add_argument("--out", default=None, help="Optional output JSON path for metrics report")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -460,6 +489,133 @@ def main(argv: list[str] | None = None) -> int:
         index.add_dataset(args.dataset)
         report = evaluate_c04_dataset_baselines(index, method=args.method)
         print(json.dumps(report, indent=2, ensure_ascii=False))
+    elif args.cmd == "observation-plan":
+        from .observation_operator import (
+            make_auv_patrol_path,
+            make_cylinder_surface_probes_2d,
+            make_downstream_rake_2d,
+            make_downstream_rake_3d,
+        )
+
+        if args.type == "rake-2d":
+            layout = make_downstream_rake_2d(
+                x_stations=[0.10, 0.15, 0.20, 0.30],
+                y_min=0.04,
+                y_max=0.20,
+                n_probes_per_station=17,
+            )
+        elif args.type == "rake-3d":
+            layout = make_downstream_rake_3d(
+                x_stations=[0.60, 1.50, 3.00],
+                y_min=-1.0,
+                y_max=1.0,
+                z_stations=[0.5, 1.5, 2.5],
+                n_probes_y=9,
+            )
+        elif args.type == "surface-2d":
+            layout = make_cylinder_surface_probes_2d(
+                center_x=0.0,
+                center_y=0.0,
+                radius=0.005,
+                n_sensors=16,
+            )
+        elif args.type == "auv-2d":
+            layout, _ = make_auv_patrol_path(
+                start_coords=(0.05, 0.04),
+                end_coords=(0.35, 0.20),
+                speed_m_s=0.05,
+                t_start=180.0,
+            )
+        else:
+            raise ValueError(f"Unknown layout type: {args.type}")
+
+        layout.save_json(args.out)
+        print(
+            json.dumps(
+                {"status": "SUCCESS", "layout": layout.to_dict(), "saved_to": str(args.out)},
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+    elif args.cmd == "observation-sample":
+        import numpy as np
+
+        from .observation_operator import ObservationOperator, SensorLayout
+
+        layout = SensorLayout.load_json(args.layout)
+        operator = ObservationOperator(layout)
+        npz_data = np.load(args.dataset)
+
+        channel_names = tuple(
+            npz_data.get(
+                "channel_names",
+                ("u", "v", "p") if layout.dim == 2 else ("u", "v", "w", "p"),
+            )
+        )
+        if layout.dim == 2:
+            data = npz_data["data"]
+            x_coords = npz_data["x"]
+            y_coords = npz_data["y"]
+            sampled = operator.sample_2d_field(
+                data, x_coords, y_coords, channel_names=channel_names
+            )
+        else:
+            data = npz_data["data"]
+            x_coords = npz_data["x"]
+            y_coords = npz_data["y"]
+            z_coords = npz_data["z"]
+            sampled = operator.sample_3d_field(
+                data, x_coords, y_coords, z_coords, channel_names=channel_names
+            )
+
+        if args.snr is not None:
+            sampled = operator.add_sensor_noise(sampled, snr_db=args.snr)
+
+        result = {
+            "layout_name": layout.name,
+            "num_probes": layout.num_probes,
+            "sampled_shape": list(sampled.shape),
+            "snr_db": args.snr,
+            "sample_summary": {
+                "mean": float(np.nanmean(sampled)),
+                "std": float(np.nanstd(sampled)),
+                "min": float(np.nanmin(sampled)),
+                "max": float(np.nanmax(sampled)),
+            },
+        }
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(
+            json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+    elif args.cmd == "reconstruction-eval":
+        import numpy as np
+
+        from .probabilistic_metrics import evaluate_field_reconstruction
+
+        pred_npz = np.load(args.pred)
+        true_npz = np.load(args.true)
+        pred_field = pred_npz["data"]
+        true_field = true_npz["data"]
+        mask = true_npz.get("fluid_mask", true_npz.get("mask", None))
+        if mask is not None:
+            mask = np.asarray(mask, dtype=bool)
+
+        channel_names = tuple(
+            true_npz.get(
+                "channel_names",
+                ("u", "v", "w", "p") if pred_field.ndim >= 5 else ("u", "v", "p"),
+            )
+        )
+        metrics = evaluate_field_reconstruction(
+            pred_field, true_field, fluid_mask=mask, channel_names=channel_names
+        )
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(
+                json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        print(json.dumps(metrics, indent=2, ensure_ascii=False))
 
     return 0
 
