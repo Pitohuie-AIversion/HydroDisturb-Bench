@@ -18,8 +18,9 @@ Start with the [development status and evidence index](docs/DEVELOPMENT.md), [ch
 | Time check on M3 | Internal step cap 0.05 → 0.025 s; four changes below 0.07% | [M3 time check](docs/STAGE_S1B3_M3_TIME_20261105.md) |
 | Field sampling | Five saved times on two grids, then 151 consecutive frames at 161×97 | [Small sample](docs/STAGE_M3_FIELD_SAMPLING_20261105.md), [continuous sequence](docs/STAGE_M3_FIELD_SEQUENCE_20261105.md) |
 | Controlled futures | Shared native state at 180 s; zero branch plus acceleration amplitudes 0.0025, 0.005 and 0.010 m/s² | [Amplitude series](docs/reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md) |
+| 3-D High-Re Benchmark (C04) | Re=126,167 LES/SST-SAS baseline, 1.55M mesh, verified 4-frame 2D slice & 3D volume exports, spatial-temporal window indexing, baseline forecasters, and 3D disturbance protocol | [C04 Benchmark](docs/C04_WORLD_MODEL_BENCHMARK.md), [Model README](models/cylinder_3d/README.md) |
 
-The latest archived offline regression for the local-pulse parameter delivery is **1021 passed, 13 deselected** (recorded in [the parameter report](docs/reports/LOCAL_PULSE_PARAMETERS_20261106.md)). The two new physical solves have separate COMSOL evidence. These are recorded execution results, not a claim that every fresh clone or platform has rerun them.
+The latest offline regression for the complete repository (including the C04 3D benchmark) is **1110 passed, 45 deselected**. The real COMSOL physical solves and exported datasets have separate artifact verification tests. These are recorded execution results, not a claim that every fresh clone or platform has rerun them.
 
 The **COMSOL MCP server and Universal Software MCP Builder plugin are on the separate, unmerged `feat/comsol-mcp` branch**. Their implementation and verification boundaries are listed in the [development index](docs/DEVELOPMENT.md#未合入的开发).
 
