@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "scope": "All staged changes before adding this manifest; this manifest excludes itself.",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "git_blob_bytes": 15342,
+      "git_blob_sha256": "4eba6fb9d8e809371f81e43a148c24c56fedd81d04611b87d549141ba5f52f6b",
+      "working_file_sha256": "4eba6fb9d8e809371f81e43a148c24c56fedd81d04611b87d549141ba5f52f6b",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "README.md",
+      "git_blob_bytes": 9876,
+      "git_blob_sha256": "a6ef5455d7c31ba100eeeb27305b9fca4c1472396d4c3be1db8e89eb40628b3f",
+      "working_file_sha256": "a6ef5455d7c31ba100eeeb27305b9fca4c1472396d4c3be1db8e89eb40628b3f",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "configs/m3_forecast_baseline.json",
+      "git_blob_bytes": 878,
+      "git_blob_sha256": "d80f8421ef4dd536712274b0f7e284a6e24355d17903fe2568066a362436fa7a",
+      "working_file_sha256": "d80f8421ef4dd536712274b0f7e284a6e24355d17903fe2568066a362436fa7a",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/DATA_USAGE.md",
+      "git_blob_bytes": 5781,
+      "git_blob_sha256": "20387f4ebe0033e36baff25c49757b0c4743e153acc5567962a85ef040f313f8",
+      "working_file_sha256": "20387f4ebe0033e36baff25c49757b0c4743e153acc5567962a85ef040f313f8",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/DEVELOPMENT.md",
+      "git_blob_bytes": 19298,
+      "git_blob_sha256": "5452c754eb56c126f46c98dbd3f47aaa87a93c6b6352f6ff87e6289492a2eff4",
+      "working_file_sha256": "5452c754eb56c126f46c98dbd3f47aaa87a93c6b6352f6ff87e6289492a2eff4",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/FORECAST_BASELINES.md",
+      "git_blob_bytes": 4472,
+      "git_blob_sha256": "fa73b0c3cf61f49b3a2c7ff1572bbb9c3225e86b6e34e818504c595f5dfe2218",
+      "working_file_sha256": "fa73b0c3cf61f49b3a2c7ff1572bbb9c3225e86b6e34e818504c595f5dfe2218",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/RESEARCH_PLAN.md",
+      "git_blob_bytes": 8085,
+      "git_blob_sha256": "3de61061df39ff223e91856c47a5a43798e25c3ca276f4cd5a1a85e2f36a5747",
+      "working_file_sha256": "3de61061df39ff223e91856c47a5a43798e25c3ca276f4cd5a1a85e2f36a5747",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "git_blob_bytes": 16594,
+      "git_blob_sha256": "850e10debe285ce8865ded67606046507488e0b81a7c33c9ab5aad70e488bf40",
+      "working_file_sha256": "850e10debe285ce8865ded67606046507488e0b81a7c33c9ab5aad70e488bf40",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/audit_logs/execution.json",
+      "git_blob_bytes": 18181,
+      "git_blob_sha256": "956507f11dbd2a0276c7b8ebc65dfc20308762d37220a4997fbed33d90059821",
+      "working_file_sha256": "8950abf940ee9765236849245d9d9e7973ed65804c8bcd7ffd818a7bef910331",
+      "lf_normalized_only": true
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/audit_logs/stderr.txt",
+      "git_blob_bytes": 0,
+      "git_blob_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/audit_logs/stdout.txt",
+      "git_blob_bytes": 40,
+      "git_blob_sha256": "2c93c5d455d15a639827624588ad0c22c10bb95111b2089dc2c2a5994b774690",
+      "working_file_sha256": "5dec3fa5196f0fda559f3d14fa9e81f87b44c2157bc6a68068732b384ead02c0",
+      "lf_normalized_only": true
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/evaluation_execution.json",
+      "git_blob_bytes": 3674,
+      "git_blob_sha256": "443f827120ffe4c5e1f385ca5cb58bdf8e5df3fdf736f7ab71f605c276ae78dc",
+      "working_file_sha256": "443f827120ffe4c5e1f385ca5cb58bdf8e5df3fdf736f7ab71f605c276ae78dc",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/evaluation_logs/execution.json",
+      "git_blob_bytes": 17830,
+      "git_blob_sha256": "5b91483271b4b20ced08ebf07c8ddc1dccf9a3f70c4b68283e48c9554c07adfe",
+      "working_file_sha256": "870bac2e0feecc26baf8918516d6df2f96de5c49fcecf27d13bc57295e0723c9",
+      "lf_normalized_only": true
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/evaluation_logs/stderr.txt",
+      "git_blob_bytes": 0,
+      "git_blob_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/evaluation_logs/stdout.txt",
+      "git_blob_bytes": 222,
+      "git_blob_sha256": "61b64f6deee758e9f4c7bfd3700e76d82d2b4e210804da7bbba3c01cfa02fe84",
+      "working_file_sha256": "97845515d291c2540670b2d6700eb906153187300a40609445a8f93b54fc27a9",
+      "lf_normalized_only": true
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/independent_audit.json",
+      "git_blob_bytes": 80892,
+      "git_blob_sha256": "113accfb78e6701816d3400c8c6dd2f44f2e9a0b365f8275f36ee2bfc887692b",
+      "working_file_sha256": "113accfb78e6701816d3400c8c6dd2f44f2e9a0b365f8275f36ee2bfc887692b",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/local_copy_manifest.json",
+      "git_blob_bytes": 5005,
+      "git_blob_sha256": "692589341d17be77077f2596ad8b7123878e918f0de7361ee708ffd0977b7d90",
+      "working_file_sha256": "31be169b2cc3d811f123ecaf962370ef3f85ec774e4d2b88f295e9cf8498a711",
+      "lf_normalized_only": true
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/recording_runner_source.py",
+      "git_blob_bytes": 2408,
+      "git_blob_sha256": "619915a2902fb2d4b168a9452398b8214c62eaa298f8c9a7eddf1029f7f553f9",
+      "working_file_sha256": "619915a2902fb2d4b168a9452398b8214c62eaa298f8c9a7eddf1029f7f553f9",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/regression_logs/execution.json",
+      "git_blob_bytes": 17881,
+      "git_blob_sha256": "a548810f0311306d1e565c8de435e5cbea5a1f1b59540cac62b420dc6e2823e4",
+      "working_file_sha256": "b10910fcc71f6472091c57a8e55adfb0d2da0be8c6952a421da5c91792e398b7",
+      "lf_normalized_only": true
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/regression_logs/junit.xml",
+      "git_blob_bytes": 111048,
+      "git_blob_sha256": "5269544286f2ae0d6dcaa9b9a6188656b2f12c4f87077454b5c5168aa51565f2",
+      "working_file_sha256": "5269544286f2ae0d6dcaa9b9a6188656b2f12c4f87077454b5c5168aa51565f2",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/regression_logs/stderr.txt",
+      "git_blob_bytes": 0,
+      "git_blob_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/regression_logs/stdout.txt",
+      "git_blob_bytes": 927,
+      "git_blob_sha256": "add2b2b61c6e9ed629f623eac344a9ef744c33cf5c0ba5e8f9f86732f02d9e95",
+      "working_file_sha256": "a8b9969ed45f105a48d854e637300d5c66e9de6902d5b0ffbb0827e8d36ee66a",
+      "lf_normalized_only": true
+    },
+    {
+      "path": "docs/evidence/forecast_baseline_20261106/report.json",
+      "git_blob_bytes": 70160,
+      "git_blob_sha256": "2a25d01579a26d98360a8663610f0b1d2c16d42a983209e1ec5623aa62cb5c49",
+      "working_file_sha256": "2a25d01579a26d98360a8663610f0b1d2c16d42a983209e1ec5623aa62cb5c49",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "docs/reports/FORECAST_BASELINE_20261106.md",
+      "git_blob_bytes": 7427,
+      "git_blob_sha256": "8809194f760f39b7a3244092d3dc0c2e4b10e21859ea76ec65f92bbf277451fe",
+      "working_file_sha256": "8809194f760f39b7a3244092d3dc0c2e4b10e21859ea76ec65f92bbf277451fe",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "scripts/audit_forecast_baselines.py",
+      "git_blob_bytes": 21447,
+      "git_blob_sha256": "347fe4473c80b9c46e73c624ea3fac55d1fd7ddb0c9e11d79a8aafd9c5ecbe51",
+      "working_file_sha256": "347fe4473c80b9c46e73c624ea3fac55d1fd7ddb0c9e11d79a8aafd9c5ecbe51",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "scripts/check_repo.py",
+      "git_blob_bytes": 1638,
+      "git_blob_sha256": "4ac56d204737ea7864fa5f7691d34b3c4b770a130dd2f2055c5d31281e6d6810",
+      "working_file_sha256": "4ac56d204737ea7864fa5f7691d34b3c4b770a130dd2f2055c5d31281e6d6810",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "scripts/evaluate_m3_baselines.py",
+      "git_blob_bytes": 5515,
+      "git_blob_sha256": "bf0423c25c235c43e9f0929850a4e46e393d2f4dca301f8396803d1579442211",
+      "working_file_sha256": "bf0423c25c235c43e9f0929850a4e46e393d2f4dca301f8396803d1579442211",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "src/hydro_disturb_bench/forecast_baselines.py",
+      "git_blob_bytes": 7335,
+      "git_blob_sha256": "a850efa37c1fa478ea0fc549a505afd13de811a9f584d44497ce575d06317786",
+      "working_file_sha256": "a850efa37c1fa478ea0fc549a505afd13de811a9f584d44497ce575d06317786",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "src/hydro_disturb_bench/forecast_evaluation.py",
+      "git_blob_bytes": 10645,
+      "git_blob_sha256": "220c0b9b3c62560a2512559efc774a194345c8c28889921ed855a6157cd3544b",
+      "working_file_sha256": "220c0b9b3c62560a2512559efc774a194345c8c28889921ed855a6157cd3544b",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "tests/test_evaluate_m3_baselines.py",
+      "git_blob_bytes": 5906,
+      "git_blob_sha256": "7f17532478e9c0d5a7b76d8aa8d02818991b30a450404d1232217fdbc4f34e31",
+      "working_file_sha256": "7f17532478e9c0d5a7b76d8aa8d02818991b30a450404d1232217fdbc4f34e31",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "tests/test_forecast_audit.py",
+      "git_blob_bytes": 11406,
+      "git_blob_sha256": "4bebc923eb2b51d4daa10bc0263a5ae4586e296b876333adb71cebc983352e9b",
+      "working_file_sha256": "4bebc923eb2b51d4daa10bc0263a5ae4586e296b876333adb71cebc983352e9b",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "tests/test_forecast_baselines.py",
+      "git_blob_bytes": 11218,
+      "git_blob_sha256": "0a9125ecbbaa2504035030b2a444f70c4bf12d53c84a62acd7bccb363788f18a",
+      "working_file_sha256": "0a9125ecbbaa2504035030b2a444f70c4bf12d53c84a62acd7bccb363788f18a",
+      "lf_normalized_only": false
+    },
+    {
+      "path": "tests/test_forecast_evaluation.py",
+      "git_blob_bytes": 11696,
+      "git_blob_sha256": "9a0bbbb214ad2e06d4cac58cf91ec3fb096b1d74ba0bbc3593767dadf913f801",
+      "working_file_sha256": "9a0bbbb214ad2e06d4cac58cf91ec3fb096b1d74ba0bbc3593767dadf913f801",
+      "lf_normalized_only": false
+    }
+  ],
+  "total_git_blob_bytes": 502827,
+  "no_new_models_or_tensor_files": true,
+  "historical_evidence_changed": false
+}

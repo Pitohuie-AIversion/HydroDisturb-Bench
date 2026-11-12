@@ -5,10 +5,8 @@ All tests run offline without active COMSOL server.
 
 from __future__ import annotations
 
-import math
-from pathlib import Path
 import sys
-from unittest.mock import Mock
+from pathlib import Path
 
 import pytest
 

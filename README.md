@@ -1,126 +1,102 @@
 # HydroDisturb-Bench
 
-**A reproducible CFD case-generation and hidden-disturbance benchmark for submerged cylinder wakes.**
+**Reproducible COMSOL cylinder-wake experiments and controlled hidden-disturbance branches.**
 
-> **Status: research scaffold / NOT a validated CFD dataset.** No COMSOL `.mph` file or solver result is included. CFD numerical verification and COMSOL–MPh integration must be performed on the target installation before using output as ground truth.
->
-> **Platform Support**: The officially supported and formally accepted target environment for development and remote compute servers is **Windows 11 / Windows Server 64-bit with COMSOL Multiphysics 6.4 (Win64)**. Linux compatibility is experimental and remains unaccepted in this phase; the project makes no claims of verified cross-platform production support.
+As of **2026-11-06**, `main` contains a Re=100 baseline, time/mesh sensitivity studies, verified `[u,v,p]` sampling, a continuous 151-frame baseline, and native-checkpoint pulse branches at three nonzero amplitudes. The accepted experiment delivery remains [`195d613`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/195d613decee0f960b86f2dd588592f60fc01856); the configurable local-pulse entrypoint is in [`a91a2e2`](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/commit/a91a2e241246d60f994018e1eb4439a32322086f).
 
-## Scope
+The numerical acceptance applies to the documented configurations and selected statistics. This is a **controlled experiment prototype**, not a completed unknown-disturbance generalization benchmark or a bound on the full-field error relative to an exact solution.
 
-The initial benchmark models an **infinitely long cylinder approximated by a 2-D domain** submerged in constant-density, single-phase freshwater. It targets Reynolds number `Re = 100` and tests future flow-state prediction under hidden forcing. Free-surface waves, seabed effects, cavitation, three-dimensional transition, and full FSI are out of scope.
+Start with the [development status and evidence index](docs/DEVELOPMENT.md), [changelog](CHANGELOG.md), [validation ledger](docs/VALIDATION.md), and [research plan](docs/RESEARCH_PLAN.md).
 
-A simulator knows every forcing event; the downstream prediction model is deliberately denied selected parameters. The experiment design distinguishes disturbances already observable in the history from those occurring unpredictably in the future.
+## Current results
 
-## Stack
+| Area | Delivered on `main` | Evidence |
+| --- | --- | --- |
+| COMSOL execution | Official Java API bridge; isolated outputs, failure records, native unit/source readback and Windows startup recovery | [API integration](docs/COMSOL_API_INTEGRATION.md) |
+| Temporal sensitivity | A/B/C/D comparisons; C/D changes below 0.1% for four stable-cycle statistics | [Case D](docs/STAGE_S1B1_CASE_D_20261104.md) |
+| Spatial sensitivity | Native M0–M3 meshes; final M2/M3 changes below the 1% engineering threshold | [M3 comparison](docs/STAGE_S1B2_M3_20261105.md) |
+| Time check on M3 | Internal step cap 0.05 → 0.025 s; four changes below 0.07% | [M3 time check](docs/STAGE_S1B3_M3_TIME_20261105.md) |
+| Field sampling | Five saved times on two grids, then 151 consecutive frames at 161×97 | [Small sample](docs/STAGE_M3_FIELD_SAMPLING_20261105.md), [continuous sequence](docs/STAGE_M3_FIELD_SEQUENCE_20261105.md) |
+| Controlled futures | Shared native state at 180 s; zero branch plus acceleration amplitudes 0.0025, 0.005 and 0.010 m/s² | [Amplitude series](docs/reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md) |
+| 3-D High-Re Benchmark (C04) | Re=126,167 LES/SST-SAS baseline, 1.55M mesh, verified 4-frame 2D slice & 3D volume exports, spatial-temporal window indexing, baseline forecasters, and 3D disturbance protocol | [C04 Benchmark](docs/C04_WORLD_MODEL_BENCHMARK.md), [Model README](models/cylinder_3d/README.md) |
 
-- CFD case authoring and inspection: **COMSOL Multiphysics (GUI)**
-- Programmatic control: **Python + MPh** (optional; COMSOL needs to be installed and configured)
-- Reproducible parameter sampling and case manifests: **Python standard library**
-- Independent numerical baseline: optional OpenFOAM / independent reference benchmark
-- Training-set export: **planned** (HDF5 or Zarr; not implemented yet)
+The latest offline regression for the complete repository (including the C04 3D benchmark) is **1110 passed, 45 deselected**. The real COMSOL physical solves and exported datasets have separate artifact verification tests. These are recorded execution results, not a claim that every fresh clone or platform has rerun them.
 
-**Codex does not need an MCP server** to write and execute these Python scripts. MCP is an optional future interface to interact with a running COMSOL server.
+The **COMSOL MCP server and Universal Software MCP Builder plugin are on the separate, unmerged `feat/comsol-mcp` branch**. Their implementation and verification boundaries are listed in the [development index](docs/DEVELOPMENT.md#未合入的开发).
 
-## Quick start (no COMSOL required)
+## Stack and supported environment
 
-Requires Python >= 3.10. Run a deterministic case-generation pilot:
+- Python ≥3.10 for planning, validation and data organization; NumPy/SciPy for analysis.
+- Official COMSOL Java API through `comsolbatch` or the documented standalone fallback; the actual experiment records use COMSOL 6.4 on Windows.
+- Optional MPh adapter for the original generic parameter contract. It is separate from the Java workflow used by the accepted experiments.
+- NPZ plus JSON manifests for structured field samples and sequences. HDF5/Zarr production packaging and ML training remain future work.
+
+Windows Win64 with COMSOL 6.4 is the supported execution target; the archived runs substantiate the tested local installation. Windows Server is a deployment target, not a claim of acceptance on every server. Linux solver execution remains experimental. Offline tests on Linux do not establish COMSOL integration support.
+
+## Quick start without COMSOL or local simulation data
 
 ```bash
 python -m pip install -e '.[dev]'
 hydrobench plan --config configs/base_case.json --count 20 --seed 2026 --out runs/pilot
-pytest -q
+hydrobench inspect --case runs/pilot/cases/case_0000.json
+python -m pytest -q tests/test_planning.py
 ```
 
-This writes `runs/pilot/manifest.json` and individual `case.json` files. These are **simulation inputs only**, not simulation results.
+Use a new or empty output directory. The planner creates **unsimulated inputs**, not flow data. Its initial `configs/base_case.json` is not the frozen M3 experimental configuration; see the [model contract](docs/COMSOL_MODEL_CONTRACT.md).
 
-To see a proposed case:
+To review the latest lightweight delivery without COMSOL or local large files, use its fixed experiment commit and a new output filename:
 
 ```bash
-hydrobench inspect --case runs/pilot/cases/case_0000.json
+python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.py --git-ref 195d613decee0f960b86f2dd588592f60fc01856 --output amplitude_delivery_review_01.json
 ```
 
-## Connect your COMSOL model (optional)
+This checks committed evidence and provenance records; it does not recompute full tensors or native solution vectors. Do not substitute a later documentation commit or `HEAD` for the experiment commit.
 
-1. In COMSOL GUI, create and validate the 2-D cylinder baseline, then save `models/cylinder_2d/cylinder_base.mph` (locally; `.mph` is gitignored).
-2. Define parameter names and physical equations as specified in [`docs/COMSOL_MODEL_CONTRACT.md`](docs/COMSOL_MODEL_CONTRACT.md). A local body-force expression must be added in the COMSOL model itself; modifying `A_accel` alone will **not** create a forcing term.
-3. Install the optional interface: `python -m pip install -e '.[comsol]'`.
-4. Perform a read-only connection check:
+## Development and real COMSOL execution
 
-   ```bash
-   hydrobench probe --model models/cylinder_2d/cylinder_base.mph
-   ```
+The [developer guide](docs/DEVELOPMENT.md) maps scripts to their effects and required data. The [Java API guide](docs/COMSOL_API_INTEGRATION.md) provides CLI syntax and execution contracts. Install `.[analysis]` when plotting; install `.[comsol]` only for the MPh adapter.
 
-5. After reviewing the model and a generated case, run **one** non-production study:
+The GitHub Actions workflow uses uv with a committed lockfile, explicit development/analysis dependencies, and separate test categories. To run the same data-free checks locally:
 
-   ```bash
-   hydrobench solve --model models/cylinder_2d/cylinder_base.mph \
-     --case runs/pilot/cases/case_0000.json \
-     --output runs/pilot/results/case_0000.mph --cores 4
-   ```
+```bash
+uv sync --locked --extra dev --extra analysis
+uv run --no-sync ruff check .
+uv run --no-sync pytest -q --strict-markers -m "not integration and not artifact"
+uv run --no-sync python scripts/check_repo.py
+```
 
-`solve` writes a separate `.mph` copy; it does **not** export a validated training dataset. The first real run should be supervised and its output compared against a known cylinder-wake benchmark.
+Tests marked `artifact` verify retained local models/results and fail if the required data are missing; they are not part of data-free CI. In a checkout with those historical fixtures, `python -m pytest -q -m "not integration"` includes that audit. Tests marked `integration` require COMSOL and may solve models. The archived 514-test result predates this test separation and remains a record of that execution. See [test scope and known limits](docs/DEVELOPMENT.md#测试与已知限制) and the [CI and Python refactoring report](docs/reports/CODE_HEALTH_CI_20261106.md).
 
-## Model assumptions and starting conditions
+The subsequent [filesystem transaction extraction](docs/reports/FILE_TRANSACTION_REFACTOR_20261106.md) preserves the existing public API and transaction behavior, with separate compatibility, failure-retention and cross-process lock checks. It does not add a new CFD accuracy result.
 
-| Parameter | Initial setting |
-| --- | --- |
-| Geometry | fixed, circular, 2-D cylinder |
-| Water | freshwater at approximately 20°C |
-| Density | 998.2 kg/m³ |
-| Kinematic viscosity | 1.004e-6 m²/s |
-| Diameter | 0.01 m |
-| Reynolds number | 100 |
-| Nominal speed | Re × ν / D ≈ 0.01004 m/s |
-| Domain | 40D length × 20D height; inlet 10D upstream (candidate only) |
+Saved field data now support [bounded batch/range reads and family-separated window indexes](docs/DATA_USAGE.md). The registered M3 example uses five existing sequences (555 frames) to build 105 windows from 5 history + 5 future frames with stride 5. All five sequences share one ancestor family and stay in train; validation/test remain empty. The learner-facing reader returns only flow, masks, coordinates and times. [Actual-data audit and regression evidence](docs/reports/DATA_USAGE_20261106.md) are lightweight; models and full tensors remain in local data storage.
 
-Mesh, time step, outlet conditions, force integration, and other settings require verification before use as a scientific baseline.
+The [forecast baseline layer](docs/FORECAST_BASELINES.md) evaluates persistence and last-two-frame linear extrapolation using only observed history and the known prediction schedule. It reports sampled-node MAE/RMSE separately by lead and physical channel, with independent raw-NPZ arithmetic audit. The registered 105-window run is a one-family train pipeline check, not held-out generalization or a free-running rollout. See the [baseline evaluation report](docs/reports/FORECAST_BASELINE_20261106.md).
 
-## Research progression
+The [configurable local-pulse entrypoint](docs/LOCAL_PULSE_PARAMETERS.md) now wires global position, direction, acceleration, Gaussian width and aligned start/stop times through actual COMSOL parameters, source-unit readback and a native M3 continuation. It retains the accepted mesh, checkpoint and solver protocol and delivers compact evidence only; the other PDF event types remain planned.
 
-| Stage | Goal | Gate |
-| --- | --- | --- |
-| S0 | Unforced cylinder baseline | Strouhal, lift/drag, mesh/time/domain convergence |
-| S1 | Single, hidden Gaussian acceleration source | Units, spatial integral, momentum balance, time history |
-| S2 | Inlet pulses and rotational/moving forcings | Reproducible across random seeds and boundary settings |
-| S3 | Multiple hidden sources | No train/validation/test trajectory leakage |
-| S4 | Sparse observations and probabilistic forecasting | Separate pre-event prediction from post-event filtering |
+## Physical and data scope
 
-See [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md) and [`docs/VALIDATION.md`](docs/VALIDATION.md).
+The accepted Java benchmark is 2-D, single-phase, constant-density laminar flow around a fixed circular cylinder. The domain is 0.40×0.24 m, with a 0.01 m cylinder centered at (0.10, 0.12) m; density is 998.2 kg/m³ and dynamic viscosity is 1.004e−3 Pa·s, giving `U∞ ≈ 0.0100581 m/s` at Re=100. This differs from the original channel-flow API fixture and from the generic planner's candidate values.
 
-## Repository layout
+The selected M3 setup uses 34,752 native mesh elements and 88,483 reported solver DOFs, with `rtol=1e-4`, maximum internal step mode `const`, cap 0.05 s and output interval 0.2 s. The cap is not a fixed-step integrator. Native restart branches additionally use the disclosed `consistent=off` protocol; they do not restore the original BDF internal history.
+
+Structured fields use `float64`, shape `(T,3,Ny,Nx)`, channels `[u,v,p]`, increasing physical coordinates, exact saved times and explicit invalid-region masks with NaN entries. Increasing the sampling-grid resolution does not refine the native CFD mesh.
+
+Free surfaces, moving geometry, passive scalars and multiple forcing mechanisms are outside the implemented prototype. Domain-size sensitivity, independent-solver comparison, full momentum-budget closure and model-training evaluation are not claimed complete.
+
+## Repository and data storage
 
 ```text
-configs/                      Baseline physical setup and sampling bounds
-src/hydro_disturb_bench/      Deterministic case planner and optional MPh adapter
-models/cylinder_2d/          COMSOL model placement (example placeholder only)
-docs/                         Physical model contract, protocol, validation
-scripts/                      Developer helpers
-tests/                        Runnable tests not requiring COMSOL
-runs/                         Generated results (gitignored)
+src/hydro_disturb_bench/  Planner, Java/MPh interfaces, field and branch validators
+scripts/                Stage-specific experiment, sampling and audit entrypoints
+configs/                Generic planner inputs and native mesh plans
+tests/                  Offline, local-fixture and COMSOL integration tests
+docs/                   Current guides, historical reports and lightweight evidence
+models/cylinder_2d/     Model documentation; local MPH files are gitignored
+runs/                   Local simulation data and full samples (gitignored)
 ```
 
-## Reproducibility and safe use
+Code, frozen configuration, compact readbacks, solver/test logs, metrics and file identity manifests go into Git. New MPH files, native vectors, complete field TXT/NPZ and large failure archives stay in data storage. Existing historical archives are retained. Local-file hashes identify retained data; they do not mean that a remote reviewer has inspected it or that an independent backup exists.
 
-- Store a fresh copy of the original `.mph` model before running automatic edits; never solve into the original input path.
-- Preserve solver version, mesh, physics configuration, units, seed, and hidden forcing truth with every trajectory.
-- Split data by **whole simulation trajectories**, never by overlapping time windows.
-- Retain failed-run diagnostics; a finished process is not proof of a physically valid simulation.
-- Do not commit private licenses, tokens, model data, bulk simulation results, or local paths.
-
-## Project status
-
-- [x] Deterministic parameter sampling and manifest generation
-- [x] Config validation and basic tests
-- [x] Optional MPh single-case connection/solve interface (not tested against a real installation)
-- [ ] Validated COMSOL `.mph` baseline
-- [ ] Validated forcing expression in COMSOL GUI
-- [ ] Conservative output sampling and HDF5 export
-- [ ] Automated CFD-quality gates
-- [ ] CPU cost benchmarks and independent solver comparison
-
-No validated hydrodynamic results or research conclusions are claimed.
-
-## Publish to GitHub
-
-See [`docs/PUBLISHING.md`](docs/PUBLISHING.md). A `gh` CLI script is included for Windows PowerShell and Bash. It verifies `general-chen` and creates the repo **private by default** after confirmation.
+Keep accepted models and historical outputs unchanged. Use a new output directory for new work, preserve failed-run records, and split future datasets by trajectory/checkpoint family before creating overlapping windows. See [publishing and retention](docs/PUBLISHING.md) for the current repository workflow.

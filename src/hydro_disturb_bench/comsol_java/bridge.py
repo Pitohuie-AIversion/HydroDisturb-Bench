@@ -8,8 +8,6 @@ model immutability, parameter validation, and detailed execution logging.
 from __future__ import annotations
 
 import base64
-import contextlib
-import errno
 import hashlib
 import json
 import math
@@ -21,92 +19,50 @@ import sys
 import tempfile
 import time
 import uuid
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+
+import numpy as np
+
+# Explicit re-exports preserve the established bridge import surface.
+from .errors import ERR_API_UNSUPPORTED as ERR_API_UNSUPPORTED
+from .errors import ERR_COMSOL_CONNECTION_FAILED as ERR_COMSOL_CONNECTION_FAILED
+from .errors import ERR_INVALID_PARAMETER as ERR_INVALID_PARAMETER
+from .errors import ERR_INVALID_UNIT as ERR_INVALID_UNIT
+from .errors import ERR_MODEL_NOT_FOUND as ERR_MODEL_NOT_FOUND
+from .errors import ERR_MODEL_VALIDATION_FAILED as ERR_MODEL_VALIDATION_FAILED
+from .errors import ERR_NODE_NOT_FOUND as ERR_NODE_NOT_FOUND
+from .errors import ERR_SOLVER_FAILED as ERR_SOLVER_FAILED
+from .errors import ApiUnsupportedError as ApiUnsupportedError
+from .errors import ComsolConnectionError as ComsolConnectionError
+from .errors import ComsolError as ComsolError
+from .errors import InvalidParameterError as InvalidParameterError
+from .errors import InvalidUnitError as InvalidUnitError
+from .errors import ModelNotFoundError as ModelNotFoundError
+from .errors import ModelValidationError as ModelValidationError
+from .errors import NodeNotFoundError as NodeNotFoundError
+from .errors import SolverFailedError as SolverFailedError
+from .errors import map_error as map_error
+from .file_transactions import _atomic_publish_new_file as _atomic_publish_new_file
+from .file_transactions import _is_file_locked as _is_file_locked
+from .file_transactions import _posix_rename_noreplace as _posix_rename_noreplace
+from .file_transactions import _safe_quarantine_move as _safe_quarantine_move
+from .file_transactions import _safe_quarantine_move_dir as _safe_quarantine_move_dir
+from .file_transactions import file_publish_lock as file_publish_lock
+from .file_transactions import is_pid_alive as is_pid_alive
+from .file_transactions import is_task_active as is_task_active
+from .file_transactions import list_quarantine_records as list_quarantine_records
+from .file_transactions import publish_staging_file as publish_staging_file
+from .file_transactions import quarantine_staging_dir as quarantine_staging_dir
+from .file_transactions import quarantine_staging_file as quarantine_staging_file
+from .file_transactions import recover_unclaimed_staging as recover_unclaimed_staging
+from .file_transactions import task_staging_session as task_staging_session
 
 if sys.platform == "win32":
     import winreg
 else:
     winreg = None  # type: ignore[assignment]
-
-
-# Error code constants matching project contract
-ERR_MODEL_NOT_FOUND = "MODEL_NOT_FOUND"
-ERR_API_UNSUPPORTED = "API_UNSUPPORTED"
-ERR_NODE_NOT_FOUND = "NODE_NOT_FOUND"
-ERR_INVALID_PARAMETER = "INVALID_PARAMETER"
-ERR_INVALID_UNIT = "INVALID_UNIT"
-ERR_COMSOL_CONNECTION_FAILED = "COMSOL_CONNECTION_FAILED"
-ERR_MODEL_VALIDATION_FAILED = "MODEL_VALIDATION_FAILED"
-ERR_SOLVER_FAILED = "SOLVER_FAILED"
-
-
-class ComsolError(Exception):
-    """Base exception for COMSOL bridge operations."""
-
-    def __init__(self, error_code: str, message: str, details: str = "") -> None:
-        super().__init__(f"[{error_code}] {message}")
-        self.error_code = error_code
-        self.message = message
-        self.details = details
-
-
-class ModelNotFoundError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_MODEL_NOT_FOUND, message, details)
-
-
-class ApiUnsupportedError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_API_UNSUPPORTED, message, details)
-
-
-class NodeNotFoundError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_NODE_NOT_FOUND, message, details)
-
-
-class InvalidParameterError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_INVALID_PARAMETER, message, details)
-
-
-class InvalidUnitError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_INVALID_UNIT, message, details)
-
-
-class ComsolConnectionError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_COMSOL_CONNECTION_FAILED, message, details)
-
-
-class ModelValidationError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_MODEL_VALIDATION_FAILED, message, details)
-
-
-class SolverFailedError(ComsolError):
-    def __init__(self, message: str, details: str = "") -> None:
-        super().__init__(ERR_SOLVER_FAILED, message, details)
-
-
-def map_error(error_code: str, message: str, details: str = "") -> ComsolError:
-    """Map error code string to typed exception."""
-    mapping = {
-        ERR_MODEL_NOT_FOUND: ModelNotFoundError,
-        ERR_API_UNSUPPORTED: ApiUnsupportedError,
-        ERR_NODE_NOT_FOUND: NodeNotFoundError,
-        ERR_INVALID_PARAMETER: InvalidParameterError,
-        ERR_INVALID_UNIT: InvalidUnitError,
-        ERR_COMSOL_CONNECTION_FAILED: ComsolConnectionError,
-        ERR_MODEL_VALIDATION_FAILED: ModelValidationError,
-        ERR_SOLVER_FAILED: SolverFailedError,
-    }
-    cls = mapping.get(error_code, ComsolError)
-    if cls is ComsolError:
-        return ComsolError(error_code, message, details)
-    return cls(message, details)
 
 
 def compute_file_hash(path: Path) -> str:
@@ -170,8 +126,101 @@ def get_comsol_bin_dir(root: Path | None = None) -> Path:
     return bin_dir
 
 
-def ensure_bridge_compiled(root: Path | None = None) -> Path:
-    """Ensure ComsolBridge.class is compiled and up-to-date."""
+def to_safe_path(p: Path | str) -> str:
+    """Return an ASCII short path on Windows when available to avoid launcher encoding issues."""
+    path = Path(p).resolve()
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            buf = ctypes.create_unicode_buffer(1024)
+            if path.exists():
+                res = ctypes.windll.kernel32.GetShortPathNameW(str(path), buf, 1024)
+                if res > 0 and buf.value:
+                    return buf.value
+            parent = path.parent
+            if parent.exists():
+                res = ctypes.windll.kernel32.GetShortPathNameW(str(parent), buf, 1024)
+                if res > 0 and buf.value:
+                    return str(Path(buf.value) / path.name)
+        except Exception:
+            pass
+    return str(path)
+
+
+def _native_compile_dependency_failure(proc: subprocess.CompletedProcess, started: float) -> bool:
+    """Recognize only the observed Windows csutil dependency startup failure."""
+    details = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    match = re.search(r"log file\s+([^\r\n]+\.log)", details)
+    if match:
+        log = Path(match.group(1).strip()).resolve()
+        profile = (Path.home() / ".comsol").resolve()
+        try:
+            if (
+                log.is_relative_to(profile)
+                and log.parent.name == "logs"
+                and log.name.startswith("compile")
+                and log.stat().st_mtime >= started - 2
+            ):
+                details += "\n" + log.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            pass
+    return (
+        sys.platform == "win32"
+        and "UnsatisfiedLinkError" in details
+        and "csutil.dll" in details
+        and "Can't find dependent libraries" in details
+    )
+
+
+def _compile_bundled_java(root, sources, required_classes, run_process):
+    """Compile unchanged sources with the installed JDK after native startup fails."""
+    compiler = root / "java" / "win64" / "jre" / "bin" / "javac.exe"
+    if not compiler.is_file():
+        raise ComsolConnectionError("Bundled javac is absent after native compiler startup failure")
+    with tempfile.TemporaryDirectory(prefix="hydrobench_compile_") as temporary:
+        work = Path(temporary)
+        if not str(work).isascii() or not str(root).isascii():
+            raise ComsolConnectionError(
+                "Bundled Java compilation requires ASCII temporary and installation paths"
+            )
+        for source in sources:
+            shutil.copy2(source, work / source.name)
+        proc = run_process(
+            [
+                str(compiler),
+                "-encoding",
+                "UTF-8",
+                "-proc:none",
+                "-cp",
+                str(root / "plugins" / "*"),
+                *(source.name for source in sources),
+            ],
+            cwd=work,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise ComsolConnectionError(
+                f"Bundled javac compilation failed:\n{proc.stderr}\n{proc.stdout}"
+            )
+        if any(not (work / target.name).is_file() for target in required_classes):
+            raise ComsolConnectionError(
+                "Bundled javac did not produce all required bridge/helper classes"
+            )
+        for target in required_classes:
+            shutil.copy2(work / target.name, target)
+
+
+def ensure_bridge_compiled(
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> Path:
+    """Compile the bridge and its owned helper classes when any source changes."""
     root = root or find_comsol_root()
     bin_dir = get_comsol_bin_dir(root)
     comsolcompile = bin_dir / ("comsolcompile.exe" if sys.platform == "win32" else "comsolcompile")
@@ -185,15 +234,31 @@ def ensure_bridge_compiled(root: Path | None = None) -> Path:
     if not java_src.is_file():
         raise ComsolConnectionError(f"ComsolBridge.java source file missing: {java_src}")
 
-    needs_compile = False
-    if not java_class.is_file():
-        needs_compile = True
-    elif java_src.stat().st_mtime > java_class.stat().st_mtime:
-        needs_compile = True
+    sources = [java_src]
+    required_classes = [java_class]
+    helper_source = java_dir / "ConfigurablePulseBranch.java"
+    if helper_source.is_file():
+        sources.append(helper_source)
+        required_classes.extend(
+            java_dir / name
+            for name in (
+                "ConfigurablePulseBranch.class",
+                "ConfigurablePulseBranch$Spec.class",
+                "ConfigurablePulseBranch$StrictProperties.class",
+                "ConfigurablePulseBranch$Raw.class",
+            )
+        )
+    newest_source = max(source.stat().st_mtime for source in sources)
+    needs_compile = any(
+        not target.is_file() or target.stat().st_mtime < newest_source
+        for target in required_classes
+    )
 
     if needs_compile:
-        cmd = [str(comsolcompile), str(java_src)]
-        proc = subprocess.run(
+        cmd = [str(comsolcompile), *(str(source) for source in sources)]
+        run_process = subprocess.run if process_runner is None else process_runner
+        started = time.time()
+        proc = run_process(
             cmd,
             cwd=str(java_dir),
             capture_output=True,
@@ -207,8 +272,15 @@ def ensure_bridge_compiled(root: Path | None = None) -> Path:
             or "ERROR: Compilation failed" in proc.stdout
             or "ERROR: Compilation failed" in proc.stderr
         ):
+            if _native_compile_dependency_failure(proc, started):
+                _compile_bundled_java(root, sources, required_classes, run_process)
+            else:
+                raise ComsolConnectionError(
+                    f"Failed to compile ComsolBridge.java (exit code {proc.returncode}):\n{proc.stderr}\n{proc.stdout}"
+                )
+        if len(sources) > 1 and any(not path.is_file() for path in required_classes):
             raise ComsolConnectionError(
-                f"Failed to compile ComsolBridge.java (exit code {proc.returncode}):\n{proc.stderr}\n{proc.stdout}"
+                "Compilation did not produce all required bridge/helper classes"
             )
 
     return java_class
@@ -218,37 +290,77 @@ def _graphics_preference_seed_dir(root: Path) -> Path:
     """Locate this installation's existing Windows profile without assuming a version."""
     ini = root / "bin" / "win64" / "comsolbatch.ini"
     if not ini.is_file():
-        raise ComsolConnectionError("Cannot locate COMSOL profile configuration for isolated graphics export")
-    match = re.search(r"@user\.home/\.comsol/(v[0-9]+)/", ini.read_text(encoding="utf-8", errors="replace"))
+        raise ComsolConnectionError(
+            "Cannot locate COMSOL profile configuration for isolated graphics export"
+        )
+    match = re.search(
+        r"@user\.home/\.comsol/(v[0-9]+)/", ini.read_text(encoding="utf-8", errors="replace")
+    )
     if not match:
         raise ComsolConnectionError("COMSOL launcher does not identify its user preference profile")
     return Path.home() / ".comsol" / match.group(1)
 
 
-def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess.CompletedProcess:
+def _run_standalone(
+    root: Path,
+    class_file: Path,
+    args: list[str],
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> subprocess.CompletedProcess:
     """Use the official single-process Java API after a native batch startup failure.
 
     DLL search changes affect only this JVM. ASCII temporary class paths and
     base64 UTF-8 arguments avoid the bundled Java launcher's Windows argv loss.
     No model is copied and no installed file is changed.
     """
+    run_process = subprocess.run if process_runner is None else process_runner
     java_bin = root / "java" / "win64" / "jre" / "bin"
     with tempfile.TemporaryDirectory(prefix="hydrobench_comsol_") as temp:
         work = Path(temp)
         if not str(work).isascii() or not str(root).isascii():
-            raise ComsolConnectionError("Standalone Java launcher requires ASCII temp and installation paths")
+            raise ComsolConnectionError(
+                "Standalone Java launcher requires ASCII temp and installation paths"
+            )
         shutil.copy2(class_file, work / "ComsolBridge.class")
+        # A fresh ASCII runtime directory must contain the complete helper class
+        # family, including nested classes; copying only the dispatcher is unsafe.
+        helpers = sorted(
+            path
+            for path in class_file.parent.glob("ConfigurablePulseBranch*.class")
+            if path.name == "ConfigurablePulseBranch.class"
+            or path.name.startswith("ConfigurablePulseBranch$")
+        )
+        if args and args[0] in ("inspect-local-pulse", "run-local-pulse"):
+            required = {
+                "ConfigurablePulseBranch.class",
+                "ConfigurablePulseBranch$Spec.class",
+                "ConfigurablePulseBranch$StrictProperties.class",
+                "ConfigurablePulseBranch$Raw.class",
+            }
+            if not required.issubset(path.name for path in helpers):
+                raise ComsolConnectionError("Configurable pulse helper bytecode is incomplete")
+        for helper in helpers:
+            shutil.copy2(helper, work / helper.name)
         source = work / "ComsolStandalone.java"
         shutil.copy2(Path(__file__).with_name("ComsolStandalone.java"), source)
         classpath = str(root / "plugins" / "*") + os.pathsep + str(work)
-        compiled = subprocess.run(
+        compiled = run_process(
             [str(java_bin / "javac.exe"), "-cp", classpath, str(source)],
-            cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            cwd=work,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         if compiled.returncode != 0:
-            raise ComsolConnectionError(f"Standalone launcher compilation failed: {compiled.stderr}")
-        encoded = [base64.b64encode(value.encode("utf-8")).decode("ascii")
-                   for value in [str(root.resolve()), *args]]
+            raise ComsolConnectionError(
+                f"Standalone launcher compilation failed: {compiled.stderr}"
+            )
+        encoded = [
+            base64.b64encode(value.encode("utf-8")).decode("ascii")
+            for value in [str(root.resolve()), *args]
+        ]
         graphics_options = []
         isolated_preferences = None
         preference_seed_hashes = {}
@@ -262,15 +374,29 @@ def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess
             for name in ("comsol.prefs", "comsolserver.prefs"):
                 seed_file = seed_dir / name
                 if not seed_file.is_file():
-                    raise ComsolConnectionError(f"Missing existing COMSOL preferences needed for isolated export: {seed_file}")
+                    raise ComsolConnectionError(
+                        f"Missing existing COMSOL preferences needed for isolated export: {seed_file}"
+                    )
                 contents = seed_file.read_bytes()
                 (isolated_preferences / name).write_bytes(contents)
                 preference_seed_hashes[name] = hashlib.sha256(contents).hexdigest()
             graphics_options = ["-Dcs.3drend=sw", f"-Dcs.prefsdir={isolated_preferences}"]
-        process = subprocess.run(
-            [str(java_bin / "java.exe"), "-Xmx2g", "-Xss4m", *graphics_options, "-cp", classpath,
-             "ComsolStandalone", *encoded],
-            cwd=work, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        process = run_process(
+            [
+                str(java_bin / "java.exe"),
+                "-Xmx2g",
+                "-Xss4m",
+                *graphics_options,
+                "-cp",
+                classpath,
+                "ComsolStandalone",
+                *encoded,
+            ],
+            cwd=work,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         if isolated_preferences is not None:
             process.graphics_preferences_dir = str(isolated_preferences)
@@ -278,7 +404,12 @@ def _run_standalone(root: Path, class_file: Path, args: list[str]) -> subprocess
         return process
 
 
-def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
+def _run_bridge(
+    args: list[str],
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
     """Execute ComsolBridge with given arguments and parse JSON result."""
     root = root or find_comsol_root()
     bin_dir = get_comsol_bin_dir(root)
@@ -286,18 +417,21 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     if not comsolbatch.is_file():
         raise ComsolConnectionError(f"comsolbatch executable not found at {comsolbatch}")
 
-    class_file = ensure_bridge_compiled(root)
+    # Omit the optional keyword on the default path to retain existing adapters.
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    run_process = subprocess.run if process_runner is None else process_runner
+    class_file = ensure_bridge_compiled(root, **process_options)
 
     # On Windows, image export requires headless software rendering and isolated preferences
     # via the standalone Java launcher. comsolbatch without a display skips PNG rendering.
     if sys.platform == "win32" and args and args[0] == "export-s1-diagnostics":
-        proc = _run_standalone(root, class_file, args)
+        proc = _run_standalone(root, class_file, args, **process_options)
         launch_mode = "standalone_java_api"
         startup_failure = None
     else:
         cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
 
-        proc = subprocess.run(
+        proc = run_process(
             cmd,
             cwd=str(class_file.parent),
             capture_output=True,
@@ -310,11 +444,18 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
         # Never retry solver/model errors or a process that emitted bridge JSON.
         launch_mode = "comsolbatch"
         startup_failure = None
-        if (sys.platform == "win32" and "<<<JSON_START>>>" not in (proc.stdout or "")
-                and "Failed to start COMSOL" in (proc.stdout or "")
-                and "FlNativeException" in (proc.stdout or "")):
-            startup_failure = {"stdout": proc.stdout, "stderr": proc.stderr, "returncode": proc.returncode}
-            proc = _run_standalone(root, class_file, args)
+        if (
+            sys.platform == "win32"
+            and "<<<JSON_START>>>" not in (proc.stdout or "")
+            and "Failed to start COMSOL" in (proc.stdout or "")
+            and "FlNativeException" in (proc.stdout or "")
+        ):
+            startup_failure = {
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "returncode": proc.returncode,
+            }
+            proc = _run_standalone(root, class_file, args, **process_options)
             launch_mode = "standalone_java_api"
 
     # Clean up comsolbatch status file if created in the directory
@@ -410,16 +551,28 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     data.setdefault("log", stdout)
     data["launch_mode"] = launch_mode
     if launch_mode == "standalone_java_api" and args and args[0] == "export-s1-diagnostics":
-        renderer_values = re.findall(r"^COMSOL_GRAPHICS_RENDERER_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE)
+        renderer_values = re.findall(
+            r"^COMSOL_GRAPHICS_RENDERER_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE
+        )
         if renderer_values != ["sw"]:
-            raise ComsolConnectionError("Standalone image export lacks a verified software-renderer preference readback")
-        preference_dirs = re.findall(r"^COMSOL_GRAPHICS_PREFSDIR_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE)
+            raise ComsolConnectionError(
+                "Standalone image export lacks a verified software-renderer preference readback"
+            )
+        preference_dirs = re.findall(
+            r"^COMSOL_GRAPHICS_PREFSDIR_READBACK=([^\r\n]+)\r?$", stdout, re.MULTILINE
+        )
         try:
             actual_directory = base64.b64decode(preference_dirs[0], validate=True).decode("utf-8")
         except (IndexError, ValueError, UnicodeDecodeError) as exc:
-            raise ComsolConnectionError("Standalone image export lacks isolated preference-directory readback") from exc
-        if len(preference_dirs) != 1 or actual_directory != getattr(proc, "graphics_preferences_dir", None):
-            raise ComsolConnectionError("Standalone image export preference directory does not match its temporary launch directory")
+            raise ComsolConnectionError(
+                "Standalone image export lacks isolated preference-directory readback"
+            ) from exc
+        if len(preference_dirs) != 1 or actual_directory != getattr(
+            proc, "graphics_preferences_dir", None
+        ):
+            raise ComsolConnectionError(
+                "Standalone image export preference directory does not match its temporary launch directory"
+            )
         data["graphics_renderer"] = {
             "source": "ModelUtil.getPreference",
             "preference": "graphics.rendering.3drend",
@@ -432,6 +585,24 @@ def _run_bridge(args: list[str], root: Path | None = None) -> dict[str, Any]:
     if startup_failure is not None:
         data["batch_startup_failure"] = startup_failure
     return data
+
+
+def run_command(
+    args: list[str],
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
+    """Run one bridge command with an optional invocation-local process runner.
+
+    The runner follows ``subprocess.run``'s argument and CompletedProcess contract,
+    including requested text decoding. It handles every compilation, batch launch,
+    and standalone fallback for this call without changing global subprocess state.
+    Model/output identity and experiment-specific admission remain caller contracts.
+    """
+    if process_runner is None:
+        return _run_bridge(args, root=root)
+    return _run_bridge(args, root=root, process_runner=process_runner)
 
 
 def inspect_api(root: Path | None = None) -> dict[str, Any]:
@@ -495,18 +666,24 @@ def refine_native_mesh(
         raise FileExistsError(f"Mesh output already exists: {output_path}")
     before_hash = compute_file_hash(model_path)
     if str(plan.get("source_sha256", "")).upper() != before_hash.upper():
-        raise ModelValidationError("Mesh plan source SHA-256 does not match the actual source model")
+        raise ModelValidationError(
+            "Mesh plan source SHA-256 does not match the actual source model"
+        )
     factor = float(plan.get("refinement_factor", 0))
     if not math.isfinite(factor) or factor <= 1:
         raise InvalidParameterError("Refinement factor must be finite and greater than one")
     component, mesh = plan.get("component_tag", ""), plan.get("mesh_tag", "")
-    if not all(isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in (component, mesh)):
+    if not all(
+        isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in (component, mesh)
+    ):
         raise InvalidParameterError("Plan must name verified component and mesh tags")
     rows, seen, size_changes = [], set(), set()
     for change in plan.get("changes", []):
         path, prop = change.get("feature_path"), change.get("property")
-        if not isinstance(path, list) or not path or not all(
-            isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in path
+        if (
+            not isinstance(path, list)
+            or not path
+            or not all(isinstance(tag, str) and re.fullmatch(r"[A-Za-z0-9_]+", tag) for tag in path)
         ):
             raise InvalidParameterError("Each change requires a verified mesh feature path")
         key = (tuple(path), prop)
@@ -519,10 +696,20 @@ def refine_native_mesh(
                 raise InvalidParameterError("The only custom-mode change is off to on")
             kind = "string"
         elif prop in {"hmax", "hmin"}:
-            if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v <= 0 for v in (old, new)):
-                raise InvalidParameterError("Mesh size before/after values must be finite positive numbers")
+            if any(
+                isinstance(v, bool)
+                or not isinstance(v, (int, float))
+                or not math.isfinite(v)
+                or v <= 0
+                for v in (old, new)
+            ):
+                raise InvalidParameterError(
+                    "Mesh size before/after values must be finite positive numbers"
+                )
             if not math.isclose(new, old / factor, rel_tol=1e-12, abs_tol=0):
-                raise InvalidParameterError("Mesh size change does not follow the declared refinement factor")
+                raise InvalidParameterError(
+                    "Mesh size change does not follow the declared refinement factor"
+                )
             kind = "number"
             size_changes.add(prop)
         else:
@@ -536,7 +723,14 @@ def refine_native_mesh(
     staging_dir.mkdir(exist_ok=True)
     stage_id = uuid.uuid4().hex[:12]
     staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
-    args = ["refine-native-mesh", str(model_path.resolve()), str(staging_path.resolve()), component, mesh, encoded]
+    args = [
+        "refine-native-mesh",
+        str(model_path.resolve()),
+        str(staging_path.resolve()),
+        component,
+        mesh,
+        encoded,
+    ]
     with task_staging_session(staging_path, stage_id):
         try:
             result = _run_bridge(args, root=root)
@@ -544,7 +738,9 @@ def refine_native_mesh(
                 raise ModelValidationError("Source model changed during native mesh refinement")
             if result.get("stored_solution_data_empty") is not True:
                 raise ModelValidationError("Refined input must not retain the source CFD solution")
-            publish_staging_file(staging_path, output_path, stage_id, allow_overwrite=allow_overwrite)
+            publish_staging_file(
+                staging_path, output_path, stage_id, allow_overwrite=allow_overwrite
+            )
         except Exception:
             quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
             raise
@@ -607,645 +803,6 @@ def inspect_probe_and_solver(
             json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8"
         )
     return res
-
-
-
-def is_pid_alive(pid: int) -> bool:
-    """Check if process with given PID is currently alive on the host system."""
-    if pid <= 0:
-        return False
-    if sys.platform == "win32":
-        try:
-            import ctypes
-
-            kernel32 = ctypes.windll.kernel32
-            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-            if handle:
-                exit_code = ctypes.c_ulong()
-                kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code))
-                kernel32.CloseHandle(handle)
-                STILL_ACTIVE = 259
-                return exit_code.value == STILL_ACTIVE
-            return False
-        except Exception:
-            return False
-    else:
-        try:
-            os.kill(pid, 0)
-            return True
-        except OSError:
-            return False
-
-
-def is_task_active(lease_file: Path | str) -> bool:
-    """Check whether a staging lease file corresponds to a currently running task."""
-    lease_path = Path(lease_file)
-    if not lease_path.is_file():
-        return False
-    try:
-        f = open(lease_path, "a+b")
-    except OSError:
-        # File is locked exclusively by another process, definitely active!
-        return True
-
-    try:
-        f.seek(0)
-        if sys.platform == "win32":
-            import msvcrt
-
-            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
-            msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-        else:
-            import fcntl
-
-            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-        # Lock was acquirable without blocking; now check PID from metadata as second defense
-        try:
-            f.seek(0)
-            content = f.read().decode("utf-8", errors="ignore").strip()
-            if content:
-                meta = json.loads(content)
-                pid = meta.get("pid")
-                if pid and is_pid_alive(int(pid)):
-                    return True
-        except Exception:
-            pass
-        return False
-    except (OSError, BlockingIOError):
-        # File lock could not be acquired: another process is actively holding it!
-        return True
-    finally:
-        try:
-            f.close()
-        except OSError:
-            pass
-
-
-@contextlib.contextmanager
-def task_staging_session(staging_path: Path | str, stage_id: str):
-    """Manage lifecycle and active lease lock for a staging task.
-
-    Creates and holds an exclusive non-blocking lock on `.lease_{stage_id}.lock`.
-    While the task process is running, this lock remains held by the operating system kernel.
-    If the process terminates, crashes, or is killed, the operating system kernel unconditionally
-    releases the file lock.
-    """
-    staging_path = Path(staging_path)
-    staging_path.parent.mkdir(parents=True, exist_ok=True)
-    lease_file = staging_path.parent / f".lease_{stage_id}.lock"
-
-    f = open(lease_file, "a+b")
-    locked = False
-    try:
-        f.seek(0)
-        f.truncate(0)
-        meta = json.dumps({"pid": os.getpid(), "stage_id": stage_id, "start_time": time.time()})
-        f.write(meta.encode("utf-8"))
-        f.flush()
-        f.seek(0)
-        if sys.platform == "win32":
-            import msvcrt
-
-            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
-        else:
-            import fcntl
-
-            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        locked = True
-        yield
-    finally:
-        if locked:
-            try:
-                f.seek(0)
-                if sys.platform == "win32":
-                    import msvcrt
-
-                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-                else:
-                    import fcntl
-
-                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-            except OSError:
-                pass
-        try:
-            f.close()
-        except OSError:
-            pass
-        try:
-            lease_file.unlink(missing_ok=True)
-        except OSError:
-            pass
-
-
-def _is_file_locked(file_path: Path) -> bool:
-    """Check if a file is currently open or locked by an active process."""
-    file_path = Path(file_path)
-    if not file_path.is_file():
-        return False
-    if sys.platform == "win32":
-        try:
-            with open(file_path, "r+b") as test_f:
-                import msvcrt
-
-                try:
-                    msvcrt.locking(test_f.fileno(), msvcrt.LK_NBLCK, 1)
-                    msvcrt.locking(test_f.fileno(), msvcrt.LK_UNLCK, 1)
-                except OSError:
-                    return True
-            return False
-        except (PermissionError, OSError):
-            return True
-    else:
-        try:
-            with open(file_path, "r+b") as test_f:
-                import fcntl
-
-                try:
-                    fcntl.flock(test_f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    fcntl.flock(test_f.fileno(), fcntl.LOCK_UN)
-                except (BlockingIOError, OSError):
-                    return True
-            return False
-        except (PermissionError, OSError):
-            return True
-
-
-def _safe_quarantine_move(src_path: Path, quarantine_dir: Path, base_filename: str) -> Path:
-    """Move src_path into quarantine_dir under a unique name, strictly forbidding overwrite.
-
-    Safety Guarantees:
-    - Never overwrites an existing diagnostic artifact.
-    - If base_filename already exists or races, appends timestamp and monotonic counter.
-    - Preserves src_path completely in place if moving fails.
-    """
-    quarantine_dir = Path(quarantine_dir)
-    quarantine_dir.mkdir(parents=True, exist_ok=True)
-    src_path = Path(src_path)
-
-    path_obj = Path(base_filename)
-    stem = path_obj.stem
-    suffix = path_obj.suffix
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-
-    counter = 0
-    while True:
-        if counter == 0:
-            target = quarantine_dir / base_filename
-        else:
-            target = quarantine_dir / f"{stem}_{timestamp}_{counter}{suffix}"
-
-        if target.exists():
-            counter += 1
-            continue
-
-        try:
-            if sys.platform == "win32":
-                os.rename(src_path, target)
-            else:
-                try:
-                    os.link(src_path, target)
-                    src_path.unlink()
-                except OSError as err:
-                    if err.errno == errno.EEXIST or target.exists():
-                        counter += 1
-                        continue
-                    _posix_rename_noreplace(src_path, target, err)
-            return target
-        except FileExistsError:
-            counter += 1
-            continue
-
-
-def quarantine_staging_file(
-    staging_path: Path | str,
-    output_path: Path | str,
-    stage_id: str,
-    reason: str = "failed",
-) -> Path | None:
-    """Move a staging file into quarantine to isolate failures or conflicts.
-
-    Guarantees:
-    - Strictly forbids overwriting existing diagnostic artifacts.
-    - If moving fails (e.g., target disk full, permission denied), staging_path is
-      STRICTLY PRESERVED in place (never unlinked) and a warning is logged to sys.stderr.
-
-    Args:
-        staging_path: Path to the temporary staging artifact.
-        output_path: Intended final output path (used to determine parent dir and filename).
-        stage_id: Unique task identifier.
-        reason: 'failed' (execution failure) or 'conflict' (destination collision).
-
-    Returns:
-        Path to the quarantined file, or None if moving failed or staging_path did not exist.
-    """
-    staging_path = Path(staging_path)
-    if not staging_path.is_file():
-        return None
-    quarantine_dir = Path(output_path).parent / "quarantine"
-    base_name = f"{reason}_{stage_id}_{Path(output_path).name}"
-    try:
-        return _safe_quarantine_move(staging_path, quarantine_dir, base_name)
-    except OSError as err:
-        # Strictly preserve staging file in place. NEVER unlink on quarantine failure!
-        sys.stderr.write(
-            f"[QUARANTINE_WARNING] Failed to quarantine staging file {staging_path} to {quarantine_dir / base_name}: {err}. "
-            f"Artifact retained in staging directory.\n"
-        )
-        return None
-
-
-def _safe_quarantine_move_dir(staging_dir: Path, quarantine_dir: Path, base_dirname: str) -> Path:
-    """Move staging_dir into quarantine_dir under a unique directory name, strictly forbidding overwrite.
-
-    Safety Guarantees:
-    - Never overwrites an existing diagnostic directory or artifact.
-    - If base_dirname already exists, appends timestamp and monotonic counter.
-    - Preserves staging_dir completely in place if moving fails.
-    """
-    quarantine_dir = Path(quarantine_dir)
-    quarantine_dir.mkdir(parents=True, exist_ok=True)
-    staging_dir = Path(staging_dir)
-
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    counter = 0
-    while True:
-        if counter == 0:
-            target = quarantine_dir / base_dirname
-        else:
-            target = quarantine_dir / f"{base_dirname}_{timestamp}_{counter}"
-
-        if target.exists():
-            counter += 1
-            continue
-
-        try:
-            shutil.move(str(staging_dir), str(target))
-            return target
-        except OSError as err:
-            if target.exists():
-                counter += 1
-                continue
-            sys.stderr.write(
-                f"[QUARANTINE_WARNING] Failed to move staging dir {staging_dir} to {target}: {err}. "
-                f"Directory retained in place.\n"
-            )
-            return staging_dir
-
-
-def quarantine_staging_dir(
-    staging_dir: Path | str,
-    output_dir: Path | str,
-    stage_id: str,
-    reason: str = "failed",
-) -> Path | None:
-    """Safely move a multi-file staging directory to quarantine upon failure, conflict, or corruption.
-
-    Guarantees:
-    - Staging files are NEVER deleted with ignore_errors=True.
-    - If moving fails, the staging directory is preserved in place.
-    """
-    staging_dir = Path(staging_dir)
-    if not staging_dir.is_dir():
-        return None
-    quarantine_dir = Path(output_dir).parent / "quarantine"
-    base_name = f"{reason}_{stage_id}_{Path(output_dir).name}"
-    try:
-        return _safe_quarantine_move_dir(staging_dir, quarantine_dir, base_name)
-    except OSError as err:
-        sys.stderr.write(
-            f"[QUARANTINE_WARNING] Failed to quarantine staging dir {staging_dir}: {err}. "
-            f"Directory retained in place.\n"
-        )
-        return None
-
-
-@contextlib.contextmanager
-def file_publish_lock(
-    lock_path: Path | str,
-    timeout_sec: float = 30.0,
-    poll_interval: float = 0.05,
-):
-    """Acquire a cross-process lock for publishing files safely.
-
-    Uses `msvcrt.locking` on Windows and `fcntl.flock` on POSIX systems.
-    Prevents concurrent processes from overwriting or corrupting the destination.
-    """
-    lock_path = Path(lock_path)
-    if lock_path.is_dir() or (not lock_path.suffix and lock_path.exists()):
-        lock_file = lock_path.parent / f".publish_{lock_path.name}.lock"
-    else:
-        lock_file = lock_path
-    lock_file.parent.mkdir(parents=True, exist_ok=True)
-    f = open(lock_file, "a+b")
-    start_time = time.monotonic()
-    locked = False
-    try:
-        while True:
-            try:
-                f.seek(0)
-                if sys.platform == "win32":
-                    import msvcrt
-
-                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
-                else:
-                    import fcntl
-
-                    fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                locked = True
-                break
-            except (OSError, BlockingIOError):
-                if time.monotonic() - start_time >= timeout_sec:
-                    raise TimeoutError(
-                        f"Timed out after {timeout_sec:.1f}s waiting for publish lock on: {lock_path}"
-                    )
-                time.sleep(poll_interval)
-        yield
-    finally:
-        if locked:
-            try:
-                f.seek(0)
-                if sys.platform == "win32":
-                    import msvcrt
-
-                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-                else:
-                    import fcntl
-
-                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-            except OSError:
-                pass
-        try:
-            f.close()
-        except OSError:
-            pass
-
-
-def _atomic_publish_new_file(staging_path: Path, output_path: Path, stage_id: str) -> None:
-    """Atomically publish staging_path to output_path if output_path does NOT exist."""
-    if sys.platform == "win32":
-        # Windows: os.rename fails with FileExistsError (WinError 183) if output_path exists
-        os.rename(staging_path, output_path)
-    else:
-        # POSIX / Linux: link() is an atomic kernel operation that fails with EEXIST if output_path exists
-        try:
-            os.link(staging_path, output_path)
-            staging_path.unlink()
-        except FileExistsError:
-            raise
-        except OSError as err:
-            if err.errno == errno.EEXIST or output_path.exists():
-                raise FileExistsError(
-                    f"Destination output file already exists: {output_path}"
-                ) from err
-            _posix_rename_noreplace(staging_path, output_path, err)
-
-
-def _posix_rename_noreplace(
-    staging_path: Path, output_path: Path, original_err: Exception | None = None
-) -> None:
-    """Linux kernel SYS_renameat2 with RENAME_NOREPLACE (flag 1).
-
-    Fails closed if atomic no-overwrite cannot be guaranteed, strictly avoiding
-    TOCTOU race conditions from replace() fallbacks.
-    """
-    if output_path.exists():
-        raise FileExistsError(f"Destination output file already exists: {output_path}")
-
-    try:
-        if sys.platform == "win32":
-            raise OSError("SYS_renameat2 is not supported on Windows")
-        import ctypes
-
-        libc = ctypes.CDLL(None, use_errno=True)
-        SYS_renameat2 = 316 if sys.maxsize > 2**32 else 353
-        if hasattr(os, "uname") and os.uname().machine.startswith("aarch64"):
-            SYS_renameat2 = 276
-        AT_FDCWD = -100
-        RENAME_NOREPLACE = 1
-        ret = libc.syscall(
-            SYS_renameat2,
-            AT_FDCWD,
-            os.fsencode(staging_path),
-            AT_FDCWD,
-            os.fsencode(output_path),
-            RENAME_NOREPLACE,
-        )
-        if ret != 0:
-            errno_val = ctypes.get_errno()
-            if errno_val == errno.EEXIST:
-                raise FileExistsError(f"Destination output file already exists: {output_path}")
-            raise OSError(errno_val, f"SYS_renameat2 failed: {os.strerror(errno_val)}")
-    except (AttributeError, OSError) as err:
-        if output_path.exists():
-            raise FileExistsError(f"Destination output file already exists: {output_path}") from (
-                original_err or err
-            )
-        # Fail closed: never call staging_path.replace(output_path), which introduces TOCTOU overwrite race.
-        raise FileExistsError(
-            f"Atomic no-overwrite publish failed or is unsupported on destination: {output_path} ({err})"
-        ) from (original_err or err)
-
-
-def publish_staging_file(
-    staging_path: Path | str,
-    output_path: Path | str,
-    stage_id: str,
-    allow_overwrite: bool = False,
-    lock_timeout_sec: float = 30.0,
-) -> None:
-    """Atomically publish a verified staging file to final output_path.
-
-    Enforces:
-    1. Cross-process publication synchronization using a dedicated lock file.
-    2. Symbolic link rejection on destination path.
-    3. Default forbid overwrite (`allow_overwrite=False`).
-    4. Conflict isolation: if destination already exists and overwrite is forbidden,
-       moves staging file to quarantine/conflict_{stage_id}_{output_path.name}
-       and raises FileExistsError (preserving pre-existing destination and staging data).
-    5. Clean atomic publication via atomic filesystem primitives on both Windows and POSIX.
-    """
-    output_path = Path(output_path)
-    staging_path = Path(staging_path)
-
-    if output_path.is_symlink():
-        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
-
-    if not staging_path.is_file() or staging_path.stat().st_size == 0:
-        if staging_path.is_file():
-            quarantine_staging_file(staging_path, output_path, stage_id, reason="empty")
-        raise ModelValidationError(
-            f"Staging model file is missing or empty before publish: {staging_path}"
-        )
-
-    lock_dir = output_path.parent / ".locks"
-    lock_file = lock_dir / f"{output_path.name}.lock"
-
-    with file_publish_lock(lock_file, timeout_sec=lock_timeout_sec):
-        # Re-check symlink inside lock in case created concurrently
-        if output_path.is_symlink():
-            raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
-
-        if output_path.exists():
-            if not allow_overwrite:
-                conflict_target = quarantine_staging_file(
-                    staging_path, output_path, stage_id, reason="conflict"
-                )
-                raise FileExistsError(
-                    f"Destination output file already exists and overwrite is forbidden: {output_path}. "
-                    f"Staging artifact preserved in quarantine at {conflict_target}"
-                )
-            staging_path.replace(output_path)
-        else:
-            # Destination does not exist yet: atomic rename / move without overwrite
-            try:
-                _atomic_publish_new_file(staging_path, output_path, stage_id)
-            except FileExistsError:
-                if not allow_overwrite:
-                    conflict_target = quarantine_staging_file(
-                        staging_path, output_path, stage_id, reason="conflict"
-                    )
-                    raise FileExistsError(
-                        f"Destination output file already exists and overwrite is forbidden: {output_path}. "
-                        f"Staging artifact preserved in quarantine at {conflict_target}"
-                    )
-                staging_path.replace(output_path)
-
-
-def list_quarantine_records(directory: Path | str) -> list[dict[str, Any]]:
-    """List all quarantined files in the given directory or its 'quarantine' subdirectory."""
-    p = Path(directory)
-    q_dir = p if p.name == "quarantine" else p / "quarantine"
-    if not q_dir.is_dir():
-        return []
-    records = []
-    for f in sorted(q_dir.iterdir()):
-        if f.is_file():
-            kind = (
-                "conflict"
-                if f.name.startswith("conflict_")
-                else ("orphan" if f.name.startswith("orphan_") else "failed")
-            )
-            records.append(
-                {
-                    "path": str(f.resolve()),
-                    "name": f.name,
-                    "kind": kind,
-                    "size_bytes": f.stat().st_size,
-                    "mtime": f.stat().st_mtime,
-                }
-            )
-    return records
-
-
-def recover_unclaimed_staging(
-    directory: Path | str,
-    min_age_sec: float = 30.0,
-    return_skipped: bool = False,
-) -> list[Path] | tuple[list[Path], list[dict[str, Any]]]:
-    """Identify and quarantine orphan staging files left behind by crashed/interrupted runs.
-
-    Safety Guarantees:
-    - Active tasks holding a lease lock or living PID are strictly preserved and skipped.
-    - Files with unconfirmed status or younger than min_age_sec are strictly retained.
-    - Never overwrites existing diagnostic artifacts in quarantine.
-    - Confirmed orphans (lease lock released & PID dead & min_age reached) are safely archived into quarantine/orphan_{name}.
-    - Staging files are never unlinked upon quarantine failure.
-    """
-    p = Path(directory)
-    staging_dir = p if p.name == ".staging" else p / ".staging"
-    if not staging_dir.is_dir():
-        return ([], []) if return_skipped else []
-
-    quarantine_dir = staging_dir.parent / "quarantine"
-    quarantine_dir.mkdir(parents=True, exist_ok=True)
-    recovered = []
-    skipped_active = []
-    now = time.time()
-
-    for f in sorted(staging_dir.iterdir()):
-        if not f.is_file() or not f.name.startswith("stage_"):
-            continue
-
-        parts = f.name.split("_")
-        stage_id = parts[1] if len(parts) >= 2 else ""
-        lease_file = staging_dir / f".lease_{stage_id}.lock" if stage_id else None
-        has_lease = lease_file is not None and lease_file.is_file()
-
-        # Check if task is actively running via lease file
-        if has_lease and is_task_active(lease_file):
-            skipped_active.append(
-                {
-                    "path": str(f.resolve()),
-                    "stage_id": stage_id,
-                    "reason": "active_task_lease_held",
-                }
-            )
-            continue
-
-        try:
-            stat_res = f.stat()
-            file_age = now - stat_res.st_mtime
-        except OSError as stat_err:
-            # Status cannot be confirmed: retain staging file
-            skipped_active.append(
-                {
-                    "path": str(f.resolve()),
-                    "stage_id": stage_id,
-                    "reason": f"unconfirmed_stat_error: {stat_err}",
-                }
-            )
-            continue
-
-        # If lease exists but inactive, check min_age_sec
-        if has_lease and min_age_sec > 0.0 and file_age < min_age_sec:
-            skipped_active.append(
-                {
-                    "path": str(f.resolve()),
-                    "stage_id": stage_id,
-                    "reason": f"recent_terminated_task (age {file_age:.1f}s < {min_age_sec}s)",
-                }
-            )
-            continue
-
-        # If file has NO lease file on disk, check min_age_sec
-        if not has_lease and min_age_sec > 0.0 and file_age < min_age_sec:
-            skipped_active.append(
-                {
-                    "path": str(f.resolve()),
-                    "stage_id": stage_id,
-                    "reason": f"fresh_unleased_file (age {file_age:.1f}s < {min_age_sec}s)",
-                }
-            )
-            continue
-
-        # Check if file is currently open or locked by any process
-        if _is_file_locked(f):
-            skipped_active.append(
-                {
-                    "path": str(f.resolve()),
-                    "stage_id": stage_id,
-                    "reason": "file_currently_locked_or_in_use",
-                }
-            )
-            continue
-
-        # Confirmed orphan: move into quarantine without overwriting any existing artifact
-        base_name = f"orphan_{f.name}"
-        try:
-            target = _safe_quarantine_move(f, quarantine_dir, base_name)
-            recovered.append(target)
-            if has_lease and lease_file.is_file():
-                lease_file.unlink(missing_ok=True)
-        except OSError as err:
-            sys.stderr.write(
-                f"[RECOVER_WARNING] Failed to quarantine orphan staging file {f}: {err}\n"
-            )
-
-    if return_skipped:
-        return recovered, skipped_active
-    return recovered
 
 
 def update_parameter(
@@ -1471,6 +1028,535 @@ def build_re100_benchmark(
     return res
 
 
+def build_c04_benchmark(
+    baseline_path: Path | str,
+    output_path: Path | str,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Build independent C04 3D cylinder benchmark case from baseline official model.
+
+    Enforces baseline model immutability, atomic staging, and isolation.
+    """
+    baseline_path = Path(baseline_path)
+    output_path = Path(output_path)
+
+    if not baseline_path.is_file():
+        raise ModelNotFoundError(f"Source baseline model file does not exist: {baseline_path}")
+
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
+    if baseline_path.resolve() == output_path.resolve():
+        raise ModelValidationError(
+            "Refusing to overwrite baseline model: source and output path are identical"
+        )
+
+    hash_before = compute_file_hash(baseline_path)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
+
+    args = [
+        "build-c04-case",
+        str(baseline_path.resolve()),
+        str(staging_path.resolve()),
+    ]
+
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
+
+        hash_after = compute_file_hash(baseline_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise ModelValidationError(
+                f"Safety violation: original model file was modified during benchmark building! "
+                f"Original SHA-256 changed from {hash_before} to {hash_after}. "
+                f"Staging artifact quarantined; output file was NOT published."
+            )
+
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
+        )
+
+    res["source_sha256"] = hash_before
+    res["output_model"] = str(output_path.resolve())
+    res["output_sha256"] = compute_file_hash(output_path)
+    return res
+
+
+def build_c04_mesh2(
+    model_path: Path | str,
+    output_path: Path | str,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Build tuned 1.55M element mesh2 on C04 model with staging isolation."""
+    model_path = Path(model_path)
+    output_path = Path(output_path)
+
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Source model file does not exist: {model_path}")
+    if output_path.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {output_path}")
+
+    hash_before = compute_file_hash(model_path)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = output_path.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_path = staging_dir / f"stage_{stage_id}_{output_path.name}"
+
+    args = [
+        "build-c04-mesh2",
+        str(model_path.resolve()),
+        str(staging_path.resolve()),
+    ]
+
+    with task_staging_session(staging_path, stage_id):
+        try:
+            res = _run_bridge(args, root=root)
+        except Exception:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise
+
+        hash_after = compute_file_hash(model_path)
+        if hash_before != hash_after:
+            quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
+            raise ModelValidationError(
+                f"Safety violation: original model file was modified during mesh2 building! "
+                f"Original SHA-256 changed from {hash_before} to {hash_after}."
+            )
+
+        publish_staging_file(
+            staging_path=staging_path,
+            output_path=output_path,
+            stage_id=stage_id,
+            allow_overwrite=allow_overwrite,
+        )
+
+    res["source_sha256"] = hash_before
+    res["output_model"] = str(output_path.resolve())
+    res["output_sha256"] = compute_file_hash(output_path)
+    return res
+
+
+def _extract_header_time_and_coords_2d(
+    lines: list[str],
+) -> tuple[float | None, list[list[float]]]:
+    """Parse header comments for physical time and collect numerical rows for 2D slice export."""
+    header_time: float | None = None
+    data_rows: list[list[float]] = []
+    for line in lines:
+        if line.startswith("%"):
+            if header_time is None and "@" in line and "t" in line:
+                m = re.search(r"@\s*t\s*=\s*([0-9.eE+-]+)", line)
+                if m:
+                    header_time = float(m.group(1))
+            continue
+        parts = line.split()
+        if len(parts) >= 6:
+            data_rows.append([float(x) for x in parts])
+    return header_time, data_rows
+
+
+def _extract_header_time_and_data_3d(
+    file_path: Path,
+) -> tuple[float | None, np.ndarray]:
+    """Parse header comments for physical time and load data matrix for 3D volume export."""
+    header_time: float | None = None
+    with open(file_path, encoding="utf-8") as f:
+        for _ in range(50):
+            line = f.readline()
+            if not line:
+                break
+            if line.startswith("%") and "@" in line and "t" in line:
+                m = re.search(r"@\s*t\s*=\s*([0-9.eE+-]+)", line)
+                if m:
+                    header_time = float(m.group(1))
+                    break
+    data = np.loadtxt(file_path, comments="%", dtype=np.float32)
+    return header_time, data
+
+
+def export_c04_slice_dataset(
+    model_path: Path | str,
+    output_npz: Path | str,
+    time_s: float = 0.0,
+    dataset_tag: str = "auto",
+    solnum: str = "auto",
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export 2D mid-span slice (192 x 96) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_2d_slice_grid, save_c04_dataset
+
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    temp_txt = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_slice.txt"
+    try:
+        temp_txt.parent.mkdir(parents=True, exist_ok=True)
+        args = [
+            "export-c04-slice",
+            to_safe_path(model_path),
+            to_safe_path(temp_txt),
+            dataset_tag,
+            solnum,
+        ]
+        _run_bridge(args, root=root)
+
+        lines = temp_txt.read_text(encoding="utf-8").strip().splitlines()
+        header_time, data_rows = _extract_header_time_and_coords_2d(lines)
+        if not data_rows:
+            raise ModelValidationError(f"No data rows found in exported slice file: {temp_txt}")
+
+        arr = np.array(data_rows, dtype=np.float32)
+        grid = create_c04_2d_slice_grid(D=0.30)
+
+        # Coordinate verification
+        cx = arr[:, 0].reshape((96, 192))
+        cy = arr[:, 1].reshape((96, 192))
+        if not np.allclose(cx, grid.X, atol=1e-4) or not np.allclose(cy, grid.Y, atol=1e-4):
+            raise ModelValidationError(
+                f"Exported 2D slice coordinates do not match canonical grid. "
+                f"Max diff X: {np.max(np.abs(cx - grid.X)):.6e}, Y: {np.max(np.abs(cy - grid.Y)):.6e}"
+            )
+
+        # Time verification: if header carries time, verify match; if unsteady (time_s != 0), require source time
+        if header_time is not None:
+            if abs(header_time - float(time_s)) > 1e-4:
+                raise ModelValidationError(
+                    f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+                )
+        elif abs(float(time_s)) > 1e-4:
+            raise ModelValidationError(
+                f"Missing physical source time in COMSOL export header for non-zero time {time_s:.4f}s"
+            )
+
+        fields = np.zeros((1, 4, 96, 192), dtype=np.float32)
+        # Map to channels [u, v_transverse, w_spanwise, p]
+        fields[0, 0] = arr[:, 2].reshape((96, 192))  # u (streamwise)
+        fields[0, 1] = arr[:, 4].reshape((96, 192))  # w (transverse)
+        fields[0, 2] = arr[:, 3].reshape((96, 192))  # v (spanwise)
+        fields[0, 3] = arr[:, 5].reshape((96, 192))  # p (pressure)
+
+        # Strict fluid domain check & solid mask zeroing
+        fluid_mask = ~grid.solid_mask
+        if not np.isfinite(fields[0, :, fluid_mask]).all():
+            raise ModelValidationError("Fluid domain contains non-finite (NaN or Inf) values")
+        fields[0, :, grid.solid_mask] = 0.0
+
+        times = np.array([time_s], dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times, allow_overwrite=allow_overwrite)
+        return output_npz
+    finally:
+        temp_txt.unlink(missing_ok=True)
+
+
+def export_c04_volume_dataset(
+    model_path: Path | str,
+    output_npz: Path | str,
+    time_s: float = 0.0,
+    dataset_tag: str = "auto",
+    solnum: str = "auto",
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export 3D regular volume (192 x 96 x 64) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_sampling_grid, save_c04_dataset
+
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    temp_txt = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_vol.txt"
+    try:
+        temp_txt.parent.mkdir(parents=True, exist_ok=True)
+        args = [
+            "export-c04-volume",
+            to_safe_path(model_path),
+            to_safe_path(temp_txt),
+            dataset_tag,
+            solnum,
+        ]
+        _run_bridge(args, root=root)
+
+        header_time, data = _extract_header_time_and_data_3d(temp_txt)
+        grid = create_c04_sampling_grid(D=0.30)
+
+        # Coordinate verification across all 3 axes
+        # COMSOL spreadsheet order: outer=z (transverse, 96), mid=y (spanwise, 64), inner=x (streamwise, 192)
+        # Coordinate mapping convention:
+        # Streamwise: X_proj = x_comsol
+        # Transverse: Y_proj = z_comsol
+        # Spanwise:   Z_proj = y_comsol + 3.0 m (offset by 10.0 * D to align [-2.1, -0.9] with [0.9, 2.1])
+        raw_x = data[:, 0].reshape((96, 64, 192)).transpose((1, 0, 2))
+        raw_y_span = data[:, 1].reshape((96, 64, 192)).transpose((1, 0, 2))
+        raw_z_trans = data[:, 2].reshape((96, 64, 192)).transpose((1, 0, 2))
+        span_offset = 3.0
+
+        if (
+            not np.allclose(raw_x, grid.X, atol=1e-4)
+            or not np.allclose(raw_z_trans, grid.Y, atol=1e-4)
+            or not np.allclose(raw_y_span + span_offset, grid.Z, atol=1e-4)
+        ):
+            raise ModelValidationError(
+                "Exported 3D volume coordinates do not match canonical grid coordinates across all 3 axes. "
+                f"Max diff X: {np.max(np.abs(raw_x - grid.X)):.6e}, "
+                f"Y: {np.max(np.abs(raw_z_trans - grid.Y)):.6e}, "
+                f"Z: {np.max(np.abs(raw_y_span + span_offset - grid.Z)):.6e}"
+            )
+
+        # Time verification: if header carries time, verify match; if unsteady (time_s != 0), require source time
+        if header_time is not None:
+            if abs(header_time - float(time_s)) > 1e-4:
+                raise ModelValidationError(
+                    f"Exported physical time {header_time:.4f}s does not match expected {time_s:.4f}s"
+                )
+        elif abs(float(time_s)) > 1e-4:
+            raise ModelValidationError(
+                f"Missing physical source time in COMSOL export header for non-zero time {time_s:.4f}s"
+            )
+
+        fields = np.zeros((1, 4, 64, 96, 192), dtype=np.float32)
+        # Map channels: 0=u (streamwise), 1=w (transverse), 2=v (spanwise), 3=p (pressure)
+        fields[0, 0] = data[:, 3].reshape((96, 64, 192)).transpose((1, 0, 2))
+        fields[0, 1] = data[:, 5].reshape((96, 64, 192)).transpose((1, 0, 2))
+        fields[0, 2] = data[:, 4].reshape((96, 64, 192)).transpose((1, 0, 2))
+        fields[0, 3] = data[:, 6].reshape((96, 64, 192)).transpose((1, 0, 2))
+
+        # Strict fluid domain check & solid mask zeroing
+        fluid_mask = ~grid.solid_mask
+        if not np.isfinite(fields[0, :, fluid_mask]).all():
+            raise ModelValidationError("Fluid domain contains non-finite (NaN or Inf) values")
+        fields[0, :, grid.solid_mask] = 0.0
+
+        times = np.array([time_s], dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times, allow_overwrite=allow_overwrite)
+        return output_npz
+    finally:
+        temp_txt.unlink(missing_ok=True)
+
+
+def export_c04_slice_sequence(
+    model_path: Path | str,
+    output_npz: Path | str,
+    solnums: list[str] | None = None,
+    times_s: list[float] | None = None,
+    dataset_tag: str = "dset3",
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export multi-frame 2D mid-span slice sequence (T x 4 x 96 x 192) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_2d_slice_grid, save_c04_dataset
+
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    if solnums is None:
+        solnums = ["1", "2", "3", "4"]
+    if times_s is None:
+        times_s = [0.0, 0.06, 0.12, 0.18]
+
+    if len(solnums) != len(times_s):
+        raise ModelValidationError(f"solnums length ({len(solnums)}) != times_s length ({len(times_s)})")
+
+    temp_base = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_seq_slice.txt"
+    try:
+        temp_base.parent.mkdir(parents=True, exist_ok=True)
+        solnum_arg = ",".join(solnums)
+        args = [
+            "export-c04-slice",
+            to_safe_path(model_path),
+            to_safe_path(temp_base),
+            dataset_tag,
+            solnum_arg,
+        ]
+        _run_bridge(args, root=root)
+
+        grid = create_c04_2d_slice_grid(D=0.30)
+        n_steps = len(solnums)
+        fields = np.zeros((n_steps, 4, 96, 192), dtype=np.float32)
+
+        for step_idx, sn in enumerate(solnums):
+            step_file = temp_base.parent / f"{temp_base.name}.step_{sn}"
+            if not step_file.is_file():
+                raise ModelValidationError(f"Step export file missing: {step_file}")
+            try:
+                lines = step_file.read_text(encoding="utf-8").strip().splitlines()
+                header_time, data_rows = _extract_header_time_and_coords_2d(lines)
+                if not data_rows:
+                    raise ModelValidationError(f"No data rows found in {step_file}")
+                arr = np.array(data_rows, dtype=np.float32)
+
+                # Coordinate verification on every step
+                cx = arr[:, 0].reshape((96, 192))
+                cy = arr[:, 1].reshape((96, 192))
+                if not np.allclose(cx, grid.X, atol=1e-4) or not np.allclose(cy, grid.Y, atol=1e-4):
+                    raise ModelValidationError(
+                        f"Step {sn} exported 2D slice coordinates do not match canonical grid coordinates"
+                    )
+
+                # Mandatory physical source time verification for unsteady sequence
+                if header_time is None:
+                    raise ModelValidationError(
+                        f"Step {sn} missing physical source time in COMSOL export header"
+                    )
+                if not math.isfinite(header_time):
+                    raise ModelValidationError(
+                        f"Step {sn} physical source time in COMSOL export header is non-finite: {header_time}"
+                    )
+                expected_t = times_s[step_idx]
+                if abs(header_time - expected_t) > 1e-4:
+                    raise ModelValidationError(
+                        f"Step {sn} exported time {header_time:.4f}s does not match expected {expected_t:.4f}s"
+                    )
+
+                fields[step_idx, 0] = arr[:, 2].reshape((96, 192))
+                fields[step_idx, 1] = arr[:, 4].reshape((96, 192))
+                fields[step_idx, 2] = arr[:, 3].reshape((96, 192))
+                fields[step_idx, 3] = arr[:, 5].reshape((96, 192))
+
+                fluid_mask = ~grid.solid_mask
+                if not np.isfinite(fields[step_idx, :, fluid_mask]).all():
+                    raise ModelValidationError(f"Step {sn} fluid domain contains non-finite (NaN or Inf) values")
+                fields[step_idx, :, grid.solid_mask] = 0.0
+            finally:
+                step_file.unlink(missing_ok=True)
+
+        times_arr = np.array(times_s, dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times_arr, allow_overwrite=allow_overwrite)
+        return output_npz
+    finally:
+        temp_base.unlink(missing_ok=True)
+
+
+def export_c04_volume_sequence(
+    model_path: Path | str,
+    output_npz: Path | str,
+    solnums: list[str] | None = None,
+    times_s: list[float] | None = None,
+    dataset_tag: str = "dset3",
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+) -> Path:
+    """Export multi-frame 3D volume sequence (T x 4 x 64 x 96 x 192) from solved C04 model to NPZ dataset."""
+    from ..sampling_3d import create_c04_sampling_grid, save_c04_dataset
+
+    model_path = Path(model_path).resolve()
+    output_npz = Path(output_npz).resolve()
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Model file not found: {model_path}")
+    if output_npz.is_file() and not allow_overwrite:
+        raise ModelValidationError(f"Refusing to overwrite existing dataset: {output_npz}")
+
+    if solnums is None:
+        solnums = ["1", "2", "3", "4"]
+    if times_s is None:
+        times_s = [0.0, 0.06, 0.12, 0.18]
+
+    if len(solnums) != len(times_s):
+        raise ModelValidationError(f"solnums length ({len(solnums)}) != times_s length ({len(times_s)})")
+
+    temp_base = output_npz.parent / f".tmp_{uuid.uuid4().hex[:8]}_seq_vol.txt"
+    try:
+        temp_base.parent.mkdir(parents=True, exist_ok=True)
+        solnum_arg = ",".join(solnums)
+        args = [
+            "export-c04-volume",
+            to_safe_path(model_path),
+            to_safe_path(temp_base),
+            dataset_tag,
+            solnum_arg,
+        ]
+        _run_bridge(args, root=root)
+
+        grid = create_c04_sampling_grid(D=0.30)
+        n_steps = len(solnums)
+        fields = np.zeros((n_steps, 4, 64, 96, 192), dtype=np.float32)
+
+        for step_idx, sn in enumerate(solnums):
+            step_file = temp_base.parent / f"{temp_base.name}.step_{sn}"
+            if not step_file.is_file():
+                raise ModelValidationError(f"Step export file missing: {step_file}")
+            try:
+                header_time, data = _extract_header_time_and_data_3d(step_file)
+
+                # Coordinate verification on every step across all 3 axes
+                raw_x = data[:, 0].reshape((96, 64, 192)).transpose((1, 0, 2))
+                raw_y_span = data[:, 1].reshape((96, 64, 192)).transpose((1, 0, 2))
+                raw_z_trans = data[:, 2].reshape((96, 64, 192)).transpose((1, 0, 2))
+                span_offset = 3.0
+
+                if (
+                    not np.allclose(raw_x, grid.X, atol=1e-4)
+                    or not np.allclose(raw_z_trans, grid.Y, atol=1e-4)
+                    or not np.allclose(raw_y_span + span_offset, grid.Z, atol=1e-4)
+                ):
+                    raise ModelValidationError(
+                        f"Step {sn} exported 3D volume coordinates do not match canonical grid coordinates across all 3 axes. "
+                        f"Max diff X: {np.max(np.abs(raw_x - grid.X)):.6e}, "
+                        f"Y: {np.max(np.abs(raw_z_trans - grid.Y)):.6e}, "
+                        f"Z: {np.max(np.abs(raw_y_span + span_offset - grid.Z)):.6e}"
+                    )
+
+                # Mandatory physical source time verification for unsteady sequence
+                if header_time is None:
+                    raise ModelValidationError(
+                        f"Step {sn} missing physical source time in COMSOL export header"
+                    )
+                if not math.isfinite(header_time):
+                    raise ModelValidationError(
+                        f"Step {sn} physical source time in COMSOL export header is non-finite: {header_time}"
+                    )
+                expected_t = times_s[step_idx]
+                if abs(header_time - expected_t) > 1e-4:
+                    raise ModelValidationError(
+                        f"Step {sn} exported time {header_time:.4f}s does not match expected {expected_t:.4f}s"
+                    )
+
+                fields[step_idx, 0] = data[:, 3].reshape((96, 64, 192)).transpose((1, 0, 2))
+                fields[step_idx, 1] = data[:, 5].reshape((96, 64, 192)).transpose((1, 0, 2))
+                fields[step_idx, 2] = data[:, 4].reshape((96, 64, 192)).transpose((1, 0, 2))
+                fields[step_idx, 3] = data[:, 6].reshape((96, 64, 192)).transpose((1, 0, 2))
+
+                fluid_mask = ~grid.solid_mask
+                if not np.isfinite(fields[step_idx, :, fluid_mask]).all():
+                    raise ModelValidationError(f"Step {sn} fluid domain contains non-finite (NaN or Inf) values")
+                fields[step_idx, :, grid.solid_mask] = 0.0
+            finally:
+                step_file.unlink(missing_ok=True)
+
+        times_arr = np.array(times_s, dtype=np.float32)
+        save_c04_dataset(output_npz, fields, grid, times_arr, allow_overwrite=allow_overwrite)
+        return output_npz
+    finally:
+        temp_base.unlink(missing_ok=True)
+
+
 def export_solution_data(
     model_path: Path | str,
     output_txt_path: Path | str,
@@ -1576,11 +1662,23 @@ def export_full_field_sample(
     bounds=(0.0, 0.4, 0.0, 0.24),
     allow_overwrite: bool = False,
     root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
 ) -> dict[str, Any]:
     """Read an existing solution into two validated Cartesian sample archives."""
     from ..field_sampling import export_full_field_sample as sample
-    return sample(model_path, output_dir, requested_times, grid_shapes, bounds,
-                  allow_overwrite=allow_overwrite, root=root)
+
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    return sample(
+        model_path,
+        output_dir,
+        requested_times,
+        grid_shapes,
+        bounds,
+        allow_overwrite=allow_overwrite,
+        root=root,
+        **process_options,
+    )
 
 
 def _archive_existing_diagnostic_set(output_dir: Path) -> str | None:

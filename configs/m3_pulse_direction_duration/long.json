@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "event_id": "m3-local-pulse-duration-3p2",
+  "mechanism": "gaussian_body_acceleration",
+  "pulse": {
+    "center_m": [0.15, 0.12],
+    "direction_deg": 90,
+    "acceleration_m_s2": 0.005,
+    "sigma_m": 0.01,
+    "on_s": 181,
+    "off_s": 184.2
+  }
+}

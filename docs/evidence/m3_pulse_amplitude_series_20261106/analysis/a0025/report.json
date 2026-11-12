@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "series_id": "m3-pulse-amplitude-series-v1",
+  "series_plan_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+  "amplitude_m_s2": 0.0025,
+  "output_model_sha256": "731396d357dbd697b106db0522f53f0122f68a676eeed6c50d682b41d21c2e7a",
+  "peak_roi_over_U": 0.02922886678491224,
+  "peak_time_s": 186.0,
+  "native_status": "PASS",
+  "step_status": "PASS",
+  "field_status": "PASS"
+}

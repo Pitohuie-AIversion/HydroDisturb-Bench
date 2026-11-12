@@ -1,0 +1,111 @@
+{
+  "totals": {
+    "old": {
+      "PASS": 8,
+      "FAIL": 2
+    },
+    "current": {
+      "PASS": 8,
+      "FAIL": 2
+    }
+  },
+  "no_retries": true,
+  "no_comsol": true,
+  "handle_count_measurement": "GetProcessHandleCount before and after each full export call",
+  "all_handle_counts": [
+    240
+  ],
+  "all_trial_handle_counts_unchanged": true,
+  "stderr_bytes": 0,
+  "shared_modules_equal_to_baseline_after_line_ending_normalization": {
+    "src/hydro_disturb_bench/field_sampling.py": true,
+    "src/hydro_disturb_bench/comsol_java/bridge.py": true,
+    "src/hydro_disturb_bench/comsol_java/file_transactions.py": true
+  },
+  "retained_failures": [
+    {
+      "repeat": 1,
+      "implementation": "old",
+      "stage": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\01_old\\.staging_field_sequence_3f3caeea7abe",
+      "winerror": 5,
+      "source_unchanged": true,
+      "completed_batches": 3,
+      "manifest_status": "PASS",
+      "report_status": "PASS",
+      "readback_passed": true,
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ]
+    },
+    {
+      "repeat": 4,
+      "implementation": "current",
+      "stage": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\04_current\\.staging_field_sequence_d3dd84f950be",
+      "winerror": 5,
+      "source_unchanged": true,
+      "completed_batches": 3,
+      "manifest_status": "PASS",
+      "report_status": "PASS",
+      "readback_passed": true,
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ]
+    },
+    {
+      "repeat": 6,
+      "implementation": "current",
+      "stage": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\06_current\\.staging_field_sequence_dd669543ce75",
+      "winerror": 5,
+      "source_unchanged": true,
+      "completed_batches": 3,
+      "manifest_status": "PASS",
+      "report_status": "PASS",
+      "readback_passed": true,
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ]
+    },
+    {
+      "repeat": 7,
+      "implementation": "old",
+      "stage": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\07_old\\.staging_field_sequence_cc2e8295c60e",
+      "winerror": 5,
+      "source_unchanged": true,
+      "completed_batches": 3,
+      "manifest_status": "PASS",
+      "report_status": "PASS",
+      "readback_passed": true,
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ]
+    }
+  ],
+  "closure_source": {
+    "python_version": "3.14.7 | packaged by Anaconda, Inc. | (main, Aug 14 2026, 10:12:46) [MSC v.1942 64 bit (AMD64)]",
+    "glob_scandir": "    @staticmethod\n    def scandir(path):\n        # We must close the scandir() object before proceeding to\n        # avoid exhausting file descriptors when globbing deep trees.\n        with os.scandir(path) as scandir_it:\n            entries = list(scandir_it)\n        return ((entry, entry.name, entry.path) for entry in entries)\n",
+    "reader_check_directories": "    def _check_directories(self):\n        actual = {p.name for p in self._directory.glob(\"batch_*\") if p.is_dir()}\n        sampling._require(actual == self._names, \"Missing or extra sequence batch directories\")\n        for entry in self._manifest[\"batches\"]:\n            for filename, _ in _BATCH_HASHES:\n                sampling._require((self._directory / entry[\"path\"] / filename).is_file(),\n                                  f\"Missing sequence batch file: {entry['path']}/{filename}\")\n",
+    "reader_check_hashes": "    def _check_hashes(self, entry):\n        for filename, key in _BATCH_HASHES:\n            actual = bridge.compute_file_hash(self._directory / entry[\"path\"] / filename).lower()\n            sampling._require(actual == entry[key].lower(), f\"Sequence batch hash mismatch: {filename}\")\n",
+    "compute_file_hash": "def compute_file_hash(path: Path) -> str:\n    \"\"\"Compute SHA-256 hash of a file safely handling potential read locks.\"\"\"\n    path = Path(path)\n    if not path.is_file():\n        raise ModelNotFoundError(f\"File not found: {path}\")\n    h = hashlib.sha256()\n    with path.open(\"rb\") as f:\n        while chunk := f.read(65536):\n            h.update(chunk)\n    return h.hexdigest().upper()\n",
+    "load_full_field_sample": "def load_full_field_sample(grid_dir):\n    \"\"\"Read and validate an exported NPZ using explicit axes, masks and metadata.\"\"\"\n    grid_dir = Path(grid_dir)\n    metadata = json.loads((grid_dir / \"metadata.json\").read_text(encoding=\"utf-8\"))\n    _require(metadata.get(\"schema_version\") == 1 and metadata.get(\"tensor_layout\") == LAYOUT, \"Unknown field sample schema or tensor layout\")\n    _require(metadata.get(\"channel_order\") == list(CHANNELS) and metadata.get(\"units\") == list(UNITS), \"Invalid field channel order or units\")\n    path = grid_dir / \"field_sample.npz\"\n    _require(bridge.compute_file_hash(path).lower() == metadata[\"npz_sha256\"].lower(), \"NPZ SHA-256 mismatch\")\n    with np.load(path, allow_pickle=False) as archive:\n        required = {\"values\", \"mask\", \"cylinder_mask\", \"invalid_mask\", \"x\", \"y\", \"times\"}\n        _require(set(archive.files) == required, \"NPZ has missing or unexpected arrays\")\n        data = {key: archive[key] for key in required}\n    x, y, times = data[\"x\"], data[\"y\"], data[\"times\"]\n    _require(all(a.ndim == 1 and np.isfinite(a).all() and np.all(np.diff(a) > 0) for a in (x, y, times)), \"NPZ axes/times must be finite and strictly increasing\")\n    _require(_same(x, metadata[\"coordinates\"][\"x\"], COORD_ATOL) and _same(y, metadata[\"coordinates\"][\"y\"], COORD_ATOL) and _same(times, metadata[\"actual_times\"]), \"NPZ coordinates/time differ from metadata\")\n    _require(_same(times, metadata.get(\"requested_times\")), \"Requested times differ from actual saved NPZ times\")\n    _require(data[\"values\"].shape == (len(times), 3, len(y), len(x)) and data[\"values\"].dtype == np.float64, \"NPZ tensor must be float64 (T,3,Ny,Nx)\")\n    _require(metadata.get(\"shape\") == list(data[\"values\"].shape), \"Metadata tensor shape differs from NPZ\")\n    _require(data[\"cylinder_mask\"].dtype == bool and data[\"cylinder_mask\"].shape == (len(y), len(x)), \"Cylinder mask must be bool (Ny,Nx)\")\n    _require(np.array_equal(data[\"cylinder_mask\"], _cylinder_mask(x, y, metadata[\"geometry\"])), \"Cylinder mask differs from actual geometry\")\n    for name in (\"mask\", \"invalid_mask\"):\n        _require(data[name].dtype == bool and data[name].shape == (len(times), len(y), len(x)), f\"{name} must be bool (T,Ny,Nx)\")\n    _require(not (data[\"invalid_mask\"] & ~data[\"cylinder_mask\"][None]).any(), \"Invalid raw samples occur in the fluid domain\")\n    _require(np.array_equal(data[\"mask\"], data[\"cylinder_mask\"][None] | data[\"invalid_mask\"]), \"Combined mask is inconsistent\")\n    expanded_mask = np.broadcast_to(data[\"mask\"][:, None], data[\"values\"].shape)\n    _require(np.isnan(data[\"values\"][expanded_mask]).all() and np.isfinite(data[\"values\"][~expanded_mask]).all(), \"Masked entries must be NaN and fluid entries finite\")\n    data[\"metadata\"] = metadata\n    return data\n",
+    "Path_read_bytes": "    def read_bytes(self):\n        \"\"\"\n        Open the file in bytes mode, read it, and close the file.\n        \"\"\"\n        with self.open(mode='rb', buffering=0) as f:\n            return f.read()\n"
+  },
+  "conclusion": {
+    "observed": "Both versions fail twice at final os.rename; every failure retains complete validated batches and unchanged source.",
+    "code_review": "Reader stores arrays, dicts and paths only. Current Python glob closes scandir before yielding entries; NPZ loading and hash/read_bytes use with blocks.",
+    "limit": "No persistent handle growth observed; this does not identify a transient or external Windows holder, nor prove equal long-run failure probabilities.",
+    "regression_assessment": "This finite experiment does not support a failure introduced uniquely by the new reader."
+  },
+  "experiment_script_sha256": "1c38049b46f6e85b9c5962b0a9afdf9ebc363791da5d1b0019551fe68b2c54d4"
+}

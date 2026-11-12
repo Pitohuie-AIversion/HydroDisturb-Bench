@@ -1,0 +1,12 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_prepare_data_usage.py"
+  ],
+  "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+  "returncode": 0,
+  "elapsed_seconds": 12.677442073822021
+}

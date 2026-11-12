@@ -1,0 +1,39 @@
+{
+  "command": [
+    "uv",
+    "run",
+    "--no-sync",
+    "python",
+    "-m",
+    "pytest",
+    "-q",
+    "--strict-markers",
+    "-m",
+    "not integration",
+    "--junitxml",
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\docs\\evidence\\m3_pulse_direction_duration_20261109\\tests\\regression_junit.xml"
+  ],
+  "returncode": 0,
+  "started_at_utc": "2026-11-09T03:19:00.379228+00:00",
+  "elapsed_seconds": 182.09287405014038,
+  "logs": {
+    "stdout": {
+      "raw_path": "scratch\\pulse_direction_duration_20261109\\logs\\regression\\stdout.raw",
+      "raw_bytes": 1345,
+      "raw_sha256": "1cc348c3707bf920c3437dd0b34ca8920425c53e6a86452c66c81107314b8daf",
+      "export_transform": "CRLF to LF only"
+    },
+    "stderr": {
+      "raw_path": "scratch\\pulse_direction_duration_20261109\\logs\\regression\\stderr.raw",
+      "raw_bytes": 0,
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "export_transform": "CRLF to LF only"
+    },
+    "junit": {
+      "raw_path": "scratch\\pulse_direction_duration_20261109\\logs\\regression\\junit.raw",
+      "raw_bytes": 157611,
+      "raw_sha256": "6037b7e878b34a320132cfe1749c8c11f9c1f38345d928eb9ff993448f56a81a",
+      "export_transform": "CRLF to LF only"
+    }
+  }
+}

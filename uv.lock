@@ -471,8 +471,8 @@ dev = [
 requires-dist = [
     { name = "matplotlib", marker = "extra == 'analysis'", specifier = ">=3.7" },
     { name = "mph", marker = "extra == 'comsol'", specifier = ">=1.2" },
-    { name = "numpy", marker = "extra == 'analysis'", specifier = ">=1.24" },
-    { name = "numpy", marker = "extra == 'dev'", specifier = ">=1.24" },
+    { name = "numpy", marker = "extra == 'analysis'", specifier = ">=2.0" },
+    { name = "numpy", marker = "extra == 'dev'", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.5" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },

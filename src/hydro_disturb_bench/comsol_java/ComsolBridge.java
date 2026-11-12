@@ -3,6 +3,8 @@ import com.comsol.model.util.*;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * HydroDisturb-Bench COMSOL Java API Bridge
@@ -67,6 +69,34 @@ public class ComsolBridge {
                     return;
                 }
                 handleBuildRe100Case(args[1], args[2]);
+            } else if ("build-c04-case".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: build-c04-case <modelPath> <outputPath>", "");
+                    return;
+                }
+                handleBuildC04Case(args[1], args[2]);
+            } else if ("build-c04-mesh2".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: build-c04-mesh2 <modelPath> <outputPath>", "");
+                    return;
+                }
+                handleBuildC04Mesh2(args[1], args[2]);
+            } else if ("export-c04-slice".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: export-c04-slice <modelPath> <outputTxtPath> [datasetTag] [solnum]", "");
+                    return;
+                }
+                String dsetTag = (args.length >= 4) ? args[3] : "auto";
+                String solnum = (args.length >= 5) ? args[4] : "auto";
+                handleExportC04Slice(args[1], args[2], dsetTag, solnum);
+            } else if ("export-c04-volume".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: export-c04-volume <modelPath> <outputTxtPath> [datasetTag] [solnum]", "");
+                    return;
+                }
+                String dsetTag = (args.length >= 4) ? args[3] : "auto";
+                String solnum = (args.length >= 5) ? args[4] : "auto";
+                handleExportC04Volume(args[1], args[2], dsetTag, solnum);
             } else if ("export-solution-data".equals(command)) {
                 if (args.length < 3) {
                     outputError("INVALID_PARAMETER", "Usage: export-solution-data <modelPath> <outputTxtPath>", "");
@@ -96,6 +126,18 @@ public class ComsolBridge {
                     return;
                 }
                 handleRunPulseBranch(args[1], args[2], args[3], args[4]);
+            } else if ("run-pulse-series-branch".equals(command)) {
+                if (args.length != 6) {
+                    outputError("INVALID_PARAMETER", "Usage: run-pulse-series-branch <checkpoint> <output> <accelerationAmplitude_m_s2> <restartProtocolId> <seriesId>", "");
+                    return;
+                }
+                handleRunPulseBranch(args[1], args[2], args[3], args[4], args[5]);
+            } else if ("inspect-local-pulse".equals(command) || "run-local-pulse".equals(command)) {
+                if (args.length != 4) {
+                    outputError("INVALID_PARAMETER", "Usage: " + command + " <checkpoint> <output> <base64:properties>", "");
+                    return;
+                }
+                ConfigurablePulseBranch.handle(args[1], args[2], args[3], "run-local-pulse".equals(command));
             } else if ("export-full-field-sample".equals(command)
                     || "export-full-field-sequence-batch".equals(command)) {
                 if (args.length < 10) {
@@ -379,6 +421,29 @@ public class ComsolBridge {
             sb.append("      ]\n");
             sb.append("    }").append(i < solTags.length - 1 ? "," : "").append("\n");
         }
+        sb.append("  ],\n");
+
+        // Datasets
+        sb.append("  \"datasets\": [\n");
+        String[] dtags = model.result().dataset().tags();
+        for (int i = 0; i < dtags.length; i++) {
+            String dtag = dtags[i];
+            DatasetFeature dset = model.result().dataset(dtag);
+            String dtype = dset.getType();
+            String label = "";
+            try { label = dset.label(); } catch (Throwable ignored) {}
+            String sol = "";
+            try { sol = dset.getString("solution"); } catch (Throwable ignored) {}
+            String dataSrc = "";
+            try { dataSrc = dset.getString("data"); } catch (Throwable ignored) {}
+            sb.append("    {\n");
+            sb.append("      \"tag\": ").append(quote(dtag)).append(",\n");
+            sb.append("      \"type\": ").append(quote(dtype)).append(",\n");
+            sb.append("      \"label\": ").append(quote(label)).append(",\n");
+            sb.append("      \"solution\": ").append(quote(sol)).append(",\n");
+            sb.append("      \"data\": ").append(quote(dataSrc)).append("\n");
+            sb.append("    }").append(i < dtags.length - 1 ? "," : "").append("\n");
+        }
         sb.append("  ]\n");
         sb.append("}\n");
 
@@ -561,7 +626,7 @@ public class ComsolBridge {
         throw new IllegalStateException("Unsupported native value class: " + value.getClass().getName());
     }
 
-    private static void appendNativeFeature(StringBuilder sb, Object feature, String path) {
+    static void appendNativeFeature(StringBuilder sb, Object feature, String path) {
         sb.append("{\"tag\":").append(quote(invokeStringMethod(feature, "tag")))
           .append(",\"path\":").append(quote(path))
           .append(",\"type\":").append(quote(invokeStringMethod(feature, "getType")));
@@ -804,20 +869,58 @@ public class ComsolBridge {
             } catch (Throwable ignored) {}
         }
 
-        // Apply low-level solver feature parameters (e.g. sol1/t1)
+        // Identify solver sequences that belong specifically to the target study
+        List<SolverSequence> targetSolSeqs = new ArrayList<SolverSequence>();
         for (String sTag : model.sol().tags()) {
-            SolverSequence sSeq = model.sol(sTag);
+            SolverSequence s = model.sol(sTag);
+            boolean matchesStudy = false;
+            try {
+                if (studyTag.equals(s.getString("study"))) {
+                    matchesStudy = true;
+                }
+            } catch (Throwable ignored) {}
+            if (!matchesStudy) {
+                try {
+                    for (String fTag : s.feature().tags()) {
+                        SolverFeature sf = s.feature(fTag);
+                        if ("StudyStep".equalsIgnoreCase(sf.getType())) {
+                            try {
+                                if (studyTag.equals(sf.getString("study"))) {
+                                    matchesStudy = true;
+                                    break;
+                                }
+                            } catch (Throwable ignored) {}
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+            if (matchesStudy) {
+                targetSolSeqs.add(s);
+            }
+        }
+        if (targetSolSeqs.isEmpty() && model.sol().tags().length == 1) {
+            targetSolSeqs.add(model.sol(model.sol().tags()[0]));
+        }
+
+        // Apply low-level solver feature parameters ONLY to target study's solver sequence(s)
+        for (SolverSequence sSeq : targetSolSeqs) {
             for (String fTag : sSeq.feature().tags()) {
                 SolverFeature feat = sSeq.feature(fTag);
                 if ("Time".equalsIgnoreCase(feat.getType())) {
-                    if (rtolOverride != null && !rtolOverride.trim().isEmpty()) {
-                        try { feat.set("rtol", rtolOverride.trim()); } catch (Throwable ignored) {}
-                    }
-                    if (maxstepOverride != null && !maxstepOverride.trim().isEmpty()) {
-                        try {
+                    try {
+                        if (tlistOverride != null && !tlistOverride.trim().isEmpty()) {
+                            feat.set("tlist", tlistOverride.trim());
+                        }
+                        if (rtolOverride != null && !rtolOverride.trim().isEmpty()) {
+                            feat.set("rtol", rtolOverride.trim());
+                        }
+                        if (maxstepOverride != null && !maxstepOverride.trim().isEmpty()) {
                             feat.set("maxstepconstraintbdf", "const");
                             feat.set("maxstepbdf", maxstepOverride.trim());
-                        } catch (Throwable ignored) {}
+                        }
+                    } catch (Throwable t) {
+                        outputError("INVALID_PARAMETER", "Failed to apply solver parameter override to " + sSeq.tag() + "/" + fTag + ": " + t.getMessage(), getStackTrace(t));
+                        return;
                     }
                 }
             }
@@ -842,7 +945,43 @@ public class ComsolBridge {
             return;
         }
 
-        SolverSequence solSeq = model.sol(solTags[0]);
+        // Identify the solver sequence that corresponds to the executed study
+        SolverSequence solSeq = null;
+        for (String sTag : solTags) {
+            SolverSequence s = model.sol(sTag);
+            try {
+                for (String fTag : s.feature().tags()) {
+                    SolverFeature sf = s.feature(fTag);
+                    if ("StudyStep".equalsIgnoreCase(sf.getType())) {
+                        try {
+                            if (studyTag.equals(sf.getString("study"))) {
+                                solSeq = s;
+                                break;
+                            }
+                        } catch (Throwable ignored) {}
+                    }
+                }
+            } catch (Throwable ignored) {}
+            if (solSeq != null) break;
+        }
+
+        if (solSeq == null) {
+            for (String sTag : solTags) {
+                SolverSequence s = model.sol(sTag);
+                try {
+                    double[] pv = s.getPVals();
+                    if (pv != null && pv.length > 0) {
+                        solSeq = s;
+                        break;
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        if (solSeq == null) {
+            solSeq = model.sol(solTags[0]);
+        }
+
         double[] pvals = null;
         try {
             pvals = solSeq.getPVals();
@@ -922,6 +1061,7 @@ public class ComsolBridge {
         sb.append("  \"status\": \"SUCCESS\",\n");
         sb.append("  \"operation\": \"run_study\",\n");
         sb.append("  \"study_tag\": ").append(quote(studyTag)).append(",\n");
+        sb.append("  \"sol_tag\": ").append(quote(solSeq.tag())).append(",\n");
         sb.append("  \"elapsed_ms\": ").append(elapsedMs).append(",\n");
         sb.append("  \"sol_tags\": ").append(stringArrayToJson(solTags)).append(",\n");
         sb.append("  \"solution_stats\": {\n");
@@ -1118,6 +1258,360 @@ public class ComsolBridge {
         }
     }
 
+    private static void handleBuildC04Case(String modelPath, String outputPath) {
+        if (modelPath.equalsIgnoreCase(outputPath)) {
+            outputError("MODEL_VALIDATION_FAILED", "Refusing to overwrite baseline model: source and output path are identical", "");
+            return;
+        }
+
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            String msg = t.getMessage() != null ? t.getMessage() : "";
+            if (msg.toLowerCase().contains("not found") || msg.toLowerCase().contains("no such file") || msg.toLowerCase().contains("cannot find")) {
+                outputError("MODEL_NOT_FOUND", "Source model file not found: " + modelPath, getStackTrace(t));
+            } else {
+                outputError("COMSOL_CONNECTION_FAILED", "Failed to load model: " + msg, getStackTrace(t));
+            }
+            return;
+        }
+
+        try {
+            ModelParam param = model.param();
+            param.set("D", "0.30[m]", "Cylinder diameter");
+            param.set("U0", "0.50[m/s]", "Inflow velocity magnitude");
+            param.set("alpha", "90[deg]", "Inflow angle");
+            param.set("rho0", "1025.8944[kg/m^3]", "Seawater density at 15 degC (ITTC 2024)");
+            param.set("nu0", "1.1889e-6[m^2/s]", "Seawater kinematic viscosity (ITTC 2024)");
+            param.set("mu0", "rho0*nu0", "Seawater dynamic viscosity");
+            param.set("ReD", "U0*D/nu0", "Cylinder Reynolds number");
+            param.set("Ux", "U0*sin(alpha)", "Inflow X velocity");
+            param.set("Uy", "0[m/s]", "Inflow Y velocity");
+            param.set("Uz", "U0*cos(alpha)", "Inflow Z velocity");
+            param.set("L_span", "10*D", "Spanwise domain depth (Lysenko 2025)");
+
+            // Aliases to preserve existing expressions in official model
+            param.set("rhof", "rho0", "Fluid density alias");
+            param.set("visc", "mu0", "Fluid dynamic viscosity alias");
+            param.set("Uin", "U0", "Inlet velocity alias");
+            param.set("Re", "ReD", "Reynolds number alias");
+
+            ModelNode comp = model.component("comp1");
+            GeomSequence geom = comp.geom("geom1");
+            geom.feature("ext1").set("distance", "L_span");
+            geom.run();
+
+            // Mesh 1: scale controls to D = 0.30 m for initial stationary calculation
+            try {
+                MeshSequence mesh1 = comp.mesh("mesh1");
+                double scale = param.evaluate("D") / 0.004548;
+                MeshFeature size = mesh1.feature("size");
+                size.set("hmax", (0.00288 * scale) + "[m]");
+                size.set("hmin", (8.63e-4 * scale) + "[m]");
+                MeshFeature size1 = mesh1.feature("size1");
+                size1.set("hmax", (0.00288 * scale) + "[m]");
+                size1.set("hmin", (6.09e-4 * scale) + "[m]");
+                MeshFeature size2 = mesh1.feature("size2");
+                size2.set("hmax", (0.00193 * scale) + "[m]");
+                size2.set("hmin", (5.75e-4 * scale) + "[m]");
+                mesh1.run();
+            } catch (Throwable ignored) {}
+
+            // Mesh 2: scale and tune controls for transient SST-SAS calculation (1.55M elements)
+            try {
+                MeshSequence mesh2 = comp.mesh("mesh2");
+                double scale = param.evaluate("D") / 0.004548;
+                MeshFeature m2size = mesh2.feature("size");
+                m2size.set("hmax", (0.006 * scale) + "[m]");
+                m2size.set("hmin", (8.63e-4 * scale) + "[m]");
+                MeshFeature m2size2 = mesh2.feature("size2");
+                m2size2.set("hmax", "D/6");
+                m2size2.set("hmin", (1.15e-4 * scale) + "[m]");
+                MeshFeature m2bl1 = mesh2.feature("bl1");
+                MeshFeature m2blp1 = m2bl1.feature("blp1");
+                m2blp1.set("blhtot", (0.001064 * scale) + "[m]");
+            } catch (Throwable ignored) {}
+
+            // Update transient study step tlist for C04 time scale (t* = D/U0 = 0.60 s)
+            try {
+                Study std2 = model.study("std2");
+                std2.feature("time").set("tlist", "range(0, 0.06, 3.0)");
+            } catch (Throwable ignored) {}
+
+            String[] solTags = model.sol().tags();
+            for (String stag : solTags) {
+                try {
+                    model.sol(stag).clearSolutionData();
+                } catch (Throwable ignored) {}
+            }
+
+            model.save(outputPath);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"build_c04_case\",\n");
+            sb.append("  \"source_model\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_model\": ").append(quote(outputPath)).append(",\n");
+            sb.append("  \"parameters\": {\n");
+            sb.append("    \"D\": ").append(param.evaluate("D")).append(",\n");
+            sb.append("    \"U0\": ").append(param.evaluate("U0")).append(",\n");
+            sb.append("    \"alpha\": ").append(param.evaluate("alpha")).append(",\n");
+            sb.append("    \"rho0\": ").append(param.evaluate("rho0")).append(",\n");
+            sb.append("    \"nu0\": ").append(param.evaluate("nu0")).append(",\n");
+            sb.append("    \"mu0\": ").append(param.evaluate("mu0")).append(",\n");
+            sb.append("    \"ReD\": ").append(param.evaluate("ReD")).append(",\n");
+            sb.append("    \"Ux\": ").append(param.evaluate("Ux")).append(",\n");
+            sb.append("    \"Uz\": ").append(param.evaluate("Uz")).append(",\n");
+            sb.append("    \"L_span\": ").append(param.evaluate("L_span")).append("\n");
+            sb.append("  },\n");
+            sb.append("  \"cleared_solution_tags\": ").append(stringArrayToJson(solTags)).append("\n");
+            sb.append("}\n");
+
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("BUILD_C04_FAILED", "Failed to build C04 benchmark model: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleBuildC04Mesh2(String modelPath, String outputPath) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            ModelNode comp = model.component("comp1");
+            MeshSequence mesh2 = comp.mesh("mesh2");
+            double scale = model.param().evaluate("D") / 0.004548;
+
+            MeshFeature m2size = mesh2.feature("size");
+            m2size.set("hmax", (0.006 * scale) + "[m]");
+            m2size.set("hmin", (8.63e-4 * scale) + "[m]");
+
+            MeshFeature m2size2 = mesh2.feature("size2");
+            m2size2.set("hmax", "D/6");
+            m2size2.set("hmin", (1.15e-4 * scale) + "[m]");
+
+            MeshFeature m2bl1 = mesh2.feature("bl1");
+            MeshFeature m2blp1 = m2bl1.feature("blp1");
+            m2blp1.set("blhtot", (0.001064 * scale) + "[m]");
+
+            mesh2.run();
+            model.save(outputPath);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"build_c04_mesh2\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_model\": ").append(quote(outputPath)).append(",\n");
+            sb.append("  \"num_elements\": ").append(mesh2.getNumElem()).append(",\n");
+            sb.append("  \"num_vertices\": ").append(mesh2.getNumVertex()).append("\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("MESH2_BUILD_FAILED", "Failed to build mesh2: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleExportC04Slice(String modelPath, String outputTxtPath, String dsetTag, String solnum) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for slice export: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            String targetDset = "dset1";
+            if (dsetTag != null && !dsetTag.trim().isEmpty() && !dsetTag.equalsIgnoreCase("auto")) {
+                targetDset = dsetTag.trim();
+            } else {
+                String[] dtags = model.result().dataset().tags();
+                String fallbackSolDset = null;
+                for (int i = dtags.length - 1; i >= 0; i--) {
+                    try {
+                        DatasetFeature d = model.result().dataset(dtags[i]);
+                        if ("Solution".equals(d.getType())) {
+                            if (fallbackSolDset == null) {
+                                fallbackSolDset = dtags[i];
+                            }
+                            String sol = "";
+                            try { sol = d.getString("solution"); } catch (Throwable ignored) {}
+                            if ("sol3".equals(sol) || "sol5".equals(sol)) {
+                                targetDset = dtags[i];
+                                fallbackSolDset = null;
+                                break;
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                }
+                if (fallbackSolDset != null) {
+                    targetDset = fallbackSolDset;
+                }
+            }
+
+            safeRemoveDataset(model, "cpl_c04_slice");
+            DatasetFeature cutPlane = model.result().dataset().create("cpl_c04_slice", "CutPlane");
+            cutPlane.set("data", targetDset);
+            cutPlane.set("planetype", "quick");
+            cutPlane.set("quickplane", "xz");
+            cutPlane.set("quicky", -1.5);
+
+            safeRemoveExport(model, "exp_c04_slice");
+            ExportFeature exporter = model.result().export().create("exp_c04_slice", "Data");
+            exporter.set("data", cutPlane.tag());
+            exporter.set("expr", new String[]{"u", "v", "w", "p"});
+            exporter.set("location", "grid");
+            exporter.set("gridstruct", "spreadsheet");
+
+            double delta = 0.30 / 16.0; // 0.01875 m (cell-centered)
+            double[] gridx = new double[192];
+            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + (i + 0.5) * delta;
+            double[] gridz = new double[96];
+            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + (i + 0.5) * delta;
+
+            exporter.set("gridx2", gridx);
+            exporter.set("gridy2", gridz);
+            exporter.set("header", "on");
+            exporter.set("fullprec", "on");
+            exporter.set("includecoords", true);
+            exporter.set("includenan", true);
+
+            if (solnum != null && solnum.contains(",")) {
+                String[] snums = solnum.split(",");
+                for (int s = 0; s < snums.length; s++) {
+                    String sn = snums[s].trim();
+                    exporter.set("solnum", sn);
+                    exporter.set("filename", outputTxtPath + ".step_" + sn);
+                    exporter.run();
+                }
+            } else {
+                if (solnum != null && !solnum.trim().isEmpty() && !solnum.equalsIgnoreCase("auto")) {
+                    exporter.set("solnum", solnum.trim());
+                }
+                exporter.set("filename", outputTxtPath);
+                exporter.run();
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"export_c04_slice\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_txt\": ").append(quote(outputTxtPath)).append(",\n");
+            sb.append("  \"dataset\": ").append(quote(targetDset)).append(",\n");
+            sb.append("  \"solnum\": ").append(quote(solnum != null ? solnum : "auto")).append(",\n");
+            sb.append("  \"nx\": 192,\n");
+            sb.append("  \"ny\": 96\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("EXPORT_C04_SLICE_FAILED", "Failed to export C04 slice: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleExportC04Volume(String modelPath, String outputTxtPath, String dsetTag, String solnum) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model for volume export: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            String targetDset = "dset1";
+            if (dsetTag != null && !dsetTag.trim().isEmpty() && !dsetTag.equalsIgnoreCase("auto")) {
+                targetDset = dsetTag.trim();
+            } else {
+                String[] dtags = model.result().dataset().tags();
+                String fallbackSolDset = null;
+                for (int i = dtags.length - 1; i >= 0; i--) {
+                    try {
+                        DatasetFeature d = model.result().dataset(dtags[i]);
+                        if ("Solution".equals(d.getType())) {
+                            if (fallbackSolDset == null) {
+                                fallbackSolDset = dtags[i];
+                            }
+                            String sol = "";
+                            try { sol = d.getString("solution"); } catch (Throwable ignored) {}
+                            if ("sol3".equals(sol) || "sol5".equals(sol)) {
+                                targetDset = dtags[i];
+                                fallbackSolDset = null;
+                                break;
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                }
+                if (fallbackSolDset != null) {
+                    targetDset = fallbackSolDset;
+                }
+            }
+
+            safeRemoveExport(model, "exp_c04_vol");
+            ExportFeature exporter = model.result().export().create("exp_c04_vol", "Data");
+            exporter.set("data", targetDset);
+            exporter.set("expr", new String[]{"u", "v", "w", "p"});
+            exporter.set("location", "grid");
+            exporter.set("gridstruct", "spreadsheet");
+
+            double delta = 0.30 / 16.0; // 0.01875 m (cell-centered)
+            double[] gridx = new double[192];
+            for (int i = 0; i < 192; i++) gridx[i] = -0.6 + (i + 0.5) * delta;
+            double[] gridy = new double[64];
+            for (int i = 0; i < 64; i++) gridy[i] = -2.1 + (i + 0.5) * delta;
+            double[] gridz = new double[96];
+            for (int i = 0; i < 96; i++) gridz[i] = -0.9 + (i + 0.5) * delta;
+
+            exporter.set("gridx3", gridx);
+            exporter.set("gridy3", gridy);
+            exporter.set("gridz3", gridz);
+            exporter.set("header", "on");
+            exporter.set("fullprec", "on");
+            exporter.set("includecoords", true);
+            exporter.set("includenan", true);
+
+            if (solnum != null && solnum.contains(",")) {
+                String[] snums = solnum.split(",");
+                for (int s = 0; s < snums.length; s++) {
+                    String sn = snums[s].trim();
+                    exporter.set("solnum", sn);
+                    exporter.set("filename", outputTxtPath + ".step_" + sn);
+                    exporter.run();
+                }
+            } else {
+                if (solnum != null && !solnum.trim().isEmpty() && !solnum.equalsIgnoreCase("auto")) {
+                    exporter.set("solnum", solnum.trim());
+                }
+                exporter.set("filename", outputTxtPath);
+                exporter.run();
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  \"status\": \"SUCCESS\",\n");
+            sb.append("  \"operation\": \"export_c04_volume\",\n");
+            sb.append("  \"model_path\": ").append(quote(modelPath)).append(",\n");
+            sb.append("  \"output_txt\": ").append(quote(outputTxtPath)).append(",\n");
+            sb.append("  \"dataset\": ").append(quote(targetDset)).append(",\n");
+            sb.append("  \"solnum\": ").append(quote(solnum != null ? solnum : "auto")).append(",\n");
+            sb.append("  \"nx\": 192,\n");
+            sb.append("  \"ny\": 96,\n");
+            sb.append("  \"nz\": 64\n");
+            sb.append("}\n");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("EXPORT_C04_VOLUME_FAILED", "Failed to export C04 volume: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
     private static void handleExportSolutionData(String modelPath, String outputTxtPath) {
         Model model;
         try {
@@ -1246,6 +1740,10 @@ public class ComsolBridge {
 
     /** The only PDE solve added for this experiment: a new branch from the common checkpoint. */
     private static void handleRunPulseBranch(String sourcePath, String outputPath, String amplitudeText, String restartProtocolId) {
+        handleRunPulseBranch(sourcePath, outputPath, amplitudeText, restartProtocolId, null);
+    }
+
+    private static void handleRunPulseBranch(String sourcePath, String outputPath, String amplitudeText, String restartProtocolId, String seriesId) {
         String stage = "validate", seedVector = "null", inputVector = "null", variablesProbe = "null";
         String seedDerivative = "null", inputDerivative = "null", probeDerivative = "null";
         try {
@@ -1254,8 +1752,17 @@ public class ComsolBridge {
                 throw new IllegalArgumentException("Explicit frozen restart protocol native-restart-consistent-off-v2 is required");
             }
             double amplitude = Double.parseDouble(amplitudeText);
-            if (amplitude != 0.0 && amplitude != 0.005) {
-                throw new IllegalArgumentException("Frozen experiment only permits acceleration 0 or 0.005 m/s^2");
+            if (seriesId == null) {
+                if (amplitude != 0.0 && amplitude != 0.005) {
+                    throw new IllegalArgumentException("Frozen experiment only permits acceleration 0 or 0.005 m/s^2");
+                }
+            } else {
+                if (!"m3-pulse-amplitude-series-v1".equals(seriesId)) {
+                    throw new IllegalArgumentException("Explicit series m3-pulse-amplitude-series-v1 is required");
+                }
+                if (amplitude != 0.0025 && amplitude != 0.010) {
+                    throw new IllegalArgumentException("Frozen amplitude series only permits acceleration 0.0025 or 0.010 m/s^2");
+                }
             }
             stage = "load common checkpoint";
             Model model = ModelUtil.loadCopy("Model", sourcePath);
@@ -1347,6 +1854,7 @@ public class ComsolBridge {
             variablesProbe = branchVectorJson(sol, 1);
             SolverFeature vars = sol.feature(tags[7]);
             System.out.println("BRANCH_RESTART_PROTOCOL_READBACK={\"restart_protocol_id\":" + quote(restartProtocolId)
+                + (seriesId == null ? "" : ",\"series_id\":" + quote(seriesId))
                 + ",\"consistent\":" + quote(branchTime.getString("consistent")) + "}");
             System.out.println("BRANCH_NATIVE_INIT_READBACK={\"control\":" + quote(vars.getString("control"))
                 + ",\"initmethod\":" + quote(vars.getString("initmethod"))
@@ -1384,6 +1892,7 @@ public class ComsolBridge {
             emitResult("{\"status\":\"SUCCESS\",\"operation\":\"run_pulse_branch\",\"source_model\":" + quote(sourcePath)
                 + ",\"output_model\":" + quote(outputPath) + ",\"time_solver_executed\":true,\"amplitude_m_s2\":" + amplitude
                 + ",\"restart_protocol_id\":" + quote(restartProtocolId)
+                + (seriesId == null ? "" : ",\"series_id\":" + quote(seriesId))
                 + ",\"dataset_tag\":" + quote(tags[9]) + ",\"solution_tag\":" + quote(tags[6])
                 + ",\"seed_solnum\":" + seedIndex + ",\"seed_frame_count\":" + seed.getPVals().length
                 + ",\"seed_times\":" + doubleArrayToJson(seed.getPVals())
@@ -1405,6 +1914,7 @@ public class ComsolBridge {
             emitResult("{\"status\":\"ERROR\",\"error_code\":\"MODEL_VALIDATION_FAILED\",\"message\":"
                 + quote("Pulse branch failed at " + stage + ": " + t.getMessage()) + ",\"details\":" + quote(getStackTrace(t))
                 + ",\"restart_protocol_id\":" + quote(restartProtocolId)
+                + (seriesId == null ? "" : ",\"series_id\":" + quote(seriesId))
                 + ",\"partial_native_vectors\":{\"seed\":" + seedVector + ",\"input\":" + inputVector
                 + ",\"variables_probe\":" + variablesProbe
                 + "},\"partial_native_derivatives\":{\"seed\":" + seedDerivative + ",\"input\":" + inputDerivative
@@ -1412,7 +1922,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void branchDistinctPaths(String source, String output) {
+    static void branchDistinctPaths(String source, String output) {
         String a = java.nio.file.Paths.get(source).toAbsolutePath().normalize().toString();
         String b = java.nio.file.Paths.get(output).toAbsolutePath().normalize().toString();
         if (a.equalsIgnoreCase(b)) throw new IllegalArgumentException("Source and output must differ");
@@ -1420,7 +1930,7 @@ public class ComsolBridge {
     }
 
     /** Resolve associations from the live M3 nodes already inspected before this experiment. */
-    private static String[] branchTags(Model model) {
+    static String[] branchTags(Model model) {
         DatasetFeature dataset = model.result().dataset("dset1");
         if (!"Solution".equals(dataset.getType())) throw new IllegalStateException("dset1 is not a Solution dataset");
         String component = dataset.getString("comp"), solution = dataset.getString("solution");
@@ -1451,7 +1961,7 @@ public class ComsolBridge {
         return new String[]{component, geometry, mesh, physics, study, step, solution, vars, time, dataset.tag()};
     }
 
-    private static int branchExactTime(double[] times, double wanted) {
+    static int branchExactTime(double[] times, double wanted) {
         int index = -1;
         for (int i = 0; i < times.length; i++) {
             if (!Double.isFinite(times[i])) throw new IllegalStateException("Nonfinite saved solution time");
@@ -1464,7 +1974,7 @@ public class ComsolBridge {
         return index;
     }
 
-    private static void branchConfigureInitialization(Model model, String[] tags) {
+    static void branchConfigureInitialization(Model model, String[] tags) {
         model.study(tags[4]).feature(tags[5]).set("tlist", "range(180,0.2,200)");
         SolverFeature time = model.sol(tags[6]).feature(tags[8]);
         time.set("tlist", "range(180,0.2,200)");
@@ -1488,7 +1998,7 @@ public class ComsolBridge {
         }
     }
 
-    private static int branchManualSolutionIndex(SolverFeature vars) {
+    static int branchManualSolutionIndex(SolverFeature vars) {
         double[] indices = vars.getDoubleArray("manualsolnum");
         if (indices.length != 1 || !Double.isFinite(indices[0]) || indices[0] != Math.rint(indices[0])) {
             throw new IllegalStateException("Actual Variables initialization must select one saved index");
@@ -1496,7 +2006,7 @@ public class ComsolBridge {
         return (int) indices[0];
     }
 
-    private static void branchCheckTimeSettings(SolverFeature time) {
+    static void branchCheckTimeSettings(SolverFeature time) {
         if (Math.abs(time.getDouble("rtol") - 1e-4) > 1e-15
                 || !"const".equals(time.getString("maxstepconstraintbdf"))
                 || Math.abs(time.getDouble("maxstepbdf") - 0.05) > 1e-15) {
@@ -1504,7 +2014,7 @@ public class ComsolBridge {
         }
     }
 
-    private static byte[] branchVectorBytes(double[] values) {
+    static byte[] branchVectorBytes(double[] values) {
         java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(values.length * 8).order(java.nio.ByteOrder.LITTLE_ENDIAN);
         for (double value : values) {
             if (!Double.isFinite(value)) throw new IllegalStateException("Nonfinite native degree of freedom");
@@ -1513,7 +2023,7 @@ public class ComsolBridge {
         return bytes.array();
     }
 
-    private static String branchHash(byte[] bytes) {
+    static String branchHash(byte[] bytes) {
         try {
             byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(bytes);
             StringBuilder result = new StringBuilder();
@@ -1522,7 +2032,7 @@ public class ComsolBridge {
         } catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
     }
 
-    private static String branchVectorJson(SolverSequence sol, int index) {
+    static String branchVectorJson(SolverSequence sol, int index) {
         double[] values = sol.getU(index), time = sol.getPVals(index);
         if (time.length != 1 || !Double.isFinite(time[0]) || !sol.isRealU(index)) throw new IllegalStateException("Invalid native real transient state");
         byte[] bytes = branchVectorBytes(values);
@@ -1533,7 +2043,7 @@ public class ComsolBridge {
     }
 
     /** Preserve undefined derivative entries explicitly; never replace them by zero. */
-    private static String branchDerivativeJson(SolverSequence sol, int index) {
+    static String branchDerivativeJson(SolverSequence sol, int index) {
         try {
             double[] values = sol.getUDot(index), times = sol.getPVals(index);
             java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(values.length * 8).order(java.nio.ByteOrder.LITTLE_ENDIAN);
@@ -1556,7 +2066,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void branchRequireVector(SolverSequence sol, int index, double time, String hash, int count) {
+    static void branchRequireVector(SolverSequence sol, int index, double time, String hash, int count) {
         double[] values = sol.getU(index), actualTime = sol.getPVals(index);
         if (actualTime.length != 1 || Math.abs(actualTime[0] - time) > 1e-12 || values.length != count
                 || !branchHash(branchVectorBytes(values)).equals(hash)) {
@@ -1564,7 +2074,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void branchRequireDerivative(SolverSequence sol, int index, String hash, int count) {
+    static void branchRequireDerivative(SolverSequence sol, int index, String hash, int count) {
         double[] values = sol.getUDot(index);
         if (values.length != count || !branchHash(branchVectorBytes(values)).equals(hash)) {
             throw new IllegalStateException("Actual native time derivative differs from original branch state: " + sol.tag());
@@ -1572,7 +2082,7 @@ public class ComsolBridge {
     }
 
     /** Public XmeshInfo maps every named DOF to its native solution-vector index. */
-    private static String branchDofMapping(SolverSequence sol) {
+    static String branchDofMapping(SolverSequence sol) {
         XmeshInfo info = sol.xmeshInfo();
         XmeshInfoDofs dofs = info.dofs();
         String payload = "{\"n_dofs\":" + info.nDofs() + ",\"field_names\":" + stringArrayToJson(info.fieldNames())
@@ -1597,7 +2107,7 @@ public class ComsolBridge {
             + ",\"sha256\":" + quote(branchHash(bytes.array())) + ",\"base64\":" + quote(java.util.Base64.getEncoder().encodeToString(bytes.array())) + "}";
     }
 
-    private static String branchFieldDifferences(SolverSequence sol, double[] source, double[] initialized) {
+    static String branchFieldDifferences(SolverSequence sol, double[] source, double[] initialized) {
         if (source.length != initialized.length) throw new IllegalStateException("Native vector length changed");
         XmeshInfoDofs dofs = sol.xmeshInfo().dofs();
         String[] names = dofs.dofNames();
@@ -1627,7 +2137,7 @@ public class ComsolBridge {
         return result.append("]").toString();
     }
 
-    private static String branchMeshFingerprint(Model model, String[] tags) {
+    static String branchMeshFingerprint(Model model, String[] tags) {
         MeshSequence mesh = model.component(tags[0]).mesh(tags[2]);
         StringBuilder data = new StringBuilder();
         data.append(nativeValueJson(mesh.getVertex()));
@@ -1640,7 +2150,7 @@ public class ComsolBridge {
             + ",\"hash_input\":\"ordered native vertices, sorted element-type connectivity/entity arrays, mesh feature tree; UTF-8 JSON values\"}";
     }
 
-    private static String branchSnapshot(Model model, String[] tags) {
+    static String branchSnapshot(Model model, String[] tags) {
         StringBuilder sb = new StringBuilder("{\"parameters\":{");
         String[] names = model.param().varnames(); Arrays.sort(names);
         for (int i = 0; i < names.length; i++) {
@@ -1706,7 +2216,7 @@ public class ComsolBridge {
             + ",\"units\":" + stringArrayToJson(integralUnits) + ",\"Fy_per_depth\":" + doubleArrayToJson(totals[0]) + "}}";
     }
 
-    private static double[][] branchResultMatrix(double[][] matrix, int expressions, int times) {
+    static double[][] branchResultMatrix(double[][] matrix, int expressions, int times) {
         if (matrix.length != expressions) throw new IllegalStateException("Unexpected numerical expression row count");
         for (double[] row : matrix) {
             if (row.length != times) throw new IllegalStateException("Unexpected numerical time count");
@@ -2801,13 +3311,13 @@ public class ComsolBridge {
         return sb.toString();
     }
 
-    private static void emitResult(String json) {
+    static void emitResult(String json) {
         System.out.println(JSON_START);
         System.out.println(json);
         System.out.println(JSON_END);
     }
 
-    private static String quote(String s) {
+    static String quote(String s) {
         if (s == null) return "null";
         StringBuilder sb = new StringBuilder("\"");
         for (char c : s.toCharArray()) {
@@ -2864,7 +3374,7 @@ public class ComsolBridge {
         }
     }
 
-    private static String getStackTrace(Throwable t) {
+    static String getStackTrace(Throwable t) {
         StringWriter sw = new StringWriter();
         t.printStackTrace(new PrintWriter(sw));
         return sw.toString();

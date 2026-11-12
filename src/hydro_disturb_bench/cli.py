@@ -12,6 +12,11 @@ from .sampling import sample_cases
 
 
 def main(argv: list[str] | None = None) -> int:
+    import sys
+
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(
         description="HydroDisturb-Bench (case planning and COMSOL integration)"
     )
@@ -105,6 +110,101 @@ def main(argv: list[str] | None = None) -> int:
         help="Allow overwriting destination if it already exists",
     )
 
+    j_build_c04 = sub.add_parser(
+        "java-build-c04",
+        help="Build independent C04 (Re=126k, 30Dx20Dx10D) 3D cylinder benchmark model from baseline template",
+    )
+    j_build_c04.add_argument(
+        "--model",
+        default="models/cylinder_3d/cylinder_flow_turbulent.mph",
+        help="Baseline official 3D model path (default: models/cylinder_3d/cylinder_flow_turbulent.mph)",
+    )
+    j_build_c04.add_argument(
+        "--output",
+        default="models/cylinder_3d/c04_re126k_benchmark.mph",
+        help="Output C04 benchmark model path (default: models/cylinder_3d/c04_re126k_benchmark.mph)",
+    )
+    j_build_c04.add_argument(
+        "--allow-overwrite",
+        action="store_true",
+        default=False,
+        help="Allow overwriting destination if it already exists",
+    )
+
+    j_mesh2 = sub.add_parser(
+        "java-build-c04-mesh2",
+        help="Build tuned 1.55M element mesh2 on C04 3D benchmark model",
+    )
+    j_mesh2.add_argument("--model", required=True, help="Input C04 model path")
+    j_mesh2.add_argument("--output", required=True, help="Output model path with built mesh2")
+    j_mesh2.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_exp_slice = sub.add_parser(
+        "java-export-c04-slice",
+        help="Export 2D mid-span slice (192 x 96) from solved C04 model to NPZ dataset",
+    )
+    j_exp_slice.add_argument("--model", required=True, help="Solved C04 model path")
+    j_exp_slice.add_argument("--output", required=True, help="Output .npz file path")
+    j_exp_slice.add_argument("--time", type=float, default=0.0, help="Physical time (seconds)")
+    j_exp_slice.add_argument("--dataset", default="auto", help="Dataset tag (default: auto)")
+    j_exp_slice.add_argument(
+        "--solnum", default="auto", help="Solution number or 'all' (default: auto)"
+    )
+    j_exp_slice.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_exp_vol = sub.add_parser(
+        "java-export-c04-volume",
+        help="Export 3D regular volume (192 x 96 x 64) from solved C04 model to NPZ dataset",
+    )
+    j_exp_vol.add_argument("--model", required=True, help="Solved C04 model path")
+    j_exp_vol.add_argument("--output", required=True, help="Output .npz file path")
+    j_exp_vol.add_argument("--time", type=float, default=0.0, help="Physical time (seconds)")
+    j_exp_vol.add_argument("--dataset", default="auto", help="Dataset tag (default: auto)")
+    j_exp_vol.add_argument(
+        "--solnum", default="auto", help="Solution number or 'all' (default: auto)"
+    )
+    j_exp_vol.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_seq_slice = sub.add_parser(
+        "java-export-c04-slice-sequence",
+        help="Export multi-frame 2D mid-span slice sequence from solved C04 model to NPZ dataset",
+    )
+    j_seq_slice.add_argument("--model", required=True, help="Solved C04 model path")
+    j_seq_slice.add_argument("--output", required=True, help="Output .npz file path")
+    j_seq_slice.add_argument(
+        "--solnums", default="1,2,3,4", help="Comma-separated solnums (default: 1,2,3,4)"
+    )
+    j_seq_slice.add_argument(
+        "--times", default="0.0,0.06,0.12,0.18", help="Comma-separated physical times in seconds"
+    )
+    j_seq_slice.add_argument("--dataset", default="dset3", help="Dataset tag (default: dset3)")
+    j_seq_slice.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
+    j_seq_vol = sub.add_parser(
+        "java-export-c04-volume-sequence",
+        help="Export multi-frame 3D volume sequence from solved C04 model to NPZ dataset",
+    )
+    j_seq_vol.add_argument("--model", required=True, help="Solved C04 model path")
+    j_seq_vol.add_argument("--output", required=True, help="Output .npz file path")
+    j_seq_vol.add_argument(
+        "--solnums", default="1,2,3,4", help="Comma-separated solnums (default: 1,2,3,4)"
+    )
+    j_seq_vol.add_argument(
+        "--times", default="0.0,0.06,0.12,0.18", help="Comma-separated physical times in seconds"
+    )
+    j_seq_vol.add_argument("--dataset", default="dset3", help="Dataset tag (default: dset3)")
+    j_seq_vol.add_argument(
+        "--allow-overwrite", action="store_true", default=False, help="Allow overwrite"
+    )
+
     j_exp = sub.add_parser(
         "java-export-data", help="Export solution field data (u, v, p, vx-uy, spf.U) to text file"
     )
@@ -130,6 +230,40 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         default=False,
         help="Allow overwriting destination if it already exists",
+    )
+
+    # C04 World Model Data Windows and Baseline Forecasting
+    c04_win = sub.add_parser(
+        "c04-inspect-windows",
+        help="Inspect sliding windows and metadata for a C04 sequence dataset",
+    )
+    c04_win.add_argument("--dataset", required=True, help="Path to C04 NPZ dataset archive")
+    c04_win.add_argument("--history", type=int, default=2, help="History frames count (default: 2)")
+    c04_win.add_argument(
+        "--forecast", type=int, default=1, help="Forecast frames count (default: 1)"
+    )
+    c04_win.add_argument("--stride", type=int, default=1, help="Window sliding stride (default: 1)")
+    c04_win.add_argument("--out", default=None, help="Optional output path to save JSON manifest")
+
+    c04_eval = sub.add_parser(
+        "c04-evaluate-baselines",
+        help="Evaluate history-only baseline forecasts (persistence, last_two_linear) on C04 dataset",
+    )
+    c04_eval.add_argument("--dataset", required=True, help="Path to C04 NPZ dataset archive")
+    c04_eval.add_argument(
+        "--history", type=int, default=2, help="History frames count (default: 2)"
+    )
+    c04_eval.add_argument(
+        "--forecast", type=int, default=1, help="Forecast frames count (default: 1)"
+    )
+    c04_eval.add_argument(
+        "--stride", type=int, default=1, help="Window sliding stride (default: 1)"
+    )
+    c04_eval.add_argument(
+        "--method",
+        default="persistence",
+        choices=["persistence", "last_two_linear"],
+        help="Baseline forecasting method",
     )
 
     args = parser.parse_args(argv)
@@ -210,6 +344,76 @@ def main(argv: list[str] | None = None) -> int:
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-build-c04":
+        from .comsol_java import build_c04_benchmark
+
+        res = build_c04_benchmark(
+            baseline_path=Path(args.model),
+            output_path=Path(args.output),
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-build-c04-mesh2":
+        from .comsol_java import build_c04_mesh2
+
+        res = build_c04_mesh2(
+            model_path=Path(args.model),
+            output_path=Path(args.output),
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "java-export-c04-slice":
+        from .comsol_java import export_c04_slice_dataset
+
+        saved_path = export_c04_slice_dataset(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            time_s=args.time,
+            dataset_tag=args.dataset,
+            solnum=args.solnum,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
+    elif args.cmd == "java-export-c04-volume":
+        from .comsol_java import export_c04_volume_dataset
+
+        saved_path = export_c04_volume_dataset(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            time_s=args.time,
+            dataset_tag=args.dataset,
+            solnum=args.solnum,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
+    elif args.cmd == "java-export-c04-slice-sequence":
+        from .comsol_java import export_c04_slice_sequence
+
+        snums = [s.strip() for s in args.solnums.split(",") if s.strip()]
+        times_list = [float(t.strip()) for t in args.times.split(",") if t.strip()]
+        saved_path = export_c04_slice_sequence(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            solnums=snums,
+            times_s=times_list,
+            dataset_tag=args.dataset,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
+    elif args.cmd == "java-export-c04-volume-sequence":
+        from .comsol_java import export_c04_volume_sequence
+
+        snums = [s.strip() for s in args.solnums.split(",") if s.strip()]
+        times_list = [float(t.strip()) for t in args.times.split(",") if t.strip()]
+        saved_path = export_c04_volume_sequence(
+            model_path=Path(args.model),
+            output_npz=Path(args.output),
+            solnums=snums,
+            times_s=times_list,
+            dataset_tag=args.dataset,
+            allow_overwrite=args.allow_overwrite,
+        )
+        print(json.dumps({"status": "SUCCESS", "dataset_path": str(saved_path)}, indent=2))
     elif args.cmd == "java-export-data":
         from .comsol_java import export_solution_data
 
@@ -228,6 +432,34 @@ def main(argv: list[str] | None = None) -> int:
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "c04-inspect-windows":
+        from .c04_windows import C04WindowIndex, C04WindowSpec
+
+        spec = C04WindowSpec(
+            history_frames=args.history,
+            forecast_frames=args.forecast,
+            stride=args.stride,
+        )
+        index = C04WindowIndex(spec)
+        index.add_dataset(args.dataset)
+        data = index.to_dict()
+        if args.out:
+            index.save_manifest(args.out)
+            data["saved_manifest"] = str(args.out)
+        print(json.dumps(data, indent=2, ensure_ascii=False))
+    elif args.cmd == "c04-evaluate-baselines":
+        from .c04_forecasting import evaluate_c04_dataset_baselines
+        from .c04_windows import C04WindowIndex, C04WindowSpec
+
+        spec = C04WindowSpec(
+            history_frames=args.history,
+            forecast_frames=args.forecast,
+            stride=args.stride,
+        )
+        index = C04WindowIndex(spec)
+        index.add_dataset(args.dataset)
+        report = evaluate_c04_dataset_baselines(index, method=args.method)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
 
     return 0
 

@@ -1,0 +1,6 @@
+{
+  "pytest_returncode": 0,
+  "outer_wrapper_returncode": 1,
+  "failure_after_evidence_written": true,
+  "reason": "Final evidence-directory print raised UnicodeEncodeError in the Windows GBK console because the repository path contains an emoji. stdout.txt, stderr.txt and execution.json were already written; pytest completed with 49 passed in 5.09s."
+}

@@ -1,0 +1,285 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "source": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\entrypoint_tests_02\\stdout.log",
+      "source_bytes": 102,
+      "source_sha256": "eb354b2825f2cd3ceec3d09bcf5f58c62e4019dbcc268db26d681f1824284f41",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/entrypoint_tests_final/stdout.txt",
+      "git_bytes": 100,
+      "git_sha256": "3a701a67732288960d7bb18d8fdda3d2ca1261e42243a2dc0b65f49af5b4dea8",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\entrypoint_tests_02\\stderr.log",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/entrypoint_tests_final/stderr.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\entrypoint_tests_02\\execution.json",
+      "source_bytes": 667,
+      "source_sha256": "573538237bf7f9d1d4c5719a5db97acb370e2d77e17f5df3a7dd5318a74e1526",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/entrypoint_tests_final/execution.json",
+      "git_bytes": 649,
+      "git_sha256": "bb67a8b14945dd88c63bfd95e8181d09a6aff2f960bb16777495bc202958d460",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\entrypoint_tests_02\\junit.xml",
+      "source_bytes": 8620,
+      "source_sha256": "03c538745199728e4a72689e10fbdf71e019d976ff5999f09d250f6433a59396",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/entrypoint_tests_final/junit.xml",
+      "git_bytes": 8620,
+      "git_sha256": "03c538745199728e4a72689e10fbdf71e019d976ff5999f09d250f6433a59396",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\precheck_01\\stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/precheck_01/stdout.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\precheck_01\\stderr.txt",
+      "source_bytes": 1481,
+      "source_sha256": "d1b0f34bc821d24a8a3a6ed5908b30982c8eb99a108c434a1e0176d0affea56c",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/precheck_01/stderr.txt",
+      "git_bytes": 1467,
+      "git_sha256": "7f3e39caad3fea434dd98712b09af4e16e1f4cc9bf01059b95d05c5e7f6bd817",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\precheck_01\\execution.json",
+      "source_bytes": 925,
+      "source_sha256": "a42859e9008430b4ee75d0da30706b74220c5ddbcc535fdee5be7204ac73f21b",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/precheck_01/execution.json",
+      "git_bytes": 896,
+      "git_sha256": "7eefc6cc710c85bd963c399754562dbcf11dd46e617f99140688b7c2354cfbe7",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\precheck_02\\stdout.txt",
+      "source_bytes": 518,
+      "source_sha256": "05dce0e4c70f634bd436c28e208570fd7fe50999a21f180039b3c893975050ba",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/precheck_02/stdout.txt",
+      "git_bytes": 509,
+      "git_sha256": "a24be4a46f20201dfa429cf4699c2bd31896cf82a1a05950d95e1dab1dfef5d4",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\precheck_02\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/precheck_02/stderr.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\precheck_02\\execution.json",
+      "source_bytes": 925,
+      "source_sha256": "8e7e60d1a650d34adce975b69d6a22b8426357ee8a59abfeab85c69f1fa6435c",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/precheck_02/execution.json",
+      "git_bytes": 896,
+      "git_sha256": "830fa0d92d48a58b7e9905f1c8714686b416319e407ad4d63352573bcc7c18a2",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_01\\stdout.txt",
+      "source_bytes": 61613,
+      "source_sha256": "1f3deeb3afd7f428edf591e81cbd9c7f4230630f381b1d0b9615f7e743ffc865",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_initial_failure/stdout.txt",
+      "git_bytes": 60136,
+      "git_sha256": "aba9375f158e25295a9b23571f4db1ca98b445827261f955294814098940f8dc",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_01\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_initial_failure/stderr.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_01\\execution.json",
+      "source_bytes": 1001,
+      "source_sha256": "83c9a06e7468146b08aea6ca1c626618653aac42ffa288633f3602fdb0933618",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_initial_failure/execution.json",
+      "git_bytes": 970,
+      "git_sha256": "4e3253e38a6bf686d76c24d1da22e0cfa401412c0f1e4318f2fb80ed051fe071",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_01\\junit.xml",
+      "source_bytes": 136777,
+      "source_sha256": "5b5ea510fa09517bde79ccdf32c9784772692176fab46ffff9e17bb7ab58bce6",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_initial_failure/junit.xml",
+      "git_bytes": 135448,
+      "git_sha256": "e683e797be8357d9d16508aa8637b48f9bb001774175ced475472200c804eff1",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_02\\stdout.txt",
+      "source_bytes": 695,
+      "source_sha256": "0db9b70edd19d915265ba75f06c34e300df7fcf77e591b5c253f57c673be4eec",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression/stdout.txt",
+      "git_bytes": 686,
+      "git_sha256": "065c170b9df8a0fb58a7362b1284f8b61840283c237b89316a5fdc2ef3826bcc",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_02\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression/stderr.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_02\\execution.json",
+      "source_bytes": 998,
+      "source_sha256": "28d29e7bf98efeec09857bdf1a13dc04c0d4a7a30f2a621a41f014f65b9b78c8",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression/execution.json",
+      "git_bytes": 967,
+      "git_sha256": "f72ba04e7c3c6a3d7915503a5fec0fc7f7482612439d8bf17502fd9605fa781f",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_02\\junit.xml",
+      "source_bytes": 75112,
+      "source_sha256": "52d0b35aae8ec94622379e62e9c5f8efde6512ae833efafdc616e33beb3967ea",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression/junit.xml",
+      "git_bytes": 75112,
+      "git_sha256": "52d0b35aae8ec94622379e62e9c5f8efde6512ae833efafdc616e33beb3967ea",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\series_all_01\\stdout.txt",
+      "source_bytes": 2001,
+      "source_sha256": "1f75a6f761bc71fe67f6fb9553608e8cf8baee4229d9c6d39027a3b99046ab6f",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/series_all_01/stdout.txt",
+      "git_bytes": 1945,
+      "git_sha256": "9ed94b5731946dfb308999b42dd582341209875511a2c09237b77c05952e5bdf",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\series_all_01\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/series_all_01/stderr.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\series_all_01\\execution.json",
+      "source_bytes": 920,
+      "source_sha256": "ed410bfad479c8bbd3970f11d6e47d02a187cde25bbbcdd22b8f2f4daaa6b4b7",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/series_all_01/execution.json",
+      "git_bytes": 891,
+      "git_sha256": "a265886df885a6bdd1fe96cc099bcb014bb1ce76fd5518fca08212355bc07973",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_after_remote_sync\\stdout.txt",
+      "source_bytes": 685,
+      "source_sha256": "03d6238f8259a2d2fe1ab706a030176e959112af46deec9b6b7bdc008817ee46",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/stdout.txt",
+      "git_bytes": 676,
+      "git_sha256": "e3d2aa8ee688a85c4d531b28ba50035cf93608cf01713011746b649506f18dff",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_after_remote_sync\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/stderr.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_after_remote_sync\\execution.json",
+      "source_bytes": 1013,
+      "source_sha256": "9fb07a0e22c2ba0e232f99f8c5047ecacb8fddcb6b8e2a331664c4264d52d73b",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/execution.json",
+      "git_bytes": 982,
+      "git_sha256": "0ec6d3c734afca9391c492aec61be9b15e18ff0ac1b03c245d2ea91ab5ac85cc",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\offline_regression_after_remote_sync\\junit.xml",
+      "source_bytes": 75112,
+      "source_sha256": "58fc3240e0a4e072c052df295fa0ab20bf85fc978b60c4758b2c0c93b9c64d4f",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/junit.xml",
+      "git_bytes": 75112,
+      "git_sha256": "58fc3240e0a4e072c052df295fa0ab20bf85fc978b60c4758b2c0c93b9c64d4f",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\post_sync_validation\\stdout.txt",
+      "source_bytes": 1948,
+      "source_sha256": "750692e811e6f41f9b35218dfe9d2ce21ae45dc83edd657ec6412408b9d17866",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/post_sync_validation/stdout.txt",
+      "git_bytes": 1883,
+      "git_sha256": "326e86ae42aace9b1b4a5d868c1e41d27e2a8b066ee8fcefac73a22e992dbb71",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\post_sync_validation\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/post_sync_validation/stderr.txt",
+      "git_bytes": 0,
+      "git_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    },
+    {
+      "source": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_pulse_amplitude_series_20261106\\post_sync_validation\\execution.json",
+      "source_bytes": 813,
+      "source_sha256": "c676e1ab59abd7bd05d947f7e39ea7daa4dfc93df43392cd12a2151fccd8fe66",
+      "git_path": "docs/evidence/m3_pulse_amplitude_series_20261106/logs/post_sync_validation/execution.json",
+      "git_bytes": 788,
+      "git_sha256": "91e73f03dfe0dc34f0353ee01bb6389b9fbc4e048fc0a9820fa5670d8d9158e3",
+      "transform": "UTF-8 text; horizontal line-end whitespace stripped and Git text line-ending normalization to LF; embedded execution hashes retain original local byte identities",
+      "execution_embedded_hashes": "Unmodified; identify original local process bytes"
+    }
+  ]
+}

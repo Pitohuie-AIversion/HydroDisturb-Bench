@@ -1,0 +1,446 @@
+{
+  "plan": {
+    "base_commit": "4b7f74c658739908532b15277bb46a6495b02aad",
+    "old_source_sha256": "2f3f9c2ff29076f33ab4e2937b1f67be1d78f10f8977306c82b467fdeeaa9578",
+    "current_source_sha256": "55a07019067b7b696f274d780a507bcd0ea754f20a77da6154447766aa192e02",
+    "python": "3.14.7 | packaged by Anaconda, Inc. | (main, Aug 14 2026, 10:12:46) [MSC v.1942 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "pid": 61752,
+    "started_at": "2026-11-06T11:32:41.119629+00:00",
+    "parameters": {
+      "start": 170.0,
+      "stop": 171.8,
+      "step": 0.2,
+      "grid_shape": [
+        17,
+        9
+      ],
+      "batch_size": 4,
+      "frames": 10
+    },
+    "repetitions_each": 10,
+    "ordering": "old,current repeated ten times",
+    "substitution": "only bridge._run_bridge = AnalyticComsol(model)",
+    "no_comsol": true,
+    "no_retry": true,
+    "shared_source_sha256": {
+      "src/hydro_disturb_bench/field_sampling.py": "b2edf67200d0909567b58d0b4426f66df1f26f4b4fc36ab9f776f4f3c0c49224",
+      "src/hydro_disturb_bench/comsol_java/bridge.py": "81aa339a58c79f2bdc77636123c0f16b6eff1110c142fa770abdeb185734c9d2",
+      "src/hydro_disturb_bench/comsol_java/file_transactions.py": "eab11ef4bdce0b9b4d08344167fc97e3fa67a1cbcd56e61a2984e65e6c851269",
+      "tests/test_field_sequence.py": "44ce010db8f3aaf6c2bfb3b0fa38509fcb03daa408279dcc8f9abd8c48b487d2"
+    }
+  },
+  "observations": [
+    {
+      "repeat": 1,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\01_old",
+      "handle_count_before": 240,
+      "status": "FAIL",
+      "exception_type": "PermissionError",
+      "error": "[WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\01_old\\\\.staging_field_sequence_3f3caeea7abe' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\01_old\\\\sequence'",
+      "errno": 13,
+      "winerror": 5,
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\compare_exports.py\", line 102, in main\n    report = modules[label].export_full_field_sequence(\n        model, directory / \"sequence\", start=170., stop=171.8,\n        step=.2, grid_shape=(17, 9), batch_size=4)\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\old_field_sequence.py\", line 194, in export_full_field_sequence\n    os.rename(stage, output_dir)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^\nPermissionError: [WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\01_old\\\\.staging_field_sequence_3f3caeea7abe' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\01_old\\\\sequence'\n",
+      "published": false,
+      "elapsed_s": 0.16073810000671074,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": [
+        "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\01_old\\.staging_field_sequence_3f3caeea7abe"
+      ]
+    },
+    {
+      "repeat": 1,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\01_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.21193299999868032,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 2,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\02_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.16304689999378752,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 2,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\02_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.22136530000716448,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 3,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\03_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.16202600000542589,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 3,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\03_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.21712760000082199,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 4,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\04_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.18555900000501424,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 4,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\04_current",
+      "handle_count_before": 240,
+      "status": "FAIL",
+      "exception_type": "PermissionError",
+      "error": "[WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\04_current\\\\.staging_field_sequence_d3dd84f950be' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\04_current\\\\sequence'",
+      "errno": 13,
+      "winerror": 5,
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\compare_exports.py\", line 102, in main\n    report = modules[label].export_full_field_sequence(\n        model, directory / \"sequence\", start=170., stop=171.8,\n        step=.2, grid_shape=(17, 9), batch_size=4)\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\current_field_sequence.py\", line 394, in export_full_field_sequence\n    os.rename(stage, output_dir)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^\nPermissionError: [WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\04_current\\\\.staging_field_sequence_d3dd84f950be' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\04_current\\\\sequence'\n",
+      "published": false,
+      "elapsed_s": 0.25884949999453966,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": [
+        "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\04_current\\.staging_field_sequence_d3dd84f950be"
+      ]
+    },
+    {
+      "repeat": 5,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\05_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.17745600000489503,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 5,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\05_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.23942040000110865,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 6,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\06_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.1733894000062719,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 6,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\06_current",
+      "handle_count_before": 240,
+      "status": "FAIL",
+      "exception_type": "PermissionError",
+      "error": "[WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\06_current\\\\.staging_field_sequence_dd669543ce75' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\06_current\\\\sequence'",
+      "errno": 13,
+      "winerror": 5,
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\compare_exports.py\", line 102, in main\n    report = modules[label].export_full_field_sequence(\n        model, directory / \"sequence\", start=170., stop=171.8,\n        step=.2, grid_shape=(17, 9), batch_size=4)\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\current_field_sequence.py\", line 394, in export_full_field_sequence\n    os.rename(stage, output_dir)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^\nPermissionError: [WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\06_current\\\\.staging_field_sequence_dd669543ce75' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\06_current\\\\sequence'\n",
+      "published": false,
+      "elapsed_s": 0.2635844000033103,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": [
+        "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\06_current\\.staging_field_sequence_dd669543ce75"
+      ]
+    },
+    {
+      "repeat": 7,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\07_old",
+      "handle_count_before": 240,
+      "status": "FAIL",
+      "exception_type": "PermissionError",
+      "error": "[WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\07_old\\\\.staging_field_sequence_cc2e8295c60e' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\07_old\\\\sequence'",
+      "errno": 13,
+      "winerror": 5,
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\compare_exports.py\", line 102, in main\n    report = modules[label].export_full_field_sequence(\n        model, directory / \"sequence\", start=170., stop=171.8,\n        step=.2, grid_shape=(17, 9), batch_size=4)\n  File \"D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\old_field_sequence.py\", line 194, in export_full_field_sequence\n    os.rename(stage, output_dir)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^\nPermissionError: [WinError 5] 拒绝访问。: 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\07_old\\\\.staging_field_sequence_cc2e8295c60e' -> 'D:\\\\📁 01_Workspaces (代码与工程区)\\\\HydroDisturb-Bench\\\\scratch\\\\sequence_reader_rename_ab_20261106_01\\\\trials\\\\07_old\\\\sequence'\n",
+      "published": false,
+      "elapsed_s": 0.19396609999239445,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": [
+        "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\07_old\\.staging_field_sequence_cc2e8295c60e"
+      ]
+    },
+    {
+      "repeat": 7,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\07_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.28168350001215003,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 8,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\08_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.18970850000914652,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 8,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\08_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.22568040000624023,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 9,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\09_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.17005539999809116,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 9,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\09_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.24057409999659285,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 10,
+      "implementation": "old",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\10_old",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.179744799999753,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    },
+    {
+      "repeat": 10,
+      "implementation": "current",
+      "trial_directory": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\sequence_reader_rename_ab_20261106_01\\trials\\10_current",
+      "handle_count_before": 240,
+      "status": "PASS",
+      "report_status": "PASS",
+      "shape": [
+        10,
+        3,
+        9,
+        17
+      ],
+      "published": true,
+      "elapsed_s": 0.26834080000116955,
+      "handle_count_after": 240,
+      "external_calls": 3,
+      "source_sha256": "f40d3153e39b8d87e62daa6f57cb3445fb5c47a7c7d96b255f7ca0f3d221e0ef",
+      "preserved_stages": []
+    }
+  ],
+  "totals": {
+    "old": {
+      "PASS": 8,
+      "FAIL": 2
+    },
+    "current": {
+      "PASS": 8,
+      "FAIL": 2
+    }
+  },
+  "finished_at": "2026-11-06T11:32:45.398216+00:00"
+}

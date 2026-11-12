@@ -1,0 +1,12 @@
+{
+  "command": [".venv/Scripts/python.exe", "-m", "pytest", "-q", "tests/test_data_windows.py"],
+  "cwd": "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench",
+  "environment_overrides": {"PYTHONIOENCODING": "utf-8"},
+  "returncode": 1,
+  "pytest_result": {"passed": 36, "failed": 1, "duration_seconds": 19.13},
+  "output_file": "tool_output.txt",
+  "output_capture": "Copied from the two original exec/write_stdin tool output chunks. The process was not redirected to files; this is a UTF-8 transcript of the tool-returned merged output, not original stdout/stderr bytes. Separate stderr is unavailable.",
+  "tool_chunks": ["01d2a8", "f7bd6d"],
+  "tool_session_id": 82577,
+  "source_modified_for_retry": false
+}

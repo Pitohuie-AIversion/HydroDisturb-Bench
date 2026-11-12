@@ -1,0 +1,31 @@
+{
+  "command": [
+    "D:/Program Files/Anaconda/envs/seagent/python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "pytest",
+    "-q",
+    "-m",
+    "not integration",
+    "--junitxml",
+    "D:/📁 01_Workspaces (代码与工程区)/HydroDisturb-Bench/scratch/m3_pulse_amplitude_series_20261106/offline_regression_02/junit.xml"
+  ],
+  "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench",
+  "data_root": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+  "started_utc": "2026-11-06T03:28:54.086699+00:00",
+  "status": "PASS",
+  "returncode": 0,
+  "elapsed_seconds": 99.87437343597412,
+  "ended_utc": "2026-11-06T03:30:33.961073+00:00",
+  "files": {
+    "stdout.txt": {
+      "bytes": 695,
+      "sha256": "0db9b70edd19d915265ba75f06c34e300df7fcf77e591b5c253f57c673be4eec"
+    },
+    "stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

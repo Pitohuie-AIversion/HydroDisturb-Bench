@@ -208,12 +208,24 @@ def _run(model, output, **kwargs):
                                            grid_shapes=SHAPES, bounds=BOUNDS, **kwargs)
 
 
-def test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask(tmp_path, monkeypatch):
+@pytest.mark.parametrize("explicit_runner", [False, True])
+def test_saved_solution_sampling_roundtrips_nonsquare_tensor_axes_channels_and_mask(tmp_path, monkeypatch, explicit_runner):
     from hydro_disturb_bench.field_sampling import load_full_field_sample
 
     model, output, fake = _setup(tmp_path, monkeypatch)
+    options = {}
+    if explicit_runner:
+        def recording_process(*args, **kwargs):
+            raise AssertionError("Only the external bridge boundary is replaced in this test")
+
+        def external(args, root=None, *, process_runner=None):
+            assert process_runner is recording_process
+            return fake(args, root=root)
+
+        monkeypatch.setattr(bridge, "_run_bridge", external)
+        options["process_runner"] = recording_process
     before = model.read_bytes()
-    result = _run(model, output)
+    result = _run(model, output, **options)
     assert result["status"] == "PASS"
     assert len(fake.calls) == 2
     assert model.read_bytes() == before

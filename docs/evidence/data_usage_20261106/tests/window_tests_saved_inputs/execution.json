@@ -1,0 +1,46 @@
+{
+  "command": [
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_data_windows.py",
+    "--junitxml=D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_saved_inputs\\junit.xml"
+  ],
+  "cwd": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench",
+  "started_utc": "2026-11-06T11:33:21.152282+00:00",
+  "finished_utc": "2026-11-06T11:33:26.366249+00:00",
+  "returncode": 0,
+  "stdout": "stdout.txt",
+  "stderr": "stderr.txt",
+  "source_sha256_before": {
+    "src\\hydro_disturb_bench\\data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "tests\\test_data_windows.py": "5a2cb6a71c1923c0b782f4da5c7ab9d41a4e6cadc7b7dda4a5426c42e3f2e560",
+    "tests\\sequence_fixtures.py": "61f63173b1aff75c5a749fcf5ba3e1879d1660b5e8fb89bd8b4ca81e20b03122"
+  },
+  "source_sha256_after": {
+    "src\\hydro_disturb_bench\\data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "tests\\test_data_windows.py": "5a2cb6a71c1923c0b782f4da5c7ab9d41a4e6cadc7b7dda4a5426c42e3f2e560",
+    "tests\\sequence_fixtures.py": "61f63173b1aff75c5a749fcf5ba3e1879d1660b5e8fb89bd8b4ca81e20b03122"
+  },
+  "output_capture": "Original subprocess stdout/stderr bytes.",
+  "scope": "37 read-only window tests with analytic NPZ/metadata/manifest disk inputs; all window assertions preserved. No exporter or COMSOL execution in fixture generation.",
+  "previous_attempts": [
+    {
+      "path": "../window_tests_first",
+      "passed": 36,
+      "failed": 1
+    },
+    {
+      "path": "../window_tests_repeat",
+      "passed": 36,
+      "failed": 1
+    },
+    {
+      "path": "../window_tests_d_temp",
+      "passed": 29,
+      "failed": 8
+    }
+  ],
+  "fixture_change_reason": "Separate read-only data usage tests from unrelated export publication; earlier Windows os.rename WinError 5 failures remain recorded and are not claimed fixed. Production data_windows.py unchanged."
+}

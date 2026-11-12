@@ -1,0 +1,27 @@
+{
+  "command": [
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_data_windows.py",
+    "--basetemp=D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\pytest_temp",
+    "--junitxml=D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\data_usage_20261106\\window_tests_d_temp\\junit.xml"
+  ],
+  "cwd": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench",
+  "started_utc": "2026-11-06T11:27:20.436804+00:00",
+  "finished_utc": "2026-11-06T11:27:33.658409+00:00",
+  "returncode": 1,
+  "stdout": "stdout.txt",
+  "stderr": "stderr.txt",
+  "source_sha256_before": {
+    "src\\hydro_disturb_bench\\data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "tests\\test_data_windows.py": "a74dbd2907a3861b309a896453ace8a589fe368771a328a52799d8c25d83caee"
+  },
+  "source_sha256_after": {
+    "src\\hydro_disturb_bench\\data_windows.py": "f9d13552c3f7c9f9cb21a5a02ea8d8a0ea3eca965434ff50f8b92b58d22b8507",
+    "tests\\test_data_windows.py": "a74dbd2907a3861b309a896453ace8a589fe368771a328a52799d8c25d83caee"
+  },
+  "output_capture": "Original subprocess stdout/stderr bytes; no source changes after first attempt.",
+  "difference_from_prior_attempt": "Explicit newly created D-drive scratch pytest basetemp instead of default C-drive user Temp; test and production files unchanged."
+}

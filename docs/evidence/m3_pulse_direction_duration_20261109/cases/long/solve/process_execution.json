@@ -1,0 +1,20 @@
+{
+  "command": [
+    "D:\\Program Files\\COMSOL64\\Multiphysics\\java\\win64\\jre\\bin\\java.exe",
+    "-Xmx2g",
+    "-Xss4m",
+    "-cp",
+    "D:\\Program Files\\COMSOL64\\Multiphysics\\plugins\\*;C:\\Users\\Administrator\\AppData\\Local\\Temp\\hydrobench_comsol_juogszms",
+    "ComsolStandalone",
+    "RDpcUHJvZ3JhbSBGaWxlc1xDT01TT0w2NFxNdWx0aXBoeXNpY3M=",
+    "cnVuLWxvY2FsLXB1bHNl",
+    "RDpc8J+TgSAwMV9Xb3Jrc3BhY2VzICjku6PnoIHkuI7lt6XnqIvljLopXEh5ZHJvRGlzdHVyYi1CZW5jaFxzY3JhdGNoXG0zX2JyYW5jaF9wdWxzZV8yMDI2MTEwNVxwcmVwYXJlXzA4XGNvbW1vbl9jaGVja3BvaW50Lm1waA==",
+    "RDpc8J+TgSAwMV9Xb3Jrc3BhY2VzICjku6PnoIHkuI7lt6XnqIvljLopXEh5ZHJvRGlzdHVyYi1CZW5jaFxydW5zXHJlMTAwX20zX3B1bHNlX2xvbmdfMjAyNjExMDlfdmVyaWZpZWRcc29sdmVcbW9kZWwubXBo",
+    "YmFzZTY0OlpYWmxiblJmYVdROWJUTXRiRzlqWVd3dGNIVnNjMlV0WkhWeVlYUnBiMjR0TTNBeUNtRnRjR3hwZEhWa1pWOXRYM015UFRBdU1EQTFDbmhqWDIwOU1DNHhOUXA1WTE5dFBUQXVNVElLYzJsbmJXRmZiVDB3TGpBeENtUnBjbVZqZEdsdmJsOWtaV2M5T1RBS2IyNWZjejB4T0RFS2IyWm1YM005TVRnMExqSUs="
+  ],
+  "returncode": 0,
+  "started_unix": 1794194607.1921625,
+  "finished_unix": 1794194748.4453743,
+  "stdout": "process_002_stdout.log",
+  "stderr": "process_002_stderr.log"
+}

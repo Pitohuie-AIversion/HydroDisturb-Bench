@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "series_id": "m3-pulse-amplitude-series-v1",
+  "series_plan_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+  "source_sha256": "15e841fc4240d93db877932c1b371646426f1229bdb40d0335b0ed7609d145b4",
+  "checkpoint_sha256": "7d052c545ce0428682a905d407e69cbe466984456d99dc9e72730728c646cf8c",
+  "cases": [
+    {
+      "status": "PASS",
+      "series_id": "m3-pulse-amplitude-series-v1",
+      "series_plan_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+      "amplitude_m_s2": 0.0025,
+      "output_model_sha256": "731396d357dbd697b106db0522f53f0122f68a676eeed6c50d682b41d21c2e7a",
+      "peak_roi_over_U": 0.02922886678491224,
+      "peak_time_s": 186.0,
+      "native_status": "PASS",
+      "step_status": "PASS",
+      "field_status": "PASS"
+    },
+    {
+      "status": "PASS",
+      "amplitude_m_s2": 0.005,
+      "reused": true,
+      "peak_roi_over_U": 0.05847157069539606,
+      "peak_time_s": 186.0
+    },
+    {
+      "status": "PASS",
+      "series_id": "m3-pulse-amplitude-series-v1",
+      "series_plan_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+      "amplitude_m_s2": 0.01,
+      "output_model_sha256": "a391acddd555dc448c59dfc0b9d3df827ff26800c5c379a405b45acfa5a6fe67",
+      "peak_roi_over_U": 0.11688384033267331,
+      "peak_time_s": 186.0,
+      "native_status": "PASS",
+      "step_status": "PASS",
+      "field_status": "PASS"
+    }
+  ],
+  "trend_acceptance": "Descriptive only; no linearity or monotonicity pass gate",
+  "reference_integrity_after": "../reference_integrity_after.json",
+  "response_per_amplitude": [
+    {
+      "amplitude_m_s2": 0.0025,
+      "peak_roi_over_U_per_m_s2": 11.691546713964895
+    },
+    {
+      "amplitude_m_s2": 0.005,
+      "peak_roi_over_U_per_m_s2": 11.694314139079212
+    },
+    {
+      "amplitude_m_s2": 0.01,
+      "peak_roi_over_U_per_m_s2": 11.688384033267331
+    }
+  ]
+}

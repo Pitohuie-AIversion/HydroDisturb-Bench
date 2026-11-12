@@ -1,14 +1,50 @@
-"""Quick static check, independent of COMSOL."""
+"""Check tracked development entry points without loading local CFD artifacts."""
 
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 for rel in [
     "README.md",
+    "CHANGELOG.md",
+    "pyproject.toml",
+    "uv.lock",
+    ".github/workflows/tests.yml",
     "configs/base_case.json",
+    "docs/DEVELOPMENT.md",
     "docs/RESEARCH_PLAN.md",
     "docs/VALIDATION.md",
+    "docs/DATA_USAGE.md",
+    "docs/FORECAST_BASELINES.md",
+    "docs/LOCAL_PULSE_PARAMETERS.md",
     "src/hydro_disturb_bench/cli.py",
+    "src/hydro_disturb_bench/comsol_java/bridge.py",
+    "src/hydro_disturb_bench/comsol_java/errors.py",
+    "src/hydro_disturb_bench/comsol_java/file_transactions.py",
+    "src/hydro_disturb_bench/comsol_java/ComsolBridge.java",
+    "src/hydro_disturb_bench/field_sampling.py",
+    "src/hydro_disturb_bench/field_sequence.py",
+    "src/hydro_disturb_bench/data_windows.py",
+    "src/hydro_disturb_bench/forecast_baselines.py",
+    "src/hydro_disturb_bench/forecast_evaluation.py",
+    "src/hydro_disturb_bench/pulse_parameters.py",
+    "src/hydro_disturb_bench/pulse_sweep.py",
+    "src/hydro_disturb_bench/pulse_validation.py",
+    "src/hydro_disturb_bench/comsol_java/ConfigurablePulseBranch.java",
+    "src/hydro_disturb_bench/branch_pulse.py",
+    "src/hydro_disturb_bench/branch_evidence.py",
+    "scripts/sample_re100_m3_fields.py",
+    "scripts/sample_re100_m3_sequence.py",
+    "scripts/prepare_m3_data_usage.py",
+    "configs/m3_data_usage.json",
+    "configs/m3_forecast_baseline.json",
+    "configs/m3_local_pulse.json",
+    "configs/m3_local_pulse_sweep.json",
+    "scripts/run_m3_local_pulse.py",
+    "scripts/evaluate_m3_baselines.py",
+    "scripts/audit_forecast_baselines.py",
+    "scripts/run_m3_branch_pulse.py",
+    "scripts/run_m3_pulse_amplitude_series.py",
+    "tests/test_git_attributes.py",
 ]:
     assert (ROOT / rel).is_file(), f"Missing: {rel}"
-print("Repository scaffold is complete (COMSOL baseline/results NOT validated).")
+print("Repository entry points and development documents are present; this check does not validate CFD results.")

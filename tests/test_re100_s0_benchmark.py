@@ -50,19 +50,16 @@ def comsol_available() -> bool:
         return False
 
 
-pytestmark = [
-    pytest.mark.integration,
-    pytest.mark.skipif(
-        not comsol_available(),
-        reason="Real COMSOL installation not found on this machine",
-    ),
-    pytest.mark.skipif(
-        not BASELINE_MODEL.is_file(),
-        reason=f"Baseline model not found at {BASELINE_MODEL}",
-    ),
-]
+@pytest.fixture
+def live_comsol():
+    """Only real API tests require a COMSOL installation; local artifacts still fail closed."""
+    if not comsol_available():
+        pytest.skip("Real COMSOL installation not found on this machine")
 
 
+
+@pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_re100_parameter_definitions_and_re_consistency():
     """Verify physical properties, formulas, and Re calculation consistency."""
     # Ensure benchmark model exists
@@ -115,6 +112,8 @@ def test_re100_parameter_definitions_and_re_consistency():
     )
 
 
+@pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_re100_geometry_and_boundary_selections_integrity():
     """Verify geometry topology and complete boundary selection mapping."""
     insp = inspect_model(BENCHMARK_MODEL)
@@ -152,6 +151,7 @@ def test_re100_geometry_and_boundary_selections_integrity():
     assert sorted(feats["wallbc1"]["selection_entities"]) == [5, 6, 7, 8]
 
 
+@pytest.mark.artifact
 def test_re100_baseline_immutability_and_model_isolation():
     """Verify baseline model SHA-256 hash is strictly preserved and models are separate."""
     hash_current = compute_file_hash(BASELINE_MODEL)
@@ -165,12 +165,16 @@ def test_re100_baseline_immutability_and_model_isolation():
     assert bench_hash != BASELINE_SHA256, "Benchmark model has same hash as baseline template!"
 
 
-def test_re100_refuses_to_overwrite_baseline():
-    """Verify safety lock refusing to overwrite source baseline model."""
+def test_re100_refuses_to_overwrite_baseline(tmp_path: Path):
+    """Verify the source-path safety lock without loading a native model."""
+    baseline = tmp_path / "baseline.mph"
+    baseline.write_bytes(b"offline source model")
     with pytest.raises(ModelValidationError, match="Refusing to overwrite baseline model"):
-        build_re100_benchmark(BASELINE_MODEL, BASELINE_MODEL, allow_overwrite=True)
+        build_re100_benchmark(baseline, baseline, allow_overwrite=True)
 
 
+@pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_re100_mesh_properties():
     """Verify mesh completeness and boundary layer inflation on cylinder."""
     insp = inspect_model(BENCHMARK_MODEL)
@@ -183,6 +187,7 @@ def test_re100_mesh_properties():
 
 
 @pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_re100_short_solve_and_data_export(tmp_path: Path):
     """Verify short transient solve generates valid non-NaN solution and exports readable fields."""
     test_solved_mph = tmp_path / "re100_short_solved.mph"
@@ -223,6 +228,8 @@ def test_re100_short_solve_and_data_export(tmp_path: Path):
     assert "Infinity" not in content
 
 
+@pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_re100_abnormal_study_failure_does_not_publish(tmp_path: Path):
     """Verify abnormal study tag fails safely without publishing corrupt results."""
     bad_output = tmp_path / "should_not_exist.mph"
@@ -527,6 +534,8 @@ def test_export_solution_data_concurrent_race_only_one_succeeds(tmp_path: Path):
     assert out_txt.is_file()
 
 
+@pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_inspect_model_reports_live_geometry_distinct_for_different_models():
     """inspect_model must dynamically query live COMSOL geometry and not emit a hardcoded coordinate map."""
     base_insp = inspect_model(BASELINE_MODEL)
@@ -548,6 +557,8 @@ def test_inspect_model_reports_live_geometry_distinct_for_different_models():
     assert math.isclose(re100_geom["bounding_box"][1], 0.40, rel_tol=1e-4)
 
 
+@pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_re100_boundary_geometry_matches_physical_spec():
     """Verify live boundary geometry evidence in Re=100 model exactly matches physics spec."""
     insp = inspect_model(BENCHMARK_MODEL)
@@ -632,6 +643,8 @@ def test_parse_comsol_txt_nan_inf_rejected(tmp_path: Path):
         parse_comsol_txt(test_txt, target_time=0.5)
 
 
+@pytest.mark.integration
+@pytest.mark.usefixtures("live_comsol")
 def test_build_re100_case_fails_closed_on_invalid_setup(tmp_path: Path):
     """Verify build_re100_benchmark fails closed with ModelValidationError when input is invalid."""
     invalid_mph = tmp_path / "invalid.mph"
@@ -643,11 +656,11 @@ def test_build_re100_case_fails_closed_on_invalid_setup(tmp_path: Path):
     assert not out_mph.exists()
 
 
+@pytest.mark.artifact
 def test_parse_comsol_txt_real_verification_file():
     """Verify parse_comsol_txt on the real solved CFD flow data file."""
     data_file = WORKSPACE_DIR / "runs" / "re100_s0_verification" / "flow_solution_data.txt"
-    if not data_file.is_file():
-        pytest.skip(f"Real verification file not found: {data_file}")
+    assert data_file.is_file(), f"Required historical verification file not found: {data_file}"
 
     res = parse_comsol_txt(data_file, target_time=0.5)
     assert len(res["timesteps"]) == 11

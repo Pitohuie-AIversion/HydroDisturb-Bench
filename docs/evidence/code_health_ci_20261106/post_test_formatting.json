@@ -1,0 +1,19 @@
+{
+  "scope": "Only the two documented EOF whitespace changes occurred after the local regression; remote CI tests committed bytes.",
+  "changes": [
+    {
+      "path": "src/hydro_disturb_bench/experiments/branch_execution.py",
+      "test_working_sha256": "06e19fc54f9be160275527612c695e9469c838092cfe836b43ab3da6329bc0ee",
+      "publication_working_sha256": "655ea85bee71f4a4033c2992e814bc9b2045e04b0300d89eaa399f71a7314777",
+      "transformation": "remove extra blank lines at EOF; retain one final LF",
+      "python_ast_unchanged": true
+    },
+    {
+      "path": "src/hydro_disturb_bench/experiments/solver_steps.py",
+      "test_working_sha256": "e2ba0e5af72383589c1741f9e142c3b7ee2e98b6196188eae62e465b815929d5",
+      "publication_working_sha256": "9a7524859e694e98f95deb13650a4689492497a85ec9c960d42db3fb97a07c06",
+      "transformation": "remove extra blank lines at EOF; retain one final LF",
+      "python_ast_unchanged": true
+    }
+  ]
+}

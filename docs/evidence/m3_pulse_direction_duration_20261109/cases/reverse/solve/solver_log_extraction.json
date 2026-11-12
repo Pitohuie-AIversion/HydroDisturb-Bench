@@ -1,0 +1,31 @@
+{
+  "source": {
+    "path": "runs/re100_m3_pulse_reverse_20261109_verified/solve/process_002_stdout.log",
+    "bytes": 13932215,
+    "sha256": "1d24a3f2a04c4a94414681b3fd2327cf76b0bc7f9abee99b6b82764089e4c542",
+    "storage": "local_only",
+    "verification": "source bytes read"
+  },
+  "transform": "UTF-8 strict; prefix before first JSON_START; LF; strip horizontal line-end whitespace",
+  "output_sha256": "297fb41adf7c34d1c3c9887b26b0a485331c165a062551af9c09204205dc314e",
+  "output_bytes": 71217,
+  "parsed_steps": {
+    "status": "PASS",
+    "headers_seen": 1,
+    "accepted_step_count": 457,
+    "first_step_number": 1,
+    "last_step_number": 457,
+    "initial_time_s": 180.0,
+    "first_accepted_time_s": 180.0,
+    "final_internal_time_s": 200.0,
+    "output_only_rows_excluded": 101,
+    "dt_min_s": 0.00096408,
+    "dt_max_s": 0.05,
+    "cap_s": 0.05,
+    "cap_display_relative_tolerance": 0.0001,
+    "contiguous_unique_accepted_step_ids": true,
+    "displayed_time_nondecreasing": true,
+    "last_internal_step_may_exceed_last_output_time": true
+  },
+  "getter_used_as_log": false
+}

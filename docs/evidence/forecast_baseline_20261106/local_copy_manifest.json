@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "new_tests_in_final_regression": 108,
+  "files": [
+    {
+      "path": "audit_logs/execution.json",
+      "bytes": 18361,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\audit\\execution.json",
+      "sha256": "8950abf940ee9765236849245d9d9e7973ed65804c8bcd7ffd818a7bef910331"
+    },
+    {
+      "path": "audit_logs/stderr.txt",
+      "bytes": 0,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\audit\\stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "audit_logs/stdout.txt",
+      "bytes": 41,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\audit\\stdout.txt",
+      "sha256": "5dec3fa5196f0fda559f3d14fa9e81f87b44c2157bc6a68068732b384ead02c0"
+    },
+    {
+      "path": "evaluation_execution.json",
+      "bytes": 3674,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\evaluation_output\\execution.json",
+      "sha256": "443f827120ffe4c5e1f385ca5cb58bdf8e5df3fdf736f7ab71f605c276ae78dc"
+    },
+    {
+      "path": "evaluation_logs/execution.json",
+      "bytes": 18004,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\evaluation\\execution.json",
+      "sha256": "870bac2e0feecc26baf8918516d6df2f96de5c49fcecf27d13bc57295e0723c9"
+    },
+    {
+      "path": "evaluation_logs/stderr.txt",
+      "bytes": 0,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\evaluation\\stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evaluation_logs/stdout.txt",
+      "bytes": 223,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\evaluation\\stdout.txt",
+      "sha256": "97845515d291c2540670b2d6700eb906153187300a40609445a8f93b54fc27a9"
+    },
+    {
+      "path": "independent_audit.json",
+      "bytes": 80892,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\independent_audit.json",
+      "sha256": "113accfb78e6701816d3400c8c6dd2f44f2e9a0b365f8275f36ee2bfc887692b"
+    },
+    {
+      "path": "recording_runner_source.py",
+      "bytes": 2408,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\run_recorded.py",
+      "sha256": "619915a2902fb2d4b168a9452398b8214c62eaa298f8c9a7eddf1029f7f553f9"
+    },
+    {
+      "path": "regression_logs/execution.json",
+      "bytes": 18059,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\regression\\execution.json",
+      "sha256": "b10910fcc71f6472091c57a8e55adfb0d2da0be8c6952a421da5c91792e398b7"
+    },
+    {
+      "path": "regression_logs/junit.xml",
+      "bytes": 111048,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\regression\\junit.xml",
+      "sha256": "5269544286f2ae0d6dcaa9b9a6188656b2f12c4f87077454b5c5168aa51565f2"
+    },
+    {
+      "path": "regression_logs/stderr.txt",
+      "bytes": 0,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\regression\\stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "regression_logs/stdout.txt",
+      "bytes": 939,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\regression\\stdout.txt",
+      "sha256": "a8b9969ed45f105a48d854e637300d5c66e9de6902d5b0ffbb0827e8d36ee66a"
+    },
+    {
+      "path": "report.json",
+      "bytes": 70160,
+      "source_path": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\scratch\\forecast_baseline_20261106\\evaluation_output\\report.json",
+      "sha256": "2a25d01579a26d98360a8663610f0b1d2c16d42a983209e1ec5623aa62cb5c49"
+    }
+  ],
+  "storage": "git",
+  "model_or_tensor_files_added": 0,
+  "note": "Raw execution bytes copied without editing; Git text attributes normalize text to LF. recording_runner_source.py is execution provenance, not an archived-path entrypoint."
+}

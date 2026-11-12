@@ -1,0 +1,19 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\python.exe",
+    "-X",
+    "utf8",
+    "scripts/run_m3_local_pulse.py",
+    "--config",
+    "configs/m3_pulse_direction_duration/reverse.json",
+    "--output",
+    "runs/re100_m3_pulse_reverse_20261109_verified",
+    "--stage",
+    "analyze"
+  ],
+  "returncode": 0,
+  "started_at_utc": "2026-11-09T03:15:08.478267+00:00",
+  "elapsed_seconds": 36.69271278381348,
+  "plan_sha256": "639b73bbb8299e3d501c7df7126b3ac767f84295f38a64952fc1166763068f12",
+  "config_sha256": "222397f3cbbabae27b8b754a4532b4bea5c37c4f873143ae18f92424f1967ff4"
+}

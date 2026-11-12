@@ -1,0 +1,47 @@
+# 历史流场预测基线与评估
+
+本层读取已有窗口，不启动 COMSOL，不拟合参数，也不保存完整预测张量。正式入口对注册索引运行两种固定基线；报告中的 `PASS` 表示执行、数据契约和身份核验通过，没有预测精度门槛。
+
+## 预测器可见信息
+
+`forecast_baselines.forecast_from_history(history, history_mask, history_times, prediction_times, method=...)` 只接收历史流场、历史掩码、历史时间和已知的预测时间表。它不接收未来数值、扰动幅值、族 ID 或模型路径。
+
+| 方法 | 计算 |
+| --- | --- |
+| `persistence` | 每个未来时刻均使用最后一帧历史流场 |
+| `last_two_linear` | 用末两帧的实际时间差计算斜率，按各预测时刻距最后历史时刻的时长外推 |
+
+输入输出保持 `float64 (T,3,Ny,Nx)` 和 `[u,v,p]`。要求静态空间掩码、掩码内 NaN、流体区域有限值；错误值被拒绝，不用未来掩码交集删除困难点。每个窗口重新使用真实历史，这是逐窗口的直接多步预测，不是将预测反馈为输入的整段自由滚动。
+
+## 指标与分区
+
+`forecast_evaluation.evaluate_baselines(index, split=..., mode=...)` 先验证原有窗口索引，再按窗口读取。误差按每个提前量、每个通道分别计算 MAE/RMSE，并保留绝对误差和 SAE、平方误差和 SSE、有效点数 count。跨窗口/轨迹先累加 SAE/SSE/count 再求均值和平方根，不平均各窗口 RMSE。
+
+这些是未加权的采样流体节点误差，不是物理面积积分。速度误差单位 m/s，压力 Pa；SSE 使用对应平方单位。没有归一化、压力去均值或混合三通道分数。窗口较多或有效节点较多的轨迹自然贡献更多权重，报告明确给出每轨迹结果及窗口数。重复目标帧按预测实例计数，并单独披露重复数量。
+
+- `pipeline_smoke` 只允许非空 train，用于已有数据的管线评估。
+- `heldout` 只允许非空 validation/test，且必须有索引中独立的 train 族。空分区直接失败，不能回退到 train。
+
+族身份继续依赖 [数据使用层](DATA_USAGE.md) 的来源契约；通用接口不自动证明调用者声明的祖先是真实独立的。当前真实 M3 数据只有一个族，不能生成真实独立留出结论。
+
+## 已注册 M3 运行
+
+```powershell
+python -X utf8 scripts/evaluate_m3_baselines.py --output scratch/m3_forecast_review_01
+python -X utf8 scripts/audit_forecast_baselines.py --index docs/evidence/data_usage_20261106/index.json --index-sha256 63004756d70b381a51a63106fd81035dbd6f5594ae3865d66ef1daf9543575b5 --report scratch/m3_forecast_review_01/report.json --output scratch/m3_forecast_audit_01.json
+```
+
+需要索引指向的原本地数据。默认 [配置](../configs/m3_forecast_baseline.json) 固定索引文件哈希、5+5 帧/stride 5、5 条轨迹/105 窗口、两个方法和 train smoke 模式。保存间隔 0.2 s；5 帧历史覆盖 0.8 s，预测提前量为 0.2/0.4/0.6/0.8/1.0 s，窗口起点间距 1.0 s。末尾不足完整窗口的帧仍不补入。
+
+入口要求新输出目录，拒绝在配置、索引或输入序列目录内写入。成功仅写 `report.json`、`execution.json`；执行阶段失败保留 `failure.json`，不留下成功报告。评估前后核对代码、配置、索引，以及实际访问的清单和批次 NPZ/metadata/response 身份。这里不读取模型或原生向量，也不新增 CFD 精度验证。
+
+独立审计器直接读取原始 NPZ 和清单，不调用正式 reader、预测器或指标累计器；独立实现公式并以 `math.fsum` 累加，逐项比较总体及每轨迹的五类指标。固定容差 `atol=1e-14, rtol=1e-11`，提前量绝对容差 `1e-12 s`，计数精确一致。它同样只写小型 JSON。
+
+## 测试与后续边界
+
+```powershell
+python -m pytest -q tests/test_forecast_baselines.py tests/test_forecast_evaluation.py tests/test_forecast_audit.py tests/test_evaluate_m3_baselines.py
+python -m pytest -q -m "not integration"
+```
+
+测试覆盖解析信号、实际保存的合成 NPZ、历史输入隔离、分区拒绝、静态掩码、加权聚合、跨窗口释放、来源变更与原始指标篡改。真实 M3 执行和独立复算另见 [阶段报告](reports/FORECAST_BASELINE_20261106.md)。后续训练或泛化评估仍需单独规定数据族、预测协议及验证策略；本次两个无拟合基线不代表训练模型完成。

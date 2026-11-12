@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_m3_local_pulse.py", line 250, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_m3_local_pulse.py", line 244, in main
+    report = run(args.config, args.output, args.data_root, args.stage)
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\scripts\run_m3_local_pulse.py", line 231, in run
+    execution.sample_branch(output, "solve", plan["analysis_plan"], entrypoint=__file__,
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                            additional_sources=_sources(output))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\experiments\branch_execution.py", line 120, in sample_branch
+    report = export_full_field_sequence(
+        model, directory / "fields", start=plan["branch_time_s"], stop=plan["stop_s"],
+        step=plan["output_step_s"], grid_shape=tuple(plan["grid_shape_nx_ny"]),
+        batch_size=32, overlap_reference=None, process_runner=recorder,
+    )
+  File "D:\📁 01_Workspaces (代码与工程区)\HydroDisturb-Bench\src\hydro_disturb_bench\field_sequence.py", line 394, in export_full_field_sequence
+    os.rename(stage, output_dir)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] 拒绝访问。: 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_reverse_20261109_verified\\sample_solve\\.staging_field_sequence_7ea812cff784' -> 'D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_reverse_20261109_verified\\sample_solve\\fields'

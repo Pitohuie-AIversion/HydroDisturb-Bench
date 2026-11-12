@@ -27,4 +27,19 @@ runs/
 *.status
 .comsol/
 scratch*
+# Temporary locks and staging
+**/.locks/*
+!**/.locks/.gitkeep
+**/.staging*/*
+!**/.staging*/.gitkeep
 
+# Root and subdirectory archives
+**/*.zip
+tmp/
+qa_budget/
+qa_*.py
+*budget*
+*.docx
+*.pdf
+export_pdf.ps1
+render_pdf.ps1

@@ -1,0 +1,19 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_pulse_amplitude_series.py",
+    "--junitxml",
+    "scratch\\m3_pulse_amplitude_series_20261106\\entrypoint_tests_02\\junit.xml"
+  ],
+  "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench",
+  "started_unix": 1793935067.5013504,
+  "finished_unix": 1793935086.67201,
+  "returncode": 0,
+  "stdout_sha256": "eb354b2825f2cd3ceec3d09bcf5f58c62e4019dbcc268db26d681f1824284f41",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

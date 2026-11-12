@@ -1,0 +1,31 @@
+{
+  "source": {
+    "path": "runs/re100_m3_pulse_short_20261109_verified/solve/process_002_stdout.log",
+    "bytes": 13930790,
+    "sha256": "6106dd94e159c391ca26f76e7ab4be219f431184699fbfb7fc20425add818f25",
+    "storage": "local_only",
+    "verification": "source bytes read"
+  },
+  "transform": "UTF-8 strict; prefix before first JSON_START; LF; strip horizontal line-end whitespace",
+  "output_sha256": "bb7523fd16f9b738e597b7712245e932718d601e3e2bf67e3ac69d841d595ede",
+  "output_bytes": 70159,
+  "parsed_steps": {
+    "status": "PASS",
+    "headers_seen": 1,
+    "accepted_step_count": 457,
+    "first_step_number": 1,
+    "last_step_number": 457,
+    "initial_time_s": 180.0,
+    "first_accepted_time_s": 180.0,
+    "final_internal_time_s": 200.0,
+    "output_only_rows_excluded": 101,
+    "dt_min_s": 0.00096408,
+    "dt_max_s": 0.05,
+    "cap_s": 0.05,
+    "cap_display_relative_tolerance": 0.0001,
+    "contiguous_unique_accepted_step_ids": true,
+    "displayed_time_nondecreasing": true,
+    "last_internal_step_may_exceed_last_output_time": true
+  },
+  "getter_used_as_log": false
+}

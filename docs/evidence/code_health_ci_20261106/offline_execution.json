@@ -1,0 +1,21 @@
+{
+  "command": [
+    "D:\\Program Files\\Anaconda\\envs\\seagent\\python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "pytest",
+    "-q",
+    "--strict-markers",
+    "-m",
+    "not integration",
+    "--junitxml=D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\docs\\evidence\\code_health_ci_20261106\\offline_regression.xml"
+  ],
+  "cwd": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench",
+  "python": "3.10.21 | packaged by Anaconda, Inc. | (main, Aug 27 2026, 14:35:39) [MSC v.1942 64 bit (AMD64)]",
+  "returncode": 0,
+  "elapsed_seconds": 80.7250714302063,
+  "source_files_unchanged": true,
+  "comsol_integration_selected": false,
+  "includes_local_artifact_tests": true
+}

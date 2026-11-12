@@ -1,36 +1,111 @@
-# Numerical and data quality gates
+# 数值验证与数据质量门槛
 
-None of the following gates have been completed in this scaffold. Passing Python unit tests does not validate a CFD solution.
+更新日期：2026-11-06。物理阶段根据截至 `195d613decee0f960b86f2dd588592f60fc01856` 的报告、结构化结果和执行记录汇总；后续数据使用与预测软件记录单列链接。开发入口见 [DEVELOPMENT.md](DEVELOPMENT.md)，提交里程碑见 [CHANGELOG.md](../CHANGELOG.md)。下列物理阶段测试数字来自原归档，没有为文档同步重新求解 CFD。
 
-## S0: unforced cylinder baseline
+已完成固定 Re=100 配置下的时间与原生网格敏感性工程验收、已有 M3 解的全域采样、同一原生检查点的零扰动与三档非零幅值脉冲原型。**这不等于总误差、计算域敏感性、全局守恒或通用扰动数据集已经验证。** Python 测试、真实 COMSOL 回读、求解日志与物理判据分别提供不同证据，不互相替代。
 
-1. Verify geometry dimensions, fluid units, boundary assignment and non-slip wall.
-2. Check mesh quality, at least three spatial resolutions; pressure gauge convention.
-3. Evaluate at least three time steps and a domain-size sensitivity test.
-4. Compare shedding Strouhal number, mean drag, lift amplitude/RMS and near-wake profiles to a clearly documented literature benchmark with **matching** boundary conditions and force normalizations.
-5. Measure conservation residuals and solver convergence, and document acceptance tolerances before production.
+## 无外加扰动基线与稳定统计量
 
-## S1: localized forcing
+S1-A 的 100 s 试运行确认周期性尾流和诊断导出流程，振幅仍在发展；S1-A2 延长至 200 s，完成最后五个完整周期的稳定性核验。后续 A/B/C/D 和 M0–M3 使用端点插值后的整周期积分及同一四指标判定，不把 S1-A 的试运行当成收敛证明。见 [S1-A 报告](STAGE_S1A_VERIFICATION.md)、[S1-A2 报告](STAGE_S1A2_VERIFICATION.md)。
 
-1. Check whether COMSOL volume force expects N/m³; validate conversion `rho * a`.
-2. Check force center, width, direction and onset in both dimensional and nondimensional units.
-3. Numerically integrate the **actual discrete force** across domain and time; compare to intended source and mesh convergence.
-4. Verify transient kinetic-energy and momentum response, solver time step resolution, boundary consistency, and run-to-run reproducibility.
-5. Record source field even if the machine-learning input must not see it.
+进入敏感性比较前，每组须在最后至少五个完整周期分别满足：周期长度极差/均值 <1%，升力半峰峰振幅极差/均值 <2%，周期平均 Cd 极差/均值 <1%。比较采用 `100 × (新值−基线值)/基线值`；St（上穿零点）、平均 Cd、升力半峰峰振幅、去均值升力 RMS 的相对变化绝对值均须 ≤1%。峰值法 St 与局部尾流速度统计是交叉诊断，不替代四指标门槛。
 
-## Dataset production
+| 对照 | 实际改变 | ΔSt | Δ平均 Cd | Δ升力振幅 | Δ升力 RMS | 当前结论与原始结果 |
+|---|---|---:|---:|---:|---:|---|
+| A→B | rtol 1e-3→1e-4，关联绝对容差策略随之收紧；内部步长仍为 auto | +0.592880% | +0.016609% | +0.555624% | +0.526500% | 已测容差范围内不敏感；[A/B JSON](evidence/unit_source_20261104/ab_comparison.json) |
+| B→C | 固定 rtol=1e-4，最大内部步长由 auto 改为 const/0.05 s | +0.042138% | −0.002208% | +0.059778% | +0.050979% | PASS；[C JSON](evidence/unit_source_verified_20261104/case_c_report.json) |
+| C→D | const 上限 0.05→0.025 s | +0.053529% | −0.002162% | +0.075254% | +0.093298% | 当前 M0 网格的时间敏感性阶段收尾；[D JSON](evidence/case_d_20261104/case_d_report.json) |
+| M0→M1 | 原生网格尺寸控制按约 1/1.4 缩小 | +0.901509% | +0.488469% | +2.705433% | +2.737375% | SENSITIVE，执行完成但振幅与 RMS 超限；[M1 JSON](evidence/s1b2_m1_20261105/mesh_report.json) |
+| M1→M2 | 沿同一网格生成策略继续细化 | +0.921323% | +0.517269% | +1.854802% | +1.901969% | SENSITIVE，振幅与 RMS 仍超限；[M2 JSON](evidence/s1b2_m2_20261105/mesh_report.json) |
+| M2→M3 | 沿同一网格生成策略继续细化 | +0.789900% | +0.335012% | +0.685247% | +0.703916% | 相邻四指标通过，最新绝对增量均缩小；[M3 JSON](evidence/s1b2_m3_20261105/mesh_report.json) |
+| M3 时间抽查 | 同一 M3 网格、rtol=1e-4，const 上限 0.05→0.025 s | +0.063510% | −0.000207% | +0.050620% | +0.053245% | PASS；[M3 时间 JSON](evidence/s1b3_m3_time_20261105/m3_time_report.json) |
 
-- Treat nonconverged/partial trajectories as rejected, keep logs and reasons.
-- Save independent seed and case manifest; keep the original model immutable.
-- Check for NaN/Inf, field dimensions, timestamps, mesh mapping and mask consistency.
-- No overlapping windows between training and validation/test trajectories.
-- Do not conflate physical forcing, observation noise, and numerical error.
+M0 直接复用 Case C。四档原生二维单元数为 7,493 / 11,930 / 19,982 / 34,752，保存解向量长度为 19,326 / 30,651 / 51,108 / 88,483；规则采样点数不计为求解网格细化。每档记录原生网格、圆柱周向尺度、近壁尺度、质量及实际求解设置。M3 的工程状态是 `grid_independence_phase_can_close=true`，同时保留 `mesh_independence_established=false`：允许结束本轮四指标网格敏感性研究，不宣称严格网格无关或全域点值收敛。见 [M3 报告](STAGE_S1B2_M3_20261105.md)。
 
-## Production acceptance checklist
+后续基线采用 M3、`rtol=1e-4 / maxstepconstraintbdf=const / maxstepbdf=0.05 s`。M3 时间抽查的内部步数为 4,087→8,065，实际日志验证上限；这是自适应内部步长的上限，不是每步恒等于上限。C/D 另为 4,091/8,067 步，不能与 M3 步数混用。见 [M3 时间报告](STAGE_S1B3_M3_TIME_20261105.md)。
 
-- [ ] Real CFD solver executed and logs preserved
-- [ ] S0 spatial/temporal/domain convergence passed
-- [ ] S1 source units and momentum balance passed
-- [ ] Automated extraction of velocity/pressure/forcing validated
-- [ ] Failed cases are flagged rather than silently accepted
-- [ ] Independent trajectory-level split verified
+这些结论限定于当前几何、计算域、物性、边界、离散和统计方法。非结构网格未建立统一渐近尺度与形式化 GCI/外推误差界；相邻结果接近不能换算为相对真解误差。可读模型属性的核验范围与不可读字段均保留在阶段证据中，不声称所有模型属性已逐项独立读取。
+
+## 单位来源、时间与全域采样
+
+速度单位来源问题已关闭：通过独立结果节点实际读取表达式、单位、Dataset–Solution、坐标和解时间，绑定模型与导出文件哈希；禁止入口补写预期单位。表头明确单位参与检查；缺失或错误证据、错误时间、NaN/Inf 实际时间均拒绝。最终真实来源见 [C 阶段回读](evidence/unit_source_verified_20261104/c_probe_readback.json)，不沿用此前被撤回的来源标签声明。
+
+| 已完成采样 | 实际数据 | 核验结果 | 证据 |
+|---|---|---|---|
+| 五时刻、两种分辨率 | t=180/185/190/195/200 s；81×49 与 161×97；张量 `(5,3,49,81)`、`(5,3,97,161)` | 两档各 15 个直接求值时空点；u/v/p 最大绝对差均为 0；十个原始 TXT 与 NPZ 一致 | [报告](STAGE_M3_FIELD_SAMPLING_20261105.md)、[机器结果](evidence/m3_field_sampling_20261105/sample_report.json) |
+| 151 帧连续基线 | 170–200 s、间隔 0.2 s；161×97；张量 `(151,3,97,161)`；五批 | 保存解编号 851–1001 连续；453 个直接求值点/1,359 个通道值；与已有五帧全部重叠数据一致 | [报告](STAGE_M3_FIELD_SEQUENCE_20261105.md)、[序列清单](evidence/m3_field_sequence_20261105/sequence_manifest.json) |
+
+两者只读取已有 M3 解，没有重新求解 CFD。统一契约为：
+
+- x/y 覆盖 `[0,0.4]×[0,0.24] m`，严格递增并包含端点；float64 张量布局 `(T,3,Ny,Nx)`，通道 `[u,v,p]`，实际单位 `[m/s,m/s,Pa]`。
+- 请求与实际保存时刻分别记录，以 `1e-12 s` 绝对容差匹配原生解编号；拒绝不存在的保存时刻，禁止静默取最近时刻。真实 `180.1 s` 请求已被拒绝。
+- 圆柱掩码来自实际几何，包含圆周；独立保存原始无效掩码，最终掩码取并集。掩码内为 NaN，流体域非有限值拒绝，不填为真实流体零值。
+- 导出节点与独立 EvalPoint 读取实际 x/y/t、表达式、单位和 Dataset 关联；批间检查来源、坐标、掩码、时间连续性及文件哈希，NPZ 保存后正式读回。
+
+零差值证明导出、读回与同一保存离散解一致，不证明真实流场误差为零。161×97 是已验证的试运行采样规格，尚未被选定为最终学习数据分辨率。
+
+## 同一原生检查点的局部体力脉冲
+
+零扰动、0.005 m/s² 脉冲及新增 0.0025/0.010 m/s² 脉冲均已完成；新增幅值直接复用旧零支与 0.005 支，不重算历史分支。全部从 M3 原生 t=180 s、`sol1` 第 901 个保存状态出发，以原生解副本提供 U/UDot；不声称恢复原 BDF 内部步进历史。输出为 180–200 s 的 101 帧，采样 161×97。来源、网格、力单位/积分、完整步进日志和场量判定分别核验。见 [原分支报告](STAGE_M3_BRANCH_PULSE_20261105.md)、[幅值系列报告](reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md)。
+
+物理脉冲为 +y 方向，中心 `(0.15,0.12) m`，Gaussian σ=0.01 m，181–183 s 使用紧支撑 sin² 时间门，体力密度为 `rho_f*a`，实际单位 N/m³。实际物理节点、点值和域积分回读与预先计算的源峰值/冲量比较，源积分相对误差门槛为 1%。该积分是单位出平面厚度的**施加源**，不等于流体净动量变化。
+
+原[冻结物理计划](evidence/m3_branch_pulse_20261105/preregistered_plan.json)及[幅值系列计划](evidence/m3_pulse_amplitude_series_20261106/preregistered_plan.json)固定场量门槛。第一次成功未来轨迹产生前单独冻结了[重启协议 v2](evidence/m3_branch_pulse_20261105/restart_protocol_v2.json)：所有分支把 Time 的 `consistent=bweuler` 改为 `off`，其他已登记策略和物理阈值不变。因此不得写成“所有求解器设置完全未改变”。源/seed/选中输入的 U 与 UDot 字节一致；独立 Variables 预检不被称为 runAll 内部真正输入，实际首帧差异另按原场量门槛审计。
+
+| 零分支−连续基线的归一化指标 | 冻结上限 | 实际结果 |
+|---|---:|---:|
+| 联合 u/v 空间 RMS 的时间加权 RMS / U | 0.5% | 0.0139575% |
+| 最大逐帧联合 u/v RMS / U | 1% | 0.0217751% |
+| 空间去均值压力 RMS 的时间加权 RMS / (ρU²) | 1% | 0.00298005% |
+| 最大逐帧去均值压力 RMS / (ρU²) | 3% | 0.0137850% |
+
+空间/时间积分使用实际坐标的梯形权重；压力各自去空间均值并另报原始均值偏移。响应定义为脉冲支−零支，重启误差定义为零支−连续基线，二者不能混淆。固定 ROI 为 `[0.12,0.25]×[0.08,0.16] m`；事件前信号须 ≤`max(1e-4, 2×同窗口零支误差)`，响应窗口 `(181,186] s` 的峰值须 ≥`max(0.005, 5×全窗口零支误差)`，均按 U 归一化。
+
+| 加速度幅值 / m·s⁻² | 是否新求解 | 窗口内 ROI 响应峰值 / U | 实际体力峰值 / N·m⁻³ | 实际源空间积分峰值 / N·m⁻¹ | 判定 |
+|---|---|---:|---:|---:|---|
+| 0.0025 | 本轮新增 | 2.922887% | 2.4955 | 0.001567967528 | PASS |
+| 0.005 | 复用已验收分支 | 5.847157% | 4.9910 | 0.003135935055 | PASS |
+| 0.010 | 本轮新增 | 11.688384% | 9.9820 | 0.006271870111 | PASS |
+
+三者窗口内峰值均在 t=186 s；这里不是完整轨迹全局峰值。共同噪声底为 0.0526595% U，实际要求为 0.5% U，事件前信号均通过。每个非零分支为 457 个接受的内部步，最大 0.05 s；101 个输出行不计为内部步。精确值及来源见 [series_metrics.json](evidence/m3_pulse_amplitude_series_20261106/series_metrics.json)。
+
+当前是**同一检查点、同一位置/宽度/时窗的三档非零幅值原型**。响应/幅值比只作描述，不据此宣称普遍线性、单调性、未知扰动泛化或多轨迹训练集已成立；也未用 20 s 扰动窗口重新宣称稳定 St/Cd 指标收敛。
+
+## 测试与证据范围
+
+下表是各阶段留存的执行记录，不是本次文档同步重新执行的结果；不同阶段测试集随开发增长，数量不可相加。
+
+| 阶段 | 定向/模块记录 | 当时全库或完整离线记录 | 证据入口 |
+|---|---|---|---|
+| S1-A / S1-A2 | 19 / 17 项 | 86 / 103 项通过，见历史阶段报告 | [S1-A](STAGE_S1A_VERIFICATION.md)、[S1-A2](STAGE_S1A2_VERIFICATION.md) |
+| 单位来源修复与 C / D | 对应阶段模块日志 | 134 / 166 项全库通过 | [C 原始日志](evidence/unit_source_verified_20261104/full_regression.txt)、[D 原始日志](evidence/case_d_20261104/full_regression.txt) |
+| M1 / M2 / M3 | 网格定向 47 / 66 / 88 项；另有真实 COMSOL 接口测试 | 220 / 239 / 261 项全库通过 | [M1](evidence/s1b2_m1_20261105/full_regression.txt)、[M2](evidence/s1b2_m2_20261105/full_regression.txt)、[M3](evidence/s1b2_m3_20261105/full_regression.txt) |
+| M3 时间抽查 | 真实接口记录 4 项 | 275 项全库通过；随后独立重捕获仍为 275 项 | [原始 stdout](evidence/s1b3_m3_time_20261105/raw_task_6195_full_regression_stdout.txt)、[重捕获](evidence/s1b3_tests_recaptured_20261105_153742/full_regression.txt) |
+| 五帧采样 | 59 项 | 308 项离线通过，30 项 integration 未运行 | [定向](evidence/m3_field_sampling_20261105/sampling_tests_final2.log)、[离线](evidence/m3_field_sampling_20261105/offline_regression_final2.log) |
+| 151 帧序列 | 新旧采样 91 项 | 340 项离线通过，30 项 integration 未运行 | [定向](evidence/m3_field_sequence_20261105/sampling_regression.log)、[离线](evidence/m3_field_sequence_20261105/offline_regression.log) |
+| 零/0.005 分支 | 最终 212 项 | 461 项离线通过，30 项 integration 未运行 | [测试摘要及执行索引](evidence/m3_branch_pulse_20261105/regression_summary.json)、[离线 stdout](evidence/m3_branch_pulse_20261105/offline_regression.stdout.txt) |
+| 新增 0.0025/0.010 系列 | 53 项入口测试 | 同步远程改动后 514 项离线通过，30 项 integration 未运行 | [入口 stdout](evidence/m3_pulse_amplitude_series_20261106/logs/entrypoint_tests_final/stdout.txt)、[最终离线 stdout](evidence/m3_pulse_amplitude_series_20261106/logs/offline_regression_after_remote_sync/stdout.txt) |
+
+后期 30 项旧 integration 测试未运行，不计为通过；真实已有解导出与本轮新增分支求解另有独立 COMSOL 证据。幅值系列同步既有 IO/掩码优化后，正式 loader、原生来源、步进和场量分析重读结果一致，21 个冻结引用文件哈希不变；没有重复求解。见 [同步后核验](evidence/m3_pulse_amplitude_series_20261106/post_sync_validation.json)。
+
+失败记录保留：旧单位来源/启动失败不因后续成功消失；五帧采样和原分支定向测试各出现过 Windows `WinError 5`，未改代码复测通过，不能称根因已修复。幅值系列首次离线回归为 29 失败/485 通过，原因是隔离目录缺少既有本地测试夹具，补齐并核验后通过；首次真实前置还因 SHA 十六进制大小写表示差异失败，修复为严格 64 位十六进制校验后再归一化，未放宽路径或哈希身份门槛。失败日志入口在相应阶段报告中。
+
+归档使用真实文件哈希区分原始字节与 LF 展示副本；二进制默认保留字节的 Git 规则已在 `19aea85` 修复。后续原分支及幅值系列按轻量交付：远端代码、指标、精简真实回读、日志、图片和清单可复核，MPH、完整大数组/原始采样包等按清单保留本机。精简回读明确以计数/哈希替代省略数组，不能声称远端拥有完整原生数据审计或独立备份。具体存储边界见 [原分支清单](evidence/m3_branch_pulse_20261105/archive_manifest.json)、[幅值系列交付清单](evidence/m3_pulse_amplitude_series_20261106/delivery_manifest.json)。
+
+## 数据使用与预测软件
+
+[数据使用层](reports/DATA_USAGE_20261106.md) 已验证按批读取、窗口索引和按来源族划分；真实五条序列同族，只有 train。[预测基线](reports/FORECAST_BASELINE_20261106.md) 在该固定索引上评估末帧保持和末两帧线性外推，逐提前量/通道保留物理单位误差，并独立复算原始 NPZ。`PASS` 表示管线与身份核验通过，未设置准确率门槛，不能代替独立留出泛化结论。两个基线无拟合参数，真实 COMSOL 集成测试本轮未运行。
+
+[局部体力参数入口](reports/LOCAL_PULSE_PARAMETERS_20261106.md) 已通过一次真实全参数变化续算：参数回读、三分量源项单位、双分量空间积分、原生起点、101 个保存时刻、实际内部步进和场响应均有独立记录。该结果验证这一配置路径和这一个案例，不扩展为所有参数组合的 CFD 精度保证；PDF 其余事件类型仍未实现。
+
+## 尚未完成与后续生产门槛
+
+- **计算域与边界敏感性**：未独立改变域尺寸/阻塞比完成对照；不得将当前 St 差异归因为已定位的网格或计算域误差。
+- **匹配文献/实验的定量验证**：需明确相同边界、Re、压力规范及升阻力归一化；现有工程敏感性结果不替代该项。
+- **全局守恒**：尚无完整质量、动量、动能收支的冻结容差及闭合证据。体力单位、源空间积分和源冲量通过，不等于动量守恒或能量预算通过。
+- **全域与局部分辨率**：尚无严格 GCI/真解误差界、所有局部场量收敛证明或脉冲源跨网格研究。当前采样一致性与直接点值抽查只核对保存离散解。
+- **独立重复与参数泛化**：不同相位/检查点、位置、宽度、持续时间、方向、Re 及独立重复运行尚未构成验证集；共享检查点的幅值支不能冒充独立随机初值轨迹。
+- **学习数据生产**：已实现显式轨迹族划分及窗口防泄漏检查，并完成两个无拟合基线的当前族内管线评估；尚未冻结生产数据规格、建立真实独立留出族或训练模型。物理扰动、观测噪声和数值误差须分别记录，源场证据须保留，即使学习输入不包含它。
+- **可靠交付**：所有新运行仍须拒绝覆盖历史目录，失败/部分轨迹留证并标为未验收；本机大数据的独立备份尚未配置，不能把 Git 轻量归档视为全量备份。
+
+这些未完成项不撤销已通过阶段，也不自动授权新算例。下一项实验应单独冻结范围、判据、来源和交付方式，再按相应门槛执行。

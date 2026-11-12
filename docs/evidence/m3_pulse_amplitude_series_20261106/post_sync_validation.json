@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "git_delivery_parent": "f04323990cd649b846fd4fe8b70cc6235ec9d4b8",
+  "execution_basis_commit": "1f4d74e68b05c29d2ab62d3bb7486f54b22136dd",
+  "comsol_started": false,
+  "new_time_solves": 0,
+  "cases": [
+    {
+      "case": "a0025",
+      "shape": [
+        101,
+        3,
+        97,
+        161
+      ],
+      "archived_analysis_exactly_equal": {
+        "field_comparison": true,
+        "native_validation": true,
+        "step_validation": true
+      }
+    },
+    {
+      "case": "a0100",
+      "shape": [
+        101,
+        3,
+        97,
+        161
+      ],
+      "archived_analysis_exactly_equal": {
+        "field_comparison": true,
+        "native_validation": true,
+        "step_validation": true
+      }
+    }
+  ],
+  "reference_files_revalidated": 21,
+  "source_files": [
+    {
+      "path": "scripts/run_m3_pulse_amplitude_series.py",
+      "sha256": "692af0a10e17370d7fbdd1c6e19ab89bdba5ebd69983f58215162cd386a7b010"
+    },
+    {
+      "path": "src/hydro_disturb_bench/field_sampling.py",
+      "sha256": "f1e4cc3a2dce263fccf4a28e2963a8d7756a4df935aba4115221754d2a7c9864"
+    },
+    {
+      "path": "src/hydro_disturb_bench/field_sequence.py",
+      "sha256": "6fc3d89705dd2d72899e2fe82c3e6fb0e3e0d16610b56af033b5fa4dd9ac0f02"
+    },
+    {
+      "path": "src/hydro_disturb_bench/io.py",
+      "sha256": "6b91009dfdca2b91eb4bb343efde5d85683636214929487a6e6249ee0fa072cc"
+    },
+    {
+      "path": "src/hydro_disturb_bench/branch_pulse.py",
+      "sha256": "e94f332ac0f7bf4509501bf98cbb6d310712f0a647e49030d01a373753e5fdba"
+    },
+    {
+      "path": "src/hydro_disturb_bench/branch_evidence.py",
+      "sha256": "805f59a4638c82f2e23c89f83a5f7962c5c11612220698817fb4cdbb7a956dc6"
+    }
+  ],
+  "scope": "Current formal loaders/native/field/step validators re-read both new sequences and exactly reproduce archived analyses; no CFD re-solve"
+}

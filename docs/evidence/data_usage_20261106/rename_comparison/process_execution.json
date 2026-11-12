@@ -1,0 +1,11 @@
+{
+  "command": [
+    "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench\\.venv\\Scripts\\python.exe",
+    "-u",
+    "scratch\\sequence_reader_rename_ab_20261106_01\\compare_exports.py"
+  ],
+  "returncode": 0,
+  "started_at": "2026-11-06T11:32:40.280446+00:00",
+  "finished_at": "2026-11-06T11:32:45.461111+00:00",
+  "no_comsol": true
+}

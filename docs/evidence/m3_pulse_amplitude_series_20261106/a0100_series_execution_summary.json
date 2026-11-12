@@ -1,0 +1,34 @@
+{
+  "evidence_kind": "summary_not_full_original",
+  "source": {
+    "run_relative_path": "a0100/series_execution.json",
+    "absolute_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\runs\\re100_m3_pulse_amplitude_series_20261106_verified\\a0100\\series_execution.json",
+    "bytes": 1136,
+    "sha256": "5556ae541d7ddae14388a42c7bf9890ce7d0bde8692ff2b599b4e823a41a6364",
+    "full_original": "local_only",
+    "verification": "actual source bytes read by this exporter"
+  },
+  "omitted_fields_count": 0,
+  "array_omission_threshold": 128,
+  "canonical_json_definition": "sorted keys, compact separators, ensure_ascii=False, allow_nan=False, UTF-8",
+  "content": {
+    "status": "COMPLETE",
+    "series_id": "m3-pulse-amplitude-series-v1",
+    "series_plan_sha256": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+    "amplitude_m_s2": 0.01,
+    "readback_sha256": "405665c79cb4fb5410382a2dff678239c3b97e7a597b841e7cbc185e372bbea6",
+    "execution_sha256": "0e04f3c589b58f22e8adace7bd246d5af1317e8b2b38601eb1e1f6480f19958c",
+    "implementation": {
+      "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\scripts\\run_m3_pulse_amplitude_series.py": {
+        "sha256_before": "499c86c81bfc6b4a514ddfe24c8a91295ace1096b467fadd6c257a9d7e650475",
+        "sha256_after": "499c86c81bfc6b4a514ddfe24c8a91295ace1096b467fadd6c257a9d7e650475"
+      },
+      "C:\\Users\\Administrator\\.codex\\worktrees\\m3-pulse-amplitudes\\HydroDisturb-Bench\\docs\\evidence\\m3_pulse_amplitude_series_20261106\\preregistered_plan.json": {
+        "sha256_before": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d",
+        "sha256_after": "75b08df846652372f7c01a1e8699f67cf57912c44b45b719135d701b7f8c4f8d"
+      }
+    },
+    "error": null,
+    "elapsed_seconds": 146.2849361896515
+  }
+}

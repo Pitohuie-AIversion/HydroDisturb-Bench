@@ -1,0 +1,116 @@
+{
+  "case_id": "C04",
+  "description": "3D Circular Cylinder Flow Benchmark - High Reynolds Number Engineering Baseline (C04)",
+  "reference_sources": {
+    "seawater_properties": "ITTC Quality System Manual 7.5-02-01-03 (2024), p. 13, Table 4",
+    "cfd_domain_benchmark": "Lysenko (2025) Re=130,000 LES, MDPI Fluid Dyn. Mater. Process.",
+    "comsol_case": "COMSOL Multiphysics 6.4 Turbulent 3D Flow Past a Cylinder (Application ID 10297)"
+  },
+  "fluid": {
+    "medium": "seawater",
+    "temperature_celsius": 15.0,
+    "salinity_g_per_kg": 35.0,
+    "density_kg_per_m3": 1025.8944,
+    "kinematic_viscosity_m2_per_s": 1.1889e-6,
+    "dynamic_viscosity_pa_s": 0.00121969
+  },
+  "cylinder": {
+    "diameter_m": 0.30,
+    "inflow_speed_m_per_s": 0.50,
+    "inflow_angle_deg": 90.0,
+    "reynolds_number": 126167
+  },
+  "cfd_domain": {
+    "upstream_length_D": 10.0,
+    "downstream_length_D": 20.0,
+    "lateral_width_D": 20.0,
+    "spanwise_depth_D": 10.0,
+    "dimensions_m": {
+      "x_length": 9.0,
+      "y_width": 6.0,
+      "z_depth": 3.0
+    },
+    "coordinate_bounds_m": {
+      "x": [-3.0, 6.0],
+      "y": [-3.0, 3.0],
+      "z": [0.0, 3.0]
+    },
+    "blockage_ratio_percent": 5.0
+  },
+  "boundary_conditions": {
+    "inlet": {
+      "type": "velocity",
+      "velocity_components": ["U0*sin(alpha)", "0", "U0*cos(alpha)"]
+    },
+    "outlet": {
+      "type": "pressure",
+      "relative_pressure_pa": 0.0
+    },
+    "cylinder_wall": {
+      "type": "no_slip"
+    },
+    "top_bottom_farfield": {
+      "type": "slip"
+    },
+    "spanwise_boundaries": {
+      "type": "periodic"
+    }
+  },
+  "world_model_sampling": {
+    "roi_bounds_D": {
+      "x": [-2.0, 10.0],
+      "y": [-3.0, 3.0],
+      "z": [3.0, 7.0]
+    },
+    "roi_bounds_m": {
+      "x": [-0.60, 3.00],
+      "y": [-0.90, 0.90],
+      "z": [0.90, 2.10]
+    },
+    "grid_resolution": {
+      "nx": 192,
+      "ny": 96,
+      "nz": 64
+    },
+    "cell_spacing_m": 0.01875,
+    "cell_spacing_expression": "D / 16",
+    "sampling_centering": "cell_centered",
+    "channels": ["u", "v", "w", "p"],
+    "geometry_channels": ["solid_mask", "sdf"],
+    "precision": "FP32",
+    "time": {
+      "dt_star": 0.1,
+      "dt_physical_seconds": 0.06,
+      "t_star_target": 100.0,
+      "t_physical_seconds": 60.0,
+      "target_frames": 1000,
+      "estimated_shedding_period_seconds": 3.16
+    },
+    "prediction_protocol": {
+      "history_length_L": 4,
+      "forecast_horizons_H": [10, 50, 100]
+    }
+  },
+  "simulation_stages": [
+    {
+      "stage": 0,
+      "name": "verification_baseline",
+      "description": "Run unmodified COMSOL Re=3900 official case to verify environment and solver stability"
+    },
+    {
+      "stage": 1,
+      "name": "initial_stationary_sst",
+      "description": "Stationary SST calculation to provide robust initial field"
+    },
+    {
+      "stage": 2,
+      "name": "unsteady_sst_sas",
+      "description": "Time-dependent SST-SAS simulation for cost-effective unsteady vortex shedding trial"
+    },
+    {
+      "stage": 3,
+      "name": "high_fidelity_les",
+      "description": "Large-Eddy Simulation (LES) evaluation for production training dataset"
+    }
+  ]
+}

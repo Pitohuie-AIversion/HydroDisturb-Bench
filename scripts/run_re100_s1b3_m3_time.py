@@ -7,15 +7,13 @@ All prior models remain strictly read-only; each invocation requires a new outpu
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
-from datetime import datetime, timezone
 import json
 import math
-from pathlib import Path
 import re
 import sys
 import time
 import traceback
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 for location in (ROOT, ROOT / "src"):
@@ -26,10 +24,9 @@ from hydro_disturb_bench.comsol_java import (
     compute_file_hash,
     export_s1_diagnostics,
     inspect_model,
-    inspect_native_mesh,
     run_study,
 )
-from scripts.verify_and_compare_s1b1 import analyze_case, compare_cases, compute_demeaned_rms
+from scripts.verify_and_compare_s1b1 import analyze_case, compare_cases
 from scripts.verify_s1b1_prechecks import run_prechecks
 
 M3_BASELINE_DIR = ROOT / "runs/re100_s1b2_m3_20261105_verified"

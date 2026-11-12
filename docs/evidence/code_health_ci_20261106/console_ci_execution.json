@@ -1,0 +1,20 @@
+{
+  "command": [
+    "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\.venv\\Scripts\\pytest.exe",
+    "-q",
+    "--strict-markers",
+    "-m",
+    "not integration and not artifact",
+    "--junitxml=D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\docs\\evidence\\code_health_ci_20261106\\console_ci_regression.xml"
+  ],
+  "cwd": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench",
+  "started_at_utc": "2026-11-06T10:24:51.756077+00:00",
+  "elapsed_seconds": 68.625,
+  "exit_code": 0,
+  "entrypoint": "pytest console script",
+  "scope": "not integration and not artifact",
+  "native_comsol_integration_run": false,
+  "pytest_interpreter": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\.venv\\Scripts\\python.exe",
+  "python_version": "3.14.7 | packaged by Anaconda, Inc. | (main, Aug 14 2026, 10:12:46) [MSC v.1942 64 bit (AMD64)]",
+  "pyproject_working_sha256": "cbec9dfb421b7f4169da2a6e394510bd9da5a54b2312c02726150566d020ffcc"
+}

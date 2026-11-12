@@ -1,0 +1,1378 @@
+{
+  "status": "SUCCESS",
+  "operation": "inspect_model",
+  "model_path": "D:\\📁 01_Workspaces (代码与工程区)\\HydroDisturb-Bench\\scratch\\m3_branch_pulse_20261105\\prepare_08\\common_checkpoint.mph",
+  "model_tag": "Model",
+  "comsol_version": "COMSOL Multiphysics 6.4 (开发版本: 429)",
+  "parameters": {
+    "H": {
+      "expr": "0.24[m]",
+      "value": 0.24,
+      "unit": "m",
+      "description": "Domain height (24D)"
+    },
+    "L": {
+      "expr": "0.40[m]",
+      "value": 0.4,
+      "unit": "m",
+      "description": "Domain length (40D)"
+    },
+    "W": {
+      "expr": "1[m]",
+      "value": 1.0,
+      "unit": "m",
+      "description": "Channel width (not modeled)"
+    },
+    "R": {
+      "expr": "D/2",
+      "value": 0.005,
+      "unit": "m",
+      "description": "Cylinder radius"
+    },
+    "U_mean": {
+      "expr": "U_inf",
+      "value": 0.010058104588258865,
+      "unit": "m/s",
+      "description": "Mean inflow velocity alias"
+    },
+    "D": {
+      "expr": "0.01[m]",
+      "value": 0.01,
+      "unit": "m",
+      "description": "Cylinder diameter"
+    },
+    "x_c": {
+      "expr": "0.10[m]",
+      "value": 0.1,
+      "unit": "m",
+      "description": "Cylinder center X (10D upstream distance)"
+    },
+    "y_c": {
+      "expr": "0.12[m]",
+      "value": 0.12,
+      "unit": "m",
+      "description": "Cylinder center Y (12D lateral half-width)"
+    },
+    "rho_f": {
+      "expr": "998.2[kg/m^3]",
+      "value": 998.2,
+      "unit": "kg/m^3",
+      "description": "Water density at 20 degC"
+    },
+    "mu_f": {
+      "expr": "1.004e-3[Pa*s]",
+      "value": 0.001004,
+      "unit": "Pa*s",
+      "description": "Water dynamic viscosity at 20 degC"
+    },
+    "Re": {
+      "expr": "100",
+      "value": 100.0,
+      "unit": null,
+      "description": "Target Reynolds number"
+    },
+    "U_inf": {
+      "expr": "Re*mu_f/(rho_f*D)",
+      "value": 0.010058104588258865,
+      "unit": "m/s",
+      "description": "Inflow free-stream velocity"
+    },
+    "branch_tb": {
+      "expr": "180[s]",
+      "value": 180.0,
+      "unit": "s",
+      "description": "Frozen native restart time"
+    },
+    "branch_source_solnum": {
+      "expr": "901",
+      "value": 901.0,
+      "unit": null,
+      "description": "Original M3 saved solution index"
+    },
+    "branch_seed_solnum": {
+      "expr": "901",
+      "value": 901.0,
+      "unit": null,
+      "description": "Exact saved index in full native seed copy"
+    }
+  },
+  "components": [
+    {
+      "tag": "comp1",
+      "label": "Component 1",
+      "geometries": [
+        {
+          "tag": "geom1",
+          "sdim": 2,
+          "features": [
+            "r1",
+            "c1",
+            "dif1",
+            "fin"
+          ],
+          "boundary_geometry": {
+            "available": true,
+            "source": "COMSOL GeomSequence live query (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX)",
+            "geometry_tag": "geom1",
+            "geometry_rebuilt_in_memory": false,
+            "n_boundaries": 8,
+            "n_domains": 1,
+            "bounding_box": [
+              0.0,
+              0.4000000000000001,
+              0.0,
+              0.24
+            ],
+            "samples_per_boundary": 17,
+            "boundaries": [
+              {
+                "id": 1,
+                "x_range": [
+                  0.0,
+                  0.0
+                ],
+                "y_range": [
+                  0.0,
+                  0.24
+                ],
+                "length_polyline": 0.24,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.015
+                  ],
+                  [
+                    0.0,
+                    0.03
+                  ],
+                  [
+                    0.0,
+                    0.045
+                  ],
+                  [
+                    0.0,
+                    0.06
+                  ],
+                  [
+                    0.0,
+                    0.075
+                  ],
+                  [
+                    0.0,
+                    0.09
+                  ],
+                  [
+                    0.0,
+                    0.105
+                  ],
+                  [
+                    0.0,
+                    0.12
+                  ],
+                  [
+                    0.0,
+                    0.135
+                  ],
+                  [
+                    0.0,
+                    0.15
+                  ],
+                  [
+                    0.0,
+                    0.16499999999999998
+                  ],
+                  [
+                    0.0,
+                    0.18
+                  ],
+                  [
+                    0.0,
+                    0.195
+                  ],
+                  [
+                    0.0,
+                    0.21
+                  ],
+                  [
+                    0.0,
+                    0.22499999999999998
+                  ],
+                  [
+                    0.0,
+                    0.24
+                  ]
+                ]
+              },
+              {
+                "id": 2,
+                "x_range": [
+                  0.0,
+                  0.4
+                ],
+                "y_range": [
+                  0.0,
+                  0.0
+                ],
+                "length_polyline": 0.40000000000000013,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.4,
+                    0.0
+                  ],
+                  [
+                    0.375,
+                    0.0
+                  ],
+                  [
+                    0.35000000000000003,
+                    0.0
+                  ],
+                  [
+                    0.325,
+                    0.0
+                  ],
+                  [
+                    0.30000000000000004,
+                    0.0
+                  ],
+                  [
+                    0.275,
+                    0.0
+                  ],
+                  [
+                    0.25,
+                    0.0
+                  ],
+                  [
+                    0.225,
+                    0.0
+                  ],
+                  [
+                    0.2,
+                    0.0
+                  ],
+                  [
+                    0.17500000000000002,
+                    0.0
+                  ],
+                  [
+                    0.15000000000000002,
+                    0.0
+                  ],
+                  [
+                    0.125,
+                    0.0
+                  ],
+                  [
+                    0.1,
+                    0.0
+                  ],
+                  [
+                    0.07500000000000001,
+                    0.0
+                  ],
+                  [
+                    0.05,
+                    0.0
+                  ],
+                  [
+                    0.025,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ]
+                ]
+              },
+              {
+                "id": 3,
+                "x_range": [
+                  0.0,
+                  0.4
+                ],
+                "y_range": [
+                  0.24,
+                  0.24
+                ],
+                "length_polyline": 0.4,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.0,
+                    0.24
+                  ],
+                  [
+                    0.025,
+                    0.24
+                  ],
+                  [
+                    0.05,
+                    0.24
+                  ],
+                  [
+                    0.07500000000000001,
+                    0.24
+                  ],
+                  [
+                    0.1,
+                    0.24
+                  ],
+                  [
+                    0.125,
+                    0.24
+                  ],
+                  [
+                    0.15000000000000002,
+                    0.24
+                  ],
+                  [
+                    0.17500000000000002,
+                    0.24
+                  ],
+                  [
+                    0.2,
+                    0.24
+                  ],
+                  [
+                    0.225,
+                    0.24
+                  ],
+                  [
+                    0.25,
+                    0.24
+                  ],
+                  [
+                    0.275,
+                    0.24
+                  ],
+                  [
+                    0.30000000000000004,
+                    0.24
+                  ],
+                  [
+                    0.325,
+                    0.24
+                  ],
+                  [
+                    0.35000000000000003,
+                    0.24
+                  ],
+                  [
+                    0.375,
+                    0.24
+                  ],
+                  [
+                    0.4,
+                    0.24
+                  ]
+                ]
+              },
+              {
+                "id": 4,
+                "x_range": [
+                  0.4,
+                  0.4
+                ],
+                "y_range": [
+                  0.0,
+                  0.24
+                ],
+                "length_polyline": 0.2400000000000001,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.4,
+                    0.24
+                  ],
+                  [
+                    0.4,
+                    0.22499999999999998
+                  ],
+                  [
+                    0.4,
+                    0.21
+                  ],
+                  [
+                    0.4,
+                    0.195
+                  ],
+                  [
+                    0.4,
+                    0.18
+                  ],
+                  [
+                    0.4,
+                    0.16499999999999998
+                  ],
+                  [
+                    0.4,
+                    0.15
+                  ],
+                  [
+                    0.4,
+                    0.135
+                  ],
+                  [
+                    0.4,
+                    0.12
+                  ],
+                  [
+                    0.4,
+                    0.105
+                  ],
+                  [
+                    0.4,
+                    0.09
+                  ],
+                  [
+                    0.4,
+                    0.075
+                  ],
+                  [
+                    0.4,
+                    0.06
+                  ],
+                  [
+                    0.4,
+                    0.045
+                  ],
+                  [
+                    0.4,
+                    0.03
+                  ],
+                  [
+                    0.4,
+                    0.015
+                  ],
+                  [
+                    0.4,
+                    0.0
+                  ]
+                ]
+              },
+              {
+                "id": 5,
+                "x_range": [
+                  0.095,
+                  0.1
+                ],
+                "y_range": [
+                  0.11499999999999999,
+                  0.12
+                ],
+                "length_polyline": 0.007850807486099223,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.095,
+                    0.12
+                  ],
+                  [
+                    0.09502022545693561,
+                    0.11955072781051146
+                  ],
+                  [
+                    0.09508347315791713,
+                    0.11909018473793928
+                  ],
+                  [
+                    0.09519300520906483,
+                    0.11862420892577315
+                  ],
+                  [
+                    0.09535105849468786,
+                    0.11815952645219067
+                  ],
+                  [
+                    0.09555857996585122,
+                    0.11770352703471998
+                  ],
+                  [
+                    0.09581502244390673,
+                    0.11726395123307429
+                  ],
+                  [
+                    0.0961182340621258,
+                    0.11684850936800388
+                  ],
+                  [
+                    0.09646446609406725,
+                    0.11646446609406727
+                  ],
+                  [
+                    0.09684850936800385,
+                    0.11611823406212579
+                  ],
+                  [
+                    0.09726395123307428,
+                    0.11581502244390675
+                  ],
+                  [
+                    0.09770352703471999,
+                    0.11555857996585123
+                  ],
+                  [
+                    0.09815952645219064,
+                    0.11535105849468787
+                  ],
+                  [
+                    0.09862420892577316,
+                    0.11519300520906484
+                  ],
+                  [
+                    0.09909018473793929,
+                    0.11508347315791713
+                  ],
+                  [
+                    0.09955072781051147,
+                    0.11502022545693559
+                  ],
+                  [
+                    0.1,
+                    0.11499999999999999
+                  ]
+                ]
+              },
+              {
+                "id": 6,
+                "x_range": [
+                  0.095,
+                  0.1
+                ],
+                "y_range": [
+                  0.12,
+                  0.125
+                ],
+                "length_polyline": 0.00785080748609923,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.1,
+                    0.125
+                  ],
+                  [
+                    0.09955072781051147,
+                    0.12497977454306439
+                  ],
+                  [
+                    0.09909018473793929,
+                    0.12491652684208286
+                  ],
+                  [
+                    0.09862420892577316,
+                    0.12480699479093516
+                  ],
+                  [
+                    0.09815952645219066,
+                    0.12464894150531217
+                  ],
+                  [
+                    0.09770352703471999,
+                    0.12444142003414875
+                  ],
+                  [
+                    0.09726395123307428,
+                    0.12418497755609324
+                  ],
+                  [
+                    0.09684850936800386,
+                    0.12388176593787421
+                  ],
+                  [
+                    0.09646446609406725,
+                    0.12353553390593273
+                  ],
+                  [
+                    0.0961182340621258,
+                    0.12315149063199615
+                  ],
+                  [
+                    0.09581502244390673,
+                    0.1227360487669257
+                  ],
+                  [
+                    0.09555857996585122,
+                    0.12229647296528
+                  ],
+                  [
+                    0.09535105849468785,
+                    0.12184047354780937
+                  ],
+                  [
+                    0.09519300520906485,
+                    0.12137579107422683
+                  ],
+                  [
+                    0.09508347315791713,
+                    0.12090981526206072
+                  ],
+                  [
+                    0.0950202254569356,
+                    0.1204492721894885
+                  ],
+                  [
+                    0.095,
+                    0.12
+                  ]
+                ]
+              },
+              {
+                "id": 7,
+                "x_range": [
+                  0.1,
+                  0.10500000000000001
+                ],
+                "y_range": [
+                  0.11499999999999999,
+                  0.12
+                ],
+                "length_polyline": 0.007850807486099221,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.1,
+                    0.11499999999999999
+                  ],
+                  [
+                    0.10044927218948851,
+                    0.11502022545693559
+                  ],
+                  [
+                    0.10090981526206075,
+                    0.11508347315791713
+                  ],
+                  [
+                    0.10137579107422687,
+                    0.11519300520906484
+                  ],
+                  [
+                    0.10184047354780938,
+                    0.11535105849468787
+                  ],
+                  [
+                    0.10229647296528002,
+                    0.11555857996585123
+                  ],
+                  [
+                    0.10273604876692571,
+                    0.11581502244390675
+                  ],
+                  [
+                    0.10315149063199618,
+                    0.1161182340621258
+                  ],
+                  [
+                    0.10353553390593276,
+                    0.11646446609406727
+                  ],
+                  [
+                    0.10388176593787424,
+                    0.11684850936800388
+                  ],
+                  [
+                    0.10418497755609325,
+                    0.11726395123307429
+                  ],
+                  [
+                    0.10444142003414876,
+                    0.11770352703471998
+                  ],
+                  [
+                    0.10464894150531218,
+                    0.11815952645219067
+                  ],
+                  [
+                    0.10480699479093517,
+                    0.11862420892577315
+                  ],
+                  [
+                    0.10491652684208289,
+                    0.11909018473793928
+                  ],
+                  [
+                    0.1049797745430644,
+                    0.11955072781051146
+                  ],
+                  [
+                    0.10500000000000001,
+                    0.12
+                  ]
+                ]
+              },
+              {
+                "id": 8,
+                "x_range": [
+                  0.1,
+                  0.10500000000000001
+                ],
+                "y_range": [
+                  0.12,
+                  0.125
+                ],
+                "length_polyline": 0.007850807486099233,
+                "up_domain": 0,
+                "down_domain": 1,
+                "samples": [
+                  [
+                    0.10500000000000001,
+                    0.12
+                  ],
+                  [
+                    0.10497977454306441,
+                    0.1204492721894885
+                  ],
+                  [
+                    0.10491652684208289,
+                    0.12090981526206072
+                  ],
+                  [
+                    0.10480699479093517,
+                    0.12137579107422683
+                  ],
+                  [
+                    0.10464894150531219,
+                    0.12184047354780937
+                  ],
+                  [
+                    0.10444142003414876,
+                    0.12229647296528
+                  ],
+                  [
+                    0.10418497755609327,
+                    0.1227360487669257
+                  ],
+                  [
+                    0.10388176593787424,
+                    0.12315149063199615
+                  ],
+                  [
+                    0.10353553390593276,
+                    0.12353553390593273
+                  ],
+                  [
+                    0.10315149063199615,
+                    0.12388176593787423
+                  ],
+                  [
+                    0.10273604876692571,
+                    0.12418497755609324
+                  ],
+                  [
+                    0.10229647296528002,
+                    0.12444142003414875
+                  ],
+                  [
+                    0.10184047354780938,
+                    0.12464894150531217
+                  ],
+                  [
+                    0.10137579107422687,
+                    0.12480699479093517
+                  ],
+                  [
+                    0.10090981526206073,
+                    0.12491652684208288
+                  ],
+                  [
+                    0.10044927218948851,
+                    0.12497977454306439
+                  ],
+                  [
+                    0.1,
+                    0.125
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "meshes": [
+        {
+          "tag": "mesh1",
+          "sdim": 2,
+          "is_complete": true,
+          "num_elem": 34752,
+          "num_vertex": 17910,
+          "features": [
+            "size",
+            "size1",
+            "cr1",
+            "ftri1",
+            "bl1"
+          ]
+        }
+      ],
+      "physics": [
+        {
+          "tag": "spf",
+          "label": "Laminar Flow",
+          "type": "LaminarFlow",
+          "features": [
+            {
+              "tag": "fp1",
+              "label": "Fluid Properties 1",
+              "type": "FluidProperties",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "init1",
+              "label": "Initial Values 1",
+              "type": "init",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "wallbc1",
+              "label": "Wall 1",
+              "type": "WallBC",
+              "selection_entities": [
+                5,
+                6,
+                7,
+                8
+              ]
+            },
+            {
+              "tag": "grav1",
+              "label": "Gravity 1",
+              "type": "Gravity",
+              "selection_entities": []
+            },
+            {
+              "tag": "rtfr1",
+              "label": "Rotating Frame 1",
+              "type": "RotatingFrameFD",
+              "selection_entities": []
+            },
+            {
+              "tag": "dcont1",
+              "label": "Flow Continuity 1",
+              "type": "Continuity",
+              "selection_entities": []
+            },
+            {
+              "tag": "inl1",
+              "label": "Inlet 1",
+              "type": "InletBoundary",
+              "selection_entities": [
+                1
+              ]
+            },
+            {
+              "tag": "out1",
+              "label": "Outlet 1",
+              "type": "OutletBoundary",
+              "selection_entities": [
+                4
+              ]
+            },
+            {
+              "tag": "sym1",
+              "label": "对称 1",
+              "type": "Symmetry",
+              "selection_entities": [
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "materials": [
+        {
+          "tag": "mat1",
+          "label": "Material 1"
+        }
+      ]
+    }
+  ],
+  "studies": [
+    {
+      "tag": "std1",
+      "label": "Study 1",
+      "features": [
+        {
+          "tag": "time",
+          "label": "Time Dependent",
+          "type": "Transient",
+          "properties": {
+            "tdescr": "Time",
+            "showtlist": "on",
+            "usetunit": "on",
+            "tunit": "s",
+            "tlist": "range(180,0.2,200)",
+            "tlist_vector_method": "step",
+            "tlist_vector_start": "",
+            "tlist_vector_stop": "",
+            "tlist_vector_step": "",
+            "tlist_vector_numvalues": "",
+            "tlist_vector_function": "none",
+            "tlist_vector_interval": "octave",
+            "tlist_vector_freqperdec": "",
+            "initialtime": "0.0",
+            "usertol": "on",
+            "rtol": "1e-4",
+            "time_discrete": "off",
+            "geometricNonlinearity": "off",
+            "geometricNonlinearityActive": "off",
+            "updateOptimizationSettings": "off",
+            "ftplistmethod": "ignore",
+            "method": "fixed_number_of_iterations",
+            "expr": "1",
+            "rtolterm": "0.001",
+            "rtolthresh": "1",
+            "maxiter": "25",
+            "miniter": "1",
+            "atolterm": "0.001",
+            "iter": "5",
+            "outputhide": "off",
+            "plot": "off",
+            "plotgroupdummy": "Default",
+            "plotgrouparr": "pg1",
+            "plotwindowsarr": "",
+            "windowforpg": "new",
+            "plotfreq": "tout",
+            "probesel": "all",
+            "probes": "[]",
+            "probefreq": "tsteps",
+            "physselection": "",
+            "activate": "spf, on, frame:spatial1, on, frame:material1, on, comp1, on",
+            "useadvanceddisable": "off",
+            "disabledvariables": "[]",
+            "disabledcoordinatesystems": "[]",
+            "disabledcommon": "",
+            "disabledpair": "[]",
+            "disabledphysics": "",
+            "disableFrameControl": "",
+            "disabledcoupling": "",
+            "disabledreduced": "",
+            "disabledcomponent": "",
+            "discretization": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "equationform": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "shapeOrder": "comp1, component",
+            "equationform_freq": "spf, 1[kHz], frame:spatial1, 0, frame:material1, 0, comp1, 0",
+            "discretization_proxy": "physics",
+            "equationform_proxy": "physics",
+            "equationform_freq_proxy": "0",
+            "reconstructors_proxy": "none",
+            "shapeOrder_proxy": "component",
+            "multiphysicsSelection": "",
+            "activateCoupling": "",
+            "romselection": "",
+            "activaterom": "",
+            "activateimagereconstruct": "",
+            "reconstructables": "",
+            "reconstructors": "",
+            "useinitsol": "off",
+            "initmethod": "init",
+            "initstudy": "zero",
+            "initstudyhide": "on",
+            "initsol": "current",
+            "initsolhide": "on",
+            "initsoluse": "current",
+            "initsolusesolnumhide": "on",
+            "initsolusesolnum": "1",
+            "oldinitsoluse": "0",
+            "initstudystep": "",
+            "solvertype": "foo",
+            "solnumhide": "on",
+            "solnum": "auto",
+            "timeinterp": "off",
+            "t": "0",
+            "listsol": "off",
+            "listsolnum": "1",
+            "manualsol": "off",
+            "manualsolnum": "1",
+            "manualsolnum_vector_method": "step",
+            "manualsolnum_vector_start": "",
+            "manualsolnum_vector_stop": "",
+            "manualsolnum_vector_step": "",
+            "manualsolnum_vector_numvalues": "",
+            "manualsolnum_vector_function": "none",
+            "manualsolnum_vector_interval": "octave",
+            "manualsolnum_vector_freqperdec": "",
+            "usesol": "off",
+            "notsolmethod": "init",
+            "notstudy": "zero",
+            "notstudyhide": "on",
+            "notsol": "current",
+            "notsolhide": "on",
+            "notsoluse": "current",
+            "notsolusesolnumhide": "on",
+            "notsolusesolnum": "1",
+            "oldnotsoluse": "0",
+            "notstudystep": "",
+            "notsolvertype": "foo",
+            "notsolnumhide": "on",
+            "notsolnum": "auto",
+            "nottimeinterp": "off",
+            "nott": "0",
+            "notlistsol": "off",
+            "notlistsolnum": "1",
+            "notmanualsol": "off",
+            "notmanualsolnum": "1",
+            "notmanualsolnum_vector_method": "step",
+            "notmanualsolnum_vector_start": "",
+            "notmanualsolnum_vector_stop": "",
+            "notmanualsolnum_vector_step": "",
+            "notmanualsolnum_vector_numvalues": "",
+            "notmanualsolnum_vector_function": "none",
+            "notmanualsolnum_vector_interval": "octave",
+            "notmanualsolnum_vector_freqperdec": "",
+            "outputmap": "spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics",
+            "outputselectionmap": "spf, , frame:spatial1, , frame:material1, , comp1, ",
+            "outputSelectionProxy": "",
+            "geomselection": "",
+            "mesh": "geom1, mesh1",
+            "timeadaption": "none",
+            "timeadapgeom": "geom1",
+            "tauto": "manual",
+            "rmethod": "longest",
+            "rmethodauto": "longest",
+            "adaptselection": "",
+            "auxsweepmethod": "ignore",
+            "showuseparam": "on",
+            "useparam": "off",
+            "sweeptype": "sparse",
+            "loadFile": "",
+            "saveFile": "",
+            "pname": "",
+            "plistarr": "",
+            "plistarr_vector_method": "",
+            "plistarr_vector_start": "",
+            "plistarr_vector_stop": "",
+            "plistarr_vector_step": "",
+            "plistarr_vector_numvalues": "",
+            "plistarr_vector_function": "",
+            "plistarr_vector_interval": "octave",
+            "plistarr_vector_freqperdec": "",
+            "punit": "",
+            "optimization": "off",
+            "pdistrib": "off",
+            "autoremesh": "off",
+            "autoremeshgeom": "geom1",
+            "treeSelectionKey": "",
+            "equationFormCouplingColumn": "",
+            "tableRow": "",
+            "outputInterface": ""
+          }
+        }
+      ]
+    }
+  ],
+  "solvers": [
+    {
+      "tag": "sol1",
+      "label": "Solution 1",
+      "feature_tags": [
+        "st1",
+        "v1",
+        "t1"
+      ],
+      "features": [
+        {
+          "tag": "st1",
+          "type": "StudyStep",
+          "label": "编译方程: Time Dependent",
+          "properties": {
+            "study": "std1",
+            "studystep": "time",
+            "unredstudy": "",
+            "unredstep": "",
+            "useForModelReduction": "on",
+            "splitcomplex": "off",
+            "partmethod": "parent",
+            "linsmallelem": "physicscontrolled",
+            "componentid": "",
+            "linsmallelemexpr": "geom1, 0.0",
+            "units": "",
+            "saveprevioussolution": "off",
+            "assempara": "on",
+            "useent": "all",
+            "entsel": "[]",
+            "keeplog": "off",
+            "message": "<---- Study 1/Solution 1 (sol1) 中的“编译方程: Time Dependent” -----------------------\n开始于 2026年11月5日 23:44:28。\n几何形函数: 线性拉格朗日单元\n在 Intel(R) Core(TM) i7-14700 上运行。\n在以下位置使用 1 个插槽： SR-MuZY 上（共 16 个内核）。\n可用内存：32.42 GB。\n在 Intel(R) Core(TM) i7-14700 上运行。\n在以下位置使用 1 个插槽： SR-MuZY 上（共 16 个内核）。\n可用内存：32.42 GB。\n时间：2 s。\n物理内存: 918 MB\n虚拟内存: 835 MB\n结束时间：2026年11月5日 23:44:30。\n----- Study 1/Solution 1 (sol1) 中的“编译方程: Time Dependent” ---------------------->\n",
+            "const": "",
+            "propertyDefaults": "",
+            "changedproperties": "",
+            "hiddenchangedproperties": "",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        },
+        {
+          "tag": "v1",
+          "type": "Variables",
+          "label": "Dependent Variables 1",
+          "properties": {
+            "control": "user",
+            "initmethod": "sol",
+            "initsol": "sol_branch_seed",
+            "initsolhide": "on",
+            "initsoluse": "current",
+            "oldinitsoluse": "0",
+            "initsolusesolnumhide": "on",
+            "initsolusesolnum": "1",
+            "solvertype": "solnum",
+            "solnum": "manual",
+            "timeinterp": "off",
+            "t": "200",
+            "manualsol": "on",
+            "manualsolnum": "901",
+            "manualsolnum_vector_method": "step",
+            "manualsolnum_vector_start": "",
+            "manualsolnum_vector_stop": "",
+            "manualsolnum_vector_step": "",
+            "manualsolnum_vector_numvalues": "",
+            "manualsolnum_vector_function": "none",
+            "manualsolnum_vector_interval": "octave",
+            "manualsolnum_vector_freqperdec": "",
+            "listsol": "off",
+            "listsolnum": "1",
+            "scalemethod": "auto",
+            "scaleval": "1.0",
+            "resscalemethod": "auto",
+            "resscaleval": "1.0",
+            "resscalethresh": "100.0",
+            "notsolmethod": "init",
+            "notsol": "zero",
+            "notsolhide": "on",
+            "notsoluse": "current",
+            "oldnotsoluse": "0",
+            "notsolusesolnumhide": "on",
+            "notsolusesolnum": "1",
+            "notsolvertype": "none",
+            "notsolnum": "auto",
+            "nottimeinterp": "off",
+            "nott": "0",
+            "notmanualsol": "off",
+            "notmanualsolnum": "1",
+            "notmanualsolnum_vector_method": "step",
+            "notmanualsolnum_vector_start": "",
+            "notmanualsolnum_vector_stop": "",
+            "notmanualsolnum_vector_step": "",
+            "notmanualsolnum_vector_numvalues": "",
+            "notmanualsolnum_vector_function": "none",
+            "notmanualsolnum_vector_interval": "octave",
+            "notmanualsolnum_vector_freqperdec": "",
+            "notlistsol": "off",
+            "notlistsolnum": "1",
+            "initparametersmethod": "auto",
+            "clistctrl": "t1_t, t1_timestep",
+            "cname": "t, timestep",
+            "clist": "180, 180.2, 180.4, 180.6, 180.8, 181, 181.2, 181.4, 181.6, 181.8, 182, 182.2, 182.4, 182.6, 182.8, 183, 183.2, 183.4, 183.6, 183.8, 184, 184.2, 184.4, 184.6, 184.8, 185, 185.2, 185.4, 185.6, 185.8, 186, 186.2, 186.4, 186.6, 186.8, 187, 187.2, 187.4, 187.6, 187.8, 188, 188.2, 188.4, 188.6, 188.8, 189, 189.2, 189.4, 189.6, 189.8, 190, 190.2, 190.4, 190.6, 190.8, 191, 191.2, 191.4, 191.6, 191.8, 192, 192.2, 192.4, 192.6, 192.8, 193, 193.2, 193.4, 193.6, 193.8, 194, 194.2, 194.4, 194.6, 194.8, 195, 195.2, 195.4, 195.6, 195.8, 196, 196.2, 196.4, 196.6, 196.8, 197, 197.2, 197.4, 197.6, 197.8, 198, 198.2, 198.4, 198.6, 198.8, 199, 199.2, 199.4, 199.6, 199.8, 200; 0.02",
+            "keeplog": "off",
+            "message": "<---- Study 1/Solution 1 (sol1) 中的“Dependent Variables 1” ----------------------\n开始于 2026年11月5日 23:44:30。\n待求解变量的初始值: Native M3 history; branch seed is saved frame 901 at t=180 s (sol_branch_seed), t=180 s [手动].\n求解时间：0 s。\n物理内存: 948 MB\n虚拟内存: 902 MB\n结束时间：2026年11月5日 23:44:30。\n----- Study 1/Solution 1 (sol1) 中的“Dependent Variables 1” --------------------->\n",
+            "const": "",
+            "storesol": "init",
+            "propertyDefaults": "initmethod, init; initsol, zero; t, 0; manualsolnum, \"1\"; solnum, auto",
+            "changedproperties": "Parameter name and value, clist, {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], 0.007[s]; -, cname, t, t, timestep; -, clistctrl, t1_t, t1_t, t1_timestep",
+            "hiddenchangedproperties": "",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        },
+        {
+          "tag": "t1",
+          "type": "Time",
+          "label": "Time-Dependent Solver 1",
+          "properties": {
+            "control": "time",
+            "usetunit": "on",
+            "tunit": "s",
+            "tlist": "range(180,0.2,200)",
+            "tlist_vector_method": "step",
+            "tlist_vector_start": "",
+            "tlist_vector_stop": "",
+            "tlist_vector_step": "",
+            "tlist_vector_numvalues": "",
+            "tlist_vector_function": "none",
+            "tlist_vector_interval": "octave",
+            "tlist_vector_freqperdec": "",
+            "tout": "tlist",
+            "tstepsstore": "1",
+            "rtol": "1e-4",
+            "atolglobalmethod": "scaled",
+            "atolglobalvaluemethod": "factor",
+            "atolglobalfactor": "0.05",
+            "tderglobalmethod": "auto",
+            "tderglobalfactor": "1",
+            "atolglobal": "0.001",
+            "ewtrescale": "on",
+            "atolmethod": "comp1_p, scaled, comp1_u, global",
+            "atolvaluemethod": "comp1_p, factor, comp1_u, factor",
+            "atolfactor": "comp1_p, 1, comp1_u, 0.1",
+            "tdermethod": "comp1_p, auto, comp1_u, auto",
+            "tderfactor": "comp1_p, 1.0, comp1_u, 1.0",
+            "atol": "comp1_p, 1e-3, comp1_u, 1e-3",
+            "atoludot": "comp1_p, 1e-3, comp1_u, 1e-3",
+            "atolmethodAUX": "scaled",
+            "atolvaluemethodAUX": "factor",
+            "atolfactorAUX": "1",
+            "tdermethodAUX": "auto",
+            "tderfactorAUX": "1.0",
+            "atolAUX": "1e-3",
+            "atoludotAUX": "1e-3",
+            "odesolvertype": "implicit",
+            "timemethod": "bdf",
+            "tstepsbdf": "intermediate",
+            "endtimeinterpolation": "on",
+            "initialstepbdf": "0.001",
+            "initialstepbdfactive": "off",
+            "maxstepconstraintbdf": "const",
+            "maxstepbdf": "0.05",
+            "maxstepexpressionbdf": "0.1",
+            "maxorder": "2",
+            "minorder": "1",
+            "bdforder": "2",
+            "initialstepfractionbdf-1": "1",
+            "initialstepgrowthratebdf-1": "1.5",
+            "initialstepfractionbdf-2": "1",
+            "initialstepgrowthratebdf-2": "1.5",
+            "initialstepfractionbdf-3": "0.1",
+            "initialstepgrowthratebdf-3": "1.2",
+            "initialstepfractionbdf-4": "0.01",
+            "initialstepgrowthratebdf-4": "1.15",
+            "initialstepfractionbdf-5": "0.001",
+            "initialstepgrowthratebdf-5": "1.1",
+            "timestepbdf": "0.01",
+            "eventtol": "0.01",
+            "stabcntrl": "on",
+            "masssingular": "maybe",
+            "consistent": "bweuler",
+            "bwinitstepfrac": "0.01",
+            "bwinitfactor": "20",
+            "estrat": "exclude",
+            "tstepsgenalpha": "free",
+            "initialstepgenalpha": "0.001",
+            "initialstepgenalphaactive": "off",
+            "maxstepconstraintgenalpha": "auto",
+            "maxstepgenalpha": "0.1",
+            "maxstepexpressiongenalpha": "0.1",
+            "incrdelay": "15",
+            "incrdelayactive": "off",
+            "rhoinf": "0.5",
+            "predictor": "constant",
+            "timestepgenalpha": "0.01",
+            "rescaleafterinitbw": "off",
+            "timemethodexp": "rk",
+            "rkmethod": "rk34",
+            "tstepsrk34": "free",
+            "initialsteprk34": "0.001",
+            "initialsteprk34active": "off",
+            "timesteprk34": "0.01",
+            "tstepsck5": "free",
+            "initialstepck5": "0.001",
+            "initialstepck5active": "off",
+            "timestepck5": "0.01",
+            "tstepsdopri5": "free",
+            "initialstepdopri5": "0.001",
+            "initialstepdopri5active": "off",
+            "dopripicontrol": "smooth",
+            "maxstepconstraintdopri5": "auto",
+            "maxstepdopri5": "0.1",
+            "maxstepexpressiondopri5": "0.1",
+            "doprigrowmin": "0.2",
+            "doprigrowmax": "10",
+            "doprisafe": "0.9",
+            "timestepdopri5": "0.01",
+            "rkstiffcheck": "on",
+            "erkorder": "4",
+            "tstepping": "manual",
+            "rktimestep": "1.e-3",
+            "updtstep": "off",
+            "ntimestepsupdate": "10",
+            "exprs": "",
+            "mlinsolver": "dDef",
+            "algebraicsolvemethodRK": "full",
+            "algebraicsolveeverynRK": "1",
+            "algebraicsolveeverydtRK": "0",
+            "algebraicsolvemethod": "n",
+            "algebraicsolveeveryn": "1",
+            "algebraicsolveeverydt": "0",
+            "updtlvl": "off",
+            "ntimestepsupdateab3loc": "100",
+            "rtstepab3loc": "0.1",
+            "verletauxsolver": "ab2",
+            "checkvalidity": "off",
+            "exprsgeom": "",
+            "exprsgeomab3loc": "",
+            "exprsgporder": "",
+            "exprsgporderupdt": "",
+            "exprsgporderab3loc": "",
+            "plot": "off",
+            "plotgroupdummy": "Default",
+            "plotgrouparr": "pg1",
+            "plotwindowsarr": "",
+            "windowforpg": "new",
+            "plotfreq": "tout",
+            "probesel": "all",
+            "probes": "[]",
+            "probefreq": "tsteps",
+            "reacf": "on",
+            "lumpedflux": "off",
+            "storeudot": "on",
+            "eventout": "off",
+            "complex": "off",
+            "solref": "off",
+            "assumeperiodic": "off",
+            "starttime": "0",
+            "solutionperiod": "0",
+            "cosimstoressol": "off",
+            "cosim": "off",
+            "cosiminput": "",
+            "cosimoutput": "",
+            "cosimconsistent": "on",
+            "uselsqtimedata": "on",
+            "tlistlsq": "",
+            "excludelsqtimes": "on",
+            "lsqtimesout": "",
+            "clistctrl": "",
+            "cname": "",
+            "clist": "",
+            "keeplog": "off",
+            "message": "",
+            "const": "",
+            "propertyDefaults": "maxstepconstraintbdf, auto; maxstepbdf, 0.1",
+            "changedproperties": "Steps taken by solver, tstepsbdf, free, intermediate",
+            "hiddenchangedproperties": "",
+            "fieldselection": "comp1_p",
+            "visibleChanges": "",
+            "hiddenChanges": ""
+          }
+        }
+      ]
+    },
+    {
+      "tag": "sol_branch_seed",
+      "label": "Native M3 history; branch seed is saved frame 901 at t=180 s",
+      "feature_tags": [],
+      "features": []
+    }
+  ],
+  "log": "*******************************************\r\n***COMSOL 6.4.0.429 progress output file***\r\n*******************************************\r\nMon Nov 09 11:05:02 CST 2026\r\n<<<JSON_START>>>\r\n{\n  \"status\": \"SUCCESS\",\n  \"operation\": \"inspect_model\",\n  \"model_path\": \"D:\\\\\\ud83d\\udcc1 01_Workspaces (\\u4ee3\\u7801\\u4e0e\\u5de5\\u7a0b\\u533a)\\\\HydroDisturb-Bench\\\\scratch\\\\m3_branch_pulse_20261105\\\\prepare_08\\\\common_checkpoint.mph\",\n  \"model_tag\": \"Model\",\n  \"comsol_version\": \"COMSOL Multiphysics 6.4 (\\u5f00\\u53d1\\u7248\\u672c: 429)\",\n  \"parameters\": {\n    \"H\": {\n      \"expr\": \"0.24[m]\",\n      \"value\": 0.24,\n      \"unit\": \"m\",\n      \"description\": \"Domain height (24D)\"\n    },\n    \"L\": {\n      \"expr\": \"0.40[m]\",\n      \"value\": 0.4,\n      \"unit\": \"m\",\n      \"description\": \"Domain length (40D)\"\n    },\n    \"W\": {\n      \"expr\": \"1[m]\",\n      \"value\": 1.0,\n      \"unit\": \"m\",\n      \"description\": \"Channel width (not modeled)\"\n    },\n    \"R\": {\n      \"expr\": \"D/2\",\n      \"value\": 0.005,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder radius\"\n    },\n    \"U_mean\": {\n      \"expr\": \"U_inf\",\n      \"value\": 0.010058104588258865,\n      \"unit\": \"m/s\",\n      \"description\": \"Mean inflow velocity alias\"\n    },\n    \"D\": {\n      \"expr\": \"0.01[m]\",\n      \"value\": 0.01,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder diameter\"\n    },\n    \"x_c\": {\n      \"expr\": \"0.10[m]\",\n      \"value\": 0.1,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder center X (10D upstream distance)\"\n    },\n    \"y_c\": {\n      \"expr\": \"0.12[m]\",\n      \"value\": 0.12,\n      \"unit\": \"m\",\n      \"description\": \"Cylinder center Y (12D lateral half-width)\"\n    },\n    \"rho_f\": {\n      \"expr\": \"998.2[kg/m^3]\",\n      \"value\": 998.2,\n      \"unit\": \"kg/m^3\",\n      \"description\": \"Water density at 20 degC\"\n    },\n    \"mu_f\": {\n      \"expr\": \"1.004e-3[Pa*s]\",\n      \"value\": 0.001004,\n      \"unit\": \"Pa*s\",\n      \"description\": \"Water dynamic viscosity at 20 degC\"\n    },\n    \"Re\": {\n      \"expr\": \"100\",\n      \"value\": 100.0,\n      \"unit\": null,\n      \"description\": \"Target Reynolds number\"\n    },\n    \"U_inf\": {\n      \"expr\": \"Re*mu_f/(rho_f*D)\",\n      \"value\": 0.010058104588258865,\n      \"unit\": \"m/s\",\n      \"description\": \"Inflow free-stream velocity\"\n    },\n    \"branch_tb\": {\n      \"expr\": \"180[s]\",\n      \"value\": 180.0,\n      \"unit\": \"s\",\n      \"description\": \"Frozen native restart time\"\n    },\n    \"branch_source_solnum\": {\n      \"expr\": \"901\",\n      \"value\": 901.0,\n      \"unit\": null,\n      \"description\": \"Original M3 saved solution index\"\n    },\n    \"branch_seed_solnum\": {\n      \"expr\": \"901\",\n      \"value\": 901.0,\n      \"unit\": null,\n      \"description\": \"Exact saved index in full native seed copy\"\n    }\n  },\n  \"components\": [\n    {\n      \"tag\": \"comp1\",\n      \"label\": \"Component 1\",\n      \"geometries\": [\n        {\n          \"tag\": \"geom1\",\n          \"sdim\": 2,\n          \"features\": [\"r1\", \"c1\", \"dif1\", \"fin\"],\n          \"boundary_geometry\": {\n            \"available\": true,\n            \"source\": \"COMSOL GeomSequence live query (getNBoundaries, getBoundingBox, getUpDown, edgeParamRange, edgeX)\",\n            \"geometry_tag\": \"geom1\",\n            \"geometry_rebuilt_in_memory\": false,\n            \"n_boundaries\": 8,\n            \"n_domains\": 1,\n            \"bounding_box\": [0.0, 0.4000000000000001, 0.0, 0.24],\n            \"samples_per_boundary\": 17,\n            \"boundaries\": [\n              {\"id\": 1, \"x_range\": [0.0, 0.0], \"y_range\": [0.0, 0.24], \"length_polyline\": 0.24, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.0, 0.0], [0.0, 0.015], [0.0, 0.03], [0.0, 0.045], [0.0, 0.06], [0.0, 0.075], [0.0, 0.09], [0.0, 0.105], [0.0, 0.12], [0.0, 0.135], [0.0, 0.15], [0.0, 0.16499999999999998], [0.0, 0.18], [0.0, 0.195], [0.0, 0.21], [0.0, 0.22499999999999998], [0.0, 0.24]]},\n              {\"id\": 2, \"x_range\": [0.0, 0.4], \"y_range\": [0.0, 0.0], \"length_polyline\": 0.40000000000000013, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.4, 0.0], [0.375, 0.0], [0.35000000000000003, 0.0], [0.325, 0.0], [0.30000000000000004, 0.0], [0.275, 0.0], [0.25, 0.0], [0.225, 0.0], [0.2, 0.0], [0.17500000000000002, 0.0], [0.15000000000000002, 0.0], [0.125, 0.0], [0.1, 0.0], [0.07500000000000001, 0.0], [0.05, 0.0], [0.025, 0.0], [0.0, 0.0]]},\n              {\"id\": 3, \"x_range\": [0.0, 0.4], \"y_range\": [0.24, 0.24], \"length_polyline\": 0.4, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.0, 0.24], [0.025, 0.24], [0.05, 0.24], [0.07500000000000001, 0.24], [0.1, 0.24], [0.125, 0.24], [0.15000000000000002, 0.24], [0.17500000000000002, 0.24], [0.2, 0.24], [0.225, 0.24], [0.25, 0.24], [0.275, 0.24], [0.30000000000000004, 0.24], [0.325, 0.24], [0.35000000000000003, 0.24], [0.375, 0.24], [0.4, 0.24]]},\n              {\"id\": 4, \"x_range\": [0.4, 0.4], \"y_range\": [0.0, 0.24], \"length_polyline\": 0.2400000000000001, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.4, 0.24], [0.4, 0.22499999999999998], [0.4, 0.21], [0.4, 0.195], [0.4, 0.18], [0.4, 0.16499999999999998], [0.4, 0.15], [0.4, 0.135], [0.4, 0.12], [0.4, 0.105], [0.4, 0.09], [0.4, 0.075], [0.4, 0.06], [0.4, 0.045], [0.4, 0.03], [0.4, 0.015], [0.4, 0.0]]},\n              {\"id\": 5, \"x_range\": [0.095, 0.1], \"y_range\": [0.11499999999999999, 0.12], \"length_polyline\": 0.007850807486099223, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.095, 0.12], [0.09502022545693561, 0.11955072781051146], [0.09508347315791713, 0.11909018473793928], [0.09519300520906483, 0.11862420892577315], [0.09535105849468786, 0.11815952645219067], [0.09555857996585122, 0.11770352703471998], [0.09581502244390673, 0.11726395123307429], [0.0961182340621258, 0.11684850936800388], [0.09646446609406725, 0.11646446609406727], [0.09684850936800385, 0.11611823406212579], [0.09726395123307428, 0.11581502244390675], [0.09770352703471999, 0.11555857996585123], [0.09815952645219064, 0.11535105849468787], [0.09862420892577316, 0.11519300520906484], [0.09909018473793929, 0.11508347315791713], [0.09955072781051147, 0.11502022545693559], [0.1, 0.11499999999999999]]},\n              {\"id\": 6, \"x_range\": [0.095, 0.1], \"y_range\": [0.12, 0.125], \"length_polyline\": 0.00785080748609923, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.1, 0.125], [0.09955072781051147, 0.12497977454306439], [0.09909018473793929, 0.12491652684208286], [0.09862420892577316, 0.12480699479093516], [0.09815952645219066, 0.12464894150531217], [0.09770352703471999, 0.12444142003414875], [0.09726395123307428, 0.12418497755609324], [0.09684850936800386, 0.12388176593787421], [0.09646446609406725, 0.12353553390593273], [0.0961182340621258, 0.12315149063199615], [0.09581502244390673, 0.1227360487669257], [0.09555857996585122, 0.12229647296528], [0.09535105849468785, 0.12184047354780937], [0.09519300520906485, 0.12137579107422683], [0.09508347315791713, 0.12090981526206072], [0.0950202254569356, 0.1204492721894885], [0.095, 0.12]]},\n              {\"id\": 7, \"x_range\": [0.1, 0.10500000000000001], \"y_range\": [0.11499999999999999, 0.12], \"length_polyline\": 0.007850807486099221, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.1, 0.11499999999999999], [0.10044927218948851, 0.11502022545693559], [0.10090981526206075, 0.11508347315791713], [0.10137579107422687, 0.11519300520906484], [0.10184047354780938, 0.11535105849468787], [0.10229647296528002, 0.11555857996585123], [0.10273604876692571, 0.11581502244390675], [0.10315149063199618, 0.1161182340621258], [0.10353553390593276, 0.11646446609406727], [0.10388176593787424, 0.11684850936800388], [0.10418497755609325, 0.11726395123307429], [0.10444142003414876, 0.11770352703471998], [0.10464894150531218, 0.11815952645219067], [0.10480699479093517, 0.11862420892577315], [0.10491652684208289, 0.11909018473793928], [0.1049797745430644, 0.11955072781051146], [0.10500000000000001, 0.12]]},\n              {\"id\": 8, \"x_range\": [0.1, 0.10500000000000001], \"y_range\": [0.12, 0.125], \"length_polyline\": 0.007850807486099233, \"up_domain\": 0, \"down_domain\": 1, \"samples\": [[0.10500000000000001, 0.12], [0.10497977454306441, 0.1204492721894885], [0.10491652684208289, 0.12090981526206072], [0.10480699479093517, 0.12137579107422683], [0.10464894150531219, 0.12184047354780937], [0.10444142003414876, 0.12229647296528], [0.10418497755609327, 0.1227360487669257], [0.10388176593787424, 0.12315149063199615], [0.10353553390593276, 0.12353553390593273], [0.10315149063199615, 0.12388176593787423], [0.10273604876692571, 0.12418497755609324], [0.10229647296528002, 0.12444142003414875], [0.10184047354780938, 0.12464894150531217], [0.10137579107422687, 0.12480699479093517], [0.10090981526206073, 0.12491652684208288], [0.10044927218948851, 0.12497977454306439], [0.1, 0.125]]}\n            ]\n          }\n        }\n      ],\n      \"meshes\": [\n        {\n          \"tag\": \"mesh1\",\n          \"sdim\": 2,\n          \"is_complete\": true,\n          \"num_elem\": 34752,\n          \"num_vertex\": 17910,\n          \"features\": [\"size\", \"size1\", \"cr1\", \"ftri1\", \"bl1\"]\n        }\n      ],\n      \"physics\": [\n        {\n          \"tag\": \"spf\",\n          \"label\": \"Laminar Flow\",\n          \"type\": \"LaminarFlow\",\n          \"features\": [\n            {\n              \"tag\": \"fp1\",\n              \"label\": \"Fluid Properties 1\",\n              \"type\": \"FluidProperties\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"init1\",\n              \"label\": \"Initial Values 1\",\n              \"type\": \"init\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"wallbc1\",\n              \"label\": \"Wall 1\",\n              \"type\": \"WallBC\",\n              \"selection_entities\": [5, 6, 7, 8]\n            },\n            {\n              \"tag\": \"grav1\",\n              \"label\": \"Gravity 1\",\n              \"type\": \"Gravity\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"rtfr1\",\n              \"label\": \"Rotating Frame 1\",\n              \"type\": \"RotatingFrameFD\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"dcont1\",\n              \"label\": \"Flow Continuity 1\",\n              \"type\": \"Continuity\",\n              \"selection_entities\": []\n            },\n            {\n              \"tag\": \"inl1\",\n              \"label\": \"Inlet 1\",\n              \"type\": \"InletBoundary\",\n              \"selection_entities\": [1]\n            },\n            {\n              \"tag\": \"out1\",\n              \"label\": \"Outlet 1\",\n              \"type\": \"OutletBoundary\",\n              \"selection_entities\": [4]\n            },\n            {\n              \"tag\": \"sym1\",\n              \"label\": \"\\u5bf9\\u79f0 1\",\n              \"type\": \"Symmetry\",\n              \"selection_entities\": [2, 3]\n            }\n          ]\n        }\n      ],\n      \"materials\": [\n        {\n          \"tag\": \"mat1\",\n          \"label\": \"Material 1\"\n        }\n      ]\n    }\n  ],\n  \"studies\": [\n    {\n      \"tag\": \"std1\",\n      \"label\": \"Study 1\",\n      \"features\": [\n        {\n          \"tag\": \"time\",\n          \"label\": \"Time Dependent\",\n          \"type\": \"Transient\",\n          \"properties\": {\n            \"tdescr\": \"Time\",\n            \"showtlist\": \"on\",\n            \"usetunit\": \"on\",\n            \"tunit\": \"s\",\n            \"tlist\": \"range(180,0.2,200)\",\n            \"tlist_vector_method\": \"step\",\n            \"tlist_vector_start\": \"\",\n            \"tlist_vector_stop\": \"\",\n            \"tlist_vector_step\": \"\",\n            \"tlist_vector_numvalues\": \"\",\n            \"tlist_vector_function\": \"none\",\n            \"tlist_vector_interval\": \"octave\",\n            \"tlist_vector_freqperdec\": \"\",\n            \"initialtime\": \"0.0\",\n            \"usertol\": \"on\",\n            \"rtol\": \"1e-4\",\n            \"time_discrete\": \"off\",\n            \"geometricNonlinearity\": \"off\",\n            \"geometricNonlinearityActive\": \"off\",\n            \"updateOptimizationSettings\": \"off\",\n            \"ftplistmethod\": \"ignore\",\n            \"method\": \"fixed_number_of_iterations\",\n            \"expr\": \"1\",\n            \"rtolterm\": \"0.001\",\n            \"rtolthresh\": \"1\",\n            \"maxiter\": \"25\",\n            \"miniter\": \"1\",\n            \"atolterm\": \"0.001\",\n            \"iter\": \"5\",\n            \"outputhide\": \"off\",\n            \"plot\": \"off\",\n            \"plotgroupdummy\": \"Default\",\n            \"plotgrouparr\": \"pg1\",\n            \"plotwindowsarr\": \"\",\n            \"windowforpg\": \"new\",\n            \"plotfreq\": \"tout\",\n            \"probesel\": \"all\",\n            \"probes\": \"[]\",\n            \"probefreq\": \"tsteps\",\n            \"physselection\": \"\",\n            \"activate\": \"spf, on, frame:spatial1, on, frame:material1, on, comp1, on\",\n            \"useadvanceddisable\": \"off\",\n            \"disabledvariables\": \"[]\",\n            \"disabledcoordinatesystems\": \"[]\",\n            \"disabledcommon\": \"\",\n            \"disabledpair\": \"[]\",\n            \"disabledphysics\": \"\",\n            \"disableFrameControl\": \"\",\n            \"disabledcoupling\": \"\",\n            \"disabledreduced\": \"\",\n            \"disabledcomponent\": \"\",\n            \"discretization\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"equationform\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"shapeOrder\": \"comp1, component\",\n            \"equationform_freq\": \"spf, 1[kHz], frame:spatial1, 0, frame:material1, 0, comp1, 0\",\n            \"discretization_proxy\": \"physics\",\n            \"equationform_proxy\": \"physics\",\n            \"equationform_freq_proxy\": \"0\",\n            \"reconstructors_proxy\": \"none\",\n            \"shapeOrder_proxy\": \"component\",\n            \"multiphysicsSelection\": \"\",\n            \"activateCoupling\": \"\",\n            \"romselection\": \"\",\n            \"activaterom\": \"\",\n            \"activateimagereconstruct\": \"\",\n            \"reconstructables\": \"\",\n            \"reconstructors\": \"\",\n            \"useinitsol\": \"off\",\n            \"initmethod\": \"init\",\n            \"initstudy\": \"zero\",\n            \"initstudyhide\": \"on\",\n            \"initsol\": \"current\",\n            \"initsolhide\": \"on\",\n            \"initsoluse\": \"current\",\n            \"initsolusesolnumhide\": \"on\",\n            \"initsolusesolnum\": \"1\",\n            \"oldinitsoluse\": \"0\",\n            \"initstudystep\": \"\",\n            \"solvertype\": \"foo\",\n            \"solnumhide\": \"on\",\n            \"solnum\": \"auto\",\n            \"timeinterp\": \"off\",\n            \"t\": \"0\",\n            \"listsol\": \"off\",\n            \"listsolnum\": \"1\",\n            \"manualsol\": \"off\",\n            \"manualsolnum\": \"1\",\n            \"manualsolnum_vector_method\": \"step\",\n            \"manualsolnum_vector_start\": \"\",\n            \"manualsolnum_vector_stop\": \"\",\n            \"manualsolnum_vector_step\": \"\",\n            \"manualsolnum_vector_numvalues\": \"\",\n            \"manualsolnum_vector_function\": \"none\",\n            \"manualsolnum_vector_interval\": \"octave\",\n            \"manualsolnum_vector_freqperdec\": \"\",\n            \"usesol\": \"off\",\n            \"notsolmethod\": \"init\",\n            \"notstudy\": \"zero\",\n            \"notstudyhide\": \"on\",\n            \"notsol\": \"current\",\n            \"notsolhide\": \"on\",\n            \"notsoluse\": \"current\",\n            \"notsolusesolnumhide\": \"on\",\n            \"notsolusesolnum\": \"1\",\n            \"oldnotsoluse\": \"0\",\n            \"notstudystep\": \"\",\n            \"notsolvertype\": \"foo\",\n            \"notsolnumhide\": \"on\",\n            \"notsolnum\": \"auto\",\n            \"nottimeinterp\": \"off\",\n            \"nott\": \"0\",\n            \"notlistsol\": \"off\",\n            \"notlistsolnum\": \"1\",\n            \"notmanualsol\": \"off\",\n            \"notmanualsolnum\": \"1\",\n            \"notmanualsolnum_vector_method\": \"step\",\n            \"notmanualsolnum_vector_start\": \"\",\n            \"notmanualsolnum_vector_stop\": \"\",\n            \"notmanualsolnum_vector_step\": \"\",\n            \"notmanualsolnum_vector_numvalues\": \"\",\n            \"notmanualsolnum_vector_function\": \"none\",\n            \"notmanualsolnum_vector_interval\": \"octave\",\n            \"notmanualsolnum_vector_freqperdec\": \"\",\n            \"outputmap\": \"spf, physics, frame:spatial1, physics, frame:material1, physics, comp1, physics\",\n            \"outputselectionmap\": \"spf, , frame:spatial1, , frame:material1, , comp1, \",\n            \"outputSelectionProxy\": \"\",\n            \"geomselection\": \"\",\n            \"mesh\": \"geom1, mesh1\",\n            \"timeadaption\": \"none\",\n            \"timeadapgeom\": \"geom1\",\n            \"tauto\": \"manual\",\n            \"rmethod\": \"longest\",\n            \"rmethodauto\": \"longest\",\n            \"adaptselection\": \"\",\n            \"auxsweepmethod\": \"ignore\",\n            \"showuseparam\": \"on\",\n            \"useparam\": \"off\",\n            \"sweeptype\": \"sparse\",\n            \"loadFile\": \"\",\n            \"saveFile\": \"\",\n            \"pname\": \"\",\n            \"plistarr\": \"\",\n            \"plistarr_vector_method\": \"\",\n            \"plistarr_vector_start\": \"\",\n            \"plistarr_vector_stop\": \"\",\n            \"plistarr_vector_step\": \"\",\n            \"plistarr_vector_numvalues\": \"\",\n            \"plistarr_vector_function\": \"\",\n            \"plistarr_vector_interval\": \"octave\",\n            \"plistarr_vector_freqperdec\": \"\",\n            \"punit\": \"\",\n            \"optimization\": \"off\",\n            \"pdistrib\": \"off\",\n            \"autoremesh\": \"off\",\n            \"autoremeshgeom\": \"geom1\",\n            \"treeSelectionKey\": \"\",\n            \"equationFormCouplingColumn\": \"\",\n            \"tableRow\": \"\",\n            \"outputInterface\": \"\"\n          }\n        }\n      ]\n    }\n  ],\n  \"solvers\": [\n    {\n      \"tag\": \"sol1\",\n      \"label\": \"Solution 1\",\n      \"feature_tags\": [\"st1\", \"v1\", \"t1\"],\n      \"features\": [\n        {\n          \"tag\": \"st1\",\n          \"type\": \"StudyStep\",\n          \"label\": \"\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\",\n          \"properties\": {\n            \"study\": \"std1\",\n            \"studystep\": \"time\",\n            \"unredstudy\": \"\",\n            \"unredstep\": \"\",\n            \"useForModelReduction\": \"on\",\n            \"splitcomplex\": \"off\",\n            \"partmethod\": \"parent\",\n            \"linsmallelem\": \"physicscontrolled\",\n            \"componentid\": \"\",\n            \"linsmallelemexpr\": \"geom1, 0.0\",\n            \"units\": \"\",\n            \"saveprevioussolution\": \"off\",\n            \"assempara\": \"on\",\n            \"useent\": \"all\",\n            \"entsel\": \"[]\",\n            \"keeplog\": \"off\",\n            \"message\": \"<---- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201c\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\\u201d -----------------------\\n\\u5f00\\u59cb\\u4e8e 2026\\u5e7411\\u67085\\u65e5 23:44:28\\u3002\\n\\u51e0\\u4f55\\u5f62\\u51fd\\u6570: \\u7ebf\\u6027\\u62c9\\u683c\\u6717\\u65e5\\u5355\\u5143\\n\\u5728 Intel(R) Core(TM) i7-14700 \\u4e0a\\u8fd0\\u884c\\u3002\\n\\u5728\\u4ee5\\u4e0b\\u4f4d\\u7f6e\\u4f7f\\u7528 1 \\u4e2a\\u63d2\\u69fd\\uff1a SR-MuZY \\u4e0a\\uff08\\u5171 16 \\u4e2a\\u5185\\u6838\\uff09\\u3002\\n\\u53ef\\u7528\\u5185\\u5b58\\uff1a32.42 GB\\u3002\\n\\u5728 Intel(R) Core(TM) i7-14700 \\u4e0a\\u8fd0\\u884c\\u3002\\n\\u5728\\u4ee5\\u4e0b\\u4f4d\\u7f6e\\u4f7f\\u7528 1 \\u4e2a\\u63d2\\u69fd\\uff1a SR-MuZY \\u4e0a\\uff08\\u5171 16 \\u4e2a\\u5185\\u6838\\uff09\\u3002\\n\\u53ef\\u7528\\u5185\\u5b58\\uff1a32.42 GB\\u3002\\n\\u65f6\\u95f4\\uff1a2 s\\u3002\\n\\u7269\\u7406\\u5185\\u5b58: 918 MB\\n\\u865a\\u62df\\u5185\\u5b58: 835 MB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67085\\u65e5 23:44:30\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201c\\u7f16\\u8bd1\\u65b9\\u7a0b: Time Dependent\\u201d ---------------------->\\n\",\n            \"const\": \"\",\n            \"propertyDefaults\": \"\",\n            \"changedproperties\": \"\",\n            \"hiddenchangedproperties\": \"\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        },\n        {\n          \"tag\": \"v1\",\n          \"type\": \"Variables\",\n          \"label\": \"Dependent Variables 1\",\n          \"properties\": {\n            \"control\": \"user\",\n            \"initmethod\": \"sol\",\n            \"initsol\": \"sol_branch_seed\",\n            \"initsolhide\": \"on\",\n            \"initsoluse\": \"current\",\n            \"oldinitsoluse\": \"0\",\n            \"initsolusesolnumhide\": \"on\",\n            \"initsolusesolnum\": \"1\",\n            \"solvertype\": \"solnum\",\n            \"solnum\": \"manual\",\n            \"timeinterp\": \"off\",\n            \"t\": \"200\",\n            \"manualsol\": \"on\",\n            \"manualsolnum\": \"901\",\n            \"manualsolnum_vector_method\": \"step\",\n            \"manualsolnum_vector_start\": \"\",\n            \"manualsolnum_vector_stop\": \"\",\n            \"manualsolnum_vector_step\": \"\",\n            \"manualsolnum_vector_numvalues\": \"\",\n            \"manualsolnum_vector_function\": \"none\",\n            \"manualsolnum_vector_interval\": \"octave\",\n            \"manualsolnum_vector_freqperdec\": \"\",\n            \"listsol\": \"off\",\n            \"listsolnum\": \"1\",\n            \"scalemethod\": \"auto\",\n            \"scaleval\": \"1.0\",\n            \"resscalemethod\": \"auto\",\n            \"resscaleval\": \"1.0\",\n            \"resscalethresh\": \"100.0\",\n            \"notsolmethod\": \"init\",\n            \"notsol\": \"zero\",\n            \"notsolhide\": \"on\",\n            \"notsoluse\": \"current\",\n            \"oldnotsoluse\": \"0\",\n            \"notsolusesolnumhide\": \"on\",\n            \"notsolusesolnum\": \"1\",\n            \"notsolvertype\": \"none\",\n            \"notsolnum\": \"auto\",\n            \"nottimeinterp\": \"off\",\n            \"nott\": \"0\",\n            \"notmanualsol\": \"off\",\n            \"notmanualsolnum\": \"1\",\n            \"notmanualsolnum_vector_method\": \"step\",\n            \"notmanualsolnum_vector_start\": \"\",\n            \"notmanualsolnum_vector_stop\": \"\",\n            \"notmanualsolnum_vector_step\": \"\",\n            \"notmanualsolnum_vector_numvalues\": \"\",\n            \"notmanualsolnum_vector_function\": \"none\",\n            \"notmanualsolnum_vector_interval\": \"octave\",\n            \"notmanualsolnum_vector_freqperdec\": \"\",\n            \"notlistsol\": \"off\",\n            \"notlistsolnum\": \"1\",\n            \"initparametersmethod\": \"auto\",\n            \"clistctrl\": \"t1_t, t1_timestep\",\n            \"cname\": \"t, timestep\",\n            \"clist\": \"180, 180.2, 180.4, 180.6, 180.8, 181, 181.2, 181.4, 181.6, 181.8, 182, 182.2, 182.4, 182.6, 182.8, 183, 183.2, 183.4, 183.6, 183.8, 184, 184.2, 184.4, 184.6, 184.8, 185, 185.2, 185.4, 185.6, 185.8, 186, 186.2, 186.4, 186.6, 186.8, 187, 187.2, 187.4, 187.6, 187.8, 188, 188.2, 188.4, 188.6, 188.8, 189, 189.2, 189.4, 189.6, 189.8, 190, 190.2, 190.4, 190.6, 190.8, 191, 191.2, 191.4, 191.6, 191.8, 192, 192.2, 192.4, 192.6, 192.8, 193, 193.2, 193.4, 193.6, 193.8, 194, 194.2, 194.4, 194.6, 194.8, 195, 195.2, 195.4, 195.6, 195.8, 196, 196.2, 196.4, 196.6, 196.8, 197, 197.2, 197.4, 197.6, 197.8, 198, 198.2, 198.4, 198.6, 198.8, 199, 199.2, 199.4, 199.6, 199.8, 200; 0.02\",\n            \"keeplog\": \"off\",\n            \"message\": \"<---- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cDependent Variables 1\\u201d ----------------------\\n\\u5f00\\u59cb\\u4e8e 2026\\u5e7411\\u67085\\u65e5 23:44:30\\u3002\\n\\u5f85\\u6c42\\u89e3\\u53d8\\u91cf\\u7684\\u521d\\u59cb\\u503c: Native M3 history; branch seed is saved frame 901 at t=180 s (sol_branch_seed), t=180 s [\\u624b\\u52a8].\\n\\u6c42\\u89e3\\u65f6\\u95f4\\uff1a0 s\\u3002\\n\\u7269\\u7406\\u5185\\u5b58: 948 MB\\n\\u865a\\u62df\\u5185\\u5b58: 902 MB\\n\\u7ed3\\u675f\\u65f6\\u95f4\\uff1a2026\\u5e7411\\u67085\\u65e5 23:44:30\\u3002\\n----- Study 1/Solution 1 (sol1) \\u4e2d\\u7684\\u201cDependent Variables 1\\u201d --------------------->\\n\",\n            \"const\": \"\",\n            \"storesol\": \"init\",\n            \"propertyDefaults\": \"initmethod, init; initsol, zero; t, 0; manualsolnum, \\\"1\\\"; solnum, auto\",\n            \"changedproperties\": \"Parameter name and value, clist, {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], {range(0, 0.2, 3.4), range(3.5, 0.02, 7)}[s], 0.007[s]; -, cname, t, t, timestep; -, clistctrl, t1_t, t1_t, t1_timestep\",\n            \"hiddenchangedproperties\": \"\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        },\n        {\n          \"tag\": \"t1\",\n          \"type\": \"Time\",\n          \"label\": \"Time-Dependent Solver 1\",\n          \"properties\": {\n            \"control\": \"time\",\n            \"usetunit\": \"on\",\n            \"tunit\": \"s\",\n            \"tlist\": \"range(180,0.2,200)\",\n            \"tlist_vector_method\": \"step\",\n            \"tlist_vector_start\": \"\",\n            \"tlist_vector_stop\": \"\",\n            \"tlist_vector_step\": \"\",\n            \"tlist_vector_numvalues\": \"\",\n            \"tlist_vector_function\": \"none\",\n            \"tlist_vector_interval\": \"octave\",\n            \"tlist_vector_freqperdec\": \"\",\n            \"tout\": \"tlist\",\n            \"tstepsstore\": \"1\",\n            \"rtol\": \"1e-4\",\n            \"atolglobalmethod\": \"scaled\",\n            \"atolglobalvaluemethod\": \"factor\",\n            \"atolglobalfactor\": \"0.05\",\n            \"tderglobalmethod\": \"auto\",\n            \"tderglobalfactor\": \"1\",\n            \"atolglobal\": \"0.001\",\n            \"ewtrescale\": \"on\",\n            \"atolmethod\": \"comp1_p, scaled, comp1_u, global\",\n            \"atolvaluemethod\": \"comp1_p, factor, comp1_u, factor\",\n            \"atolfactor\": \"comp1_p, 1, comp1_u, 0.1\",\n            \"tdermethod\": \"comp1_p, auto, comp1_u, auto\",\n            \"tderfactor\": \"comp1_p, 1.0, comp1_u, 1.0\",\n            \"atol\": \"comp1_p, 1e-3, comp1_u, 1e-3\",\n            \"atoludot\": \"comp1_p, 1e-3, comp1_u, 1e-3\",\n            \"atolmethodAUX\": \"scaled\",\n            \"atolvaluemethodAUX\": \"factor\",\n            \"atolfactorAUX\": \"1\",\n            \"tdermethodAUX\": \"auto\",\n            \"tderfactorAUX\": \"1.0\",\n            \"atolAUX\": \"1e-3\",\n            \"atoludotAUX\": \"1e-3\",\n            \"odesolvertype\": \"implicit\",\n            \"timemethod\": \"bdf\",\n            \"tstepsbdf\": \"intermediate\",\n            \"endtimeinterpolation\": \"on\",\n            \"initialstepbdf\": \"0.001\",\n            \"initialstepbdfactive\": \"off\",\n            \"maxstepconstraintbdf\": \"const\",\n            \"maxstepbdf\": \"0.05\",\n            \"maxstepexpressionbdf\": \"0.1\",\n            \"maxorder\": \"2\",\n            \"minorder\": \"1\",\n            \"bdforder\": \"2\",\n            \"initialstepfractionbdf-1\": \"1\",\n            \"initialstepgrowthratebdf-1\": \"1.5\",\n            \"initialstepfractionbdf-2\": \"1\",\n            \"initialstepgrowthratebdf-2\": \"1.5\",\n            \"initialstepfractionbdf-3\": \"0.1\",\n            \"initialstepgrowthratebdf-3\": \"1.2\",\n            \"initialstepfractionbdf-4\": \"0.01\",\n            \"initialstepgrowthratebdf-4\": \"1.15\",\n            \"initialstepfractionbdf-5\": \"0.001\",\n            \"initialstepgrowthratebdf-5\": \"1.1\",\n            \"timestepbdf\": \"0.01\",\n            \"eventtol\": \"0.01\",\n            \"stabcntrl\": \"on\",\n            \"masssingular\": \"maybe\",\n            \"consistent\": \"bweuler\",\n            \"bwinitstepfrac\": \"0.01\",\n            \"bwinitfactor\": \"20\",\n            \"estrat\": \"exclude\",\n            \"tstepsgenalpha\": \"free\",\n            \"initialstepgenalpha\": \"0.001\",\n            \"initialstepgenalphaactive\": \"off\",\n            \"maxstepconstraintgenalpha\": \"auto\",\n            \"maxstepgenalpha\": \"0.1\",\n            \"maxstepexpressiongenalpha\": \"0.1\",\n            \"incrdelay\": \"15\",\n            \"incrdelayactive\": \"off\",\n            \"rhoinf\": \"0.5\",\n            \"predictor\": \"constant\",\n            \"timestepgenalpha\": \"0.01\",\n            \"rescaleafterinitbw\": \"off\",\n            \"timemethodexp\": \"rk\",\n            \"rkmethod\": \"rk34\",\n            \"tstepsrk34\": \"free\",\n            \"initialsteprk34\": \"0.001\",\n            \"initialsteprk34active\": \"off\",\n            \"timesteprk34\": \"0.01\",\n            \"tstepsck5\": \"free\",\n            \"initialstepck5\": \"0.001\",\n            \"initialstepck5active\": \"off\",\n            \"timestepck5\": \"0.01\",\n            \"tstepsdopri5\": \"free\",\n            \"initialstepdopri5\": \"0.001\",\n            \"initialstepdopri5active\": \"off\",\n            \"dopripicontrol\": \"smooth\",\n            \"maxstepconstraintdopri5\": \"auto\",\n            \"maxstepdopri5\": \"0.1\",\n            \"maxstepexpressiondopri5\": \"0.1\",\n            \"doprigrowmin\": \"0.2\",\n            \"doprigrowmax\": \"10\",\n            \"doprisafe\": \"0.9\",\n            \"timestepdopri5\": \"0.01\",\n            \"rkstiffcheck\": \"on\",\n            \"erkorder\": \"4\",\n            \"tstepping\": \"manual\",\n            \"rktimestep\": \"1.e-3\",\n            \"updtstep\": \"off\",\n            \"ntimestepsupdate\": \"10\",\n            \"exprs\": \"\",\n            \"mlinsolver\": \"dDef\",\n            \"algebraicsolvemethodRK\": \"full\",\n            \"algebraicsolveeverynRK\": \"1\",\n            \"algebraicsolveeverydtRK\": \"0\",\n            \"algebraicsolvemethod\": \"n\",\n            \"algebraicsolveeveryn\": \"1\",\n            \"algebraicsolveeverydt\": \"0\",\n            \"updtlvl\": \"off\",\n            \"ntimestepsupdateab3loc\": \"100\",\n            \"rtstepab3loc\": \"0.1\",\n            \"verletauxsolver\": \"ab2\",\n            \"checkvalidity\": \"off\",\n            \"exprsgeom\": \"\",\n            \"exprsgeomab3loc\": \"\",\n            \"exprsgporder\": \"\",\n            \"exprsgporderupdt\": \"\",\n            \"exprsgporderab3loc\": \"\",\n            \"plot\": \"off\",\n            \"plotgroupdummy\": \"Default\",\n            \"plotgrouparr\": \"pg1\",\n            \"plotwindowsarr\": \"\",\n            \"windowforpg\": \"new\",\n            \"plotfreq\": \"tout\",\n            \"probesel\": \"all\",\n            \"probes\": \"[]\",\n            \"probefreq\": \"tsteps\",\n            \"reacf\": \"on\",\n            \"lumpedflux\": \"off\",\n            \"storeudot\": \"on\",\n            \"eventout\": \"off\",\n            \"complex\": \"off\",\n            \"solref\": \"off\",\n            \"assumeperiodic\": \"off\",\n            \"starttime\": \"0\",\n            \"solutionperiod\": \"0\",\n            \"cosimstoressol\": \"off\",\n            \"cosim\": \"off\",\n            \"cosiminput\": \"\",\n            \"cosimoutput\": \"\",\n            \"cosimconsistent\": \"on\",\n            \"uselsqtimedata\": \"on\",\n            \"tlistlsq\": \"\",\n            \"excludelsqtimes\": \"on\",\n            \"lsqtimesout\": \"\",\n            \"clistctrl\": \"\",\n            \"cname\": \"\",\n            \"clist\": \"\",\n            \"keeplog\": \"off\",\n            \"message\": \"\",\n            \"const\": \"\",\n            \"propertyDefaults\": \"maxstepconstraintbdf, auto; maxstepbdf, 0.1\",\n            \"changedproperties\": \"Steps taken by solver, tstepsbdf, free, intermediate\",\n            \"hiddenchangedproperties\": \"\",\n            \"fieldselection\": \"comp1_p\",\n            \"visibleChanges\": \"\",\n            \"hiddenChanges\": \"\"\n          }\n        }\n      ]\n    },\n    {\n      \"tag\": \"sol_branch_seed\",\n      \"label\": \"Native M3 history; branch seed is saved frame 901 at t=180 s\",\n      \"feature_tags\": [],\n      \"features\": [\n      ]\n    }\n  ]\n}\n\r\n<<<JSON_END>>>\r\n",
+  "launch_mode": "standalone_java_api",
+  "batch_startup_failure": {
+    "stdout": "\r\nERROR: Failed to start COMSOL. For details, see the log file C:\\Users\\Administrator\\.comsol\\v64\\logs\\batch10.log\r\nERROR: Additional information: com/comsol/nativejni/FlNativeException\r\n",
+    "stderr": "",
+    "returncode": 0
+  }
+}

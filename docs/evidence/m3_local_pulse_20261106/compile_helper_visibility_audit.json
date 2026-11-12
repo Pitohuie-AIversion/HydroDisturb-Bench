@@ -1,0 +1,28 @@
+{
+  "baseline": "630145a",
+  "old_java_body_unchanged_after_excluding_new_dispatch_and_visibility": true,
+  "visibility_only_helpers": [
+    "branchDistinctPaths",
+    "branchTags",
+    "branchExactTime",
+    "branchConfigureInitialization",
+    "branchManualSolutionIndex",
+    "branchCheckTimeSettings",
+    "branchVectorBytes",
+    "branchHash",
+    "branchVectorJson",
+    "branchDerivativeJson",
+    "branchRequireVector",
+    "branchRequireDerivative",
+    "branchDofMapping",
+    "branchFieldDifferences",
+    "branchMeshFingerprint",
+    "branchSnapshot",
+    "branchResultMatrix",
+    "appendNativeFeature",
+    "quote",
+    "emitResult",
+    "getStackTrace"
+  ],
+  "current_sha256": "c0effe2ba27b7ea260d0c4ccbd3d667b113af8ad731ea2391d90b384c07853da"
+}
