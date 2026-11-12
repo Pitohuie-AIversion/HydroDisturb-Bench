@@ -182,3 +182,96 @@ class C04WindowIndex:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(self.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
         return out
+
+
+class C04ArrayDataset:
+    """Pure NumPy array dataset adapter for world model training. Zero dependencies."""
+
+    def __init__(
+        self,
+        window_index: C04WindowIndex,
+        channels: list[str] | tuple[str, ...] | None = None,
+    ) -> None:
+        self.window_index = window_index
+        if channels is not None:
+            for ch in channels:
+                if ch not in C04_CHANNELS:
+                    raise InvalidParameterError(f"Unknown channel: {ch!r}, must be in {C04_CHANNELS}")
+            self.channel_indices = [C04_CHANNELS.index(ch) for ch in channels]
+            self.channels = list(channels)
+        else:
+            self.channel_indices = list(range(len(C04_CHANNELS)))
+            self.channels = list(C04_CHANNELS)
+
+    def __len__(self) -> int:
+        return len(self.window_index)
+
+    def __getitem__(self, idx: int) -> dict[str, Any]:
+        item = self.window_index[idx]
+        return {
+            "window_id": item["window_id"],
+            "is_3d": item["is_3d"],
+            "channels": self.channels,
+            "history": item["history"][:, self.channel_indices],
+            "future": item["future"][:, self.channel_indices],
+            "history_times": item["history_times"],
+            "future_times": item["future_times"],
+            "solid_mask": item["solid_mask"],
+            "sdf": item["sdf"],
+        }
+
+
+class C04TorchDataset:
+    """Optional PyTorch Dataset adapter for neural operator training.
+
+    Requires `torch` package to be installed.
+    """
+
+    def __init__(
+        self,
+        window_index: C04WindowIndex,
+        dtype: Any = None,
+        channels: list[str] | tuple[str, ...] | None = None,
+    ) -> None:
+        try:
+            import torch
+        except ImportError as exc:
+            raise ImportError(
+                "PyTorch is required to use C04TorchDataset. Please install torch: pip install torch"
+            ) from exc
+
+        self.window_index = window_index
+        self.torch = torch
+        self.dtype = dtype or torch.float32
+
+        if channels is not None:
+            for ch in channels:
+                if ch not in C04_CHANNELS:
+                    raise InvalidParameterError(f"Unknown channel: {ch!r}, must be in {C04_CHANNELS}")
+            self.channel_indices = [C04_CHANNELS.index(ch) for ch in channels]
+            self.channels = list(channels)
+        else:
+            self.channel_indices = list(range(len(C04_CHANNELS)))
+            self.channels = list(C04_CHANNELS)
+
+    def __len__(self) -> int:
+        return len(self.window_index)
+
+    def __getitem__(self, idx: int) -> dict[str, Any]:
+        item = self.window_index[idx]
+        torch = self.torch
+
+        hist = item["history"][:, self.channel_indices]
+        fut = item["future"][:, self.channel_indices]
+
+        return {
+            "window_id": item["window_id"],
+            "is_3d": item["is_3d"],
+            "channels": self.channels,
+            "history": torch.as_tensor(hist, dtype=self.dtype),
+            "future": torch.as_tensor(fut, dtype=self.dtype),
+            "history_times": torch.as_tensor(item["history_times"], dtype=torch.float64),
+            "future_times": torch.as_tensor(item["future_times"], dtype=torch.float64),
+            "solid_mask": torch.as_tensor(item["solid_mask"], dtype=torch.bool),
+            "sdf": torch.as_tensor(item["sdf"], dtype=self.dtype),
+        }

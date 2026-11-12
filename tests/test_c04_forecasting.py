@@ -11,6 +11,8 @@ from hydro_disturb_bench.c04_forecasting import (
     score_c04_forecast,
 )
 from hydro_disturb_bench.c04_windows import (
+    C04ArrayDataset,
+    C04TorchDataset,
     C04WindowIndex,
     C04WindowSpec,
 )
@@ -194,3 +196,56 @@ def test_c04_real_volume_dataset_baseline_evaluation():
     assert report_p["total_windows"] == 2
     assert "u" in report_p["channels"]
     assert report_p["channels"]["u"]["overall_mae"] < 0.05
+
+
+def test_c04_array_dataset_slicing(tmp_path):
+    """Verify C04ArrayDataset slices selected channels and indexes windows."""
+    grid = create_c04_2d_slice_grid(D=0.30)
+    times = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.float32)
+    fields = np.ones((4, 4, 96, 192), dtype=np.float32)
+
+    ds_path = tmp_path / "seq.npz"
+    save_c04_dataset(ds_path, fields, grid, times, allow_overwrite=True)
+
+    spec = C04WindowSpec(history_frames=2, forecast_frames=1)
+    index = C04WindowIndex(spec)
+    index.add_dataset(ds_path)
+
+    # 1. Select only u and v channels (channels 0 and 1)
+    ds_uv = C04ArrayDataset(index, channels=["u", "v"])
+    assert len(ds_uv) == 2
+    item = ds_uv[0]
+    assert item["channels"] == ["u", "v"]
+    assert item["history"].shape == (2, 2, 96, 192)
+    assert item["future"].shape == (1, 2, 96, 192)
+
+    # 2. Reject unknown channel
+    with pytest.raises(InvalidParameterError, match="Unknown channel"):
+        C04ArrayDataset(index, channels=["u", "invalid_ch"])
+
+
+def test_c04_torch_dataset_import_guard(tmp_path):
+    """Verify C04TorchDataset cleanly handles missing torch or delegates properly."""
+    grid = create_c04_2d_slice_grid(D=0.30)
+    times = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.float32)
+    fields = np.ones((4, 4, 96, 192), dtype=np.float32)
+
+    ds_path = tmp_path / "seq.npz"
+    save_c04_dataset(ds_path, fields, grid, times, allow_overwrite=True)
+
+    spec = C04WindowSpec(history_frames=2, forecast_frames=1)
+    index = C04WindowIndex(spec)
+    index.add_dataset(ds_path)
+
+    try:
+        import torch  # noqa: F401
+
+        # If torch is installed in environment, test instantiation
+        tds = C04TorchDataset(index, channels=["u", "v"])
+        assert len(tds) == 2
+        item = tds[0]
+        assert item["history"].shape == (2, 2, 96, 192)
+    except ImportError:
+        # If torch is not installed, must raise clean ImportError
+        with pytest.raises(ImportError, match="PyTorch is required"):
+            C04TorchDataset(index)
