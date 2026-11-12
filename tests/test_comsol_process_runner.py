@@ -163,3 +163,73 @@ def test_default_public_entry_preserves_existing_bridge_adapter_signature(monkey
     monkeypatch.setattr(bridge, "_run_bridge", established_adapter)
     assert run_command(["inspect-api"])["runner_marker"] == "default"
     assert calls == [(["inspect-api"], None)]
+
+
+def test_opt_in_comsolbatch_env_flags_and_default_invariance(installation, monkeypatch):
+    root, java_dir = installation
+    (java_dir / "ComsolBridge.class").write_bytes(b"bytecode")
+    for key in (
+        "HYDROBENCH_COMSOL_NP",
+        "HYDROBENCH_COMSOL_NUMASETS",
+        "HYDROBENCH_COMSOL_NUMAFIRST",
+        "HYDROBENCH_COMSOL_MPMODE",
+        "HYDROBENCH_COMSOL_ALLOC",
+        "HYDROBENCH_COMSOL_BLAS",
+        "HYDROBENCH_COMSOL_AUTOSAVE",
+        "HYDROBENCH_COMSOL_TMPDIR",
+        "HYDROBENCH_COMSOL_RECOVERYDIR",
+        "HYDROBENCH_COMSOL_PREFSDIR",
+        "HYDROBENCH_COMSOL_CONFIGURATION",
+        "HYDROBENCH_COMSOL_DATA",
+        "HYDROBENCH_COMSOL_INIFILE",
+        "HYDROBENCH_COMSOL_BATCH_ARGS",
+        "HYDROBENCH_COMSOL_JAVA_HEAP",
+    ):
+        monkeypatch.delenv(key, raising=False)
+
+    runner = ProcessDouble("default")
+    run_command(["inspect-api"], root, process_runner=runner)
+    default_cmd = runner.calls[-1][1]
+    assert default_cmd[:4] == [
+        str(root / "bin" / "win64" / "comsolbatch.exe"),
+        "-nosave",
+        "-inputfile",
+        str(java_dir / "ComsolBridge.class"),
+    ]
+
+    monkeypatch.setenv("HYDROBENCH_COMSOL_NP", "32")
+    monkeypatch.setenv("HYDROBENCH_COMSOL_NUMASETS", "2")
+    monkeypatch.setenv("HYDROBENCH_COMSOL_MPMODE", "turnaround")
+    monkeypatch.setenv("HYDROBENCH_COMSOL_TMPDIR", r"E:\comsol_scratch\tmp")
+    monkeypatch.setenv("HYDROBENCH_COMSOL_BATCH_ARGS", "-blas mkl")
+
+    runner_opt = ProcessDouble("tuned")
+    run_command(["inspect-api"], root, process_runner=runner_opt)
+    tuned_cmd = runner_opt.calls[-1][1]
+    assert tuned_cmd[0:12] == [
+        str(root / "bin" / "win64" / "comsolbatch.exe"),
+        "-nosave",
+        "-np",
+        "32",
+        "-numasets",
+        "2",
+        "-mpmode",
+        "turnaround",
+        "-tmpdir",
+        r"E:\comsol_scratch\tmp",
+        "-blas",
+        "mkl",
+    ]
+    assert "-inputfile" in tuned_cmd and tuned_cmd[-1] == "inspect-api"
+
+    seed_dir = root / "prefs_seed"
+    seed_dir.mkdir()
+    for name in ("comsol.prefs", "comsolserver.prefs"):
+        (seed_dir / name).write_bytes(b"seed")
+    monkeypatch.setattr(bridge, "_graphics_preference_seed_dir", lambda _r: seed_dir)
+    monkeypatch.setenv("HYDROBENCH_COMSOL_JAVA_HEAP", "8g")
+    runner_heap = ProcessDouble("heap")
+    run_command(["export-s1-diagnostics", "m.mph", "out"], root, process_runner=runner_heap)
+    java_cmd = runner_heap.calls[-1][1]
+    assert java_cmd[0].endswith("java.exe")
+    assert java_cmd[1] == "-Xmx8g"

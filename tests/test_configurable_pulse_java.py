@@ -260,3 +260,29 @@ def test_frozen_entrypoint_contracts_and_time_guard_remain_visible():
     assert configurable.count("sol.runAll(false)") == 1
     assert configurable.index("if (solve)") < configurable.index("sol.runAll(false)")
     assert "FileInputStream" not in configurable and "nearest" not in configurable
+
+
+def test_multisource_save_failure_in_log_triggers_bundled_javac_fallback(
+    compiler_installation, tmp_path, monkeypatch
+):
+    root, directory = compiler_installation
+    monkeypatch.setattr(bridge.Path, "home", lambda: tmp_path)
+    log = tmp_path / ".comsol/v64/logs/compile9.log"
+    log.parent.mkdir(parents=True)
+    calls = []
+
+    def process(command, **kwargs):
+        calls.append(command)
+        if Path(command[0]).name == "comsolcompile.exe":
+            log.write_text("2026-11-12 ERROR 无法保存编译结果。 [com.comsol.util]\n", encoding="utf-8")
+            return subprocess.CompletedProcess(
+                command, 0, f"ERROR: Compilation failed. For details, see the log file {log}", ""
+            )
+        assert Path(command[0]).name == "javac.exe"
+        write_classes(Path(kwargs["cwd"]))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    out = bridge.ensure_bridge_compiled(root, process_runner=process)
+    assert out == directory / "ComsolBridge.class"
+    assert [Path(c[0]).name for c in calls] == ["comsolcompile.exe", "javac.exe"]
+    assert all((directory / name).is_file() for name in CLASSES)

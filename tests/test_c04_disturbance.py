@@ -6,6 +6,7 @@ import pytest
 from hydro_disturb_bench.c04_disturbance import (
     C04DisturbanceConfig,
     evaluate_c04_disturbance_field,
+    generate_c04_comsol_extruded_xz_force_expressions,
     generate_c04_comsol_force_expressions,
 )
 from hydro_disturb_bench.comsol_java.errors import InvalidParameterError
@@ -106,3 +107,21 @@ def test_c04_disturbance_field_evaluation():
     # Max acceleration occurs near the center (0.6, 0.0, 1.5)
     max_ay = float(np.max(field_peak[1]))
     assert 0.08 < max_ay <= 0.10  # Discrete cell center close to analytical center
+
+
+def test_c04_disturbance_extruded_xz_axis_mapping():
+    """Verify COMSOL extruded-xz expression maps canonical (xc, yc, zc) & (ex, ey, ez) cleanly."""
+    cfg = C04DisturbanceConfig(
+        center_m=(0.60, 0.30, 1.50),  # canonical crossflow y=0.30, spanwise z=1.50
+        direction=(0.0, 1.0, 0.0),  # pure canonical crossflow (+y)
+        acceleration_m_s2=0.05,
+        sigma_m=0.05,
+        on_s=1.0,
+        off_s=1.5,
+    )
+    exprs = generate_c04_comsol_extruded_xz_force_expressions(cfg)
+    # Canonical +y (ey=1) -> COMSOL +z (Fz=1.0, Fx=0.0, Fy=0.0)
+    assert exprs["Fz"].startswith("1.000000*(")
+    assert exprs["Fy"].startswith("0.000000*(")
+    assert "(y-(-1.500000[m]))^2" in exprs["Fz"]  # y_comsol = zc - 3.0 = -1.5 m
+    assert "(z-(0.300000[m]))^2" in exprs["Fz"]  # z_comsol = yc = 0.3 m

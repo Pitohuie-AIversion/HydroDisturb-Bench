@@ -875,25 +875,18 @@ public class ComsolBridge {
             SolverSequence s = model.sol(sTag);
             boolean matchesStudy = false;
             try {
-                if (studyTag.equals(s.getString("study"))) {
-                    matchesStudy = true;
+                for (String fTag : s.feature().tags()) {
+                    SolverFeature sf = s.feature(fTag);
+                    if ("StudyStep".equalsIgnoreCase(sf.getType())) {
+                        try {
+                            if (studyTag.equals(sf.getString("study"))) {
+                                matchesStudy = true;
+                                break;
+                            }
+                        } catch (Throwable ignored) {}
+                    }
                 }
             } catch (Throwable ignored) {}
-            if (!matchesStudy) {
-                try {
-                    for (String fTag : s.feature().tags()) {
-                        SolverFeature sf = s.feature(fTag);
-                        if ("StudyStep".equalsIgnoreCase(sf.getType())) {
-                            try {
-                                if (studyTag.equals(sf.getString("study"))) {
-                                    matchesStudy = true;
-                                    break;
-                                }
-                            } catch (Throwable ignored) {}
-                        }
-                    }
-                } catch (Throwable ignored) {}
-            }
             if (matchesStudy) {
                 targetSolSeqs.add(s);
             }

@@ -13,6 +13,7 @@ import json
 import math
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -148,8 +149,8 @@ def to_safe_path(p: Path | str) -> str:
     return str(path)
 
 
-def _native_compile_dependency_failure(proc: subprocess.CompletedProcess, started: float) -> bool:
-    """Recognize only the observed Windows csutil dependency startup failure."""
+def _read_compile_details(proc: subprocess.CompletedProcess, started: float) -> str:
+    """Collect compiler stdout/stderr plus any current profile compile log."""
     details = (proc.stdout or "") + "\n" + (proc.stderr or "")
     match = re.search(r"log file\s+([^\r\n]+\.log)", details)
     if match:
@@ -165,11 +166,35 @@ def _native_compile_dependency_failure(proc: subprocess.CompletedProcess, starte
                 details += "\n" + log.read_text(encoding="utf-8", errors="replace")
         except OSError:
             pass
+    return details
+
+
+def _native_compile_dependency_failure(proc: subprocess.CompletedProcess, started: float) -> bool:
+    """Recognize only the observed Windows csutil dependency startup failure."""
+    details = _read_compile_details(proc, started)
     return (
         sys.platform == "win32"
         and "UnsatisfiedLinkError" in details
         and "csutil.dll" in details
         and "Can't find dependent libraries" in details
+    )
+
+
+def _is_multisource_save_failure(
+    proc: subprocess.CompletedProcess, started: float, sources: list[Path]
+) -> bool:
+    """Detect COMSOL 6.4 comsolcompile's inability to compile mutually dependent sources in one call."""
+    if sys.platform != "win32" or len(sources) <= 1:
+        return False
+    details = _read_compile_details(proc, started)
+    return any(
+        marker in details
+        for marker in (
+            "无法保存编译结果",
+            "Cannot save compilation",
+            "Failed to save compilation",
+            "Unable to save compilation",
+        )
     )
 
 
@@ -272,7 +297,9 @@ def ensure_bridge_compiled(
             or "ERROR: Compilation failed" in proc.stdout
             or "ERROR: Compilation failed" in proc.stderr
         ):
-            if _native_compile_dependency_failure(proc, started):
+            if _native_compile_dependency_failure(proc, started) or _is_multisource_save_failure(
+                proc, started, sources
+            ):
                 _compile_bundled_java(root, sources, required_classes, run_process)
             else:
                 raise ComsolConnectionError(
@@ -381,10 +408,14 @@ def _run_standalone(
                 (isolated_preferences / name).write_bytes(contents)
                 preference_seed_hashes[name] = hashlib.sha256(contents).hexdigest()
             graphics_options = ["-Dcs.3drend=sw", f"-Dcs.prefsdir={isolated_preferences}"]
+        heap_env = os.environ.get("HYDROBENCH_COMSOL_JAVA_HEAP", "").strip()
+        heap_flag = (
+            f"-Xmx{heap_env}" if re.fullmatch(r"[0-9]+[kmgKMG]?", heap_env) else "-Xmx2g"
+        )
         process = run_process(
             [
                 str(java_bin / "java.exe"),
-                "-Xmx2g",
+                heap_flag,
                 "-Xss4m",
                 *graphics_options,
                 "-cp",
@@ -402,6 +433,41 @@ def _run_standalone(
             process.graphics_preferences_dir = str(isolated_preferences)
             process.graphics_preference_seed_hashes = preference_seed_hashes
         return process
+
+
+def _extra_comsolbatch_args() -> list[str]:
+    """Build opt-in comsolbatch runtime flags from HYDROBENCH_COMSOL_* env vars.
+
+    Returns an empty list when unset so default CLI argument positions remain invariant.
+    """
+    extra: list[str] = []
+    flag_map = (
+        ("HYDROBENCH_COMSOL_INIFILE", "-comsolinifile"),
+        ("HYDROBENCH_COMSOL_NP", "-np"),
+        ("HYDROBENCH_COMSOL_NUMASETS", "-numasets"),
+        ("HYDROBENCH_COMSOL_NUMAFIRST", "-numafirst"),
+        ("HYDROBENCH_COMSOL_MPMODE", "-mpmode"),
+        ("HYDROBENCH_COMSOL_ALLOC", "-alloc"),
+        ("HYDROBENCH_COMSOL_BLAS", "-blas"),
+        ("HYDROBENCH_COMSOL_AUTOSAVE", "-autosave"),
+        ("HYDROBENCH_COMSOL_TMPDIR", "-tmpdir"),
+        ("HYDROBENCH_COMSOL_RECOVERYDIR", "-recoverydir"),
+        ("HYDROBENCH_COMSOL_PREFSDIR", "-prefsdir"),
+        ("HYDROBENCH_COMSOL_CONFIGURATION", "-configuration"),
+        ("HYDROBENCH_COMSOL_DATA", "-data"),
+    )
+    for env_key, cli_flag in flag_map:
+        val = os.environ.get(env_key, "").strip()
+        if val:
+            extra.extend([cli_flag, val])
+    raw_batch = os.environ.get("HYDROBENCH_COMSOL_BATCH_ARGS", "").strip()
+    if raw_batch:
+        for tok in shlex.split(raw_batch, posix=(os.name != "nt")):
+            if len(tok) >= 2 and tok[0] == tok[-1] and tok[0] in ("'", '"'):
+                tok = tok[1:-1]
+            if tok:
+                extra.append(tok)
+    return extra
 
 
 def _run_bridge(
@@ -429,7 +495,14 @@ def _run_bridge(
         launch_mode = "standalone_java_api"
         startup_failure = None
     else:
-        cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
+        extra_batch_args = _extra_comsolbatch_args()
+        cmd = [
+            str(comsolbatch),
+            "-nosave",
+            *extra_batch_args,
+            "-inputfile",
+            str(class_file),
+        ] + args
 
         proc = run_process(
             cmd,

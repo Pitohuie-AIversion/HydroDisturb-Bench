@@ -85,6 +85,14 @@ def main(argv: list[str] | None = None) -> int:
         "--tlist", default="", help="Optional override for time list (e.g. 'range(0, 0.05, 0.1)')"
     )
     j_solve.add_argument(
+        "--rtol", default="", help="Optional override for relative tolerance (e.g. '1e-4')"
+    )
+    j_solve.add_argument(
+        "--maxstep",
+        default="",
+        help="Optional override for constant max BDF time step in seconds (e.g. '0.02')",
+    )
+    j_solve.add_argument(
         "--allow-overwrite",
         action="store_true",
         default=False,
@@ -391,6 +399,8 @@ def main(argv: list[str] | None = None) -> int:
             output_path=Path(args.output),
             study_tag=args.study,
             tlist_override=args.tlist,
+            rtol_override=args.rtol,
+            maxstep_override=args.maxstep,
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))

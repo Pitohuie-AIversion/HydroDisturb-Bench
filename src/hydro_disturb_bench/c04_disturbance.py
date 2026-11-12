@@ -171,6 +171,45 @@ def generate_c04_comsol_force_expressions(config: C04DisturbanceConfig) -> dict[
     }
 
 
+def generate_c04_comsol_extruded_xz_force_expressions(
+    config: C04DisturbanceConfig,
+    *,
+    span_offset_m: float = 3.0,
+) -> dict[str, str]:
+    """Generate COMSOL VolumeForce expressions mapped to the extruded-xz 3D C04 model axes.
+
+    In the 3D C04 COMSOL geometry (extruded from the xz workplane along -y):
+    - X_canonical = x_comsol
+    - Y_canonical (crossflow) = z_comsol
+    - Z_canonical (spanwise [0, 3] m) = y_comsol + span_offset_m (y_comsol in [-3, 0] m)
+    Therefore, (xc, yc, zc) maps to COMSOL (xc, zc - span_offset_m, yc) and
+    direction (ex, ey, ez) maps to COMSOL VolumeForce (Fx=ex, Fy=ez, Fz=ey).
+    """
+    xc, yc, zc = config.center_m
+    y_comsol = zc - span_offset_m
+    z_comsol = yc
+
+    norm = math.sqrt(sum(d**2 for d in config.direction))
+    ex, ey, ez = [d / norm for d in config.direction]
+
+    spatial_gauss = (
+        f"exp(-((x-{xc:.6f}[m])^2+(y-({y_comsol:.6f}[m]))^2+(z-({z_comsol:.6f}[m]))^2)"
+        f"/(2*{config.sigma_m:.6f}[m]^2))"
+    )
+    time_env = (
+        f"if((t>{config.on_s:.4f}[s])&&(t<{config.off_s:.4f}[s]),"
+        f"sin(pi*(t-{config.on_s:.4f}[s])/({config.off_s - config.on_s:.4f}[s]))^2,0)"
+    )
+
+    base_f = f"{C04_DENSITY_KG_M3:.4f}[kg/m^3]*{config.acceleration_m_s2:.6f}[m/s^2]*{spatial_gauss}*{time_env}"
+
+    return {
+        "Fx": f"{ex:.6f}*({base_f})",
+        "Fy": f"{ez:.6f}*({base_f})",
+        "Fz": f"{ey:.6f}*({base_f})",
+    }
+
+
 def evaluate_c04_disturbance_field(
     config: C04DisturbanceConfig,
     grid: C04GridCoordinates | C04SliceCoordinates,
