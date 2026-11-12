@@ -232,6 +232,40 @@ def main(argv: list[str] | None = None) -> int:
         help="Allow overwriting destination if it already exists",
     )
 
+    # C04 World Model Data Windows and Baseline Forecasting
+    c04_win = sub.add_parser(
+        "c04-inspect-windows",
+        help="Inspect sliding windows and metadata for a C04 sequence dataset",
+    )
+    c04_win.add_argument("--dataset", required=True, help="Path to C04 NPZ dataset archive")
+    c04_win.add_argument("--history", type=int, default=2, help="History frames count (default: 2)")
+    c04_win.add_argument(
+        "--forecast", type=int, default=1, help="Forecast frames count (default: 1)"
+    )
+    c04_win.add_argument("--stride", type=int, default=1, help="Window sliding stride (default: 1)")
+    c04_win.add_argument("--out", default=None, help="Optional output path to save JSON manifest")
+
+    c04_eval = sub.add_parser(
+        "c04-evaluate-baselines",
+        help="Evaluate history-only baseline forecasts (persistence, last_two_linear) on C04 dataset",
+    )
+    c04_eval.add_argument("--dataset", required=True, help="Path to C04 NPZ dataset archive")
+    c04_eval.add_argument(
+        "--history", type=int, default=2, help="History frames count (default: 2)"
+    )
+    c04_eval.add_argument(
+        "--forecast", type=int, default=1, help="Forecast frames count (default: 1)"
+    )
+    c04_eval.add_argument(
+        "--stride", type=int, default=1, help="Window sliding stride (default: 1)"
+    )
+    c04_eval.add_argument(
+        "--method",
+        default="persistence",
+        choices=["persistence", "last_two_linear"],
+        help="Baseline forecasting method",
+    )
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -398,6 +432,34 @@ def main(argv: list[str] | None = None) -> int:
             allow_overwrite=args.allow_overwrite,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "c04-inspect-windows":
+        from .c04_windows import C04WindowIndex, C04WindowSpec
+
+        spec = C04WindowSpec(
+            history_frames=args.history,
+            forecast_frames=args.forecast,
+            stride=args.stride,
+        )
+        index = C04WindowIndex(spec)
+        index.add_dataset(args.dataset)
+        data = index.to_dict()
+        if args.out:
+            index.save_manifest(args.out)
+            data["saved_manifest"] = str(args.out)
+        print(json.dumps(data, indent=2, ensure_ascii=False))
+    elif args.cmd == "c04-evaluate-baselines":
+        from .c04_forecasting import evaluate_c04_dataset_baselines
+        from .c04_windows import C04WindowIndex, C04WindowSpec
+
+        spec = C04WindowSpec(
+            history_frames=args.history,
+            forecast_frames=args.forecast,
+            stride=args.stride,
+        )
+        index = C04WindowIndex(spec)
+        index.add_dataset(args.dataset)
+        report = evaluate_c04_dataset_baselines(index, method=args.method)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
 
     return 0
 

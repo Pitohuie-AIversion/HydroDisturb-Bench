@@ -37,6 +37,7 @@ scratch*
 /*.zip
 tmp/
 qa_budget/
+qa_*.py
 *budget*
 *.docx
 *.pdf
