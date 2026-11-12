@@ -10,8 +10,8 @@
 
 | 开发线 | 本次核实的提交 | 处理状态 |
 | --- | --- | --- |
-| `main` | 实验基线 `195d613`；局部体力入口 `a91a2e2`；当前维护继续增加轻量矩阵登记 | 数值结果保留；后续软件维护记录见下文 |
-| `feat/comsol-mcp` | `d1ba0af0041f029db5124414d8f72bf2f8f45206` | 已推送、尚未合入；MCP/插件原型单列如下 |
+| `main` | 实验基线 `195d613`；局部体力入口 `a91a2e2`；C04 3D 基准与观测算子体系已合入 | 数值结果保留；包含 C04 窗口索引、时空基线、观测算子、移动扰动源与概率评测 |
+| `feat/comsol-mcp` | 已与 `main` 同步并解决原型缺陷 | 补齐 maxstep/timeout 传递，对齐 26 个工具名，CI 引入 `--extra mcp` |
 | `codex/m3-pulse-amplitudes` | 本次核查时与实验提交 `195d613` 相同 | 已完成工作的工作分支，不是另一套实验结果 |
 | `codex/m3-pulse-full-local` | `6ab889cc160d74cf779dee85fcfee442bdb2f5d7` | 保留的历史大型归档方案，不属于 `main` 当前交付 |
 
@@ -51,6 +51,8 @@ PDF 规划中的局部定向高斯体力已新增独立参数入口，实际回�
 | 151 帧连续基线 | 170–200 s、0.2 s 间隔、161×97；32+32+32+32+23 批次；严格检查跨批时间、坐标、掩码与来源 | [报告](STAGE_M3_FIELD_SEQUENCE_20261105.md)、[序列结果](evidence/m3_field_sequence_20261105/sequence_report.json) |
 | 零分支 / 单脉冲 | 同原生 `sol1 / solnum 901 / t=180 s`；分别比较 Z−B 与 P−Z，区分重启差异和响应 | [报告](STAGE_M3_BRANCH_PULSE_20261105.md)、[零分支回读](evidence/m3_branch_pulse_20261105/zero_readback_summary.json)、[脉冲回读](evidence/m3_branch_pulse_20261105/pulse_readback_summary.json) |
 | 多幅值组 | 复用零分支及 0.005；新增 0.0025、0.010；只改变预注册幅值及其源积分参考值 | [阶段报告](reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md)、[系列结果](evidence/m3_pulse_amplitude_series_20261106/analysis/report.json)、[完整精度指标](evidence/m3_pulse_amplitude_series_20261106/series_metrics.json) |
+| C04 三维流场世界模型基准 | Re=126,167 单圆柱绕流 1.55M 网格基线；严格对齐 COMSOL 展向坐标映射；三维滑窗索引与无拟合直接外推时空基线 | [基准规范](C04_WORLD_MODEL_BENCHMARK.md)、[三维模型说明](../models/cylinder_3d/README.md) |
+| 稀疏观测算子与评测体系 | 下游 2D/3D 耙式测线、柱体表面测环与移动 AUV 轨迹；测量噪声注入；移动扰动源几何准入；CRPS/SSR 与流体受限全域重构评测 | [观测算子规范](OBSERVATION_OPERATORS.md)、[测试](../tests/test_observation_operator.py) |
 
 时间与网格结论仅适用于已测试配置下的 St、平均 Cd、升力半峰峰振幅及去均值 RMS。它们不是相对真解的误差上界，不证明计算域独立性或全场逐点收敛。未建立形式化 Richardson/GCI 外推结论。
 
@@ -115,6 +117,10 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 | [evaluate_m3_baselines.py](../scripts/evaluate_m3_baselines.py) `--output <新目录>` | 从固定窗口索引逐窗评估两个无拟合基线，输出小型指标/执行 JSON；不保存预测张量 |
 | [audit_forecast_baselines.py](../scripts/audit_forecast_baselines.py) | 显式提供固定索引及 SHA、报告和新输出路径，独立重读原始 NPZ 复算；[完整命令](FORECAST_BASELINES.md) |
 | [run_m3_local_pulse.py](../scripts/run_m3_local_pulse.py) `--stage precheck/inspect/all` | 读取严格局部体力配置；真实回读和续算均使用新输出目录，不修改已验收模型 |
+| `hydrobench c04-inspect-windows` / `c04-evaluate-baselines` | C04 三维流场滑动窗口提取与无拟合基线（持续性/双帧线性）流体受限物理指标打分 |
+| `hydrobench observation-plan` | 生成水动力学稀疏测点拓扑布局方案（2D/3D 耙式、表面测环、AUV 轨迹） |
+| `hydrobench observation-sample` | 从稠密流场 NPZ 中提取稀疏测点时序观测并注入现实测量噪声模型 |
+| `hydrobench reconstruction-eval` | 评测流场重构或生成结果（固体掩码隔离、Rel-$L_2$、PSNR、皮尔逊相关系数） |
 | [check_git_attributes.py](../check_git_attributes.py) `--attributes .gitattributes` | Git 属性、真实暂存行为及清单检查；仅在归档规则或相应证据改变时按需运行 |
 
 旧五帧/151 帧脚本按源码定位仓库内的固定历史 `runs/` 路径。幅值系列入口支持 `HYDRO_DATA_ROOT`，其冻结相对路径必须指向持有旧模型、checkpoint 和样本的数据根目录；该环境变量不是所有旧入口统一支持的重定向参数。不要以改哈希、删除检查或重算历史模型来绕过缺数据。
