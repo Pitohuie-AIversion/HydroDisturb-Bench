@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "solidworks-cad-mcp",
+  "version": "1.0.0",
+  "displayName": "SolidWorks CAD MCP Integration",
+  "description": "Production-grade Model Context Protocol (MCP) server for SolidWorks CAD.",
+  "keywords": [
+    "solidworks cad",
+    "mcp",
+    "fastmcp",
+    "engineering",
+    "simulation"
+  ],
+  "mcpServers": "./mcp.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "SolidWorks CAD MCP",
+        "shortDescription": "Automate SolidWorks CAD safely via MCP",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Deep model inspection for SolidWorks CAD",
+          "Copy-on-Write safe parameter mutation",
+          "Async solver execution with progress streaming",
+          "Downsampled diagnostic export"
+        ]
+      }
+    }
+  }
+}

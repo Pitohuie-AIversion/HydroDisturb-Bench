@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ansys-fluent-mcp",
+  "version": "1.0.0",
+  "displayName": "ANSYS Fluent MCP Integration",
+  "description": "Production-grade Model Context Protocol (MCP) server for ANSYS Fluent.",
+  "keywords": [
+    "ansys fluent",
+    "mcp",
+    "fastmcp",
+    "engineering",
+    "simulation"
+  ],
+  "mcpServers": "./mcp.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "ANSYS Fluent MCP",
+        "shortDescription": "Automate ANSYS Fluent safely via MCP",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Deep model inspection for ANSYS Fluent",
+          "Copy-on-Write safe parameter mutation",
+          "Async solver execution with progress streaming",
+          "Downsampled diagnostic export"
+        ]
+      }
+    }
+  }
+}

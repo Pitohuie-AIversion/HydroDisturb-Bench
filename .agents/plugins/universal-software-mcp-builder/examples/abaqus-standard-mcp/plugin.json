@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "abaqus-standard-mcp",
+  "version": "1.0.0",
+  "displayName": "Abaqus Standard MCP Integration",
+  "description": "Production-grade Model Context Protocol (MCP) server for Abaqus Standard.",
+  "keywords": [
+    "abaqus standard",
+    "mcp",
+    "fastmcp",
+    "engineering",
+    "simulation"
+  ],
+  "mcpServers": "./mcp.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Abaqus Standard MCP",
+        "shortDescription": "Automate Abaqus Standard safely via MCP",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Deep model inspection for Abaqus Standard",
+          "Copy-on-Write safe parameter mutation",
+          "Async solver execution with progress streaming",
+          "Downsampled diagnostic export"
+        ]
+      }
+    }
+  }
+}

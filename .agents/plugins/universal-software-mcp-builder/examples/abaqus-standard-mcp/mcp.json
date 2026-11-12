@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "abaqus_standard_server": {
+      "command": "python",
+      "args": [
+        "-m",
+        "src.server"
+      ],
+      "cwd": ".",
+      "enabled": true,
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

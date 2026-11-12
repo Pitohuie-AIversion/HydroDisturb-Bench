@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "software_mcp_scaffold": {
+      "command": "python",
+      "args": [
+        "-m",
+        "hydro_disturb_bench.mcp.server"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
