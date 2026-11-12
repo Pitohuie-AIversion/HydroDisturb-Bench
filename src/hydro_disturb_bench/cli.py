@@ -295,6 +295,36 @@ def main(argv: list[str] | None = None) -> int:
     recon_eval.add_argument("--true", required=True, help="Path to ground truth field NPZ")
     recon_eval.add_argument("--out", default=None, help="Optional output JSON path for metrics report")
 
+    vort_eval = sub.add_parser(
+        "vorticity-eval",
+        help="Evaluate vorticity, Q-criterion, enstrophy, and incompressibility metrics on flow fields",
+    )
+    vort_eval.add_argument("--dataset", required=True, help="Path to 2D or 3D flow NPZ dataset")
+    vort_eval.add_argument("--out", default=None, help="Optional output JSON path for kinematics report")
+
+    inv_eval = sub.add_parser(
+        "inversion-eval",
+        help="Evaluate disturbance parameter inversion against ground truth",
+    )
+    inv_eval.add_argument("--truth", required=True, help="Path to ground truth disturbance JSON")
+    inv_eval.add_argument("--pred", required=True, help="Path to predicted disturbance JSON")
+    inv_eval.add_argument("--diameter", type=float, default=0.30, help="Cylinder diameter D in meters (default: 0.30)")
+    inv_eval.add_argument("--out", default=None, help="Optional output JSON path for inversion report")
+
+    bundle_create = sub.add_parser(
+        "bundle-create",
+        help="Package a flow dataset into a verified self-contained benchmark bundle",
+    )
+    bundle_create.add_argument("--dataset", required=True, help="Path to source flow NPZ")
+    bundle_create.add_argument("--out", required=True, help="Destination bundle NPZ path")
+    bundle_create.add_argument("--name", default="HydroDisturb-Bench", help="Benchmark suite name")
+
+    bundle_verify = sub.add_parser(
+        "bundle-verify",
+        help="Verify cryptographic checksums and physical schema of a benchmark bundle",
+    )
+    bundle_verify.add_argument("--bundle", required=True, help="Path to benchmark bundle NPZ")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -616,6 +646,117 @@ def main(argv: list[str] | None = None) -> int:
                 json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8"
             )
         print(json.dumps(metrics, indent=2, ensure_ascii=False))
+    elif args.cmd == "vorticity-eval":
+        import numpy as np
+
+        from .vorticity_dynamics import (
+            compute_divergence_2d,
+            compute_divergence_3d,
+            compute_enstrophy,
+            compute_q_criterion_2d,
+            compute_q_criterion_3d,
+            compute_vorticity_2d,
+            compute_vorticity_3d,
+            evaluate_incompressibility_metrics,
+        )
+
+        npz = np.load(args.dataset)
+        data = npz["data"]
+        x = npz["x"]
+        y = npz["y"]
+        mask = npz.get("solid_mask", None)
+
+        if data.ndim == 4 or (data.ndim == 3 and "z" not in npz):
+            # 2D field: shape (T, C, Ny, Nx) or (C, Ny, Nx)
+            if data.ndim == 3:
+                u, v = data[0], data[1]
+            else:
+                u, v = data[:, 0], data[:, 1]
+            vort = compute_vorticity_2d(u, v, x, y, solid_mask=mask)
+            div = compute_divergence_2d(u, v, x, y, solid_mask=mask)
+            q = compute_q_criterion_2d(u, v, x, y, solid_mask=mask)
+            enstrophy = compute_enstrophy(vort, solid_mask=mask)
+            incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
+            dim = 2
+        else:
+            # 3D field: shape (T, C, Nz, Ny, Nx) or (C, Nz, Ny, Nx)
+            z = npz["z"]
+            if data.ndim == 4:
+                u, v, w = data[0], data[1], data[2]
+            else:
+                u, v, w = data[:, 0], data[:, 1], data[:, 2]
+            wx, wy, wz = compute_vorticity_3d(u, v, w, x, y, z, solid_mask=mask)
+            div = compute_divergence_3d(u, v, w, x, y, z, solid_mask=mask)
+            q = compute_q_criterion_3d(u, v, w, x, y, z, solid_mask=mask)
+            enstrophy = compute_enstrophy((wx, wy, wz), solid_mask=mask)
+            incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
+            dim = 3
+
+        report = {
+            "dataset": str(args.dataset),
+            "dim": dim,
+            "incompressibility": incomp,
+            "enstrophy_mean": float(np.nanmean(enstrophy)),
+            "enstrophy_max": float(np.nanmax(enstrophy)),
+            "q_criterion_mean": float(np.nanmean(q)),
+            "q_criterion_max": float(np.nanmax(q)),
+        }
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(
+                json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    elif args.cmd == "inversion-eval":
+        from .disturbance_inversion import (
+            DisturbanceGroundTruth,
+            DisturbancePrediction,
+            evaluate_disturbance_inversion,
+        )
+
+        truth_data = json.loads(Path(args.truth).read_text(encoding="utf-8"))
+        pred_data = json.loads(Path(args.pred).read_text(encoding="utf-8"))
+        truth = DisturbanceGroundTruth.from_dict(truth_data)
+        pred = DisturbancePrediction.from_dict(pred_data)
+        metrics = evaluate_disturbance_inversion(
+            truth, pred, characteristic_length_D=args.diameter
+        )
+        report = metrics.to_dict()
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(
+                json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    elif args.cmd == "bundle-create":
+        import numpy as np
+
+        from .benchmark_bundle import create_benchmark_bundle
+
+        npz = np.load(args.dataset)
+        times = npz["times"]
+        data = npz["data"]
+        coords = {"x": npz["x"], "y": npz["y"]}
+        if "z" in npz:
+            coords["z"] = npz["z"]
+        mask = npz.get("solid_mask", None)
+        sdf = npz.get("sdf", None)
+
+        out_path = create_benchmark_bundle(
+            output_path=args.out,
+            times=times,
+            coords=coords,
+            values=data,
+            solid_mask=mask,
+            sdf=sdf,
+            benchmark_name=args.name,
+        )
+        print(f"Created benchmark bundle: {out_path}")
+    elif args.cmd == "bundle-verify":
+        from .benchmark_bundle import verify_benchmark_bundle
+
+        res = verify_benchmark_bundle(args.bundle)
+        print(json.dumps(res, indent=2, ensure_ascii=False))
 
     return 0
 
