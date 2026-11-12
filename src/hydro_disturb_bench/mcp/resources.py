@@ -1,9 +1,7 @@
 """MCP Resources and Prompt Templates for COMSOL Multiphysics."""
 
 from pathlib import Path
-from typing import Any, Dict
 
-from .safety import format_error, ERR_MODEL_NOT_FOUND
 from .tools_meta import comsol_inspect_environment
 from .tools_model import comsol_inspect_model
 

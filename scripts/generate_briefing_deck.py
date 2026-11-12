@@ -4,9 +4,8 @@ generate_briefing_deck.py - Generates an Apple Keynote / Bento Grid style
 executive presentation (.pptx) and companion interactive HTML5 deck for HydroDisturb-Bench.
 """
 
-from pathlib import Path
-import os
 import sys
+from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -14,10 +13,10 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from pptx import Presentation
-from pptx.util import Inches, Pt
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
+from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.util import Inches, Pt
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -72,7 +71,7 @@ def add_pill_badge(slide, left, top, text, color=COLOR_CYAN):
 
 def add_slide_header(slide, tag_text, title_text, subtitle_text):
     add_pill_badge(slide, Inches(0.8), Inches(0.5), tag_text, COLOR_CYAN)
-    
+
     tb = slide.shapes.add_textbox(Inches(0.8), Inches(0.85), Inches(11.7), Inches(0.9))
     tf = tb.text_frame
     tf.word_wrap = True
@@ -138,14 +137,14 @@ def create_presentation():
         tb_m = s1.shapes.add_textbox(cx + Inches(0.15), cy + Inches(0.12), card_w - Inches(0.3), card_h - Inches(0.24))
         tf_m = tb_m.text_frame
         tf_m.word_wrap = True
-        
+
         p = tf_m.paragraphs[0]
         p.text = val
         p.font.size = Pt(28)
         p.font.bold = True
         p.font.color.rgb = color
         p.font.name = "Arial"
-        
+
         p_l = tf_m.add_paragraph()
         p_l.text = label
         p_l.font.size = Pt(11)
@@ -193,7 +192,7 @@ def create_presentation():
 
     # 3 Large Bento Boxes for Q1, Q2, Q3
     q_data = [
-        ("Q1 隐藏参数辨识", "HIDDEN PARAMETERS", 
+        ("Q1 隐藏参数辨识", "HIDDEN PARAMETERS",
          "机制已知，参数隐蔽",
          "当水下扰动机制已知（如局部喷流/尾迹吸吹），但其激发位置、峰值强度、持续时刻未知时，AI 模型仅凭上游历史稀疏观测，能否外推未来流场并重构扰动参数？",
          COLOR_CYAN),
@@ -213,11 +212,11 @@ def create_presentation():
         cw = Inches(3.733)
         ch = Inches(4.8)
         add_bento_card(s2, cx, cy, cw, ch)
-        
+
         tb_q = s2.shapes.add_textbox(cx + Inches(0.2), cy + Inches(0.2), cw - Inches(0.4), ch - Inches(0.4))
         tf_q = tb_q.text_frame
         tf_q.word_wrap = True
-        
+
         p = tf_q.paragraphs[0]
         p.text = q_title
         p.font.size = Pt(18)
@@ -261,7 +260,7 @@ def create_presentation():
     tb_m = s3.shapes.add_textbox(Inches(1.0), Inches(2.2), Inches(5.3), Inches(4.4))
     tf_m = tb_m.text_frame
     tf_m.word_wrap = True
-    
+
     pm1 = tf_m.paragraphs[0]
     pm1.text = "1. 空间网格三级加密收敛 (M1 → M2 → M3)"
     pm1.font.size = Pt(16)

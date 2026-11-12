@@ -1,10 +1,11 @@
 """Study Types, Solver Configuration, and Async Solver Execution Tools."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hydro_disturb_bench.comsol_java import run_study as _legacy_run_study
+
 from .executor import execute_java_code
-from .safety import license_lock, validate_cow_paths
+from .safety import format_error, license_lock, validate_cow_paths
 
 
 def comsol_create_study(
@@ -12,8 +13,8 @@ def comsol_create_study(
     output_model: str,
     study_tag: str,
     study_type: str = "Stationary",
-    physics_list: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    physics_list: list[str] | None = None,
+) -> dict[str, Any]:
     """Creates a Study sequence (Stationary, Transient, Frequency, Eigenfrequency).
 
     Args:
@@ -63,10 +64,10 @@ def comsol_configure_solver(
     source_model: str,
     output_model: str,
     study_tag: str = "std1",
-    tlist: Optional[str] = None,
-    rtol: Optional[str] = None,
-    maxstep: Optional[str] = None,
-) -> Dict[str, Any]:
+    tlist: str | None = None,
+    rtol: str | None = None,
+    maxstep: str | None = None,
+) -> dict[str, Any]:
     """Configures transient time stepping, relative tolerance, and solver bounds.
 
     Args:
@@ -88,6 +89,19 @@ def comsol_configure_solver(
         lines.append(f'for (String st : std.feature().tags()) {{ if (std.feature(st).getType().contains("Time")) std.feature(st).set("tlist", "{tlist}"); }}')
     if rtol:
         lines.append(f'for (String st : std.feature().tags()) {{ try {{ std.feature(st).set("rtol", "{rtol}"); }} catch (Throwable t) {{}} }}')
+    if maxstep:
+        lines.append(f'for (String st : std.feature().tags()) {{ try {{ std.feature(st).set("maxstep", "{maxstep}"); }} catch (Throwable t) {{}} }}')
+        lines.append(
+            'for (String sTag : model.sol().tags()) { '
+            'try { '
+            'SolverSequence sSeq = model.sol(sTag); '
+            'for (String fTag : sSeq.feature().tags()) { '
+            'SolverFeature feat = sSeq.feature(fTag); '
+            'if ("Time".equalsIgnoreCase(feat.getType())) { '
+            'feat.set("maxstepconstraintbdf", "const"); '
+            f'feat.set("maxstepbdf", "{maxstep}"); '
+            '} } } catch (Throwable t) {} }'
+        )
 
     lines.append(f'System.out.println("SOLVER_CONFIGURED: {study_tag}");')
     snippet = "\n        ".join(lines)
@@ -101,6 +115,7 @@ def comsol_configure_solver(
         res["study_tag"] = study_tag
         res["tlist"] = tlist
         res["rtol"] = rtol
+        res["maxstep"] = maxstep
     return res
 
 
@@ -108,11 +123,11 @@ def comsol_solve_study(
     source_model: str,
     output_model: str,
     study_tag: str = "std1",
-    tlist_override: Optional[str] = None,
-    rtol_override: Optional[str] = None,
-    maxstep_override: Optional[str] = None,
+    tlist_override: str | None = None,
+    rtol_override: str | None = None,
+    maxstep_override: str | None = None,
     timeout_sec: int = 1800,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Runs the COMSOL solver for the specified study under the license queue lock.
 
     Guarantees floating license queuing (FileLock), isolates native solver crashes,
@@ -124,11 +139,15 @@ def comsol_solve_study(
 
     # Acquire floating license lock
     with license_lock:
-        return _legacy_run_study(
-            model_path=source_model,
-            output_path=output_model,
-            study_tag=study_tag,
-            tlist_override=tlist_override,
-            rtol_override=rtol_override,
-            maxstep_override=maxstep_override,
-        )
+        try:
+            return _legacy_run_study(
+                model_path=source_model,
+                output_path=output_model,
+                study_tag=study_tag,
+                tlist_override=tlist_override or "",
+                rtol_override=rtol_override or "",
+                maxstep_override=maxstep_override or "",
+                timeout=float(timeout_sec) if timeout_sec else None,
+            )
+        except Exception as e:
+            return format_error("SOLVER_FAILED", f"Study solver failed: {e}")

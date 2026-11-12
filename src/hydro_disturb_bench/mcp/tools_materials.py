@@ -1,6 +1,6 @@
 """Material Library and Constitutive Property Tools for COMSOL MCP."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .executor import execute_java_code
 from .safety import validate_cow_paths
@@ -11,9 +11,9 @@ def comsol_add_material(
     output_model: str,
     mat_tag: str,
     material_name: str = "Common",
-    selection: Optional[List[int]] = None,
+    selection: list[int] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds a material to the model component and assigns it to geometric domains.
 
     Args:
@@ -53,9 +53,9 @@ def comsol_set_material_properties(
     source_model: str,
     output_model: str,
     mat_tag: str,
-    properties: Dict[str, str],
+    properties: dict[str, str],
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Configures physical material properties in the basic property group.
 
     Common property keys:

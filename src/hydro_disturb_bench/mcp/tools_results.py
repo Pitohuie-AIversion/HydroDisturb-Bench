@@ -2,10 +2,10 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .executor import execute_java_code
-from .safety import format_error, validate_cow_paths, ERR_MODEL_NOT_FOUND
+from .safety import ERR_MODEL_NOT_FOUND, format_error, validate_cow_paths
 
 
 def comsol_create_plot_group(
@@ -14,8 +14,8 @@ def comsol_create_plot_group(
     plot_group_tag: str,
     plot_type: str = "PlotGroup2D",
     dset_tag: str = "dset1",
-    plots: Optional[List[Dict[str, Any]]] = None,
-) -> Dict[str, Any]:
+    plots: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Creates a 1D, 2D, or 3D Plot Group in COMSOL Results.
 
     Args:
@@ -69,7 +69,7 @@ def comsol_export_image(
     plot_tag: str,
     width: int = 1200,
     height: int = 800,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Renders any 2D/3D Plot Group to a high-resolution PNG image using the offscreen software renderer.
 
     Enables multimodal LLM agents to visually inspect flow structures, vortex shedding,
@@ -116,10 +116,10 @@ def comsol_export_image(
 def comsol_evaluate_numerical(
     model_path: str,
     eval_type: str,
-    expressions: List[str],
-    selection: Optional[List[int]] = None,
+    expressions: list[str],
+    selection: list[int] | None = None,
     dataset_tag: str = "dset1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Computes numerical derived values (integrals, point evaluations, averages, max/min).
 
     Args:
@@ -142,14 +142,15 @@ def comsol_evaluate_numerical(
     snippet = f"""
         NumericalFeature num = model.result().numerical().create("eval1", "{eval_type}");
         num.set("data", "{dataset_tag}");
-        num.set("expr", new String[]{{{expr_arr}}});
+        String[] exprs = new String[]{{{expr_arr}}};
+        num.set("expr", exprs);
         {sel_code}
         double[][] resMatrix = num.getReal();
         StringBuilder sb = new StringBuilder();
         sb.append("NUMERICAL_RESULT={{\\"expressions\\":[");
-        for (int i = 0; i < {len(expressions)}; i++) {{
+        for (int i = 0; i < exprs.length; i++) {{
             if (i > 0) sb.append(",");
-            sb.append("\\"{expressions[0] if i == 0 else (expressions[i] if i < len(expressions) else "")}\\"");
+            sb.append("\\"").append(exprs[i]).append("\\"");
         }}
         sb.append("],\\"values\\":[");
         for (int i = 0; i < resMatrix.length; i++) {{

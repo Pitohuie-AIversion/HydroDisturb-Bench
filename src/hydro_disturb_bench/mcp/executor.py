@@ -6,15 +6,13 @@ a crash-isolated subprocess.
 """
 
 import base64
-import json
-import os
-import re
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from hydro_disturb_bench.comsol_java import find_comsol_root
+
 from .safety import (
     ERR_COMPILATION_FAILED,
     ERR_EXECUTION_FAILED,
@@ -105,11 +103,11 @@ public class DynamicExecutor {
 
 def execute_java_code(
     java_snippet: str,
-    source_model: Optional[str | Path] = None,
-    output_model: Optional[str | Path] = None,
+    source_model: str | Path | None = None,
+    output_model: str | Path | None = None,
     is_graphics: bool = False,
     timeout: int = 300,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compiles and executes arbitrary COMSOL Java code against a model.
 
     Args:
@@ -214,7 +212,7 @@ public class SnippetHandler {{
             if post_hash != baseline_hash:
                 raise RuntimeError("FATAL: Baseline model was modified during execution!")
 
-        res: Dict[str, Any] = {
+        res: dict[str, Any] = {
             "status": "SUCCESS",
             "operation": "execute_java",
             "console_output": exec_proc.stdout.replace("DYNAMIC_EXECUTION_SUCCESS", "").strip(),
@@ -229,7 +227,7 @@ public class SnippetHandler {{
         return res
 
 
-def export_model_to_java(source_model: str | Path, output_java_path: str | Path, timeout: int = 120) -> Dict[str, Any]:
+def export_model_to_java(source_model: str | Path, output_java_path: str | Path, timeout: int = 120) -> dict[str, Any]:
     """Reverse-engineers any existing .mph file into complete native Java source code."""
     src_p = Path(source_model).resolve()
     if not src_p.is_file():
@@ -269,7 +267,7 @@ def export_model_to_java(source_model: str | Path, output_java_path: str | Path,
     return res
 
 
-def create_blank_model(dim: int, name: str, output_model: str | Path, timeout: int = 60) -> Dict[str, Any]:
+def create_blank_model(dim: int, name: str, output_model: str | Path, timeout: int = 60) -> dict[str, Any]:
     """Creates a brand new model from scratch with a component and geometry sequence."""
     dst_p = Path(output_model).resolve()
     dst_p.parent.mkdir(parents=True, exist_ok=True)

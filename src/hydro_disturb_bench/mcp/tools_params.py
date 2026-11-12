@@ -1,17 +1,17 @@
 """Parameters, Global Variables, and Mathematical Function Tools."""
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from .executor import execute_java_code
-from .safety import format_error, validate_cow_paths, ERR_MODEL_NOT_FOUND
+from .safety import ERR_MODEL_NOT_FOUND, format_error, validate_cow_paths
 
 
 def comsol_set_parameters(
     source_model: str,
     output_model: str,
-    parameters: Dict[str, Union[str, Dict[str, str]]],
-) -> Dict[str, Any]:
+    parameters: dict[str, str | dict[str, str]],
+) -> dict[str, Any]:
     """Batch sets or updates global parameters in a COMSOL model.
 
     Enforces Copy-on-Write: source_model is strictly read-only and preserved.
@@ -64,8 +64,8 @@ def comsol_add_function(
     func_name: str,
     expression: str,
     arguments: str = "t",
-    options: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    options: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Adds an analytic, step, or ramp function to the model's global definitions.
 
     Args:

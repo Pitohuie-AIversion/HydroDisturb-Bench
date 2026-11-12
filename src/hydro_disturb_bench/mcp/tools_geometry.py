@@ -1,11 +1,10 @@
 """Geometry Modeling, CAD Operations, and Geometric Selections Tools."""
 
 import json
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .executor import execute_java_code
-from .safety import format_error, validate_cow_paths, ERR_MODEL_NOT_FOUND
+from .safety import validate_cow_paths
 
 
 def comsol_geom_primitive(
@@ -13,10 +12,10 @@ def comsol_geom_primitive(
     output_model: str,
     shape: str,
     tag: str,
-    params: Dict[str, Union[str, float, int, List[float]]],
+    params: dict[str, str | float | int | list[float]],
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds a 2D or 3D geometric primitive to the geometry sequence.
 
     Supported shapes:
@@ -66,11 +65,11 @@ def comsol_geom_boolean(
     output_model: str,
     op_type: str,
     tag: str,
-    input_tags: List[str],
-    subtract_tags: Optional[List[str]] = None,
+    input_tags: list[str],
+    subtract_tags: list[str] | None = None,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Performs Boolean operations (Union, Difference, Intersection) on geometric objects.
 
     Args:
@@ -114,7 +113,7 @@ def comsol_geom_build(
     output_model: str,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Rebuilds the entire geometry sequence and returns topology counts (domains, boundaries, vertices)."""
     cow_err = validate_cow_paths(source_model, output_model)
     if cow_err:
@@ -152,11 +151,11 @@ def comsol_create_selection(
     sel_type: str,
     sel_tag: str,
     entity_dim: int,
-    entities: Optional[List[int]] = None,
-    filter_params: Optional[Dict[str, Any]] = None,
+    entities: list[int] | None = None,
+    filter_params: dict[str, Any] | None = None,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Creates geometric entity selections (Explicit, Box, Ball, Cylinder).
 
     Args:

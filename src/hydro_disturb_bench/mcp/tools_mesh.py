@@ -1,7 +1,7 @@
 """Mesh Generation, Element Controls, and Mesh Quality Tools."""
 
 import json
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .executor import execute_java_code
 from .safety import validate_cow_paths
@@ -11,9 +11,9 @@ def comsol_mesh_build(
     source_model: str,
     output_model: str,
     mesh_tag: str = "mesh1",
-    preset_size: Optional[str] = None,
+    preset_size: str | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generates the mesh and queries mesh statistics (element counts, minimum quality, average quality).
 
     Args:
@@ -78,10 +78,10 @@ def comsol_mesh_feature(
     feature_type: str,
     feature_tag: str,
     mesh_tag: str = "mesh1",
-    selection: Optional[List[int]] = None,
-    properties: Optional[Dict[str, Union[str, float, int]]] = None,
+    selection: list[int] | None = None,
+    properties: dict[str, str | float | int] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds a mesh feature or local refinement (FreeTri, FreeTet, Map, Swept, BoundaryLayers, Size).
 
     Args:

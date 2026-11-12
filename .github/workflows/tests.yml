@@ -23,7 +23,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Sync locked development and analysis dependencies
-        run: uv sync --locked --python ${{ matrix.python-version }} --extra dev --extra analysis
+        run: uv sync --locked --python ${{ matrix.python-version }} --extra dev --extra analysis --extra mcp
 
       - name: Code style & static lint check (Ruff)
         run: uv run --no-sync --python ${{ matrix.python-version }} ruff check .

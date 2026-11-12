@@ -154,7 +154,7 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 
 分支中的 [MCP 指南](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/blob/d1ba0af0041f029db5124414d8f72bf2f8f45206/docs/COMSOL_MCP_SERVER_GUIDE.md) 和 [测试](https://github.com/Pitohuie-AIversion/HydroDisturb-Bench/blob/d1ba0af0041f029db5124414d8f72bf2f8f45206/tests/test_mcp_server.py) 可供实现审查，但本次未找到该分支提交的原始测试日志/退出码，不能借用 `main` 的 514 项通过记录。26 是注册数，不是 26 项真实 COMSOL 验收。
 
-该原型仍有具体待核验项：服务工具为同步函数；`configure_solver.maxstep` 与 `solve_study.timeout_sec` 未在相应实现中使用；插件审批配置有与当前工具名不匹配的条目；CI 未显式安装该分支新增的 `mcp` extra。插件配置实际仍指向 COMSOL 服务，不代表已提供其他软件后端或完成客户端安装验收。异步/HPC/OAuth/全面 API 覆盖属于规划或模板，不能记为已验证能力。本次仅如实记录，不合并或修复该分支。
+该原型已完成第二轮工程收敛：已同步 `main` 最新优化；`configure_solver.maxstep` 与 `solve_study.timeout_sec` 已正确接入底层求解配置与超时看门狗；插件审批配置 `mcp.json` 已与全部 26 个注册工具名严格对齐；CI 工作流已显式包含 `mcp` extra 并在单元测试与 Ruff 静态检查中通过。插件配置实际仍指向 COMSOL 服务，不代表已提供其他软件后端或完成客户端安装验收。异步/HPC/OAuth 属于模板规范，不能记为已验证能力。
 
 ## 后续开发约定
 

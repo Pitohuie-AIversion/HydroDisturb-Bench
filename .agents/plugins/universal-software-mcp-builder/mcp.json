@@ -14,16 +14,79 @@
         "inspect_environment": {
           "approval_mode": "auto"
         },
+        "execute_java": {
+          "approval_mode": "prompt"
+        },
+        "export_to_java": {
+          "approval_mode": "auto"
+        },
+        "create_model": {
+          "approval_mode": "prompt"
+        },
         "inspect_model": {
           "approval_mode": "auto"
         },
-        "update_parameter": {
+        "inspect_node": {
+          "approval_mode": "auto"
+        },
+        "evaluate_expressions": {
+          "approval_mode": "auto"
+        },
+        "set_parameters": {
+          "approval_mode": "prompt"
+        },
+        "add_function": {
+          "approval_mode": "prompt"
+        },
+        "geom_primitive": {
+          "approval_mode": "prompt"
+        },
+        "geom_boolean": {
+          "approval_mode": "prompt"
+        },
+        "geom_build": {
+          "approval_mode": "prompt"
+        },
+        "create_selection": {
+          "approval_mode": "prompt"
+        },
+        "add_material": {
+          "approval_mode": "prompt"
+        },
+        "set_material_properties": {
+          "approval_mode": "prompt"
+        },
+        "add_physics": {
+          "approval_mode": "prompt"
+        },
+        "add_physics_feature": {
+          "approval_mode": "prompt"
+        },
+        "add_multiphysics": {
+          "approval_mode": "prompt"
+        },
+        "mesh_build": {
+          "approval_mode": "prompt"
+        },
+        "mesh_feature": {
+          "approval_mode": "prompt"
+        },
+        "create_study": {
+          "approval_mode": "prompt"
+        },
+        "configure_solver": {
           "approval_mode": "prompt"
         },
         "solve_study": {
           "approval_mode": "prompt"
         },
-        "export_diagnostics": {
+        "create_plot_group": {
+          "approval_mode": "prompt"
+        },
+        "export_image": {
+          "approval_mode": "auto"
+        },
+        "evaluate_numerical": {
           "approval_mode": "auto"
         }
       },

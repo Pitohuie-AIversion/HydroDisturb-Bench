@@ -5,7 +5,7 @@ dynamic Java execution, reverse-engineering, offscreen rendering, and safety gua
 """
 
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
@@ -72,7 +72,7 @@ server = MCPServer(
 # ============================================================================
 
 @server.tool()
-def inspect_environment() -> Dict[str, Any]:
+def inspect_environment() -> dict[str, Any]:
     """Inspect local COMSOL 6.4 installation, verified toolchains, and available Java API methods."""
     return comsol_inspect_environment()
 
@@ -80,11 +80,11 @@ def inspect_environment() -> Dict[str, Any]:
 @server.tool()
 def execute_java(
     java_code: str,
-    source_model: Optional[str] = None,
-    output_model: Optional[str] = None,
+    source_model: str | None = None,
+    output_model: str | None = None,
     is_graphics: bool = False,
     timeout: int = 300,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Turing-complete universal COMSOL Java execution engine.
 
     Executes arbitrary COMSOL Java API code directly against a `model` object inside a crash-isolated subprocess.
@@ -102,7 +102,7 @@ def execute_java(
 
 
 @server.tool()
-def export_to_java(source_model: str, output_java_path: str) -> Dict[str, Any]:
+def export_to_java(source_model: str, output_java_path: str) -> dict[str, Any]:
     """Reverse-engineers any existing COMSOL model (.mph) into full native Java source code.
 
     Enables inspecting how official COMSOL Application Libraries tutorials or existing models
@@ -116,13 +116,13 @@ def export_to_java(source_model: str, output_java_path: str) -> Dict[str, Any]:
 # ============================================================================
 
 @server.tool()
-def create_model(dim: int, name: str, output_model: str) -> Dict[str, Any]:
+def create_model(dim: int, name: str, output_model: str) -> dict[str, Any]:
     """Create a brand new COMSOL model from scratch with 1D, 2D, or 3D geometry sequence."""
     return comsol_create_model(dim=dim, name=name, output_model=output_model)
 
 
 @server.tool()
-def inspect_model(model_path: str) -> Dict[str, Any]:
+def inspect_model(model_path: str) -> dict[str, Any]:
     """Read the complete hierarchy and structure of a COMSOL model (.mph) without modifying it.
 
     Always run this first on an existing model to discover active tags rather than guessing.
@@ -131,13 +131,13 @@ def inspect_model(model_path: str) -> Dict[str, Any]:
 
 
 @server.tool()
-def inspect_node(model_path: str, node_type: str, node_tag: str) -> Dict[str, Any]:
+def inspect_node(model_path: str, node_type: str, node_tag: str) -> dict[str, Any]:
     """Inspect detailed properties and features of a specific node (e.g. physics, geom, study)."""
     return comsol_inspect_node(model_path=model_path, node_type=node_type, node_tag=node_tag)
 
 
 @server.tool()
-def evaluate_expressions(model_path: str, expressions: List[str]) -> Dict[str, Any]:
+def evaluate_expressions(model_path: str, expressions: list[str]) -> dict[str, Any]:
     """Evaluate mathematical or physical expressions within the model's global scope."""
     return comsol_evaluate_expressions(model_path=model_path, expressions=expressions)
 
@@ -150,8 +150,8 @@ def evaluate_expressions(model_path: str, expressions: List[str]) -> Dict[str, A
 def set_parameters(
     source_model: str,
     output_model: str,
-    parameters: Dict[str, Union[str, Dict[str, str]]],
-) -> Dict[str, Any]:
+    parameters: dict[str, str | dict[str, str]],
+) -> dict[str, Any]:
     """Batch sets or updates global parameters in a COMSOL model using Copy-on-Write."""
     return comsol_set_parameters(
         source_model=source_model,
@@ -168,7 +168,7 @@ def add_function(
     func_name: str,
     expression: str,
     arguments: str = "t",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds an analytic, step, or ramp function to global definitions."""
     return comsol_add_function(
         source_model=source_model,
@@ -190,10 +190,10 @@ def geom_primitive(
     output_model: str,
     shape: str,
     tag: str,
-    params: Dict[str, Union[str, float, int, List[float]]],
+    params: dict[str, str | float | int | list[float]],
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds a 2D or 3D geometric primitive (Circle, Rectangle, Block, Cylinder, Sphere, Polygon)."""
     return comsol_geom_primitive(
         source_model=source_model,
@@ -212,11 +212,11 @@ def geom_boolean(
     output_model: str,
     op_type: str,
     tag: str,
-    input_tags: List[str],
-    subtract_tags: Optional[List[str]] = None,
+    input_tags: list[str],
+    subtract_tags: list[str] | None = None,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Performs Boolean operations (Union, Difference, Intersection) on geometric objects."""
     return comsol_geom_boolean(
         source_model=source_model,
@@ -236,7 +236,7 @@ def geom_build(
     output_model: str,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Rebuilds the entire geometry sequence and returns topology entity counts."""
     return comsol_geom_build(
         source_model=source_model,
@@ -253,11 +253,11 @@ def create_selection(
     sel_type: str,
     sel_tag: str,
     entity_dim: int,
-    entities: Optional[List[int]] = None,
-    filter_params: Optional[Dict[str, Any]] = None,
+    entities: list[int] | None = None,
+    filter_params: dict[str, Any] | None = None,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Creates geometric entity selections (Explicit, Box, Ball, Cylinder)."""
     return comsol_create_selection(
         source_model=source_model,
@@ -282,9 +282,9 @@ def add_material(
     output_model: str,
     mat_tag: str,
     material_name: str = "Common",
-    selection: Optional[List[int]] = None,
+    selection: list[int] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds a material to the model component and assigns it to geometric domains."""
     return comsol_add_material(
         source_model=source_model,
@@ -301,9 +301,9 @@ def set_material_properties(
     source_model: str,
     output_model: str,
     mat_tag: str,
-    properties: Dict[str, str],
+    properties: dict[str, str],
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Configures physical material properties (density, dynamicviscosity, thermalconductivity, etc.)."""
     return comsol_set_material_properties(
         source_model=source_model,
@@ -326,7 +326,7 @@ def add_physics(
     physics_tag: str,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds ANY physics interface (CFD, Heat, Solid Mechanics, Electromagnetics, Acoustics, PDEs)."""
     return comsol_add_physics(
         source_model=source_model,
@@ -345,10 +345,10 @@ def add_physics_feature(
     physics_tag: str,
     feature_type: str,
     feature_tag: str,
-    selection: Optional[List[int]] = None,
-    properties: Optional[Dict[str, Union[str, List[str], float, int]]] = None,
+    selection: list[int] | None = None,
+    properties: dict[str, str | list[str] | float | int] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds a boundary condition (Inlet, Outlet, Wall, HeatFlux, Force) or domain feature."""
     return comsol_add_physics_feature(
         source_model=source_model,
@@ -368,9 +368,9 @@ def add_multiphysics(
     output_model: str,
     coupling_type: str,
     coupling_tag: str,
-    coupled_physics: Optional[List[str]] = None,
+    coupled_physics: list[str] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Establishes multiphysics couplings (FSI, Non-Isothermal Flow, Joule Heating, etc.)."""
     return comsol_add_multiphysics(
         source_model=source_model,
@@ -391,9 +391,9 @@ def mesh_build(
     source_model: str,
     output_model: str,
     mesh_tag: str = "mesh1",
-    preset_size: Optional[str] = None,
+    preset_size: str | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generates mesh and queries mesh statistics (element counts, minimum quality)."""
     return comsol_mesh_build(
         source_model=source_model,
@@ -411,10 +411,10 @@ def mesh_feature(
     feature_type: str,
     feature_tag: str,
     mesh_tag: str = "mesh1",
-    selection: Optional[List[int]] = None,
-    properties: Optional[Dict[str, Union[str, float, int]]] = None,
+    selection: list[int] | None = None,
+    properties: dict[str, str | float | int] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds local mesh refinement or feature (FreeTri, FreeTet, Map, Swept, BoundaryLayers, Size)."""
     return comsol_mesh_feature(
         source_model=source_model,
@@ -438,8 +438,8 @@ def create_study(
     output_model: str,
     study_tag: str,
     study_type: str = "Stationary",
-    physics_list: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    physics_list: list[str] | None = None,
+) -> dict[str, Any]:
     """Creates a Study sequence (Stationary, Transient, Frequency, Eigenfrequency)."""
     return comsol_create_study(
         source_model=source_model,
@@ -455,10 +455,10 @@ def configure_solver(
     source_model: str,
     output_model: str,
     study_tag: str = "std1",
-    tlist: Optional[str] = None,
-    rtol: Optional[str] = None,
-    maxstep: Optional[str] = None,
-) -> Dict[str, Any]:
+    tlist: str | None = None,
+    rtol: str | None = None,
+    maxstep: str | None = None,
+) -> dict[str, Any]:
     """Configures transient time stepping, relative tolerance, and solver bounds."""
     return comsol_configure_solver(
         source_model=source_model,
@@ -475,11 +475,11 @@ def solve_study(
     source_model: str,
     output_model: str,
     study_tag: str = "std1",
-    tlist_override: Optional[str] = None,
-    rtol_override: Optional[str] = None,
-    maxstep_override: Optional[str] = None,
+    tlist_override: str | None = None,
+    rtol_override: str | None = None,
+    maxstep_override: str | None = None,
     timeout_sec: int = 1800,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Runs the COMSOL solver for the specified study under the license queue lock."""
     return comsol_solve_study(
         source_model=source_model,
@@ -503,8 +503,8 @@ def create_plot_group(
     plot_group_tag: str,
     plot_type: str = "PlotGroup2D",
     dset_tag: str = "dset1",
-    plots: Optional[List[Dict[str, Any]]] = None,
-) -> Dict[str, Any]:
+    plots: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Creates a 1D, 2D, or 3D Plot Group (Surface, Streamline, Contour, Slice, Arrow)."""
     return comsol_create_plot_group(
         source_model=source_model,
@@ -523,7 +523,7 @@ def export_image(
     plot_tag: str,
     width: int = 1200,
     height: int = 800,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Renders any 2D/3D Plot Group to a PNG image using the offscreen software renderer."""
     return comsol_export_image(
         model_path=model_path,
@@ -538,10 +538,10 @@ def export_image(
 def evaluate_numerical(
     model_path: str,
     eval_type: str,
-    expressions: List[str],
-    selection: Optional[List[int]] = None,
+    expressions: list[str],
+    selection: list[int] | None = None,
     dataset_tag: str = "dset1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Computes numerical derived values (integrals, point evaluations, averages, max/min)."""
     return comsol_evaluate_numerical(
         model_path=model_path,

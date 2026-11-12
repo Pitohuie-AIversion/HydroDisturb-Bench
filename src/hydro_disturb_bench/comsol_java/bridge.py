@@ -307,6 +307,7 @@ def _run_standalone(
     args: list[str],
     *,
     process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+    timeout: float | None = None,
 ) -> subprocess.CompletedProcess:
     """Use the official single-process Java API after a native batch startup failure.
 
@@ -381,23 +382,33 @@ def _run_standalone(
                 (isolated_preferences / name).write_bytes(contents)
                 preference_seed_hashes[name] = hashlib.sha256(contents).hexdigest()
             graphics_options = ["-Dcs.3drend=sw", f"-Dcs.prefsdir={isolated_preferences}"]
-        process = run_process(
-            [
-                str(java_bin / "java.exe"),
-                "-Xmx2g",
-                "-Xss4m",
-                *graphics_options,
-                "-cp",
-                classpath,
-                "ComsolStandalone",
-                *encoded,
-            ],
-            cwd=work,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
+        run_kwargs = {}
+        if timeout is not None:
+            run_kwargs["timeout"] = timeout
+        try:
+            process = run_process(
+                [
+                    str(java_bin / "java.exe"),
+                    "-Xmx2g",
+                    "-Xss4m",
+                    *graphics_options,
+                    "-cp",
+                    classpath,
+                    "ComsolStandalone",
+                    *encoded,
+                ],
+                cwd=work,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                **run_kwargs,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise SolverFailedError(
+                f"COMSOL standalone execution timed out after {timeout} seconds",
+                details=f"Command: {args}\nStdout:\n{exc.stdout or ''}\nStderr:\n{exc.stderr or ''}",
+            ) from exc
         if isolated_preferences is not None:
             process.graphics_preferences_dir = str(isolated_preferences)
             process.graphics_preference_seed_hashes = preference_seed_hashes
@@ -409,6 +420,7 @@ def _run_bridge(
     root: Path | None = None,
     *,
     process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+    timeout: float | None = None,
 ) -> dict[str, Any]:
     """Execute ComsolBridge with given arguments and parse JSON result."""
     root = root or find_comsol_root()
@@ -422,23 +434,37 @@ def _run_bridge(
     run_process = subprocess.run if process_runner is None else process_runner
     class_file = ensure_bridge_compiled(root, **process_options)
 
+    standalone_options = dict(process_options)
+    if timeout is not None:
+        standalone_options["timeout"] = timeout
+
     # On Windows, image export requires headless software rendering and isolated preferences
     # via the standalone Java launcher. comsolbatch without a display skips PNG rendering.
     if sys.platform == "win32" and args and args[0] == "export-s1-diagnostics":
-        proc = _run_standalone(root, class_file, args, **process_options)
+        proc = _run_standalone(root, class_file, args, **standalone_options)
         launch_mode = "standalone_java_api"
         startup_failure = None
     else:
         cmd = [str(comsolbatch), "-nosave", "-inputfile", str(class_file)] + args
 
-        proc = run_process(
-            cmd,
-            cwd=str(class_file.parent),
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
+        run_kwargs = {}
+        if timeout is not None:
+            run_kwargs["timeout"] = timeout
+        try:
+            proc = run_process(
+                cmd,
+                cwd=str(class_file.parent),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                **run_kwargs,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise SolverFailedError(
+                f"COMSOL bridge execution timed out after {timeout} seconds",
+                details=f"Command: {cmd}\nStdout:\n{exc.stdout or ''}\nStderr:\n{exc.stderr or ''}",
+            ) from exc
 
         # Retry only an identified startup failure, before any bridge command ran.
         # Never retry solver/model errors or a process that emitted bridge JSON.
@@ -455,7 +481,7 @@ def _run_bridge(
                 "stderr": proc.stderr,
                 "returncode": proc.returncode,
             }
-            proc = _run_standalone(root, class_file, args, **process_options)
+            proc = _run_standalone(root, class_file, args, **standalone_options)
             launch_mode = "standalone_java_api"
 
     # Clean up comsolbatch status file if created in the directory
@@ -893,6 +919,7 @@ def run_study(
     maxstep_override: str = "",
     allow_overwrite: bool = False,
     root: Path | None = None,
+    timeout: float | None = None,
 ) -> dict[str, Any]:
     """Execute a study on a validated model copy and save results to output_path."""
     model_path = Path(model_path)
@@ -933,7 +960,7 @@ def run_study(
 
     with task_staging_session(staging_path, stage_id):
         try:
-            res = _run_bridge(args, root=root)
+            res = _run_bridge(args, root=root, timeout=timeout)
         except Exception:
             quarantine_staging_file(staging_path, output_path, stage_id, reason="failed")
             raise

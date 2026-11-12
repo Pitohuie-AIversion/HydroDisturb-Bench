@@ -1,6 +1,6 @@
 """Physics Interfaces, Boundary Conditions, and Multiphysics Couplings Tools."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .executor import execute_java_code
 from .safety import validate_cow_paths
@@ -13,7 +13,7 @@ def comsol_add_physics(
     physics_tag: str,
     geom_tag: str = "geom1",
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds ANY physics interface to the model component.
 
     Supported physics types include (but are not limited to):
@@ -58,10 +58,10 @@ def comsol_add_physics_feature(
     physics_tag: str,
     feature_type: str,
     feature_tag: str,
-    selection: Optional[List[int]] = None,
-    properties: Optional[Dict[str, Union[str, List[str], float, int]]] = None,
+    selection: list[int] | None = None,
+    properties: dict[str, str | list[str] | float | int] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Adds a boundary condition, domain feature, or source to a physics interface.
 
     Examples:
@@ -114,9 +114,9 @@ def comsol_add_multiphysics(
     output_model: str,
     coupling_type: str,
     coupling_tag: str,
-    coupled_physics: Optional[List[str]] = None,
+    coupled_physics: list[str] | None = None,
     comp_tag: str = "comp1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Establishes multiphysics couplings (e.g. FSI, Non-Isothermal Flow, Joule Heating, Thermal Stress).
 
     Args:

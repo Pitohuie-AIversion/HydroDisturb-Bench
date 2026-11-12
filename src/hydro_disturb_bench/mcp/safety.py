@@ -3,7 +3,8 @@
 import hashlib
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
+
 from filelock import FileLock
 
 # Standard Error Code Taxonomy
@@ -36,7 +37,7 @@ def compute_sha256(path: Path | str) -> str:
     return h.hexdigest().upper()
 
 
-def validate_cow_paths(source_path: Optional[str | Path], output_path: Optional[str | Path]) -> Optional[Dict[str, Any]]:
+def validate_cow_paths(source_path: str | Path | None, output_path: str | Path | None) -> dict[str, Any] | None:
     """Enforces strict Copy-on-Write: output_path must be distinct from source_path."""
     if source_path is None or output_path is None:
         return None
@@ -51,7 +52,7 @@ def validate_cow_paths(source_path: Optional[str | Path], output_path: Optional[
     return None
 
 
-def format_error(code: str, message: str, details: str = "") -> Dict[str, Any]:
+def format_error(code: str, message: str, details: str = "") -> dict[str, Any]:
     """Helper to return consistent structured error responses."""
     resp = {
         "status": "ERROR",

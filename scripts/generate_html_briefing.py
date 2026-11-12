@@ -301,7 +301,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="badge-pill">STAGE MILESTONE REPORT • 2026</div>
     <h1 class="slide-title" style="font-size: 34px;">HydroDisturb-Bench 研发攻关与阶段成果汇报</h1>
     <p class="slide-subtitle" style="color: var(--accent-cyan); font-size: 16px;">水下圆柱尾迹流场高精基准标定、双重独立性闭环与全域 AI 采样底座交付</p>
-    
+
     <div class="bento-grid" style="grid-template-columns: repeat(4, 1fr); grid-template-rows: auto auto;">
       <div class="bento-card">
         <div class="stat-val" style="color: var(--accent-green);">34,752</div>

@@ -1,13 +1,13 @@
 """Meta & Dynamic Execution Tools for COMSOL MCP."""
 
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from hydro_disturb_bench.comsol_java import find_comsol_root, inspect_api
+
 from .executor import execute_java_code, export_model_to_java
 
 
-def comsol_inspect_environment() -> Dict[str, Any]:
+def comsol_inspect_environment() -> dict[str, Any]:
     """Inspect local COMSOL 6.4 installation, verified toolchains, and available Java API methods.
 
     Always run this first to verify the COMSOL installation root and toolchain readiness.
@@ -42,11 +42,11 @@ def comsol_inspect_environment() -> Dict[str, Any]:
 
 def comsol_execute_java(
     java_code: str,
-    source_model: Optional[str] = None,
-    output_model: Optional[str] = None,
+    source_model: str | None = None,
+    output_model: str | None = None,
     is_graphics: bool = False,
     timeout: int = 300,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Turing-complete universal COMSOL Java execution engine.
 
     Executes arbitrary COMSOL Java API code directly against a `model` object.
@@ -71,7 +71,7 @@ def comsol_execute_java(
     )
 
 
-def comsol_export_to_java(source_model: str, output_java_path: str) -> Dict[str, Any]:
+def comsol_export_to_java(source_model: str, output_java_path: str) -> dict[str, Any]:
     """Reverse-engineers any existing COMSOL model (.mph) into full native Java source code.
 
     This allows you to inspect exactly how any complex model or official COMSOL Application

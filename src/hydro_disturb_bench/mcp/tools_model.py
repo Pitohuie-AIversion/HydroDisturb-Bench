@@ -2,14 +2,15 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hydro_disturb_bench.comsol_java import inspect_model as _legacy_inspect_model
+
 from .executor import create_blank_model, execute_java_code
-from .safety import format_error, ERR_MODEL_NOT_FOUND
+from .safety import ERR_MODEL_NOT_FOUND, format_error
 
 
-def comsol_create_model(dim: int, name: str, output_model: str) -> Dict[str, Any]:
+def comsol_create_model(dim: int, name: str, output_model: str) -> dict[str, Any]:
     """Create a brand new COMSOL Multiphysics model from scratch with 1D, 2D, or 3D geometry sequence.
 
     Args:
@@ -22,7 +23,7 @@ def comsol_create_model(dim: int, name: str, output_model: str) -> Dict[str, Any
     return create_blank_model(dim=dim, name=name, output_model=output_model)
 
 
-def comsol_inspect_model(model_path: str) -> Dict[str, Any]:
+def comsol_inspect_model(model_path: str) -> dict[str, Any]:
     """Read the complete hierarchy and structure of a COMSOL model (.mph) without modifying it.
 
     Returns:
@@ -41,7 +42,7 @@ def comsol_inspect_model(model_path: str) -> Dict[str, Any]:
         return format_error("INSPECTION_FAILED", f"Failed to inspect model {p}: {e}")
 
 
-def comsol_inspect_node(model_path: str, node_type: str, node_tag: str) -> Dict[str, Any]:
+def comsol_inspect_node(model_path: str, node_type: str, node_tag: str) -> dict[str, Any]:
     """Inspect detailed properties, enabled options, and allowed values of a specific node in the model.
 
     Args:
@@ -56,7 +57,7 @@ def comsol_inspect_node(model_path: str, node_type: str, node_tag: str) -> Dict[
     snippet = f"""
         StringBuilder sb = new StringBuilder();
         sb.append("{{\\"node_type\\":\\"{node_type}\\",\\"node_tag\\":\\"{node_tag}\\",\\"properties\\":{{");
-        
+
         if ("physics".equalsIgnoreCase("{node_type}")) {{
             // Inspect physics features
             String[] parts = "{node_tag}".split("/");
@@ -109,7 +110,7 @@ def comsol_inspect_node(model_path: str, node_type: str, node_tag: str) -> Dict[
     return res
 
 
-def comsol_evaluate_expressions(model_path: str, expressions: List[str]) -> Dict[str, Any]:
+def comsol_evaluate_expressions(model_path: str, expressions: list[str]) -> dict[str, Any]:
     """Evaluate mathematical or physical expressions within the model's global scope.
 
     Supports checking unit conversions, parameter formulas, or algebraic combinations.
