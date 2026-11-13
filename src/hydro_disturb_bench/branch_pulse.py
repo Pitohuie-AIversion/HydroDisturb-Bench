@@ -96,7 +96,8 @@ def compare_branch_fields(baseline, zero, pulse, plan):
     weights = np.where(zero["mask"][0], 0, weights)
     require(weights.sum() > 0, "No fluid area in comparison")
     bounds = plan["response_acceptance"]["roi_m"]
-    xx, yy = np.meshgrid(zero["x"], zero["y"])
+    # ⚡ Bolt: using NumPy broadcasting instead of np.meshgrid to avoid (Ny, Nx) memory allocation
+    xx, yy = zero["x"][None, :], zero["y"][:, None]
     eps = sampling.COORD_ATOL
     roi_weights = weights * ((xx >= bounds[0] - eps) & (xx <= bounds[1] + eps)
                              & (yy >= bounds[2] - eps) & (yy <= bounds[3] + eps))
