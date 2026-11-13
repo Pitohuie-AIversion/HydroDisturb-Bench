@@ -96,10 +96,11 @@ def compare_branch_fields(baseline, zero, pulse, plan):
     weights = np.where(zero["mask"][0], 0, weights)
     require(weights.sum() > 0, "No fluid area in comparison")
     bounds = plan["response_acceptance"]["roi_m"]
-    xx, yy = np.meshgrid(zero["x"], zero["y"])
     eps = sampling.COORD_ATOL
-    roi_weights = weights * ((xx >= bounds[0] - eps) & (xx <= bounds[1] + eps)
-                             & (yy >= bounds[2] - eps) & (yy <= bounds[3] + eps))
+    # ⚡ Bolt: using NumPy broadcasting instead of np.meshgrid to avoid (Ny, Nx) memory allocation
+    x_mask = (zero["x"] >= bounds[0] - eps) & (zero["x"] <= bounds[1] + eps)
+    y_mask = (zero["y"] >= bounds[2] - eps) & (zero["y"] <= bounds[3] + eps)
+    roi_weights = weights * (x_mask[None, :] & y_mask[:, None])
     require(roi_weights.sum() > 0, "No fluid area in the frozen ROI")
     U = float(plan["scales"]["U_inf_m_s"])
     pressure_scale = float(plan["scales"]["rho_f_kg_m3"]) * U**2
