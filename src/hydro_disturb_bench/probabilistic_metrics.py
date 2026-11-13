@@ -50,10 +50,11 @@ def compute_crps_ensemble(
     abs_errors = np.abs(ensemble_predictions - ground_truth[None, ...])  # (M, ...)
     term1 = np.mean(abs_errors, axis=0)  # (...)
 
-    # Term 2: 0.5 * E[|x - x'|] = (1 / (2 * M^2)) * sum_{i,j} |x_i - x_j|
-    # Vectorized pairwise differences along axis 0
-    diff_matrix = np.abs(ensemble_predictions[:, None, ...] - ensemble_predictions[None, :, ...])
-    term2 = 0.5 * np.mean(diff_matrix, axis=(0, 1))  # (...)
+    # Term 2: 0.5 * E[|x - x'|] = (1 / M^2) * sum_{k=1}^M (2k - M - 1) * x_{(k)}
+    # Exact order-statistics sorted identity achieves O(M) memory complexity
+    sorted_ens = np.sort(ensemble_predictions, axis=0)
+    weights = 2.0 * np.arange(1, m + 1, dtype=np.float64) - m - 1.0
+    term2 = np.einsum("i,i...->...", weights, sorted_ens) / float(m * m)
 
     pointwise_crps = term1 - term2
 
@@ -63,6 +64,10 @@ def compute_crps_ensemble(
 
     valid = np.isfinite(pointwise_crps)
     return float(np.mean(pointwise_crps[valid])) if np.any(valid) else 0.0
+
+
+# Backward-compatible and interface contract alias
+compute_ensemble_crps = compute_crps_ensemble
 
 
 def compute_spread_skill_ratio(

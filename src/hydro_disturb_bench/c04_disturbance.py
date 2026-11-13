@@ -186,14 +186,20 @@ def generate_c04_comsol_extruded_xz_force_expressions(
     direction (ex, ey, ez) maps to COMSOL VolumeForce (Fx=ex, Fy=ez, Fz=ey).
     """
     xc, yc, zc = config.center_m
+    vx, vy, vz = config.velocity_m_s
     y_comsol = zc - span_offset_m
     z_comsol = yc
 
     norm = math.sqrt(sum(d**2 for d in config.direction))
     ex, ey, ez = [d / norm for d in config.direction]
 
+    t_rel = f"(t-{config.on_s:.4f}[s])"
+    xc_expr = f"({xc:.6f}[m]+{vx:.6f}[m/s]*{t_rel})" if vx != 0.0 else f"{xc:.6f}[m]"
+    yc_expr = f"({y_comsol:.6f}[m]+{vz:.6f}[m/s]*{t_rel})" if vz != 0.0 else f"{y_comsol:.6f}[m]"
+    zc_expr = f"({z_comsol:.6f}[m]+{vy:.6f}[m/s]*{t_rel})" if vy != 0.0 else f"{z_comsol:.6f}[m]"
+
     spatial_gauss = (
-        f"exp(-((x-{xc:.6f}[m])^2+(y-({y_comsol:.6f}[m]))^2+(z-({z_comsol:.6f}[m]))^2)"
+        f"exp(-((x-{xc_expr})^2+(y-({yc_expr}))^2+(z-({zc_expr}))^2)"
         f"/(2*{config.sigma_m:.6f}[m]^2))"
     )
     time_env = (

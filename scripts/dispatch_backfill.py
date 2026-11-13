@@ -31,9 +31,24 @@ for _p in (SRC_DIR, SCRIPTS_DIR):
 
 from hydro_disturb_bench.comsol_java.bridge import find_comsol_root, get_comsol_bin_dir
 
-DEFAULT_QUEUE_PATH = Path(r"E:\cfd_3d\01_calibration\backfill_queue.json")
-DEFAULT_SCRATCH = Path(r"E:\comsol_scratch")
-DEFAULT_INI = Path(r"E:\comsol_scratch\comsolbatch_perf.ini")
+
+def resolve_cfd_drive(requested_drive: str | Path | None = None) -> Path:
+    """Resolve CFD data drive root with environmental precedence and fallback."""
+    if requested_drive:
+        return Path(requested_drive)
+    env_drive = os.environ.get("HYDRO_CFD_DRIVE")
+    if env_drive:
+        return Path(env_drive)
+    if Path("E:\\").exists():
+        return Path("E:\\")
+    anchor = Path.cwd().anchor
+    return Path(anchor if anchor else ".")
+
+
+DEFAULT_DRIVE = resolve_cfd_drive()
+DEFAULT_QUEUE_PATH = DEFAULT_DRIVE / "cfd_3d" / "01_calibration" / "backfill_queue.json"
+DEFAULT_SCRATCH = DEFAULT_DRIVE / "comsol_scratch"
+DEFAULT_INI = DEFAULT_SCRATCH / "comsolbatch_perf.ini"
 CALIB_SCRIPT = REPO_ROOT / "scripts" / "calibrate_c04_3d.py"
 
 
@@ -51,7 +66,7 @@ class _MEMORYSTATUSEX(ctypes.Structure):
     ]
 
 
-def get_system_health(drive: str = "E:\\") -> dict[str, float]:
+def get_system_health(drive: str | Path | None = None) -> dict[str, float]:
     """Return free/total physical RAM and free disk GB on Windows."""
     if sys.platform == "win32":
         stat = _MEMORYSTATUSEX()
@@ -62,12 +77,24 @@ def get_system_health(drive: str = "E:\\") -> dict[str, float]:
     else:
         free_ram_gb = 64.0
         total_ram_gb = 128.0
-    usage = shutil.disk_usage(drive)
-    free_disk_gb = usage.free / (1024**3)
+
+    try:
+        target = Path(drive) if drive is not None else resolve_cfd_drive()
+        usage = shutil.disk_usage(str(target))
+    except (FileNotFoundError, OSError, ValueError, TypeError):
+        try:
+            fallback = Path.cwd().anchor or "."
+            usage = shutil.disk_usage(fallback)
+        except (FileNotFoundError, OSError, ValueError, TypeError):
+            # Unknown capacity must not admit a job based on fabricated free space.
+            usage = None
+
+    free_disk_gb = usage.free / (1024**3) if usage is not None else 0.0
     return {
         "free_ram_gb": round(free_ram_gb, 2),
         "total_ram_gb": round(total_ram_gb, 2),
         "free_disk_e_gb": round(free_disk_gb, 2),
+        "free_disk_gb": round(free_disk_gb, 2),
     }
 
 
@@ -177,7 +204,7 @@ def select_next_job(
         if health["free_ram_gb"] < need_ram:
             skipped.append({"job_id": jid, "reason": f"insufficient_ram({health['free_ram_gb']}<{need_ram})"})
             continue
-        if health["free_disk_e_gb"] < need_disk:
+        if health["free_disk_e_gb"] <= 0.0 or health["free_disk_e_gb"] < need_disk:
             skipped.append({"job_id": jid, "reason": f"insufficient_disk({health['free_disk_e_gb']}<{need_disk})"})
             continue
         return job, skipped
@@ -261,12 +288,13 @@ def dispatch_one_job(
     ini_file: Path = DEFAULT_INI,
     scratch: Path = DEFAULT_SCRATCH,
     python_exe: Path | None = None,
+    drive: str | Path | None = None,
 ) -> dict[str, Any]:
     queue_doc = json.loads(queue_path.read_text(encoding="utf-8"))
     policy = queue_doc.get("policy", {})
     max_per_socket = int(policy.get("max_slots_per_numa_socket", 2))
 
-    health = get_system_health("E:\\")
+    health = get_system_health(drive)
     live_procs = list_live_comsol_processes()
     slots = summarize_slots(live_procs, max_per_socket=max_per_socket)
 
@@ -436,12 +464,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--dispatch", action="store_true")
     p.add_argument("--numafirst", type=int, default=None, choices=[0, 1])
     p.add_argument("--dry-run", action="store_true")
+    p.add_argument(
+        "--drive",
+        default=None,
+        help="Target drive or mount point for health checks (defaults to HYDRO_CFD_DRIVE or E: or current drive)",
+    )
     args = p.parse_args(argv)
 
     q_path = Path(args.queue)
     if args.check_slots or not args.dispatch:
         q_doc = json.loads(q_path.read_text(encoding="utf-8"))
-        health = get_system_health("E:\\")
+        health = get_system_health(args.drive)
         live = list_live_comsol_processes()
         slots = summarize_slots(live, max_per_socket=int(q_doc.get("policy", {}).get("max_slots_per_numa_socket", 2)))
         nxt, skipped = select_next_job(q_doc, health=health, live_procs=live)
@@ -463,6 +496,7 @@ def main(argv: list[str] | None = None) -> int:
         queue_path=q_path,
         requested_numafirst=args.numafirst,
         dry_run=args.dry_run,
+        drive=args.drive,
     )
     print(json.dumps(res, indent=2, ensure_ascii=False))
     return 0

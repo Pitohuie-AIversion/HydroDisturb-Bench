@@ -25,12 +25,41 @@ param(
     [switch]$LinkRepoJunctions,
     [switch]$MigrateLegacyAssets,
     [switch]$CleanupLegacyLockAndZip,
-    [string]$ComsolRoot = "D:\Program Files\COMSOL\COMSOL64\Multiphysics",
-    [string]$RepoRoot = "D:\HydroDisturb-Bench"
+    [string]$ComsolRoot = "",
+    [string]$RepoRoot = "",
+    [string]$TargetDrive = "E:"
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+    if ($env:HYDRODISTURB_BENCH_ROOT -and (Test-Path -LiteralPath $env:HYDRODISTURB_BENCH_ROOT)) {
+        $RepoRoot = $env:HYDRODISTURB_BENCH_ROOT
+    } elseif ($PSScriptRoot) {
+        $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    } else {
+        $RepoRoot = (Get-Location).Path
+    }
+}
+
+if ([string]::IsNullOrWhiteSpace($ComsolRoot)) {
+    if ($env:COMSOL_ROOT) {
+        $ComsolRoot = $env:COMSOL_ROOT
+    } else {
+        $ComsolRoot = "D:\Program Files\COMSOL\COMSOL64\Multiphysics"
+    }
+}
+
+$driveLetter = $TargetDrive.TrimEnd(':\')
+$driveRoot = "$($driveLetter):\"
+$driveAvailable = Test-Path -LiteralPath $driveRoot
+if (-not $driveAvailable) {
+    Write-Warning "Target drive '$driveRoot' is not mounted on this system. Operations on $TargetDrive will be skipped or simulated."
+}
+
+$scratchDir = "$($driveLetter):\comsol_scratch"
+$cfdDir = "$($driveLetter):\cfd_3d"
 
 function Write-Section([string]$Title) {
     Write-Host ""
@@ -38,37 +67,41 @@ function Write-Section([string]$Title) {
 }
 
 # 1. 创建完整 E:\ 规划目录树
-Write-Section "1. 检查并初始化 E:\ 目录结构"
+Write-Section "1. 检查并初始化 $driveRoot 目录结构"
 $dirs = @(
-    "E:\comsol_scratch\tmp",
-    "E:\comsol_scratch\recoveries",
-    "E:\comsol_scratch\osgi_config",
-    "E:\comsol_scratch\osgi_workspace",
-    "E:\comsol_scratch\batch",
-    "E:\comsol_scratch\logs",
-    "E:\cfd_3d\00_templates_readonly",
-    "E:\cfd_3d\01_calibration\c04_re126k",
-    "E:\cfd_3d\01_calibration\probe_csv",
-    "E:\cfd_3d\02_cases_mph",
-    "E:\cfd_3d\03_disturbance_mph\C04_pulses",
-    "E:\cfd_3d\04_datasets_npz\slices_2d_192x96",
-    "E:\cfd_3d\04_datasets_npz\volumes_3d_192x96x64",
-    "E:\cfd_3d\04_datasets_npz\manifests",
-    "E:\cfd_3d\05_reports_viz",
-    "E:\cfd_3d\90_staging",
-    "E:\cfd_3d\99_archive"
+    "$scratchDir\tmp",
+    "$scratchDir\recoveries",
+    "$scratchDir\osgi_config",
+    "$scratchDir\osgi_workspace",
+    "$scratchDir\batch",
+    "$scratchDir\logs",
+    "$cfdDir\00_templates_readonly",
+    "$cfdDir\01_calibration\c04_re126k",
+    "$cfdDir\01_calibration\probe_csv",
+    "$cfdDir\02_cases_mph",
+    "$cfdDir\03_disturbance_mph\C04_pulses",
+    "$cfdDir\04_datasets_npz\slices_2d_192x96",
+    "$cfdDir\04_datasets_npz\volumes_3d_192x96x64",
+    "$cfdDir\04_datasets_npz\manifests",
+    "$cfdDir\05_reports_viz",
+    "$cfdDir\90_staging",
+    "$cfdDir\99_archive"
 )
-1..9 | ForEach-Object { $dirs += ("E:\cfd_3d\02_cases_mph\C{0:D2}" -f $_) }
-foreach ($d in $dirs) {
-    if (-not (Test-Path -LiteralPath $d)) {
-        New-Item -ItemType Directory -Path $d -Force | Out-Null
-        Write-Host "  [CREATED] $d"
+1..9 | ForEach-Object { $dirs += ("$cfdDir\02_cases_mph\C{0:D2}" -f $_) }
+if ($driveAvailable) {
+    foreach ($d in $dirs) {
+        if (-not (Test-Path -LiteralPath $d)) {
+            New-Item -ItemType Directory -Path $d -Force | Out-Null
+            Write-Host "  [CREATED] $d"
+        }
     }
+} else {
+    Write-Host "  [SKIPPED] Directory creation skipped because drive $driveRoot is not mounted."
 }
 
 # 2. 生成/校验 COMSOL 高性能启动配置 comsolbatch_perf.ini
-Write-Section "2. 校验 E:\comsol_scratch\comsolbatch_perf.ini"
-$iniPath = "E:\comsol_scratch\comsolbatch_perf.ini"
+Write-Section "2. 校验 $scratchDir\comsolbatch_perf.ini"
+$iniPath = "$scratchDir\comsolbatch_perf.ini"
 $iniContent = @"
 # High-performance COMSOL 6.4 batch settings tuned for Dual Xeon Platinum 8260 (32C/64T, 128 GB RAM)
 batch
@@ -87,10 +120,10 @@ $ComsolRoot\java\win64\jre\bin\server\jvm.dll
 -Dosgi.clean=true
 -Dorg.osgi.service.log.admin.loglevel=INFO
 -Dosgi.locking=none
--Dosgi.configuration.area=E:/comsol_scratch/osgi_config/comsol_@process.id
--Dosgi.instance.area=E:/comsol_scratch/osgi_workspace/comsol_@process.id
+-Dosgi.configuration.area=${driveLetter}:/comsol_scratch/osgi_config/comsol_@process.id
+-Dosgi.instance.area=${driveLetter}:/comsol_scratch/osgi_workspace/comsol_@process.id
 -Dosgi.checkConfiguration=true
--Djava.io.tmpdir=E:/comsol_scratch/tmp
+-Djava.io.tmpdir=${driveLetter}:/comsol_scratch/tmp
 -Dcs.logoutput=file
 -Dcs.logfileprefix=batch
 -Dcs.uniqueworkspace=on
@@ -102,12 +135,16 @@ $ComsolRoot\java\win64\jre\bin\server\jvm.dll
 -Dlog4j2.formatMsgNoLookups=true
 -Djavax.net.ssl.trustStoreType=Windows-ROOT
 "@
-Set-Content -LiteralPath $iniPath -Value $iniContent -Encoding ASCII
-Write-Host "  [READY] $iniPath"
+if ($driveAvailable) {
+    Set-Content -LiteralPath $iniPath -Value $iniContent -Encoding ASCII
+    Write-Host "  [READY] $iniPath"
+} else {
+    Write-Host "  [SKIPPED] comsolbatch_perf.ini generation skipped because drive $driveRoot is not mounted."
+}
 
 # 3. 硬件与盘符健康诊断
 Write-Section "3. 硬件与磁盘实时状态"
-Get-PSDrive C, D, E | Select-Object Name,
+Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -in @('C', 'D', $driveLetter) } | Select-Object Name,
     @{N = "FreeGB"; E = { [math]::Round($_.Free / 1GB, 2) } },
     @{N = "UsedGB"; E = { [math]::Round($_.Used / 1GB, 2) } } | Format-Table -AutoSize
 $activeScheme = (powercfg /getactivescheme)
@@ -116,9 +153,12 @@ $pf = Get-CimInstance Win32_PageFileUsage -ErrorAction SilentlyContinue
 if ($pf) {
     $pf | ForEach-Object { Write-Host ("  页面文件: {0} ({1} MB)" -f $_.Name, $_.AllocatedBaseSize) }
 }
-$cFreeGB = (Get-PSDrive C).Free / 1GB
-if ($cFreeGB -lt 15) {
-    Write-Warning ("C 盘剩余空间仅 {0:N2} GB！强烈建议开启 -RedirectTempEnv -UpdateComsolPrefs，并在系统高级设置中将 pagefile.sys 迁移到 E:\ (例如 16384~32768 MB)。" -f $cFreeGB)
+$cDrive = Get-PSDrive C -ErrorAction SilentlyContinue
+if ($cDrive) {
+    $cFreeGB = $cDrive.Free / 1GB
+    if ($cFreeGB -lt 15) {
+        Write-Warning ("C 盘剩余空间仅 {0:N2} GB！强烈建议开启 -RedirectTempEnv -UpdateComsolPrefs，并在系统高级设置中将 pagefile.sys 迁移到 $driveRoot (例如 16384~32768 MB)。" -f $cFreeGB)
+    }
 }
 
 # 4. 可选系统优化步骤
@@ -130,21 +170,21 @@ if ($ApplyPowerPlan) {
 }
 
 if ($RedirectTempEnv) {
-    Write-Section "4B. 重定向用户与系统 TEMP/TMP 至 E:\comsol_scratch\tmp"
-    [Environment]::SetEnvironmentVariable("TEMP", "E:\comsol_scratch\tmp", "User")
-    [Environment]::SetEnvironmentVariable("TMP", "E:\comsol_scratch\tmp", "User")
+    Write-Section "4B. 重定向用户与系统 TEMP/TMP 至 $scratchDir\tmp"
+    [Environment]::SetEnvironmentVariable("TEMP", "$scratchDir\tmp", "User")
+    [Environment]::SetEnvironmentVariable("TMP", "$scratchDir\tmp", "User")
     try {
-        [Environment]::SetEnvironmentVariable("TEMP", "E:\comsol_scratch\tmp", "Machine")
-        [Environment]::SetEnvironmentVariable("TMP", "E:\comsol_scratch\tmp", "Machine")
+        [Environment]::SetEnvironmentVariable("TEMP", "$scratchDir\tmp", "Machine")
+        [Environment]::SetEnvironmentVariable("TMP", "$scratchDir\tmp", "Machine")
     } catch {
         Write-Warning "修改 Machine 级环境变量需要管理员权限（User 级已更新）。"
     }
-    Write-Host "  已设置 TEMP/TMP = E:\comsol_scratch\tmp（新开终端/COMSOL 进程生效）。" -ForegroundColor Green
+    Write-Host "  已设置 TEMP/TMP = $scratchDir\tmp（新开终端/COMSOL 进程生效）。" -ForegroundColor Green
 }
 
 if ($AddDefenderExclusions) {
     Write-Section "4C. 添加 Windows Defender 实时扫描排除项"
-    foreach ($p in @("E:\comsol_scratch", "E:\cfd_3d", $RepoRoot, $ComsolRoot)) {
+    foreach ($p in @($scratchDir, $cfdDir, $RepoRoot, $ComsolRoot)) {
         Add-MpPreference -ExclusionPath $p
         Write-Host "  [ExclusionPath] $p"
     }
@@ -156,17 +196,18 @@ if ($AddDefenderExclusions) {
 
 if ($UpdateComsolPrefs) {
     Write-Section "4D. 迁移 COMSOL 用户偏好恢复/批处理路径并解除电源节流"
-    $prefsFile = "C:\Users\Administrator\.comsol\v64\comsol.prefs"
+    $userProfile = if ($env:USERPROFILE) { $env:USERPROFILE } else { "C:\Users\Administrator" }
+    $prefsFile = Join-Path $userProfile ".comsol\v64\comsol.prefs"
     if (Test-Path -LiteralPath $prefsFile) {
         $bak = "$prefsFile.bak_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
         Copy-Item -LiteralPath $prefsFile -Destination $bak -Force
         Write-Host "  已备份原配置: $bak"
         $lines = Get-Content -LiteralPath $prefsFile -Encoding UTF8
         $updates = @{
-            "tempfiles.recovery.recoverydir"         = "E\:\\comsol_scratch\\recoveries"
-            "cluster.settings.batchdir"              = "E\:\\comsol_scratch\\batch"
-            "cluster.settings.rundir"                = "E\:\\comsol_scratch\\batch"
-            "cluster.settings.serverdir"             = "E\:\\comsol_scratch\\batch"
+            "tempfiles.recovery.recoverydir"         = "$($driveLetter)\:\\comsol_scratch\\recoveries"
+            "cluster.settings.batchdir"              = "$($driveLetter)\:\\comsol_scratch\\batch"
+            "cluster.settings.rundir"                = "$($driveLetter)\:\\comsol_scratch\\batch"
+            "cluster.settings.serverdir"             = "$($driveLetter)\:\\comsol_scratch\\batch"
             "cluster.processor.numberofprocessors"   = "32"
             "cluster.processor.numberofprocessorsactive" = "on"
             "cluster.processor.numberofsockets"      = "2"
@@ -201,15 +242,15 @@ if ($UpdateComsolPrefs) {
 }
 
 if ($MigrateLegacyAssets) {
-    Write-Section "4E. 分层迁移 E:\cylinder_3d 现存资产至 E:\cfd_3d"
-    $legacyDir = "E:\cylinder_3d"
+    Write-Section "4E. 分层迁移 $($driveLetter):\cylinder_3d 现存资产至 $cfdDir"
+    $legacyDir = "$($driveLetter):\cylinder_3d"
     if (Test-Path -LiteralPath $legacyDir) {
         $moves = @(
-            @{ Src = "cylinder_flow_turbulent.mph"; Dst = "E:\cfd_3d\00_templates_readonly\cylinder_flow_turbulent.mph" },
-            @{ Src = "c04_re126k_benchmark.mph"; Dst = "E:\cfd_3d\01_calibration\c04_re126k\c04_re126k_benchmark.mph" },
-            @{ Src = "c04_re126k_s0_solved.mph"; Dst = "E:\cfd_3d\01_calibration\c04_re126k\c04_re126k_s0_solved.mph" },
-            @{ Src = "c04_re126k_s0_mesh2.mph"; Dst = "E:\cfd_3d\01_calibration\c04_re126k\c04_re126k_s0_mesh2.mph" },
-            @{ Src = "c04_re126k_s1_trial.mph"; Dst = "E:\cfd_3d\99_archive\c04_re126k_s1_trial.mph" }
+            @{ Src = "cylinder_flow_turbulent.mph"; Dst = "$cfdDir\00_templates_readonly\cylinder_flow_turbulent.mph" },
+            @{ Src = "c04_re126k_benchmark.mph"; Dst = "$cfdDir\01_calibration\c04_re126k\c04_re126k_benchmark.mph" },
+            @{ Src = "c04_re126k_s0_solved.mph"; Dst = "$cfdDir\01_calibration\c04_re126k\c04_re126k_s0_solved.mph" },
+            @{ Src = "c04_re126k_s0_mesh2.mph"; Dst = "$cfdDir\01_calibration\c04_re126k\c04_re126k_s0_mesh2.mph" },
+            @{ Src = "c04_re126k_s1_trial.mph"; Dst = "$cfdDir\99_archive\c04_re126k_s1_trial.mph" }
         )
         foreach ($m in $moves) {
             $s = Join-Path $legacyDir $m.Src
@@ -225,13 +266,13 @@ if ($MigrateLegacyAssets) {
 }
 
 if ($CleanupLegacyLockAndZip) {
-    Write-Section "4F. 清理残留 .lock 与重复压缩包 E:\cylinder_3d.zip"
-    $lockFile = "E:\cylinder_3d\c04_re126k_s1_trial.mph.lock"
+    Write-Section "4F. 清理残留 .lock 与重复压缩包 $($driveLetter):\cylinder_3d.zip"
+    $lockFile = "$($driveLetter):\cylinder_3d\c04_re126k_s1_trial.mph.lock"
     if (Test-Path -LiteralPath $lockFile) {
         Remove-Item -LiteralPath $lockFile -Force
         Write-Host "  [REMOVED] $lockFile"
     }
-    $zipFile = "E:\cylinder_3d.zip"
+    $zipFile = "$($driveLetter):\cylinder_3d.zip"
     if (Test-Path -LiteralPath $zipFile) {
         Remove-Item -LiteralPath $zipFile -Force
         Write-Host "  [REMOVED] $zipFile (释放 ~1.56 GiB)"
@@ -239,10 +280,11 @@ if ($CleanupLegacyLockAndZip) {
 }
 
 if ($LinkRepoJunctions) {
-    Write-Section "4G. 创建 D:\HydroDisturb-Bench\runs_3d 目录联接 (Junction -> E:\cfd_3d\04_datasets_npz)"
+    Write-Section "4G. 创建 $RepoRoot\runs_3d 目录联接 (Junction -> $cfdDir\04_datasets_npz)"
     $linkPath = Join-Path $RepoRoot "runs_3d"
+    $targetPath = "$cfdDir\04_datasets_npz"
     if (-not (Test-Path -LiteralPath $linkPath)) {
-        cmd /c "mklink /J `"$linkPath`" `"E:\cfd_3d\04_datasets_npz`""
+        cmd /c "mklink /J `"$linkPath`" `"$targetPath`""
     }
 }
 

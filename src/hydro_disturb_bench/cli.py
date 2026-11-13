@@ -584,29 +584,28 @@ def main(argv: list[str] | None = None) -> int:
 
         layout = SensorLayout.load_json(args.layout)
         operator = ObservationOperator(layout)
-        npz_data = np.load(args.dataset)
-
-        channel_names = tuple(
-            npz_data.get(
-                "channel_names",
-                ("u", "v", "p") if layout.dim == 2 else ("u", "v", "w", "p"),
+        with np.load(args.dataset, allow_pickle=False) as npz_data:
+            channel_names = tuple(
+                npz_data.get(
+                    "channel_names",
+                    ("u", "v", "p") if layout.dim == 2 else ("u", "v", "w", "p"),
+                )
             )
-        )
-        if layout.dim == 2:
-            data = npz_data["data"]
-            x_coords = npz_data["x"]
-            y_coords = npz_data["y"]
-            sampled = operator.sample_2d_field(
-                data, x_coords, y_coords, channel_names=channel_names
-            )
-        else:
-            data = npz_data["data"]
-            x_coords = npz_data["x"]
-            y_coords = npz_data["y"]
-            z_coords = npz_data["z"]
-            sampled = operator.sample_3d_field(
-                data, x_coords, y_coords, z_coords, channel_names=channel_names
-            )
+            if layout.dim == 2:
+                data = npz_data["data"]
+                x_coords = npz_data["x"]
+                y_coords = npz_data["y"]
+                sampled = operator.sample_2d_field(
+                    data, x_coords, y_coords, channel_names=channel_names
+                )
+            else:
+                data = npz_data["data"]
+                x_coords = npz_data["x"]
+                y_coords = npz_data["y"]
+                z_coords = npz_data["z"]
+                sampled = operator.sample_3d_field(
+                    data, x_coords, y_coords, z_coords, channel_names=channel_names
+                )
 
         if args.snr is not None:
             sampled = operator.add_sensor_noise(sampled, snr_db=args.snr)
@@ -633,23 +632,24 @@ def main(argv: list[str] | None = None) -> int:
 
         from .probabilistic_metrics import evaluate_field_reconstruction
 
-        pred_npz = np.load(args.pred)
-        true_npz = np.load(args.true)
-        pred_field = pred_npz["data"]
-        true_field = true_npz["data"]
-        mask = true_npz.get("fluid_mask", true_npz.get("mask", None))
-        if mask is not None:
-            mask = np.asarray(mask, dtype=bool)
+        with np.load(args.pred, allow_pickle=False) as pred_npz, np.load(
+            args.true, allow_pickle=False
+        ) as true_npz:
+            pred_field = pred_npz["data"]
+            true_field = true_npz["data"]
+            mask = true_npz.get("fluid_mask", true_npz.get("mask", None))
+            if mask is not None:
+                mask = np.asarray(mask, dtype=bool)
 
-        channel_names = tuple(
-            true_npz.get(
-                "channel_names",
-                ("u", "v", "w", "p") if pred_field.ndim >= 5 else ("u", "v", "p"),
+            channel_names = tuple(
+                true_npz.get(
+                    "channel_names",
+                    ("u", "v", "w", "p") if pred_field.ndim >= 5 else ("u", "v", "p"),
+                )
             )
-        )
-        metrics = evaluate_field_reconstruction(
-            pred_field, true_field, fluid_mask=mask, channel_names=channel_names
-        )
+            metrics = evaluate_field_reconstruction(
+                pred_field, true_field, fluid_mask=mask, channel_names=channel_names
+            )
         if args.out:
             Path(args.out).parent.mkdir(parents=True, exist_ok=True)
             Path(args.out).write_text(
@@ -670,37 +670,37 @@ def main(argv: list[str] | None = None) -> int:
             evaluate_incompressibility_metrics,
         )
 
-        npz = np.load(args.dataset)
-        data = npz["data"]
-        x = npz["x"]
-        y = npz["y"]
-        mask = npz.get("solid_mask", None)
+        with np.load(args.dataset, allow_pickle=False) as npz:
+            data = npz["data"]
+            x = npz["x"]
+            y = npz["y"]
+            mask = npz.get("solid_mask", None)
 
-        if data.ndim == 4 or (data.ndim == 3 and "z" not in npz):
-            # 2D field: shape (T, C, Ny, Nx) or (C, Ny, Nx)
-            if data.ndim == 3:
-                u, v = data[0], data[1]
+            if data.ndim == 4 or (data.ndim == 3 and "z" not in npz):
+                # 2D field: shape (T, C, Ny, Nx) or (C, Ny, Nx)
+                if data.ndim == 3:
+                    u, v = data[0], data[1]
+                else:
+                    u, v = data[:, 0], data[:, 1]
+                vort = compute_vorticity_2d(u, v, x, y, solid_mask=mask)
+                div = compute_divergence_2d(u, v, x, y, solid_mask=mask)
+                q = compute_q_criterion_2d(u, v, x, y, solid_mask=mask)
+                enstrophy = compute_enstrophy(vort, solid_mask=mask)
+                incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
+                dim = 2
             else:
-                u, v = data[:, 0], data[:, 1]
-            vort = compute_vorticity_2d(u, v, x, y, solid_mask=mask)
-            div = compute_divergence_2d(u, v, x, y, solid_mask=mask)
-            q = compute_q_criterion_2d(u, v, x, y, solid_mask=mask)
-            enstrophy = compute_enstrophy(vort, solid_mask=mask)
-            incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
-            dim = 2
-        else:
-            # 3D field: shape (T, C, Nz, Ny, Nx) or (C, Nz, Ny, Nx)
-            z = npz["z"]
-            if data.ndim == 4:
-                u, v, w = data[0], data[1], data[2]
-            else:
-                u, v, w = data[:, 0], data[:, 1], data[:, 2]
-            wx, wy, wz = compute_vorticity_3d(u, v, w, x, y, z, solid_mask=mask)
-            div = compute_divergence_3d(u, v, w, x, y, z, solid_mask=mask)
-            q = compute_q_criterion_3d(u, v, w, x, y, z, solid_mask=mask)
-            enstrophy = compute_enstrophy((wx, wy, wz), solid_mask=mask)
-            incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
-            dim = 3
+                # 3D field: shape (T, C, Nz, Ny, Nx) or (C, Nz, Ny, Nx)
+                z = npz["z"]
+                if data.ndim == 4:
+                    u, v, w = data[0], data[1], data[2]
+                else:
+                    u, v, w = data[:, 0], data[:, 1], data[:, 2]
+                wx, wy, wz = compute_vorticity_3d(u, v, w, x, y, z, solid_mask=mask)
+                div = compute_divergence_3d(u, v, w, x, y, z, solid_mask=mask)
+                q = compute_q_criterion_3d(u, v, w, x, y, z, solid_mask=mask)
+                enstrophy = compute_enstrophy((wx, wy, wz), solid_mask=mask)
+                incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
+                dim = 3
 
         report = {
             "dataset": str(args.dataset),
@@ -743,24 +743,24 @@ def main(argv: list[str] | None = None) -> int:
 
         from .benchmark_bundle import create_benchmark_bundle
 
-        npz = np.load(args.dataset)
-        times = npz["times"]
-        data = npz["data"]
-        coords = {"x": npz["x"], "y": npz["y"]}
-        if "z" in npz:
-            coords["z"] = npz["z"]
-        mask = npz.get("solid_mask", None)
-        sdf = npz.get("sdf", None)
+        with np.load(args.dataset, allow_pickle=False) as npz:
+            times = npz["times"]
+            data = npz["data"]
+            coords = {"x": npz["x"], "y": npz["y"]}
+            if "z" in npz:
+                coords["z"] = npz["z"]
+            mask = npz.get("solid_mask", None)
+            sdf = npz.get("sdf", None)
 
-        out_path = create_benchmark_bundle(
-            output_path=args.out,
-            times=times,
-            coords=coords,
-            values=data,
-            solid_mask=mask,
-            sdf=sdf,
-            benchmark_name=args.name,
-        )
+            out_path = create_benchmark_bundle(
+                output_path=args.out,
+                times=times,
+                coords=coords,
+                values=data,
+                solid_mask=mask,
+                sdf=sdf,
+                benchmark_name=args.name,
+            )
         print(f"Created benchmark bundle: {out_path}")
     elif args.cmd == "bundle-verify":
         from .benchmark_bundle import verify_benchmark_bundle
