@@ -54,13 +54,14 @@ for _p in (SRC_DIR, SCRIPTS_DIR):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from hydro_disturb_bench.comsol_java.bridge import find_comsol_root, get_comsol_bin_dir
 from verify_and_compare_s1b1 import (
     compute_cycle_half_amplitude,
     compute_demeaned_rms,
     evaluate_limit_cycle_stability,
     integrate_exact_window,
 )
+
+from hydro_disturb_bench.comsol_java.bridge import find_comsol_root, get_comsol_bin_dir
 
 DEFAULT_CALIB_BASE = Path(r"E:\cfd_3d\01_calibration\c04_re126k\c04_calibrated_base_mesh2.mph")
 DEFAULT_SCRATCH = Path(r"E:\comsol_scratch")
@@ -111,6 +112,24 @@ CALIBRATION_CASES: dict[str, dict[str, str]] = {
         "rtol": "0.0001",
         "maxstep_mode": "const",
         "maxstep_val": "0.025",
+    },
+    "F1_rtol5e3_max006": {
+        "description": "Fast solver preset F1: rtol=5e-3 with const maxstep=0.06s to prevent BDF step runaway",
+        "rtol": "0.005",
+        "maxstep_mode": "const",
+        "maxstep_val": "0.06",
+    },
+    "F2_rtol2e3_max006": {
+        "description": "Fast solver preset F2: rtol=2e-3 with const maxstep=0.06s (dt_out-locked sweet-spot candidate)",
+        "rtol": "0.002",
+        "maxstep_mode": "const",
+        "maxstep_val": "0.06",
+    },
+    "F3_rtol3e3_max008": {
+        "description": "Fast solver preset F3: rtol=3e-3 with const maxstep=0.08s (aggressive step-cap screening)",
+        "rtol": "0.003",
+        "maxstep_mode": "const",
+        "maxstep_val": "0.08",
     },
 }
 
@@ -760,7 +779,7 @@ def invoke_comsol_batch(
         "-recoverydir",
         str(w_rec),
         "-autosave",
-        "off",
+        "on",
         "-np",
         str(np_val),
         "-numasets",

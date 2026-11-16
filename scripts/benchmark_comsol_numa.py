@@ -328,7 +328,8 @@ class SystemTelemetrySampler:
             ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user)
         ):
             return None
-        to_int = lambda ft: (ft.dwHighDateTime << 32) | ft.dwLowDateTime
+        def to_int(ft):
+            return (ft.dwHighDateTime << 32) | ft.dwLowDateTime
         return to_int(idle), to_int(kernel), to_int(user)
 
     @staticmethod
@@ -647,7 +648,7 @@ def main(argv: list[str] | None = None) -> int:
 
         ok = all(w["returncode"] == 0 and "solve_s" in w for w in worker_res)
         max_solve_s = max((w.get("solve_s", wall_prof) for w in worker_res), default=wall_prof)
-        mean_solve_s = sum((w.get("solve_s", wall_prof) for w in worker_res)) / max(1, len(worker_res))
+        mean_solve_s = sum(w.get("solve_s", wall_prof) for w in worker_res) / max(1, len(worker_res))
         throughput_jobs_per_hr = (len(workers_cfg) * 3600.0 / wall_prof) if ok and wall_prof > 0 else 0.0
 
         row = {

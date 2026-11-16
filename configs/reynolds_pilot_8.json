@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "status": "DESIGN_ONLY_NOT_DISPATCHABLE",
+  "created_local": "2026-11-14",
+  "origin": "User's new discussion proposal; no historical 23-point dataset is implied",
+  "total_scan_target": 23,
+  "pilot_count": 8,
+  "remaining_re_values": null,
+  "curve_coordinates_verified": false,
+  "physics_feature_labels_are_hypotheses": true,
+  "reference_plan": "D:/HydroDisturb-Bench/docs/REYNOLDS_PILOT_8_PLAN.md",
+  "assumed_mapping": {
+    "diameter_m": 0.3,
+    "nu_m2_s": 0.0000011889,
+    "alpha_deg": 90,
+    "change_re_via": "U=Re*nu/D",
+    "requires_native_verification": true
+  },
+  "sampling_design": {
+    "dt_star": 0.1,
+    "initial_segment_t_star": 100,
+    "not_a_convergence_guarantee": true
+  },
+  "conditions": [
+    {
+      "pilot_id": "RE_P01",
+      "Re": 5000,
+      "U_m_s": 0.019815000000000003,
+      "proposed_dt_out_s": 1.5140045420136257,
+      "initial_segment_budget_s": 1514.0045420136257,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    },
+    {
+      "pilot_id": "RE_P02",
+      "Re": 40000,
+      "U_m_s": 0.15852000000000002,
+      "proposed_dt_out_s": 0.1892505677517032,
+      "initial_segment_budget_s": 189.25056775170322,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    },
+    {
+      "pilot_id": "RE_P03",
+      "Re": 180000,
+      "U_m_s": 0.71334,
+      "proposed_dt_out_s": 0.04205568172260073,
+      "initial_segment_budget_s": 42.055681722600724,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    },
+    {
+      "pilot_id": "RE_P04",
+      "Re": 200000,
+      "U_m_s": 0.7926,
+      "proposed_dt_out_s": 0.03785011355034065,
+      "initial_segment_budget_s": 37.85011355034065,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    },
+    {
+      "pilot_id": "RE_P05",
+      "Re": 300000,
+      "U_m_s": 1.1889,
+      "proposed_dt_out_s": 0.02523340903356043,
+      "initial_segment_budget_s": 25.23340903356043,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    },
+    {
+      "pilot_id": "RE_P06",
+      "Re": 350000,
+      "U_m_s": 1.3870500000000001,
+      "proposed_dt_out_s": 0.02162863631448037,
+      "initial_segment_budget_s": 21.62863631448037,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    },
+    {
+      "pilot_id": "RE_P07",
+      "Re": 1000000,
+      "U_m_s": 3.9630000000000005,
+      "proposed_dt_out_s": 0.007570022710068129,
+      "initial_segment_budget_s": 7.570022710068129,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    },
+    {
+      "pilot_id": "RE_P08",
+      "Re": 3000000,
+      "U_m_s": 11.889000000000001,
+      "proposed_dt_out_s": 0.002523340903356043,
+      "initial_segment_budget_s": 2.523340903356043,
+      "model_mesh_timestep_status": "TO_VALIDATE",
+      "dispatch_authorized_by_this_file": false
+    }
+  ],
+  "alternative_under_discussion": {
+    "kind": "six_fixed_plus_two_adaptive",
+    "fixed_re": [
+      5000,
+      40000,
+      180000,
+      300000,
+      1000000,
+      3000000
+    ],
+    "adaptive_placeholders": [
+      200000,
+      350000
+    ],
+    "adaptive_rule": "Relocate based on verified Cd, Cl RMS, St/PSD and field-feature changes or uncertainty; do not claim extrema from schematic curves.",
+    "selected": true
+  },
+  "accuracy": {
+    "max_relative_metric_difference_pct": 3,
+    "matched_physics_and_reference_required": true,
+    "stable_common_window_required": true,
+    "field_feature_validation_required": true,
+    "physical_accuracy_not_implied_by_numerical_agreement": true
+  }
+}
