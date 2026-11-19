@@ -25,6 +25,8 @@ runs/
 .vscode/
 *.class
 *.status
+*.console
+models/**/logs/
 .comsol/
 scratch*
 # Temporary locks and staging

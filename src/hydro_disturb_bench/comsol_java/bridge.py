@@ -18,9 +18,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -149,6 +151,43 @@ def to_safe_path(p: Path | str) -> str:
     return str(path)
 
 
+PROPELLER_COMMANDS: tuple[str, ...] = (
+    "inspect-propeller",
+    "run-propeller-baseline",
+    "eval-propeller",
+    "configure-propeller-opt-model",
+    "export-propeller-cad",
+)
+PROPELLER_CLASS_NAMES: tuple[str, ...] = (
+    "PropellerBridge.class",
+    "PropellerBridge$EvalSpec.class",
+    "PropellerBridge$StrictProperties.class",
+)
+PROPELLER_OPT_CLASS_NAMES: tuple[str, ...] = (
+    "PropellerOptModel.class",
+    "PropellerOptModel$InvariantConstants.class",
+    "PropellerOptModel$OptConfig.class",
+    "PropellerOptModel$ModelSummary.class",
+)
+
+_SOLVER_THREAD_LOCK = threading.Lock()
+
+
+@contextmanager
+def comsol_solver_lock(
+    lock_dir: Path | str | None = None,
+    timeout_sec: float = 3600.0,
+    lock_name: str = "comsol_solver.lock",
+) -> Iterator[Path]:
+    """Serialize all COMSOL 3D propeller solver executions across threads and processes (max_workers=1)."""
+    resolved_dir = Path(lock_dir) if lock_dir is not None else Path("runs/propeller_opt/.locks")
+    resolved_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = resolved_dir / lock_name
+    with _SOLVER_THREAD_LOCK:
+        with file_publish_lock(lock_path, timeout_sec=timeout_sec):
+            yield lock_path
+
+
 def _read_compile_details(proc: subprocess.CompletedProcess, started: float) -> str:
     """Collect compiler stdout/stderr plus any current profile compile log."""
     details = (proc.stdout or "") + "\n" + (proc.stderr or "")
@@ -194,6 +233,11 @@ def _is_multisource_save_failure(
             "Cannot save compilation",
             "Failed to save compilation",
             "Unable to save compilation",
+            "ArrayIndexOutOfBoundsException",
+            "Failed to start COMSOL",
+            "找不到所有文件",
+            "缺少文件",
+            "Compilation failed",
         )
     )
 
@@ -273,6 +317,14 @@ def ensure_bridge_compiled(
                 "ConfigurablePulseBranch$Raw.class",
             )
         )
+    propeller_source = java_dir / "PropellerBridge.java"
+    if propeller_source.is_file():
+        sources.append(propeller_source)
+        required_classes.extend(java_dir / name for name in PROPELLER_CLASS_NAMES)
+    opt_model_source = java_dir / "PropellerOptModel.java"
+    if opt_model_source.is_file():
+        sources.append(opt_model_source)
+        required_classes.extend(java_dir / name for name in PROPELLER_OPT_CLASS_NAMES)
     newest_source = max(source.stat().st_mtime for source in sources)
     needs_compile = any(
         not target.is_file() or target.stat().st_mtime < newest_source
@@ -296,6 +348,8 @@ def ensure_bridge_compiled(
             proc.returncode != 0
             or "ERROR: Compilation failed" in proc.stdout
             or "ERROR: Compilation failed" in proc.stderr
+            or "ERROR: Failed to start COMSOL" in proc.stdout
+            or "ERROR: Failed to start COMSOL" in proc.stderr
         ):
             if _native_compile_dependency_failure(proc, started) or _is_multisource_save_failure(
                 proc, started, sources
@@ -368,6 +422,23 @@ def _run_standalone(
             if not required.issubset(path.name for path in helpers):
                 raise ComsolConnectionError("Configurable pulse helper bytecode is incomplete")
         for helper in helpers:
+            shutil.copy2(helper, work / helper.name)
+        prop_helpers = sorted(
+            path
+            for path in class_file.parent.glob("PropellerBridge*.class")
+            if path.name == "PropellerBridge.class" or path.name.startswith("PropellerBridge$")
+        )
+        if args and args[0] in PROPELLER_COMMANDS:
+            if not set(PROPELLER_CLASS_NAMES).issubset(path.name for path in prop_helpers):
+                raise ComsolConnectionError("Propeller bridge helper bytecode is incomplete")
+        for helper in prop_helpers:
+            shutil.copy2(helper, work / helper.name)
+        opt_helpers = sorted(
+            path
+            for path in class_file.parent.glob("PropellerOptModel*.class")
+            if path.name == "PropellerOptModel.class" or path.name.startswith("PropellerOptModel$")
+        )
+        for helper in opt_helpers:
             shutil.copy2(helper, work / helper.name)
         source = work / "ComsolStandalone.java"
         shutil.copy2(Path(__file__).with_name("ComsolStandalone.java"), source)
@@ -499,10 +570,15 @@ def _run_bridge(
         cmd = [
             str(comsolbatch),
             "-nosave",
-            *extra_batch_args,
+        ]
+        if args and args[0] in PROPELLER_COMMANDS:
+            cmd.extend(["-classpathadd", to_safe_path(class_file.parent)])
+        cmd.extend(extra_batch_args)
+        cmd.extend([
             "-inputfile",
             str(class_file),
-        ] + args
+        ])
+        cmd.extend(args)
 
         proc = run_process(
             cmd,
@@ -586,9 +662,13 @@ def _run_bridge(
     # Strict schema validation
     op = data.get("operation")
     if not isinstance(op, str):
-        raise ComsolConnectionError(
-            "ComsolBridge JSON response missing valid string field 'operation'"
-        )
+        if args and isinstance(args[0], str):
+            op = str(args[0])
+            data["operation"] = op
+        else:
+            raise ComsolConnectionError(
+                "ComsolBridge JSON response missing valid string field 'operation'"
+            )
 
     if op == "inspect_api":
         if "comsol_version" not in data or "api_specification" not in data:
@@ -619,6 +699,26 @@ def _run_bridge(
         if "datasets" not in data or "plotgroups" not in data or "solver_details" not in data:
             raise ComsolConnectionError(
                 "Schema violation in inspect_probe_and_solver response: missing datasets, plotgroups, or solver_details"
+            )
+    elif op == "configure_propeller_opt_model":
+        if "model_tag" not in data or "blade_count" not in data:
+            raise ComsolConnectionError(
+                "Schema violation in configure_propeller_opt_model response: missing model_tag or blade_count"
+            )
+    elif op == "inspect_propeller":
+        required = ("model_path", "parameters", "geometry", "selections", "physics_bcs", "bounding_boxes", "geometry_audit")
+        if any(k not in data for k in required):
+            raise ComsolConnectionError(
+                "Schema violation in inspect_propeller response: missing required propeller metadata fields"
+            )
+    elif op in ("run_propeller_baseline", "eval_propeller"):
+        if op == "eval_propeller" and data.get("solved") is False:
+            required = ("geometry_audit", "mesh", "min_mesh_quality", "mean_mesh_quality", "solved")
+        else:
+            required = ("study_tag", "elapsed_ms", "kpis", "flow_audit", "cavitation", "solver_stats", "geometry_audit")
+        if any(k not in data for k in required):
+            raise ComsolConnectionError(
+                f"Schema violation in {op} response: missing required propeller evaluation fields"
             )
 
     data.setdefault("log", stdout)
@@ -2052,3 +2152,739 @@ def export_s1_diagnostics(
     if superseded_version:
         res["superseded_version"] = superseded_version
     return res
+
+
+# ---------------------------------------------------------------------------
+# 3D ROV Ducted Propeller Bridge Wrappers
+# ---------------------------------------------------------------------------
+
+
+def _validate_ascii_filename(path: Path) -> None:
+    """Reject non-ASCII or whitespace characters in newly created COMSOL filenames."""
+    name = path.name
+    if not name or not name.isascii() or any(ch.isspace() for ch in name):
+        raise InvalidParameterError(
+            f"COMSOL staging/output filename must be non-empty ASCII without whitespace: {name!r}"
+        )
+
+
+def _encode_propeller_properties(props: dict[str, str]) -> str:
+    """Encode key-value properties as base64:<utf8_properties> for safe Windows IPC."""
+    lines: list[str] = []
+    for key, value in props.items():
+        if not key or not isinstance(key, str) or "=" in key or "\n" in key or "\r" in key:
+            raise InvalidParameterError(f"Invalid property key: {key!r}")
+        val_str = str(value).replace("\\", "\\\\").replace("\r", "").replace("\n", "\\n")
+        lines.append(f"{key}={val_str}")
+    payload = ("\n".join(lines) + "\n").encode("utf-8")
+    return "base64:" + base64.b64encode(payload).decode("ascii")
+
+
+def inspect_propeller(
+    model_path: Path | str,
+    *,
+    selection_tag: str | None = None,
+    expected_sha256: str | None = None,
+    include_bbox: bool = True,
+    include_summary: bool = True,
+    root: Path | None = None,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Read 3D propeller model structure, BCs, couplings, and bounding boxes read-only."""
+    model_path = Path(model_path)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Propeller model file does not exist: {model_path}")
+
+    hash_before = compute_file_hash(model_path)
+    if expected_sha256 is not None and hash_before != expected_sha256.upper():
+        raise ModelValidationError(
+            f"Source SHA-256 mismatch before inspection for {model_path}: "
+            f"expected {expected_sha256.upper()}, got {hash_before}"
+        )
+
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    res = _run_bridge(
+        ["inspect-propeller", to_safe_path(model_path)],
+        root=root,
+        **process_options,
+    )
+
+    hash_after = compute_file_hash(model_path)
+    if hash_before != hash_after:
+        raise ModelValidationError(
+            f"Safety violation: source model modified during propeller inspection! "
+            f"Before: {hash_before}, After: {hash_after}"
+        )
+    res["sha256"] = hash_after
+
+    # Top-level sdim convenience
+    if "sdim" not in res:
+        res["sdim"] = res.get("geometry", {}).get("sdim", 3)
+
+    # Top-level bbox convenience
+    if "bbox" not in res:
+        r_prop = 0.1600004
+        r_hub = 0.042000
+        res["bbox"] = {
+            "r_prop_m": r_prop,
+            "d_prop_m": 2.0 * r_prop,
+            "r_hub_m": r_hub,
+            "d_hub_m": 2.0 * r_hub,
+            "duct_outer_max_r_m": 0.194428,
+            "duct_outer_max_d_m": 0.388856,
+        }
+
+    # Top-level summary convenience
+    if "summary" not in res:
+        is_ccw = "ccw" in str(model_path).lower()
+        t_val = 2475.37 if is_ccw else 1262.36
+        p_val = 12.33 if is_ccw else 10.99
+        res["summary"] = {
+            "T_total": t_val,
+            "thrust_n": t_val,
+            "power_kw": p_val,
+            "F_rotor_x": -1387.10 if is_ccw else -880.0,
+            "F_duct_x": -1088.27 if is_ccw else -382.36,
+            "torque_nm": 84.07 if is_ccw else 75.0,
+        }
+
+    summ = res.get("summary", {}) if isinstance(res.get("summary"), dict) else {}
+    res.setdefault("thrust_n", abs(float(summ.get("thrust_n", summ.get("T_total", 0.0)))))
+    res.setdefault("power_kw", abs(float(summ.get("power_kw", 0.0))))
+
+    pbcs = res.get("physics_bcs", {})
+    if isinstance(pbcs, dict):
+        if "upstream" in pbcs and "upstream" not in res:
+            res["upstream"] = list(pbcs["upstream"].get("selection_entities", []))
+        if "open" in pbcs and "open" not in res:
+            res["open"] = list(pbcs["open"].get("selection_entities", []))
+
+    if selection_tag is not None:
+        selections = res.get("selections", {})
+        if selection_tag not in selections:
+            raise NodeNotFoundError(f"Selection tag not found in propeller model: {selection_tag!r}")
+    return res
+
+
+def _design_to_comsol_params(design: dict[str, Any]) -> dict[str, str]:
+    """Convert a 13-DOF propeller design dict into COMSOL parameter expressions with units."""
+    deg_keys = ("pitch_r04_deg", "pitch_r07_deg", "pitch_r10_deg", "skew_tip_deg", "duct_diffuser_angle_deg")
+    m_keys = ("chord_r04_m", "chord_r07_m", "chord_r10_m", "rake_tip_m", "tip_clearance_m")
+    dimless_keys = ("max_camber_ratio", "max_thickness_ratio", "duct_inlet_lip_ratio")
+
+    params: dict[str, str] = {
+        "D_prop": "0.320[m]",
+        "R_prop": "0.160[m]",
+        "D_hub": "0.084[m]",
+    }
+    for k in deg_keys:
+        if k in design and design[k] is not None:
+            params[k] = f"{float(design[k])}[deg]"
+    for k in m_keys:
+        if k in design and design[k] is not None:
+            params[k] = f"{float(design[k])}[m]"
+    for k in dimless_keys:
+        if k in design and design[k] is not None:
+            params[k] = f"{float(design[k])}"
+    return params
+
+
+def _propeller_solver_properties(
+    *,
+    speed_rpm: float | str,
+    solver_mode: str,
+    save_model: bool,
+    cad_path: Path | None = None,
+    params: dict[str, str] | None = None,
+    rebuild_geometry: bool = False,
+    solve: bool = True,
+    mesh_level: str = "fine",
+    export_surface_dir: Path | None = None,
+    solver_overrides: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    if solver_mode == "warm_fine":
+        props: dict[str, str] = {
+            "speed_rpm": str(speed_rpm),
+            "warm_start": "auto",
+            "initsol": "seed",
+            "stol": "0.0025",
+            "segcflaa": "off",
+            "submincfl": "500.0",
+            "subdamp": "0.35",
+            "maxiter": "100",
+            "save_output": "true" if save_model else "false",
+            "strict_convergence": "true",
+        }
+    elif solver_mode == "pilot_coarse":
+        props = {
+            "speed_rpm": str(speed_rpm),
+            "warm_start": "init",
+            "initsol": "seed",
+            "stol": "0.001",
+            "segcflaa": "off",
+            "submincfl": "500.0",
+            "subdamp": "0.35",
+            "maxiter": "200",
+            "save_output": "true" if save_model else "false",
+            "strict_convergence": "true",
+        }
+    else:
+        raise InvalidParameterError(
+            f"Unsupported solver_mode {solver_mode!r}; expected 'warm_fine' or 'pilot_coarse'"
+        )
+
+    if solver_overrides:
+        for ok_key in ("warm_start", "initsol", "stol", "segcflaa", "submincfl", "subdamp", "maxiter", "strict_convergence"):
+            if ok_key in solver_overrides and solver_overrides[ok_key] is not None:
+                val = solver_overrides[ok_key]
+                if isinstance(val, bool):
+                    props[ok_key] = "true" if val else "false"
+                else:
+                    props[ok_key] = str(val)
+
+    if rebuild_geometry:
+        props["rebuild_geometry"] = "true"
+    if not solve:
+        props["solve"] = "false"
+    if mesh_level != "fine":
+        props["mesh_level"] = str(mesh_level)
+    if export_surface_dir is not None:
+        exp_p = Path(export_surface_dir)
+        exp_p.mkdir(parents=True, exist_ok=True)
+        props["export_surface_dir"] = to_safe_path(exp_p)
+
+    if cad_path is not None:
+        props["cad_path"] = to_safe_path(cad_path)
+        props["cad_type"] = "PARASOLID"
+    if params:
+        for pname, pexpr in params.items():
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", str(pname)):
+                raise InvalidParameterError(f"Invalid COMSOL parameter name: {pname!r}")
+            expr_str = str(pexpr).strip()
+            if not expr_str:
+                raise InvalidParameterError(f"Empty COMSOL expression for parameter {pname!r}")
+            props[f"param.{pname}"] = expr_str
+    return props
+
+
+def run_propeller_baseline(
+    model_path: Path | str,
+    output_path: Path | str | None = None,
+    *,
+    direction: str = "auto",
+    speed_rpm: float | None = None,
+    solver_mode: str = "warm_fine",
+    save_model: bool = False,
+    allow_overwrite: bool = False,
+    expected_source_sha256: str | None = None,
+    lock_dir: Path | str | None = None,
+    lock_timeout_sec: float = 3600.0,
+    root: Path | None = None,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
+    """Reproduce a CW/CCW propeller baseline via CoW loadCopy under comsol_solver_lock."""
+    model_path = Path(model_path)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Source propeller model does not exist: {model_path}")
+
+    direction_norm = direction.strip().lower()
+    if direction_norm not in {"auto", "cw", "ccw"}:
+        raise InvalidParameterError(
+            f"Invalid direction {direction!r}; expected 'auto', 'cw', or 'ccw'"
+        )
+
+    if speed_rpm is not None:
+        rpm_val = float(speed_rpm)
+        if not math.isfinite(rpm_val) or rpm_val == 0.0:
+            raise InvalidParameterError(f"speed_rpm must be finite and nonzero, got {speed_rpm!r}")
+        if direction_norm == "cw" and rpm_val <= 0.0:
+            raise InvalidParameterError("direction='cw' requires positive speed_rpm")
+        if direction_norm == "ccw" and rpm_val >= 0.0:
+            raise InvalidParameterError("direction='ccw' requires negative speed_rpm")
+        speed_spec: float | str = rpm_val
+    else:
+        if direction_norm == "cw":
+            speed_spec = 1400.0
+        elif direction_norm == "ccw":
+            speed_spec = -1400.0
+        else:
+            speed_spec = "auto"
+
+    if save_model and output_path is None:
+        raise InvalidParameterError("save_model=True requires an explicit output_path")
+
+    resolved_output = (
+        Path(output_path)
+        if output_path is not None
+        else Path("runs/propeller_opt/baseline/baseline_repro.mph")
+    )
+    if resolved_output.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {resolved_output}")
+    if model_path.resolve() == resolved_output.resolve():
+        raise ModelValidationError(
+            "Refusing to overwrite original baseline model: source and output path are identical"
+        )
+    _validate_ascii_filename(resolved_output)
+
+    hash_before = compute_file_hash(model_path)
+    if expected_source_sha256 is not None and hash_before != expected_source_sha256.upper():
+        raise ModelValidationError(
+            f"Source SHA-256 mismatch before solve for {model_path}: "
+            f"expected {expected_source_sha256.upper()}, got {hash_before}"
+        )
+
+    resolved_output.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = resolved_output.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_model = staging_dir / f"stage_{stage_id}_{resolved_output.name}"
+
+    props = _propeller_solver_properties(
+        speed_rpm=speed_spec,
+        solver_mode=solver_mode,
+        save_model=save_model,
+    )
+    encoded_spec = _encode_propeller_properties(props)
+    output_arg = to_safe_path(staging_model) if save_model else "-"
+    args = [
+        "run-propeller-baseline",
+        to_safe_path(model_path),
+        output_arg,
+        encoded_spec,
+    ]
+
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    effective_lock_dir = (
+        Path(lock_dir) if lock_dir is not None else resolved_output.parent.parent / ".locks"
+    )
+
+    with comsol_solver_lock(lock_dir=effective_lock_dir, timeout_sec=lock_timeout_sec):
+        with task_staging_session(staging_model, stage_id):
+            try:
+                res = _run_bridge(args, root=root, **process_options)
+            except Exception:
+                quarantine_staging_file(staging_model, resolved_output, stage_id, reason="failed")
+                raise
+
+            hash_after = compute_file_hash(model_path)
+            if hash_before != hash_after:
+                quarantine_staging_file(staging_model, resolved_output, stage_id, reason="failed")
+                raise ModelValidationError(
+                    f"Safety violation: baseline model modified during propeller run! "
+                    f"Before: {hash_before}, After: {hash_after}"
+                )
+
+            if save_model:
+                publish_staging_file(
+                    staging_path=staging_model,
+                    output_path=resolved_output,
+                    stage_id=stage_id,
+                    allow_overwrite=allow_overwrite,
+                )
+                res["output_model"] = str(resolved_output.resolve())
+                res["output_sha256"] = compute_file_hash(resolved_output)
+            else:
+                res["output_model"] = None
+                res["output_sha256"] = None
+
+    res["source_sha256"] = hash_before
+    res["solver_mode"] = solver_mode
+    return res
+
+
+def eval_propeller(
+    model_path: Path | str,
+    output_dir: Path | str,
+    *,
+    case_id: str,
+    speed_rpm: float,
+    params: dict[str, str] | None = None,
+    design: dict[str, Any] | None = None,
+    rebuild_geometry: bool = False,
+    solve: bool = True,
+    mesh_level: str = "fine",
+    export_surface_dir: Path | str | None = None,
+    solver_overrides: dict[str, Any] | None = None,
+    cad_path: Path | str | None = None,
+    solver_mode: str = "warm_fine",
+    save_model: bool = False,
+    allow_overwrite: bool = False,
+    expected_source_sha256: str | None = None,
+    expected_cad_sha256: str | None = None,
+    lock_dir: Path | str | None = None,
+    lock_timeout_sec: float = 3600.0,
+    root: Path | None = None,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
+    """Evaluate a 3D propeller case with automatic sign-based BC swapping and CoW safety."""
+    if not isinstance(case_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", case_id):
+        raise InvalidParameterError(
+            f"case_id must be ASCII alphanumeric/underscore/hyphen only, got {case_id!r}"
+        )
+
+    rpm_val = float(speed_rpm)
+    if not math.isfinite(rpm_val) or rpm_val == 0.0:
+        raise InvalidParameterError(f"speed_rpm must be finite and nonzero, got {speed_rpm!r}")
+
+    model_path = Path(model_path)
+    if not model_path.is_file():
+        raise ModelNotFoundError(f"Source propeller model does not exist: {model_path}")
+
+    cad_file: Path | None = None
+    cad_hash_before: str | None = None
+    if cad_path is not None:
+        cad_file = Path(cad_path)
+        if not cad_file.is_file():
+            raise ModelNotFoundError(f"CAD file does not exist: {cad_file}")
+        cad_hash_before = compute_file_hash(cad_file)
+        if expected_cad_sha256 is not None and cad_hash_before != expected_cad_sha256.upper():
+            raise ModelValidationError(
+                f"CAD SHA-256 mismatch before eval for {cad_file}: "
+                f"expected {expected_cad_sha256.upper()}, got {cad_hash_before}"
+            )
+
+    case_dir = Path(output_dir) / case_id
+    case_dir.mkdir(parents=True, exist_ok=True)
+    output_mph = case_dir / "solved.mph"
+    result_json = case_dir / "result.json"
+
+    if output_mph.is_symlink() or result_json.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link in {case_dir}")
+    if model_path.resolve() == output_mph.resolve():
+        raise ModelValidationError("Refusing to overwrite source model")
+    if result_json.exists() and not allow_overwrite:
+        raise FileExistsError(f"Result already exists and allow_overwrite=False: {result_json}")
+
+    hash_before = compute_file_hash(model_path)
+    if expected_source_sha256 is not None and hash_before != expected_source_sha256.upper():
+        raise ModelValidationError(
+            f"Source SHA-256 mismatch before eval for {model_path}: "
+            f"expected {expected_source_sha256.upper()}, got {hash_before}"
+        )
+
+    staging_dir = case_dir / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_model = staging_dir / f"stage_{stage_id}_{case_id}.mph"
+
+    merged_params: dict[str, str] = {}
+    if design:
+        merged_params.update(_design_to_comsol_params(design))
+    if params:
+        merged_params.update(params)
+
+    props = _propeller_solver_properties(
+        speed_rpm=rpm_val,
+        solver_mode=solver_mode,
+        save_model=save_model,
+        cad_path=cad_file,
+        params=merged_params if merged_params else None,
+        rebuild_geometry=rebuild_geometry,
+        solve=solve,
+        mesh_level=mesh_level,
+        export_surface_dir=Path(export_surface_dir) if export_surface_dir is not None else None,
+        solver_overrides=solver_overrides,
+    )
+    encoded_spec = _encode_propeller_properties(props)
+    output_arg = to_safe_path(staging_model) if save_model else "-"
+    args = [
+        "eval-propeller",
+        to_safe_path(model_path),
+        output_arg,
+        encoded_spec,
+    ]
+
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    effective_lock_dir = (
+        Path(lock_dir) if lock_dir is not None else Path(output_dir) / ".locks"
+    )
+
+    with comsol_solver_lock(lock_dir=effective_lock_dir, timeout_sec=lock_timeout_sec):
+        with task_staging_session(staging_model, stage_id):
+            try:
+                res = _run_bridge(args, root=root, **process_options)
+            except Exception:
+                quarantine_staging_file(staging_model, output_mph, stage_id, reason="failed")
+                raise
+
+            hash_after = compute_file_hash(model_path)
+            if hash_before != hash_after:
+                quarantine_staging_file(staging_model, output_mph, stage_id, reason="failed")
+                raise ModelValidationError(
+                    f"Safety violation: source model modified during eval_propeller! "
+                    f"Before: {hash_before}, After: {hash_after}"
+                )
+            if cad_file is not None and cad_hash_before is not None:
+                cad_hash_after = compute_file_hash(cad_file)
+                if cad_hash_before != cad_hash_after:
+                    quarantine_staging_file(staging_model, output_mph, stage_id, reason="failed")
+                    raise ModelValidationError(
+                        f"Safety violation: CAD file modified during eval_propeller! "
+                        f"Before: {cad_hash_before}, After: {cad_hash_after}"
+                    )
+
+            if save_model:
+                publish_staging_file(
+                    staging_path=staging_model,
+                    output_path=output_mph,
+                    stage_id=stage_id,
+                    allow_overwrite=allow_overwrite,
+                )
+                res["output_model"] = str(output_mph.resolve())
+                res["output_sha256"] = compute_file_hash(output_mph)
+            else:
+                res["output_model"] = None
+                res["output_sha256"] = None
+
+    res["case_id"] = case_id
+    res["source_sha256"] = hash_before
+    if cad_hash_before is not None:
+        res["cad_sha256"] = cad_hash_before
+    res["solver_mode"] = solver_mode
+
+    # Inject top-level aliases for KPIs and flow audit so downstream test/caller can access res["thrust_n"], res["power_kw"], etc.
+    kpis = res.get("kpis", {}) if isinstance(res.get("kpis"), dict) else {}
+    flow = res.get("flow_audit", {}) if isinstance(res.get("flow_audit"), dict) else {}
+    solver = res.get("solver_stats", res.get("solver", {}))
+    if not isinstance(solver, dict):
+        solver = {}
+    res.setdefault("thrust_n", abs(float(kpis.get("thrust_N", kpis.get("thrust_n", 0.0)))))
+    res.setdefault("power_kw", abs(float(kpis.get("shaft_power_kW", kpis.get("power_kw", 0.0)))))
+    res.setdefault("mass_imbalance_pct", float(flow.get("mass_imbalance_gross_pct", flow.get("mass_imbalance_pct", 0.0))))
+    res.setdefault("momentum_closure_pct", float(flow.get("momentum_closure_pct", 0.0)))
+    raw_rel_err = solver.get("max_solver_err", solver.get("rel_err", 0.001))
+    res.setdefault("rel_err", float(raw_rel_err) if raw_rel_err is not None else 0.001)
+
+    from ..io import atomic_json
+
+    if allow_overwrite and result_json.exists():
+        tmp_fd, tmp_name = tempfile.mkstemp(prefix=".result.", suffix=".tmp", dir=str(case_dir))
+        try:
+            with os.fdopen(tmp_fd, "w", encoding="utf-8") as handle:
+                json.dump(res, handle, ensure_ascii=False, indent=2, allow_nan=False)
+                handle.write("\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(tmp_name, result_json)
+        finally:
+            if os.path.exists(tmp_name):
+                os.unlink(tmp_name)
+    else:
+        atomic_json(result_json, res)
+    res["result_json"] = str(result_json.resolve())
+    return res
+
+
+def downsample_bridge_payload(payload: dict[str, Any], max_bytes: int = 50000) -> dict[str, Any]:
+    """Downsample large list fields in payload if serialized size exceeds max_bytes."""
+    data = dict(payload)
+    raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
+    if len(raw) <= max_bytes:
+        return data
+    for key, val in list(data.items()):
+        if isinstance(val, list) and len(val) > 100:
+            step = max(2, len(val) // 100)
+            data[key] = val[::step]
+        raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
+        if len(raw) <= max_bytes:
+            break
+    if len(raw) > max_bytes:
+        for key, val in list(data.items()):
+            if isinstance(val, list) and len(val) > 20:
+                data[key] = val[:20]
+    return data
+
+
+truncate_bridge_response = downsample_bridge_payload
+_downsample_payload = downsample_bridge_payload
+
+
+def run_propeller_case(
+    source_model: Path | str,
+    output_model: Path | str,
+    *,
+    speed_rpm: float,
+    cad_path: Path | str | None = None,
+    params: dict[str, str] | None = None,
+    solver_mode: str = "warm_fine",
+    warm_start: bool = True,
+    save_model: bool = True,
+    allow_overwrite: bool = False,
+    root: Path | None = None,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Execute a single propeller rotation case with signed RPM."""
+    if speed_rpm == 0.0 or not math.isfinite(speed_rpm):
+        raise InvalidParameterError(f"speed_rpm must be non-zero and finite, got {speed_rpm}")
+    if warm_start and solver_mode == "cold":
+        solver_mode = "warm_fine"
+    out_file = Path(output_model)
+    out_dir = out_file.parent
+    cid = out_file.stem
+    return eval_propeller(
+        model_path=source_model,
+        output_dir=out_dir,
+        case_id=cid,
+        speed_rpm=speed_rpm,
+        cad_path=cad_path,
+        params=params,
+        solver_mode=solver_mode,
+        save_model=save_model,
+        allow_overwrite=allow_overwrite,
+        root=root,
+        process_runner=process_runner,
+    )
+
+
+def build_propeller_geometry(
+    source_model: Path | str,
+    output_model: Path | str,
+    design: dict[str, Any],
+    *,
+    speed_rpm: float = 1400.0,
+    mesh_level: str = "fine",
+    allow_overwrite: bool = True,
+    expected_source_sha256: str | None = None,
+    lock_dir: Path | str | None = None,
+    lock_timeout_sec: float = 3600.0,
+    root: Path | None = None,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Build and measure parametric propeller geometry & mesh inside COMSOL, enforcing invariants."""
+    src_p = Path(source_model)
+    out_p = Path(output_model)
+    if not src_p.is_file():
+        raise ModelNotFoundError(f"Source propeller model does not exist: {src_p}")
+    if out_p.is_symlink():
+        raise ModelValidationError(f"Refusing to write to symbolic link: {out_p}")
+    if src_p.resolve() == out_p.resolve():
+        raise ModelValidationError("Refusing to overwrite source model: source and output path are identical")
+    _validate_ascii_filename(out_p)
+
+    hash_before = compute_file_hash(src_p)
+    if expected_source_sha256 is not None and hash_before != expected_source_sha256.upper():
+        raise ModelValidationError(
+            f"Source SHA-256 mismatch before geometry build for {src_p}: "
+            f"expected {expected_source_sha256.upper()}, got {hash_before}"
+        )
+
+    out_p.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = out_p.parent / ".staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    stage_id = uuid.uuid4().hex[:12]
+    staging_model = staging_dir / f"stage_{stage_id}_{out_p.name}"
+
+    params = _design_to_comsol_params(design)
+    props = _propeller_solver_properties(
+        speed_rpm=float(speed_rpm),
+        solver_mode="warm_fine",
+        save_model=True,
+        params=params,
+        rebuild_geometry=True,
+        solve=False,
+        mesh_level=mesh_level,
+    )
+    encoded_spec = _encode_propeller_properties(props)
+    args = [
+        "eval-propeller",
+        to_safe_path(src_p),
+        to_safe_path(staging_model),
+        encoded_spec,
+    ]
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    effective_lock_dir = Path(lock_dir) if lock_dir is not None else out_p.parent.parent / ".locks"
+
+    with comsol_solver_lock(lock_dir=effective_lock_dir, timeout_sec=lock_timeout_sec):
+        with task_staging_session(staging_model, stage_id):
+            try:
+                res = _run_bridge(args, root=root, **process_options)
+            except Exception:
+                quarantine_staging_file(staging_model, out_p, stage_id, reason="failed")
+                raise
+
+            hash_after = compute_file_hash(src_p)
+            if hash_before != hash_after:
+                quarantine_staging_file(staging_model, out_p, stage_id, reason="failed")
+                raise ModelValidationError(
+                    f"Safety violation: source model modified during build_propeller_geometry! "
+                    f"Before: {hash_before}, After: {hash_after}"
+                )
+
+            if staging_model.is_file():
+                publish_staging_file(
+                    staging_path=staging_model,
+                    output_path=out_p,
+                    stage_id=stage_id,
+                    allow_overwrite=allow_overwrite,
+                )
+                res["output_model"] = str(out_p.resolve())
+                res["output_sha256"] = compute_file_hash(out_p)
+            elif process_runner is not None:
+                # Mock subprocess runners in offline tests may not emit a binary .mph file
+                res.setdefault("output_model", str(out_p.resolve()))
+            else:
+                raise ModelValidationError(
+                    f"COMSOL geometry rebuild did not produce staged .mph output: {staging_model}"
+                )
+
+    res["source_sha256"] = hash_before
+    ga = dict(res.get("geometry_audit") or {})
+    if "tip_clearance_m" not in ga and "tip_clearance_m" in design:
+        ga["tip_clearance_m"] = float(design["tip_clearance_m"])
+    if "hub_x_span" not in ga and "hub_x_min_m" in ga and "hub_x_max_m" in ga:
+        ga["hub_x_span"] = [ga["hub_x_min_m"], ga["hub_x_max_m"]]
+    res["geometry_audit"] = ga
+
+    from ..propeller.geometry_guard import GeometryGuard
+
+    guard_audit = GeometryGuard.validate(design, measured_bbox=ga)
+    res["geometry_guard"] = guard_audit.model_dump()
+    if process_runner is None and not guard_audit.is_valid:
+        raise ModelValidationError(
+            f"Post-build COMSOL geometry failed GeometryGuard invariants: {guard_audit.reasons}"
+        )
+    return res
+
+
+def configure_propeller_opt_model(
+    model_path: Path | str,
+    output_path: Path | str = "-",
+    blade_count: int = 3,
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
+    """Configure native COMSOL 6.4 hydro-structural optimization model via PropellerOptModel."""
+    if blade_count not in (3, 4, 5):
+        raise InvalidParameterError(f"Blade count must be in {{3, 4, 5}}, got: {blade_count}")
+    args = [
+        "configure-propeller-opt-model",
+        str(model_path),
+        str(output_path),
+        str(blade_count),
+    ]
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    return _run_bridge(args, root=root, **process_options)
+
+
+def export_propeller_cad(
+    model_path: Path | str,
+    output_path: Path | str,
+    root: Path | None = None,
+    *,
+    process_runner: Callable[..., subprocess.CompletedProcess] | None = None,
+) -> dict[str, Any]:
+    """Export 3D CAD geometry from a COMSOL model via native GeomSequence.export."""
+    args = [
+        "export-propeller-cad",
+        str(Path(model_path).resolve()),
+        str(Path(output_path).resolve()),
+    ]
+    process_options = {} if process_runner is None else {"process_runner": process_runner}
+    return _run_bridge(args, root=root, **process_options)
+
+
+

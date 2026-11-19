@@ -333,6 +333,108 @@ def main(argv: list[str] | None = None) -> int:
     )
     bundle_verify.add_argument("--bundle", required=True, help="Path to benchmark bundle NPZ")
 
+    prop_insp = sub.add_parser(
+        "propeller-inspect",
+        help="Read-only 3D inspection of a COMSOL propeller .mph model",
+    )
+    prop_insp.add_argument("--model", default="models/prop test2/COMSOL_CW_1400rpm/V10f-StaticFine-1400rpm.mph", help="Path to 3D propeller .mph model")
+    prop_insp.add_argument("--out", default=None, help="Optional JSON output file path")
+
+    prop_base = sub.add_parser(
+        "propeller-baseline",
+        help="Reproduce CW (+1400 rpm) and CCW (-1400 rpm) V10f 3D propeller baselines safely via CoW",
+    )
+    prop_base.add_argument(
+        "--cw-model",
+        default="models/prop test2/COMSOL_CW_1400rpm/V10f-StaticFine-1400rpm.mph",
+        help="CW baseline .mph path",
+    )
+    prop_base.add_argument(
+        "--ccw-model",
+        default="models/prop test2/COMSOL_CCW_1400rpm/V10f-CCWFine-1400rpm.mph",
+        help="CCW baseline .mph path",
+    )
+    prop_base.add_argument(
+        "--cad-path",
+        default="models/prop test2/3_320kgf_v10f.x_t",
+        help="Baseline Parasolid CAD file path for immutability verification",
+    )
+    prop_base.add_argument(
+        "--output-dir",
+        default="runs/propeller_opt/baseline",
+        help="ASCII output directory under runs/propeller_opt/",
+    )
+    prop_base.add_argument(
+        "--solver-mode",
+        choices=["warm_fine", "pilot_coarse"],
+        default="warm_fine",
+        help="Solver configuration preset",
+    )
+    prop_base.add_argument(
+        "--save-mph",
+        action="store_true",
+        default=False,
+        help="Save reproduced .mph copies inside output-dir",
+    )
+    prop_base.add_argument(
+        "--allow-overwrite",
+        action="store_true",
+        default=False,
+        help="Allow overwriting existing baseline summary/outputs",
+    )
+    prop_base.add_argument(
+        "--inspect-only",
+        action="store_true",
+        default=False,
+        help="Inspect baseline models and check SHA-256 immutability without running CFD",
+    )
+    prop_base.add_argument(
+        "--skip-hash-pin",
+        action="store_true",
+        default=False,
+        help="Skip pinned V10f baseline SHA-256 check (for custom/synthetic models)",
+    )
+
+    prop_opt = sub.add_parser(
+        "propeller-optimize",
+        help="Execute multi-objective constrained optimization for ROV ducted propeller",
+    )
+    prop_opt.add_argument(
+        "--config",
+        default="configs/propeller_opt_v10f.json",
+        help="Path to propeller optimization JSON configuration",
+    )
+    prop_opt.add_argument(
+        "--stage",
+        default="all",
+        choices=["precheck", "doe", "train", "optimize", "verify", "all"],
+        help="Pipeline execution stage",
+    )
+    prop_opt.add_argument(
+        "--output-dir",
+        default="runs/propeller_opt",
+        help="Working directory for optimization outputs and checkpoints",
+    )
+    prop_opt.add_argument("--doe-samples", type=int, default=20, help="Number of LHS DoE samples")
+    prop_opt.add_argument("--pop-size", type=int, default=24, help="NSGA-II population size (even integer >= 4)")
+    prop_opt.add_argument("--gen", type=int, default=15, help="Number of NSGA-II generations")
+    prop_opt.add_argument("--seed", type=int, default=42, help="Random seed for repeatability")
+
+    prop_ver = sub.add_parser(
+        "propeller-verify",
+        help="Back-verify Pareto candidates and compare with V10f baseline",
+    )
+    prop_ver.add_argument(
+        "--candidates",
+        required=True,
+        help="Path to JSON file containing candidate design dictionaries",
+    )
+    prop_ver.add_argument(
+        "--output-dir",
+        default="runs/propeller_opt/verify",
+        help="Output directory for verification report",
+    )
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -766,6 +868,82 @@ def main(argv: list[str] | None = None) -> int:
         from .benchmark_bundle import verify_benchmark_bundle
 
         res = verify_benchmark_bundle(args.bundle)
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-inspect":
+        from .comsol_java import inspect_propeller
+
+        res = inspect_propeller(Path(args.model))
+        if args.out:
+            out_path = Path(args.out)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(
+                json.dumps(res, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-baseline":
+        from .propeller.baseline import reproduce_propeller_baselines
+
+        res = reproduce_propeller_baselines(
+            cw_model=Path(args.cw_model),
+            ccw_model=Path(args.ccw_model),
+            cad_path=Path(args.cad_path) if args.cad_path else None,
+            output_dir=Path(args.output_dir),
+            solver_mode=args.solver_mode,
+            save_mph=args.save_mph,
+            allow_overwrite=args.allow_overwrite,
+            inspect_only=args.inspect_only,
+            pin_hashes=not args.skip_hash_pin,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-optimize":
+        cfg_path = Path(args.config)
+        if not cfg_path.is_file():
+            sys.stderr.write(f"Configuration file not found: {cfg_path}\n")
+            raise SystemExit(1)
+        try:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            sys.stderr.write(f"Malformed configuration JSON: {exc}\n")
+            raise SystemExit(1)
+
+        from .propeller.evaluator import PropellerEvaluator
+        from .propeller.workflow import run_optimization_pipeline
+
+        ev = PropellerEvaluator(work_dir=args.output_dir, max_workers=1)
+        res = run_optimization_pipeline(
+            work_dir=args.output_dir,
+            stage=args.stage,
+            evaluator_fn=ev.evaluate,
+            doe_samples=args.doe_samples,
+            pop_size=args.pop_size,
+            n_gen=args.gen,
+            seed=args.seed,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-verify":
+        cands_path = Path(args.candidates)
+        if not cands_path.is_file():
+            sys.stderr.write(f"Candidates file not found: {cands_path}\n")
+            raise SystemExit(1)
+        try:
+            cands = json.loads(cands_path.read_text(encoding="utf-8"))
+            if isinstance(cands, dict) and "pareto_set" in cands:
+                cands = cands["pareto_set"]
+            elif isinstance(cands, dict) and "pareto_front" in cands:
+                cands = cands["pareto_front"]
+        except Exception as exc:
+            sys.stderr.write(f"Malformed candidates JSON: {exc}\n")
+            raise SystemExit(1)
+
+        from .propeller.evaluator import PropellerEvaluator
+        from .propeller.workflow import verify_candidates
+
+        ev = PropellerEvaluator(work_dir=args.output_dir, max_workers=1)
+        res = verify_candidates(
+            candidates=cands,
+            work_dir=args.output_dir,
+            evaluator_fn=ev.evaluate,
+        )
         print(json.dumps(res, indent=2, ensure_ascii=False))
 
     return 0
