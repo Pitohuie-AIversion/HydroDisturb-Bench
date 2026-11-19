@@ -97,3 +97,48 @@ def test_dispatch_dry_run_targets_free_socket(tmp_path: Path, monkeypatch):
     assert res["job_id"] == "Q1"
     assert res["target_socket"] == 1
     assert "16:1:1:throughput" in res["cmd"]
+
+
+def test_dispatch_wait_mode_updates_completed_status(tmp_path: Path, monkeypatch):
+    qp = _sample_queue(tmp_path)
+    qdoc = json.loads(qp.read_text(encoding="utf-8"))
+    qdoc["queue"][0]["pre_build_mesh"] = None
+    qp.write_text(json.dumps(qdoc), encoding="utf-8")
+
+    monkeypatch.setattr(db, "get_system_health", lambda _d="E:\\": {"free_ram_gb": 60.0, "total_ram_gb": 128.0, "free_disk_e_gb": 300.0})
+    monkeypatch.setattr(db.time, "sleep", lambda _s: None)
+    out_mph = str(tmp_path / "out1" / "C_rtol1e4_max005" / "C_rtol1e4_max005.mph")
+    live_state = {"alive": False}
+
+    def fake_live():
+        if live_state["alive"]:
+            return [{"pid": 9999, "np": 16, "numasets": 1, "numafirst": 0, "out_mph": out_mph}]
+        return []
+
+    monkeypatch.setattr(db, "list_live_comsol_processes", fake_live)
+
+    class FakeProc:
+        pid = 8888
+
+        def poll(self):
+            return None
+
+        def wait(self):
+            summary = tmp_path / "out1" / "C_rtol1e4_max005" / "calibration_case_summary.json"
+            summary.parent.mkdir(parents=True, exist_ok=True)
+            summary.write_text('{"status":"DONE"}', encoding="utf-8")
+            live_state["alive"] = False
+            return 0
+
+    def fake_popen(*a, **kw):
+        live_state["alive"] = True
+        return FakeProc()
+
+    monkeypatch.setattr(db.subprocess, "Popen", fake_popen)
+    res = db.dispatch_one_job(queue_path=qp, requested_numafirst=0, wait=True)
+    assert res["status"] == "LAUNCHED"
+    assert res["job_id"] == "Q1"
+    assert res["comsol_pid"] == 9999
+    assert res["wait_result"]["status"] == "COMPLETED"
+    updated = json.loads(qp.read_text(encoding="utf-8"))
+    assert updated["queue"][0]["status"] == "COMPLETED"

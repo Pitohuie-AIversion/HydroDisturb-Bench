@@ -97,6 +97,12 @@ public class ComsolBridge {
                 String dsetTag = (args.length >= 4) ? args[3] : "auto";
                 String solnum = (args.length >= 5) ? args[4] : "auto";
                 handleExportC04Volume(args[1], args[2], dsetTag, solnum);
+            } else if ("inspect-datasets".equals(command)) {
+                if (args.length < 2) {
+                    outputError("INVALID_PARAMETER", "Usage: inspect-datasets <modelPath>", "");
+                    return;
+                }
+                handleInspectDatasets(args[1]);
             } else if ("export-solution-data".equals(command)) {
                 if (args.length < 3) {
                     outputError("INVALID_PARAMETER", "Usage: export-solution-data <modelPath> <outputTxtPath>", "");
@@ -1452,26 +1458,24 @@ public class ComsolBridge {
                 targetDset = dsetTag.trim();
             } else {
                 String[] dtags = model.result().dataset().tags();
-                String fallbackSolDset = null;
-                for (int i = dtags.length - 1; i >= 0; i--) {
+                int maxStepsFound = -1;
+                for (int i = 0; i < dtags.length; i++) {
                     try {
                         DatasetFeature d = model.result().dataset(dtags[i]);
                         if ("Solution".equals(d.getType())) {
-                            if (fallbackSolDset == null) {
-                                fallbackSolDset = dtags[i];
-                            }
                             String sol = "";
                             try { sol = d.getString("solution"); } catch (Throwable ignored) {}
-                            if ("sol3".equals(sol) || "sol5".equals(sol)) {
-                                targetDset = dtags[i];
-                                fallbackSolDset = null;
-                                break;
+                            if (!sol.isEmpty()) {
+                                SolverSequence s = model.sol(sol);
+                                double[] pvals = s.getPVals();
+                                int steps = (pvals != null) ? pvals.length : 0;
+                                if (steps > maxStepsFound) {
+                                    maxStepsFound = steps;
+                                    targetDset = dtags[i];
+                                }
                             }
                         }
                     } catch (Throwable ignored) {}
-                }
-                if (fallbackSolDset != null) {
-                    targetDset = fallbackSolDset;
                 }
             }
 
@@ -1506,13 +1510,13 @@ public class ComsolBridge {
                 String[] snums = solnum.split(",");
                 for (int s = 0; s < snums.length; s++) {
                     String sn = snums[s].trim();
-                    exporter.set("solnum", sn);
+                    exporter.set("solnum", new String[]{sn});
                     exporter.set("filename", outputTxtPath + ".step_" + sn);
                     exporter.run();
                 }
             } else {
                 if (solnum != null && !solnum.trim().isEmpty() && !solnum.equalsIgnoreCase("auto")) {
-                    exporter.set("solnum", solnum.trim());
+                    exporter.set("solnum", new String[]{solnum.trim()});
                 }
                 exporter.set("filename", outputTxtPath);
                 exporter.run();
@@ -1550,26 +1554,24 @@ public class ComsolBridge {
                 targetDset = dsetTag.trim();
             } else {
                 String[] dtags = model.result().dataset().tags();
-                String fallbackSolDset = null;
-                for (int i = dtags.length - 1; i >= 0; i--) {
+                int maxStepsFound = -1;
+                for (int i = 0; i < dtags.length; i++) {
                     try {
                         DatasetFeature d = model.result().dataset(dtags[i]);
                         if ("Solution".equals(d.getType())) {
-                            if (fallbackSolDset == null) {
-                                fallbackSolDset = dtags[i];
-                            }
                             String sol = "";
                             try { sol = d.getString("solution"); } catch (Throwable ignored) {}
-                            if ("sol3".equals(sol) || "sol5".equals(sol)) {
-                                targetDset = dtags[i];
-                                fallbackSolDset = null;
-                                break;
+                            if (!sol.isEmpty()) {
+                                SolverSequence s = model.sol(sol);
+                                double[] pvals = s.getPVals();
+                                int steps = (pvals != null) ? pvals.length : 0;
+                                if (steps > maxStepsFound) {
+                                    maxStepsFound = steps;
+                                    targetDset = dtags[i];
+                                }
                             }
                         }
                     } catch (Throwable ignored) {}
-                }
-                if (fallbackSolDset != null) {
-                    targetDset = fallbackSolDset;
                 }
             }
 
@@ -1600,13 +1602,13 @@ public class ComsolBridge {
                 String[] snums = solnum.split(",");
                 for (int s = 0; s < snums.length; s++) {
                     String sn = snums[s].trim();
-                    exporter.set("solnum", sn);
+                    exporter.set("solnum", new String[]{sn});
                     exporter.set("filename", outputTxtPath + ".step_" + sn);
                     exporter.run();
                 }
             } else {
                 if (solnum != null && !solnum.trim().isEmpty() && !solnum.equalsIgnoreCase("auto")) {
-                    exporter.set("solnum", solnum.trim());
+                    exporter.set("solnum", new String[]{solnum.trim()});
                 }
                 exporter.set("filename", outputTxtPath);
                 exporter.run();
@@ -1627,6 +1629,48 @@ public class ComsolBridge {
             emitResult(sb.toString());
         } catch (Throwable t) {
             outputError("EXPORT_C04_VOLUME_FAILED", "Failed to export C04 volume: " + t.getMessage(), getStackTrace(t));
+        }
+    }
+
+    private static void handleInspectDatasets(String modelPath) {
+        Model model;
+        try {
+            model = ModelUtil.loadCopy("Model", modelPath);
+        } catch (Throwable t) {
+            outputError("COMSOL_CONNECTION_FAILED", "Failed to load model: " + t.getMessage(), getStackTrace(t));
+            return;
+        }
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n  \"status\": \"SUCCESS\",\n  \"operation\": \"inspect_datasets\",\n  \"model_path\": ").append(quote(modelPath)).append(",\n  \"datasets\": [\n");
+            String[] tags = model.result().dataset().tags();
+            for (int i = 0; i < tags.length; i++) {
+                DatasetFeature d = model.result().dataset(tags[i]);
+                String type = d.getType();
+                String sol = "";
+                try { sol = d.getString("solution"); } catch (Throwable ignored) {}
+                sb.append("    {\"tag\": \"").append(tags[i]).append("\", \"type\": \"").append(type).append("\", \"solution\": \"").append(sol).append("\"}");
+                if (i < tags.length - 1) sb.append(",");
+                sb.append("\n");
+            }
+            sb.append("  ],\n  \"solutions\": [\n");
+            String[] solTags = model.sol().tags();
+            for (int i = 0; i < solTags.length; i++) {
+                SolverSequence s = model.sol(solTags[i]);
+                int nSteps = 0;
+                try {
+                    double[] pvals = s.getPVals();
+                    if (pvals != null) nSteps = pvals.length;
+                } catch (Throwable ignored) {}
+                sb.append("    {\"tag\": \"").append(solTags[i]).append("\", \"type\": \"").append(s.getType()).append("\", \"n_steps\": ").append(nSteps).append("}");
+                if (i < solTags.length - 1) sb.append(",");
+                sb.append("\n");
+            }
+            sb.append("  ]\n}");
+            emitResult(sb.toString());
+        } catch (Throwable t) {
+            outputError("INSPECT_DATASETS_FAILED", t.getMessage(), getStackTrace(t));
         }
     }
 

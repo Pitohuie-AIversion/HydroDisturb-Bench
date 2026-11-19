@@ -285,6 +285,7 @@ def dispatch_one_job(
     queue_path: Path,
     requested_numafirst: int | None = None,
     dry_run: bool = False,
+    wait: bool = False,
     ini_file: Path = DEFAULT_INI,
     scratch: Path = DEFAULT_SCRATCH,
     python_exe: Path | None = None,
@@ -384,8 +385,10 @@ def dispatch_one_job(
         _run_pre_build_mesh(job, numafirst=target_socket, ini_file=ini_file, scratch=scratch)
         creation = 0
         if sys.platform == "win32":
-            creation = int(getattr(subprocess, "DETACHED_PROCESS", 0x00000008)) | int(
-                getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
+            creation = (
+                int(getattr(subprocess, "DETACHED_PROCESS", 0x00000008))
+                | int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200))
+                | 0x01000000  # CREATE_BREAKAWAY_FROM_JOB
             )
         with runner_log.open("w", encoding="utf-8") as lf:
             proc = subprocess.Popen(
@@ -398,10 +401,10 @@ def dispatch_one_job(
                 close_fds=True,
             )
 
-        # Wait up to 30s to confirm child comsolbatch.exe spawned with matching output .mph
+        # Wait up to 90s to confirm child comsolbatch.exe spawned with matching output .mph
         target_mph = str(_target_mph_path(job).resolve()).lower()
         comsol_pid = None
-        for _ in range(15):
+        for _ in range(45):
             time.sleep(2.0)
             if proc.poll() is not None:
                 tail = runner_log.read_text(encoding="utf-8", errors="replace")[-1000:]
@@ -440,7 +443,7 @@ def dispatch_one_job(
         queue_doc["updated_at"] = now_iso
         queue_path.write_text(json.dumps(queue_doc, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        return {
+        launch_info = {
             "status": "LAUNCHED",
             "job_id": job["job_id"],
             "target_socket": target_socket,
@@ -449,6 +452,37 @@ def dispatch_one_job(
             "runner_log": str(runner_log),
             "health": health,
         }
+        if not wait:
+            return launch_info
+
+        print(json.dumps(launch_info, indent=2, ensure_ascii=False), flush=True)
+        rc = proc.wait()
+        done_iso = datetime.now().isoformat(timespec="seconds")
+        latest_doc = json.loads(queue_path.read_text(encoding="utf-8"))
+        summary_ok = _summary_path(job).is_file()
+        final_status = "COMPLETED" if (rc == 0 and summary_ok) else "FAILED"
+        for qj in latest_doc.get("queue", []):
+            if str(qj.get("job_id")) == str(job["job_id"]):
+                qj["status"] = final_status
+                qj["runner_returncode"] = rc
+                qj["finished_at"] = done_iso
+                qj["updated_at"] = done_iso
+                break
+        live_done = list_live_comsol_processes()
+        live_done_pids = {p["pid"] for p in live_done}
+        rn = latest_doc.setdefault("running_now", {})
+        for sk, sv in list(rn.items()):
+            if sv.get("pid") not in live_done_pids:
+                rn.pop(sk, None)
+        latest_doc["updated_at"] = done_iso
+        queue_path.write_text(json.dumps(latest_doc, indent=2, ensure_ascii=False), encoding="utf-8")
+        launch_info["wait_result"] = {
+            "status": final_status,
+            "runner_returncode": rc,
+            "summary_exists": summary_ok,
+            "finished_at": done_iso,
+        }
+        return launch_info
     except Exception as exc:
         job["status"] = "LAUNCH_FAILED"
         job["error"] = str(exc)
@@ -469,6 +503,7 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Target drive or mount point for health checks (defaults to HYDRO_CFD_DRIVE or E: or current drive)",
     )
+    p.add_argument("--wait", action="store_true", help="Stay alive waiting on spawned runner so parent Job Objects remain open")
     args = p.parse_args(argv)
 
     q_path = Path(args.queue)
@@ -497,6 +532,7 @@ def main(argv: list[str] | None = None) -> int:
         requested_numafirst=args.numafirst,
         dry_run=args.dry_run,
         drive=args.drive,
+        wait=args.wait,
     )
     print(json.dumps(res, indent=2, ensure_ascii=False))
     return 0

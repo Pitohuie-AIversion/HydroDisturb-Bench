@@ -261,6 +261,15 @@ def test_parse_worker_specs_and_save_mph_cases():
     ]
     assert c04cal.CALIBRATION_CASES["C_rtol3e4_max005"]["rtol"] == "0.0003"
     assert c04cal.CALIBRATION_CASES["C_rtol3e4_max005"]["maxstep_val"] == "0.05"
+    assert c04cal.CALIBRATION_CASES["F1_rtol5e3_max006"]["rtol"] == "0.005"
+    assert c04cal.CALIBRATION_CASES["F1_rtol5e3_max006"]["maxstep_mode"] == "const"
+    assert c04cal.CALIBRATION_CASES["F1_rtol5e3_max006"]["maxstep_val"] == "0.06"
+    assert c04cal.CALIBRATION_CASES["F2_rtol2e3_max006"]["rtol"] == "0.002"
+    assert c04cal.CALIBRATION_CASES["F2_rtol2e3_max006"]["maxstep_mode"] == "const"
+    assert c04cal.CALIBRATION_CASES["F2_rtol2e3_max006"]["maxstep_val"] == "0.06"
+    assert c04cal.CALIBRATION_CASES["F3_rtol3e3_max008"]["rtol"] == "0.003"
+    assert c04cal.CALIBRATION_CASES["F3_rtol3e3_max008"]["maxstep_mode"] == "const"
+    assert c04cal.CALIBRATION_CASES["F3_rtol3e3_max008"]["maxstep_val"] == "0.08"
     assert c04cal.resolve_save_mph_cases(selected, save_mph=True, save_mph_cases="C_rtol1e4_max005") == {
         "C_rtol1e4_max005"
     }
