@@ -157,8 +157,13 @@ def _read_compile_details(proc: subprocess.CompletedProcess, started: float) -> 
         log = Path(match.group(1).strip()).resolve()
         profile = (Path.home() / ".comsol").resolve()
         try:
+            try:
+                log.relative_to(profile)
+                is_rel = True
+            except ValueError:
+                is_rel = False
             if (
-                log.is_relative_to(profile)
+                is_rel
                 and log.parent.name == "logs"
                 and log.name.startswith("compile")
                 and log.stat().st_mtime >= started - 2

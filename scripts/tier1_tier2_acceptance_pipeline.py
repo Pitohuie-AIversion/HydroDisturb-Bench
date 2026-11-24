@@ -301,6 +301,8 @@ class Tier1Result:
     comparison_to_ref: dict[str, Any] | None = None
     yplus_check: dict[str, Any] | None = None
     reasons: list[str] = field(default_factory=list)
+    St_fft: float | None = None
+    used_demeaned_zc: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -316,7 +318,8 @@ class Tier1Evaluator:
         st_thresh: float = 1.0,
         amp_thresh: float = 2.0,
         cd_thresh: float = 1.0,
-        min_shedding_t: float = 15.0,
+        min_shedding_t: float | None = None,
+        min_shedding_t_star: float = 25.0,
         min_cycles: int = 5,
     ):
         self.scales = scales or NondimensionalScales.create()
@@ -324,7 +327,13 @@ class Tier1Evaluator:
         self.st_thresh = st_thresh
         self.amp_thresh = amp_thresh
         self.cd_thresh = cd_thresh
-        self.min_shedding_t = min_shedding_t
+        # Default 25.0 CTU (= 15.0 s at C04 U0=0.50 m/s, D=0.30 m)
+        self.min_shedding_t_star = min_shedding_t_star
+        self.min_shedding_t = (
+            float(min_shedding_t)
+            if min_shedding_t is not None
+            else float(min_shedding_t_star * self.scales.t_ref)
+        )
         self.min_cycles = min_cycles
         self.yplus_gate = WallYPlusGate(self.scales)
 
@@ -348,10 +357,28 @@ class Tier1Evaluator:
             measured_yplus_array=measured_yplus_array,
         )
 
-        # Find upward zero-crossings after startup transient
-        mask = t_cl >= self.min_shedding_t if np.max(t_cl) > self.min_shedding_t + 5.0 else np.ones_like(t_cl, dtype=bool)
+        # Find upward zero-crossings after startup transient (scaled in convective time units)
+        t_max = float(np.max(t_cl))
+        min_remaining = 5.0 * self.scales.t_ref  # ~1 shedding cycle margin
+        if t_max > self.min_shedding_t + min_remaining:
+            mask = t_cl >= self.min_shedding_t
+        else:
+            # Always discard initial impulsive startup transient (first 50%)
+            mask = t_cl >= 0.5 * t_max
         t_s = t_cl[mask]
         cl_s = cl[mask]
+
+        # Spectral Strouhal estimate on demeaned post-transient lift
+        st_fft: float | None = None
+        if len(t_s) >= 16 and (t_s[-1] - t_s[0]) > 1e-6:
+            t_u = np.linspace(float(t_s[0]), float(t_s[-1]), len(t_s))
+            dt_u = float(t_u[1] - t_u[0])
+            cl_u = np.interp(t_u, t_s, cl_s - float(np.mean(cl_s)))
+            fft_mag = np.abs(np.fft.rfft(cl_u * np.hanning(len(cl_u))))
+            freqs = np.fft.rfftfreq(len(cl_u), d=dt_u)
+            if len(fft_mag) > 1:
+                idx_pk = int(np.argmax(fft_mag[1:])) + 1
+                st_fft = float(freqs[idx_pk] * self.scales.t_ref)
 
         def _find_zero_crossings(sig: np.ndarray) -> list[float]:
             crossings: list[float] = []
@@ -361,25 +388,36 @@ class Tier1Evaluator:
                     crossings.append(float(tz))
             return crossings
 
-        zc = _find_zero_crossings(cl_s)
-        used_demeaned_zc = False
-        if len(zc) < self.min_cycles + 1:
-            # When lift has a non-zero mean offset (|Cl_mean| <= 0.05), oscillations occur around Cl_mean.
-            # Fall back to zero-crossings of the fluctuating (demeaned) lift signal.
-            cl_dem = cl_s - np.mean(cl_s)
-            zc_dem = _find_zero_crossings(cl_dem)
-            if len(zc_dem) >= self.min_cycles + 1:
-                zc = zc_dem
-                used_demeaned_zc = True
+        cl_s_mean = float(np.mean(cl_s))
+        cl_s_std = float(np.std(cl_s))
+        # When lift has a significant non-zero mean offset relative to its oscillation RMS,
+        # raw crossings around 0.0 graze the trough and cause spurious double-crossings;
+        # evaluate zero-crossings around Cl_mean directly.
+        if cl_s_std > 1e-12 and abs(cl_s_mean) > 0.25 * cl_s_std:
+            zc = _find_zero_crossings(cl_s - cl_s_mean)
+            used_demeaned_zc = True
+        else:
+            zc = _find_zero_crossings(cl_s)
+            used_demeaned_zc = False
+            if len(zc) < self.min_cycles + 1:
+                cl_dem = cl_s - cl_s_mean
+                zc_dem = _find_zero_crossings(cl_dem)
+                if len(zc_dem) >= self.min_cycles + 1:
+                    zc = zc_dem
+                    used_demeaned_zc = True
 
         if len(zc) < self.min_cycles + 1:
-            half_idx = max(1, len(t_cl) // 2)
-            t0_p, t1_p = float(t_cl[half_idx]), float(t_cl[-1])
-            _, cd_prelim = integrate_exact_window(t_cd, cd, t0_p, t1_p) if t1_p > t0_p else (0.0, float(np.mean(cd)))
-            _, cl_rms_prelim = compute_demeaned_rms(t_cl, cl, t0_p, t1_p) if t1_p > t0_p else (0.0, float(np.std(cl)))
+            t0_p, t1_p = float(t_s[0]), float(t_s[-1])
+            _, cd_prelim = integrate_exact_window(t_cd, cd, t0_p, t1_p) if t1_p > t0_p else (0.0, float(np.mean(cd[t_cd >= 0.5 * t_max])))
+            _, cl_rms_prelim = compute_demeaned_rms(t_cl, cl, t0_p, t1_p) if t1_p > t0_p else (0.0, float(np.std(cl_s)))
+            insuff_reasons = [
+                f"Found {max(0, len(zc)-1)} complete shedding cycles after t={t0_p:.2f}s (t*={t0_p/self.scales.t_ref:.1f}); required >= {self.min_cycles}."
+            ]
+            if yplus_res.gate_status != "PASS":
+                insuff_reasons.extend(yplus_res.reasons)
             return Tier1Result(
                 case_name=name,
-                status="INSUFFICIENT_CYCLES",
+                status="FAIL_BUFFER_LAYER" if yplus_res.is_buffer_layer else "INSUFFICIENT_CYCLES",
                 is_stable=False,
                 num_cycles=max(0, len(zc) - 1),
                 St_zc_mean=None,
@@ -389,7 +427,10 @@ class Tier1Evaluator:
                 Cl_mean=float(np.mean(cl_s)),
                 drifts={},
                 envelope_checks={},
-                reasons=[f"Found {max(0, len(zc)-1)} complete shedding cycles after t={self.min_shedding_t}s; required >= {self.min_cycles}."],
+                yplus_check=yplus_res.to_dict(),
+                reasons=insuff_reasons,
+                St_fft=st_fft,
+                used_demeaned_zc=used_demeaned_zc,
             )
 
         sel_zc = zc[-(self.min_cycles + 1) :]
@@ -497,6 +538,8 @@ class Tier1Evaluator:
             comparison_to_ref=comparison,
             yplus_check=yplus_res.to_dict(),
             reasons=reasons,
+            St_fft=st_fft,
+            used_demeaned_zc=used_demeaned_zc,
         )
 
 
@@ -690,6 +733,49 @@ class Tier2Evaluator:
 # 4. Unified Pipeline & Data Volume Quality Metric
 # ---------------------------------------------------------------------------
 
+def _load_and_normalize_probes_readonly(
+    case_dir: Path,
+    *,
+    rho0: float,
+    u0: float,
+    d_m: float,
+    l_span_m: float,
+) -> dict[str, Any]:
+    """Read-only probe loader & nondimensionalizer with late-window drag sign check.
+
+    Does NOT write or overwrite any files in `case_dir`, and evaluates the drag
+    sign multiplier on the second half of the time series so impulsive t=0
+    startup spikes (e.g. Re5k/Re40k) never invert steady-state Cd.
+    """
+    q_inf = 0.5 * rho0 * (u0 ** 2)
+    area_frontal = d_m * l_span_m
+
+    lift_int = calib._try_load_probe_table(case_dir / "probe_lift_int.txt")
+    drag_int = calib._try_load_probe_table(case_dir / "probe_drag_int.txt")
+    if lift_int is not None and drag_int is not None:
+        t_lift, raw_lift = lift_int
+        t_drag, raw_drag = drag_int
+        cl = raw_lift / (q_inf * area_frontal)
+        raw_cd_signed = raw_drag / (q_inf * area_frontal)
+    else:
+        lift_avg = calib._try_load_probe_table(case_dir / "probe_lift_avg.txt")
+        drag_avg = calib._try_load_probe_table(case_dir / "probe_drag_avg.txt")
+        if lift_avg is None:
+            calib.load_numeric_probe_table(case_dir / "probe_lift_avg.txt")
+        if drag_avg is None:
+            calib.load_numeric_probe_table(case_dir / "probe_drag_avg.txt")
+        assert lift_avg is not None and drag_avg is not None
+        t_lift, raw_lift = lift_avg
+        t_drag, raw_drag = drag_avg
+        cl = (math.pi * raw_lift) / q_inf
+        raw_cd_signed = (math.pi * raw_drag) / q_inf
+
+    late_cd = raw_cd_signed[len(raw_cd_signed) // 2 :] if len(raw_cd_signed) >= 2 else raw_cd_signed
+    sign_factor = -1.0 if float(np.mean(late_cd)) < 0.0 else 1.0
+    cd = sign_factor * raw_cd_signed
+    return {"t_lift": t_lift, "cl": cl, "t_drag": t_drag, "cd": cd, "sign_factor": sign_factor}
+
+
 class WorldModelAcceptancePipeline:
     """End-to-end integration: Nondimensionalization -> Tier 1 -> Tier 2 -> Data Volume Rate."""
 
@@ -710,8 +796,14 @@ class WorldModelAcceptancePipeline:
         case_dir = Path(case_dir).resolve()
         case_name = case_dir.name
 
-        # Load & Normalize probes
-        norm = calib.normalize_c04_probe_tables(case_dir)
+        # Load & Normalize probes (read-only: never overwrite case_dir files)
+        norm = _load_and_normalize_probes_readonly(
+            case_dir,
+            rho0=self.scales.rho0,
+            u0=self.scales.U0,
+            d_m=self.scales.D,
+            l_span_m=self.scales.l_span,
+        )
         t_cl = norm["t_lift"]
         cl = norm["cl"]
         t_cd = norm["t_drag"]
@@ -723,7 +815,13 @@ class WorldModelAcceptancePipeline:
         # If reference provided, compute ref metrics
         ref_metrics = None
         if ref_dir is not None and Path(ref_dir).is_dir():
-            ref_norm = calib.normalize_c04_probe_tables(Path(ref_dir))
+            ref_norm = _load_and_normalize_probes_readonly(
+                Path(ref_dir),
+                rho0=self.scales.rho0,
+                u0=self.scales.U0,
+                d_m=self.scales.D,
+                l_span_m=self.scales.l_span,
+            )
             ref_tier1 = self.tier1_eval.evaluate_case(
                 name=Path(ref_dir).name,
                 t_cl=ref_norm["t_lift"],
@@ -802,6 +900,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--rho0", type=float, default=DEFAULT_RHO0, help="Fluid density in kg/m3")
     p.add_argument("--nu0", type=float, default=DEFAULT_NU0, help="Fluid kinematic viscosity in m2/s")
     p.add_argument("--tol-pct", type=float, default=3.0, help="Pairwise acceptance tolerance percentage (default: 3.0)")
+    p.add_argument("--delta-y1", type=float, default=None, help="Wall first cell height delta_y1 in meters (optional override)")
     p.add_argument("--out-json", default=None, help="Optional destination path for structured report JSON")
     return p
 
@@ -821,6 +920,7 @@ def main(argv: list[str] | None = None) -> int:
         case_dir=Path(args.case_dir),
         ref_dir=Path(args.ref_dir) if args.ref_dir else None,
         wall_s=args.wall_s,
+        delta_y1_m=args.delta_y1,
     )
 
     report_str = json.dumps(report, indent=2, ensure_ascii=False)

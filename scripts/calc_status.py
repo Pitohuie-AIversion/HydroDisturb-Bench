@@ -1,28 +1,49 @@
 import datetime
+import shutil
 from pathlib import Path
+
+import psutil
+
+now = datetime.datetime.now()
+
+# 1. Telemetry
+mem = psutil.virtual_memory()
+disk = shutil.disk_usage("E:\\")
+per_cpu = psutil.cpu_percent(interval=0.5, percpu=True)
+s0_load = sum(per_cpu[:32]) / 32
+s1_load = sum(per_cpu[32:]) / 32
+
+print("=" * 80)
+print(f"COMSOL 4 SLOTS STATUS & HARDWARE AUDIT AT {now.strftime('%Y-%m-%d %H:%M:%S')}")
+print("=" * 80)
+print("CPU Topology : Dual Intel Xeon Platinum 8260 (2 Sockets, 32 Cores, 64 Threads)")
+print(f"CPU Load     : Socket 0 (NUMA 0) = {s0_load:.1f}% | Socket 1 (NUMA 1) = {s1_load:.1f}% | Total = {sum(per_cpu)/len(per_cpu):.1f}%")
+print(f"RAM Margin   : Total={mem.total/1024**3:.2f} GB, Free={mem.available/1024**3:.2f} GB (Gate >= 30 GB: {'PASS' if mem.available/1024**3 >= 30.0 else 'WARN'})")
+print(f"Disk E: Free : Total={disk.total/1024**3:.2f} GB, Free={disk.free/1024**3:.2f} GB (Gate >= 80 GB: {'PASS' if disk.free/1024**3 >= 80.0 else 'WARN'})")
+print("-" * 80)
 
 cases = [
     {
-        'name': 'full_C_from_F3_60',
-        'slot': 'S0-Slot1 (Socket 0)',
-        'pid': 27472,
-        'start_iso': '2026-11-14T21:29:44',
-        'start_sim_t': 60.0,
-        'target_sim_t': 120.0,
-        'log': r'E:\codex_comsol_takeover\20261113\cpu_fill\continuation_20261114\full_C_from_F3_60\results\C_rtol3e4_max005\comsolbatch.log'
-    },
-    {
-        'name': 're40k_mesh1_pilot',
-        'slot': 'S0-Slot2 (Socket 0)',
-        'pid': 22680,
-        'start_iso': '2026-11-15T16:36:27',
+        'slot': 'S0-Slot 1 (Socket 0, NUMA 0)',
+        'name': 're3m_mesh1_pilot',
+        'pid': 8520,
+        'start_iso': '2026-11-16T13:22:46',
         'start_sim_t': 0.0,
-        'target_sim_t': 45.0,
-        'log': r'E:\codex_comsol_takeover\20261113\cpu_fill\results\re40k_mesh1_pilot\B2_rtol5e4_max005\comsolbatch.log'
+        'target_sim_t': 10.0,
+        'log': r'E:\codex_comsol_takeover\20261113\cpu_fill\results\re3m_mesh1_pilot\B2_rtol5e4_max005\comsolbatch.log'
     },
     {
+        'slot': 'S0-Slot 2 (Socket 0, NUMA 0)',
+        'name': 're200k_mesh1_pilot',
+        'pid': 20080,
+        'start_iso': '2026-11-17T11:24:08',
+        'start_sim_t': 0.0,
+        'target_sim_t': 27.7,
+        'log': r'E:\codex_comsol_takeover\20261113\cpu_fill\results\re200k_mesh1_pilot\B2_rtol5e4_max005\comsolbatch.log'
+    },
+    {
+        'slot': 'S1-Slot 1 (Socket 1, NUMA 1)',
         'name': 'mesh1_C_tight_validation',
-        'slot': 'S1-Slot1 (Socket 1)',
         'pid': 26660,
         'start_iso': '2026-11-14T05:16:08',
         'start_sim_t': 0.0,
@@ -30,8 +51,8 @@ cases = [
         'log': r'E:\codex_comsol_takeover\20261113\cpu_fill\results\mesh1_C_tight_validation\C_rtol1e4_max005\comsolbatch.log'
     },
     {
+        'slot': 'S1-Slot 2 (Socket 1, NUMA 1)',
         'name': 'full_nt01',
-        'slot': 'S1-Slot2 (Socket 1)',
         'pid': 11148,
         'start_iso': '2026-11-14T05:16:20',
         'start_sim_t': 0.0,
@@ -39,12 +60,6 @@ cases = [
         'log': r'E:\codex_comsol_takeover\20261113\cpu_fill\reference_tuning\results\full_nt01\C_NL01_rtol3e4_max005\comsolbatch.log'
     }
 ]
-
-now = datetime.datetime.now()
-
-print("="*80)
-print(f"COMSOL 4 SLOTS STATUS AT {now.strftime('%Y-%m-%d %H:%M:%S')}")
-print("="*80)
 
 for c in cases:
     p = Path(c['log'])
@@ -81,9 +96,19 @@ for c in cases:
         dt = 0.0
         pct = 0.0
         sim_speed = 0.0
+        rem_sim_t = c['target_sim_t']
         eta_str = "Initializing"
 
-    print(f"[{c['slot']}] {c['name']} (PID {c['pid']})")
-    print(f"  Progress: {step_num} steps | sim_t={sim_t:.4f}s / {c['target_sim_t']}s ({pct:.2f}%)")
-    print(f"  Step size: dt={dt:.6f}s | Elapsed: {elapsed_h:.2f}h | Speed: {sim_speed:.3f} sim-s/h | ETA: {eta_str}")
+    alive = psutil.pid_exists(c['pid'])
+    rss_gb = 0.0
+    if alive:
+        try:
+            rss_gb = psutil.Process(c['pid']).memory_info().rss / (1024**3)
+        except Exception:
+            pass
+
+    print(f"[{c['slot']}] Case: {c['name']} (PID: {c['pid']}, Alive: {alive}, RSS: {rss_gb:.2f} GB)")
+    print(f"  Step Count : {step_num} | Time Advanced: {sim_t:.4f} s / {c['target_sim_t']:.1f} s ({pct:.2f}%)")
+    print(f"  Current dt : {dt:.6f} s | Advancement Rate: {sim_speed:.3f} sim-s/wall-h")
+    print(f"  Elapsed    : {elapsed_h:.2f} h | Remaining Physical: {rem_sim_t:.4f} s | ETA: {eta_str}")
     print("-" * 80)

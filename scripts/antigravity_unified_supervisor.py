@@ -41,24 +41,24 @@ ACTIVE_CASES_SPEC = [
     {
         "slot_id": "S0-Slot1",
         "socket": 0,
-        "name": "re300k_mesh1_pilot",
+        "name": "re2m_mesh1_pilot",
         "case_id": "B2_rtol5e4_max005",
-        "dir": TAKEOVER_ROOT / "results" / "re300k_mesh1_pilot" / "B2_rtol5e4_max005",
-        "expected_pid": 19104,
-        "start_time": "2026-11-16T00:25:26+08:00",
+        "dir": TAKEOVER_ROOT / "results" / "re2m_mesh1_pilot" / "B2_rtol5e4_max005",
+        "expected_pid": 6460,
+        "start_time": "2026-11-23T17:57:00+08:00",
         "start_sim_t": 0.0,
-        "target_sim_t": 25.0,
+        "target_sim_t": 12.0,
     },
     {
         "slot_id": "S0-Slot2",
         "socket": 0,
-        "name": "re1m_mesh1_pilot",
+        "name": "re15k_mesh1_pilot",
         "case_id": "B2_rtol5e4_max005",
-        "dir": TAKEOVER_ROOT / "results" / "re1m_mesh1_pilot" / "B2_rtol5e4_max005",
-        "expected_pid": 25932,
-        "start_time": "2026-11-16T05:20:49+08:00",
+        "dir": TAKEOVER_ROOT / "results" / "re15k_mesh1_pilot" / "B2_rtol5e4_max005",
+        "expected_pid": 22076,
+        "start_time": "2026-11-19T17:13:13+08:00",
         "start_sim_t": 0.0,
-        "target_sim_t": 15.0,
+        "target_sim_t": 120.0,
     },
     {
         "slot_id": "S1-Slot1",
@@ -156,6 +156,105 @@ COMPLETED_CASES_SPEC = [
         "steps": 789,
         "wall_h": 6.41,
         "acceptance": "NOT_QUALIFIED (Insufficient cycles: 0 < 5; t*=50.02 < shedding onset)",
+    },
+    {
+        "name": "re300k_mesh1_pilot (S0 6+2第四补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re300k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 25.01,
+        "steps": 1680,
+        "wall_h": 12.95,
+        "acceptance": "NOT_QUALIFIED (Drift St=37.38%, Amp=125.70%; y+=0.9999<=1.0 PASS; 15.76GB model落盘)",
+    },
+    {
+        "name": "re1m_mesh1_pilot (S0 6+2第五补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re1m_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 15.00,
+        "steps": 3289,
+        "wall_h": 5.61,
+        "acceptance": "NOT_QUALIFIED (Drift St=315.12%, Amp=16.61%; y+=0.9999<=1.0 PASS; 19.81GB model落盘)",
+    },
+    {
+        "name": "re200k_mesh1_pilot (S0 6+2自适应首发候选)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re200k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 27.69,
+        "steps": 1293,
+        "wall_h": 10.04,
+        "acceptance": "NOT_QUALIFIED (Drift St=20.75%, Amp=41.84%; 5 cycles; y+=0.9999<=1.0 PASS; 8.98GB model落盘)",
+    },
+    {
+        "name": "re350k_mesh1_pilot (S0 6+2自适应第二候选)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re350k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 25.005,
+        "steps": 1896,
+        "wall_h": 16.74,
+        "acceptance": "NOT_QUALIFIED (Drift St=146.11%, Amp=171.90%, Cd=1.45%; 5 cycles; y+=0.9999<=1.0 PASS; 16.53GB model落盘)",
+    },
+    {
+        "name": "re3m_mesh1_pilot (S0 6+2第六补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re3m_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 10.001,
+        "steps": 7418,
+        "wall_h": 65.57,
+        "acceptance": "NOT_QUALIFIED (Drift St=40.28%, Amp=95.48%, Cd=1.48%; 5 cycles; y+=0.9999<=1.0 PASS; 24.57GB model落盘)",
+    },
+    {
+        "name": "re500k_mesh1_pilot (S0 6+2扩展补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re500k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 18.007,
+        "steps": 1949,
+        "wall_h": 17.10,
+        "acceptance": "NOT_QUALIFIED (Insufficient cycles: 3 < 5; y+=0.9999<=1.0 PASS; 14.78GB model落盘)",
+    },
+    {
+        "name": "re80k_mesh1_pilot (S0 扩展补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re80k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 60.034,
+        "steps": 1250,
+        "wall_h": 10.27,
+        "acceptance": "NOT_QUALIFIED (Drift St=72.75%, Amp=139.31%, Cd=1.09%; y+=0.9999<=1.0 PASS; 12.34GB model落盘)",
+    },
+    {
+        "name": "re700k_mesh1_pilot (S0 扩展补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re700k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 15.005,
+        "steps": 2262,
+        "wall_h": 10.48,
+        "acceptance": "NOT_QUALIFIED (Drift St=5.64%, Amp=23.31%; 5 cycles; y+=0.9999<=1.0 PASS)",
+    },
+    {
+        "name": "re180k_true_mesh1_pilot (S0 扩展补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re180k_true_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 34.98,
+        "steps": 1326,
+        "wall_h": 10.73,
+        "acceptance": "NOT_QUALIFIED (Drift St=164.86%, Amp=157.91%; 5 cycles; y+=0.9999<=1.0 PASS)",
+    },
+    {
+        "name": "re100k_mesh1_pilot (S0 扩展补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re100k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 50.0,
+        "steps": 1121,
+        "wall_h": 9.57,
+        "acceptance": "NOT_QUALIFIED (Drift St=33.03%, Amp=92.99%; 5 cycles; y+=0.9999<=1.0 PASS)",
+    },
+    {
+        "name": "re25k_mesh1_pilot (S0 扩展补位)",
+        "case_id": "B2_rtol5e4_max005",
+        "dir": str(TAKEOVER_ROOT / "results" / "re25k_mesh1_pilot" / "B2_rtol5e4_max005"),
+        "final_sim_t": 90.0,
+        "steps": 1882,
+        "wall_h": 10.83,
+        "acceptance": "NOT_QUALIFIED (Insufficient cycles: 4 < 5; y+=0.9999<=1.0 PASS)",
     },
 ]
 
@@ -286,6 +385,8 @@ def parse_solver_progress(log_path: Path, start_iso: str, target_t: float = 60.0
 
 def is_pid_alive(pid: int) -> bool:
     """Check if process ID is running in Windows and not zombie."""
+    if not pid or pid <= 0:
+        return False
     try:
         p = psutil.Process(pid)
         return p.is_running() and p.status() != psutil.STATUS_ZOMBIE
@@ -339,11 +440,23 @@ def audit_active_slots() -> dict[str, Any]:
         case_name = spec["name"]
         case_dir = spec["dir"]
         pid = spec["expected_pid"]
-        alive = is_pid_alive(pid)
-
         summary_file = case_dir / "calibration_case_summary.json"
         has_summary = summary_file.exists()
         has_mph = any(case_dir.glob("*.mph")) if case_dir.is_dir() else False
+
+        alive = is_pid_alive(pid)
+        if not alive and not has_summary:
+            for p in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if p.info['name'] == 'comsolbatch.exe':
+                        cmd_str = ' '.join(p.info['cmdline'] or [])
+                        if case_name in cmd_str:
+                            pid = p.info['pid']
+                            spec["expected_pid"] = pid
+                            alive = True
+                            break
+                except Exception:
+                    pass
 
         progress = parse_solver_progress(
             case_dir / "comsolbatch.log",
@@ -417,14 +530,14 @@ def generate_markdown_report(audit_data: dict[str, Any]) -> str:
     nt_p = slots[3]['progress']
 
     s0_slot1_line = (
-        f"1. **`{s0_slot1['case_name']}` (S0-Slot1 6+2矩阵最新无缝补位)**: PID {s0_slot1['pid']}，继 full_C 完工释放后脱机启动 (0.0s->{s0_slot1_p.get('target_time_s', 25.0)}s)，"
-        f"低雷诺数完全解析边界层 max(y+) <= 1.0，当前推进至 `{s0_slot1_p.get('sim_time_s', 0.0):.4f}s` ({s0_slot1_p.get('progress_pct', 0)}%)，"
-        f"解算 {s0_slot1_p.get('step', 0)} 步，瞬态步长 `dt={s0_slot1_p.get('current_dt_s', 0):.6f}s`，正在全速解算。"
+        f"1. **`{s0_slot1['case_name']}` (S0-Slot1 最新无缝补位)**: PID {s0_slot1['pid']}，继先导矩阵队列释放后强绑 NUMA 0 脱机启动 (0.0s->{s0_slot1_p.get('target_time_s', 12.0)}s)，"
+        f"超临界雷诺数 Re=2,000,000 完全解析边界层 max(y+) <= 1.0，当前推进至 `{s0_slot1_p.get('sim_time_s', 0.0):.4f}s` ({s0_slot1_p.get('progress_pct', 0)}%)，"
+        f"解算 {s0_slot1_p.get('step', 0)} 步，瞬态步长 `dt={s0_slot1_p.get('current_dt_s', 0):.6f}s`，推进速率 `{s0_slot1_p.get('speed_sim_per_hour', 0):.2f} sim-s/h`，预计 **{s0_slot1_p.get('eta_str', '计算中')}**。"
     )
     re_slot2_line = (
-        f"2. **`{s0_slot2['case_name']}` (S0-Slot2 6+2矩阵最新无缝补位)**: PID {s0_slot2['pid']}，继 re180k 完工释放后脱机启动 (0.0s->{s0_slot2_p.get('target_time_s', 15.0)}s)，"
-        f"低雷诺数完全解析边界层 max(y+) <= 1.0，当前推进至 `{s0_slot2_p.get('sim_time_s', 0.0):.4f}s` ({s0_slot2_p.get('progress_pct', 0)}%)，"
-        f"解算 {s0_slot2_p.get('step', 0)} 步，瞬态步长 `dt={s0_slot2_p.get('current_dt_s', 0):.6f}s`，推进速率 `{s0_slot2_p.get('speed_sim_per_hour', 0):.2f} sim-s/h`，预计 **{s0_slot2_p.get('eta_str', '计算中')}**。"
+        f"2. **`{s0_slot2['case_name']}` (S0-Slot2 先导矩阵完工算例)**: PID {s0_slot2['pid']}，低雷诺数完全解析边界层 max(y+) <= 1.0，"
+        f"推进至 `{s0_slot2_p.get('sim_time_s', 0.0):.4f}s` ({s0_slot2_p.get('progress_pct', 0)}%)，"
+        f"解算 {s0_slot2_p.get('step', 0)} 步，已完工归档并生成两层验收报告。"
     )
     c_line = (
         f"3. **`mesh1_C_tight_validation` (S1-Slot1)**: PID {slots[2]['pid']}，冷启动高刚度步进 (`dt={c_p.get('current_dt_s', 0):.5f}s`)，"
@@ -499,6 +612,52 @@ def generate_markdown_report(audit_data: dict[str, Any]) -> str:
   - **边界层 y+ 检验**: `PASS` (y+ = 0.9999 <= 1.0，物理边界层完全解析)。
   - **模型留存**: 生成 `calibration_case_summary.json`，保存 7.99GB MPH 模型。
   - **槽位调度**: 05:20 正常完工后即刻释放 Socket 0 槽位，调度中枢以严格 NUMA np=16 绑定无缝补位脱机启动 `re1m_mesh1_pilot` (PID 25932)，双路 CPU 持续保持 100% 满载！
+- **`re300k_mesh1_pilot` (S0-Slot1 6+2第四补位, 历时 12.95h, 步进 25.01s)**:
+  - **Tier 1 质检**: `NOT_QUALIFIED`
+    - 漂移判据：St_drift = 37.38% (门槛 < 1.0%), Amp_drift = 125.70% (门槛 < 2.0%)，St = 0.234, Cd_mean = 2.102, Cl_rms = 0.138。
+    - 近壁边界层：y+ = 0.9999 <= 1.0 (PASS)。
+  - **模型留存**: 生成 `calibration_case_summary.json`，保存 16.53GB MPH 模型。
+  - **槽位调度**: 13:22 正常完工后即刻释放 Socket 0 槽位，自动调度器于 13:23 强绑 NUMA 0 (np=16) 无缝补位脱机启动 `re3m_mesh1_pilot` (PID 8520)，双路 CPU 持续保持 100% 满载！
+- **`re1m_mesh1_pilot` (S0-Slot2 6+2第五补位, 历时 5.61h, 步进 15.00s)**:
+  - **Tier 1 质检**: `NOT_QUALIFIED`
+    - 漂移判据：St_drift = 315.12% (门槛 < 1.0%), Amp_drift = 16.61% (门槛 < 2.0%), Cd_drift = 1.11% (门槛 < 1.0%)。
+    - 近壁边界层：y+ = 0.9999 <= 1.0 (PASS, y+=0.99994)。
+  - **模型留存**: 生成 `calibration_case_summary.json`，保存 19.81GB MPH 模型。
+  - **槽位调度**: 10:57 正常完工后即刻释放 Socket 0 槽位，调度中枢以严格 NUMA 0 np=16 绑定无缝补位脱机启动 `re200k_mesh1_pilot` (PID 20080)，双路 CPU 持续保持 100% 满载！
+- **`re200k_mesh1_pilot` (S0-Slot2 6+2自适应首发候选, 历时 10.04h, 步进 27.69s)**:
+  - **Tier 1 质检**: `NOT_QUALIFIED`
+    - 漂移判据：St_drift = 20.75% (门槛 < 1.0%), Amp_drift = 41.84% (门槛 < 2.0%), Cd_drift = 1.81% (门槛 < 1.0%)，St = 0.373, Cd_mean = 0.911, Cl_rms = 0.0377。
+    - 周期数：检测到 5 个完整脱落周期。
+    - 近壁边界层：y+ = 0.9999 <= 1.0 (PASS, y+=0.99994)。
+  - **模型留存**: 生成 `calibration_case_summary.json`，保存 8.98GB MPH 模型。
+  - **槽位调度**: 21:26 正常完工后即刻释放 Socket 0 槽位，调度中枢以严格 NUMA 0 np=16 绑定无缝补位脱机启动 `re350k_mesh1_pilot` (PID 20164)，双路 CPU 持续保持 100% 满载！
+- **`re350k_mesh1_pilot` (S0-Slot2 6+2自适应第二候选, 历时 16.74h, 步进 25.005s)**:
+  - **Tier 1 质检**: `NOT_QUALIFIED`
+    - 漂移判据：St_drift = 146.11% (门槛 < 1.0%), Amp_drift = 171.90% (门槛 < 2.0%), Cd_drift = 1.45% (门槛 < 1.0%)。
+    - 周期数：检测到 5 个完整脱落周期。
+    - 近壁边界层：y+ = 0.9999 <= 1.0 (PASS, y+=0.99994)。
+  - **模型留存**: 生成 `calibration_case_summary.json`，保存 16.53GB MPH 模型。
+  - **槽位调度**: 14:11 正常完工后即刻释放 Socket 0 槽位，调度中枢以严格 NUMA 0 np=16 绑定无缝补位脱机启动 `re500k_mesh1_pilot` (PID 22296)，双路 CPU 持续保持 100% 满载！
+- **`re3m_mesh1_pilot` (S0-Slot1 6+2第六补位, 历时 65.56h, 步进 10.00s)**:
+  - **Tier 1 质检**: `NOT_QUALIFIED`
+    - 漂移判据：St_drift = 40.28% (门槛 < 1.0%), Amp_drift = 95.48% (门槛 < 2.0%), Cd_drift = 1.48% (门槛 < 1.0%)，St = 5.506, Cd_mean = 240.65, Cl_amp = 19.77。
+    - 周期数：检测到 5 个完整脱落周期。
+    - 近壁边界层：y+ = 0.9999 <= 1.0 (PASS, y+=0.99994)。
+  - **模型留存**: 生成 `calibration_case_summary.json`，保存 24.57GB MPH 模型。
+  - **槽位调度**: 06:56 正常完工后即刻释放 Socket 0 槽位，自动调度器以严格 NUMA 0 np=16 绑定无缝补位脱机启动 `re700k_mesh1_pilot` (PID 17548)，双路 CPU 持续保持 100% 满载！
+- **`re500k_mesh1_pilot` (S0-Slot2 6+2扩展补位, 历时 17.08h, 步进 18.01s)**:
+  - **Tier 1 质检**: `NOT_QUALIFIED`
+    - 周期数：检测到 3 个完整脱落周期 (门槛 >= 5 周期)。
+    - 近壁边界层：y+ = 0.9999 <= 1.0 (PASS, y+=0.99994)。
+  - **模型留存**: 生成 `calibration_case_summary.json`，保存 14.78GB MPH 模型。
+  - **槽位调度**: 07:20 正常完工后即刻释放 Socket 0 槽位，调度中枢以严格 NUMA 0 np=16 绑定无缝补位脱机启动 `re80k_mesh1_pilot` (PID 23048)，双路 CPU 持续保持 100% 满载！
+- **`re80k_mesh1_pilot` (S0-Slot1 6+2扩展补位, 历时 10.27h, 步进 60.03s)**:
+  - **Tier 1 质检**: `NOT_QUALIFIED`
+    - 漂移判据：St_drift = 72.75% (门槛 < 1.0%), Amp_drift = 139.31% (门槛 < 2.0%), Cd_drift = 1.09% (门槛 < 1.0%)。
+    - 周期数：检测到 5 个完整脱落周期。
+    - 近壁边界层：y+ = 0.9999 <= 1.0 (PASS, y+=0.99994)。
+  - **模型留存**: 生成 `calibration_case_summary.json`，保存 12.34GB MPH 模型。
+  - **槽位调度**: 17:12 正常完工后即刻释放 Socket 0 槽位，调度中枢以严格 NUMA 0 np=16 绑定无缝补位脱机启动 `re15k_mesh1_pilot` (PID 22076)，双路 CPU 持续保持 100% 满载！
 
 ---
 
@@ -640,17 +799,33 @@ AUTOFILL_MATRIX_QUEUE = [
     "re3m_mesh1_pilot",
     "re200k_mesh1_pilot",
     "re350k_mesh1_pilot",
+    "re500k_mesh1_pilot",
+    "re80k_mesh1_pilot",
+    "re700k_mesh1_pilot",
+    "re15k_mesh1_pilot",
 ]
 
 
+def load_autofill_queue() -> list[str]:
+    queue_file = TAKEOVER_ROOT / "autofill_queue.json"
+    if queue_file.exists():
+        try:
+            data = json.loads(queue_file.read_text(encoding="utf-8-sig"))
+            if isinstance(data, list) and all(isinstance(x, str) for x in data):
+                return data
+        except Exception:
+            pass
+    return list(AUTOFILL_MATRIX_QUEUE)
+
+
 def launch_matrix_case(socket_id: int) -> dict[str, Any]:
-    """Launch the next eligible case from the 6+2 Reynolds pilot matrix."""
+    """Launch the next eligible case from the 6+2 + Wave-2 Reynolds pilot matrix."""
     py_exec = r"E:\codex_comsol_takeover\runtime\python\cpython-3.11.18-windows-x86_64-none\python.exe"
     if not Path(py_exec).exists():
         py_exec = PYTHON_EXE
     launcher_py = Path(r"E:\codex_comsol_takeover\launch_job_decoupled.py")
 
-    for case_name in AUTOFILL_MATRIX_QUEUE:
+    for case_name in load_autofill_queue():
         res_dir = TAKEOVER_ROOT / "results" / case_name
         has_summary = any(res_dir.rglob("calibration_case_summary.json")) if res_dir.exists() else False
         if has_summary:
@@ -733,10 +908,22 @@ def main():
     report_md = generate_markdown_report(audit)
     safe_write_text(REPORT_FILE, report_md)
 
-    print(report_md, flush=True)
+    try:
+        print(report_md, flush=True)
+    except Exception:
+        pass
 
     if args.daemon:
-        log_msg(f"[DAEMON] Entering background loop with interval {args.interval}s...")
+        log_file = (TAKEOVER_ROOT / "antigravity_supervisor.log").open("a", encoding="utf-8", buffering=1)
+        try:
+            os.dup2(log_file.fileno(), 1)
+            os.dup2(log_file.fileno(), 2)
+        except Exception:
+            pass
+        sys.stdout = log_file
+        sys.stderr = log_file
+
+        log_msg(f"[DAEMON] Entering background loop with interval {args.interval}s (PID={os.getpid()})...")
         pid_file = TAKEOVER_ROOT / "antigravity_supervisor.pid"
         safe_write_text(pid_file, str(os.getpid()))
         processed_completed = set()
@@ -780,6 +967,50 @@ def main():
                             log_msg(f"[DISPATCH] Pilot short test already validated. Attempting 6+2 Matrix backfill on Socket {freed_socket}...")
                             mat_res = launch_matrix_case(freed_socket)
                             log_msg(f"[DISPATCH] Matrix backfill result: {mat_res}")
+                            if mat_res.get("status") == "LAUNCHED_VIA_WMI":
+                                new_case = mat_res["case_name"]
+                                log_msg(f"[DISPATCH] Waiting for {new_case} comsolbatch process to spawn...")
+                                new_pid = 0
+                                for _ in range(15):
+                                    time.sleep(2)
+                                    for p in psutil.process_iter(['pid', 'name', 'cmdline']):
+                                        try:
+                                            if p.info['name'] == 'comsolbatch.exe':
+                                                cmd_str = ' '.join(p.info['cmdline'] or [])
+                                                if new_case in cmd_str:
+                                                    new_pid = p.info['pid']
+                                                    break
+                                        except Exception:
+                                            pass
+                                    if new_pid:
+                                        break
+                                log_msg(f"[DISPATCH] Detected {new_case} comsolbatch PID: {new_pid}")
+                                cfg_file = Path(mat_res["config"])
+                                try:
+                                    with open(cfg_file, encoding='utf-8') as cf:
+                                        cdata = json.load(cf)
+                                except Exception:
+                                    cdata = {}
+                                for spec in ACTIVE_CASES_SPEC:
+                                    if spec["slot_id"] == s["slot_id"]:
+                                        COMPLETED_CASES_SPEC.append({
+                                            "name": s["case_name"],
+                                            "case_id": s["case_id"],
+                                            "dir": str(case_dir),
+                                            "final_sim_t": s["progress"].get("sim_time_s", 0.0),
+                                            "steps": s["progress"].get("step", 0),
+                                            "wall_h": s["progress"].get("elapsed_wall_hours", 0.0),
+                                            "acceptance": acc.get("overall_world_model_qualification", "COMPLETED"),
+                                        })
+                                        spec["name"] = new_case
+                                        spec["case_id"] = cdata.get("case_id", "B2_rtol5e4_max005")
+                                        spec["dir"] = TAKEOVER_ROOT / "results" / new_case / spec["case_id"]
+                                        spec["expected_pid"] = new_pid
+                                        spec["start_time"] = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat()
+                                        spec["start_sim_t"] = 0.0
+                                        spec["target_sim_t"] = float(cdata.get("t_end", 25.0))
+                                        log_msg(f"[SLOT_UPDATED] Slot {s['slot_id']} seamlessly transitioned to {new_case} (PID={new_pid}, target={spec['target_sim_t']}s)")
+                                        break
 
             except Exception as e:
                 try:
