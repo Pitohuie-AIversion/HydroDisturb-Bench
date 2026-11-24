@@ -12,29 +12,19 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import os
 import re
 import shutil
 import subprocess
 import time
-from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from .geometry_guard import GeometryGuard
 from .metrics import (
-    aggregate_bidirectional_cavitation,
-    check_cfd_quality,
-    compute_bollard_kpis,
-    compute_dp_kpis,
-    compute_hover_disturbance,
     compute_thrust_symmetry,
-    compute_tip_gap_leakage,
 )
-from .multiphysics import check_structural_safety, evaluate_structural_modal
+from .multiphysics import evaluate_structural_modal
 from .schema import (
-    DEFAULT_BOUNDS,
-    HARD_INVARIANTS,
     PropellerDesignVector,
     PropellerEvalResult,
 )

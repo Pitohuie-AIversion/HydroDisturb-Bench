@@ -54,13 +54,14 @@ for _p in (SRC_DIR, SCRIPTS_DIR):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from hydro_disturb_bench.comsol_java.bridge import find_comsol_root, get_comsol_bin_dir
 from verify_and_compare_s1b1 import (
     compute_cycle_half_amplitude,
     compute_demeaned_rms,
     evaluate_limit_cycle_stability,
     integrate_exact_window,
 )
+
+from hydro_disturb_bench.comsol_java.bridge import find_comsol_root, get_comsol_bin_dir
 
 
 def resolve_cfd_drive(requested_drive: str | Path | None = None) -> Path:

@@ -25,10 +25,6 @@ import pytest
 
 from .conftest import (
     AL_6061_T6,
-    BASELINE_BENCHMARKS,
-    COMSOL_NATIVE_SPEC,
-    PHYSICAL_INVARIANTS,
-    PROP_TEST2_DIR,
     AnalyticalHydroStructuralValidator,
 )
 

@@ -21,14 +21,9 @@ import numpy as np
 import pytest
 
 from .conftest import (
-    AL_6061_T6,
-    BASELINE_BENCHMARKS,
-    COMSOL_NATIVE_SPEC,
-    PHYSICAL_INVARIANTS,
     PROP_TEST2_DIR,
     AnalyticalHydroStructuralValidator,
     compute_file_sha256,
-    get_comsol_environment,
 )
 
 pytestmark = pytest.mark.tier4
@@ -47,7 +42,7 @@ class TestTier4RealWorldScenarios:
         f_duct_cw = baseline_benchmarks["cw_duct_fx_n"]
         p_cw = baseline_benchmarks["cw_power_kw"]
         q_cw = baseline_benchmarks["cw_torque_nm"]
-        
+
         # Verify force decomposition: T = F_rotor + F_duct
         assert abs((f_rot_cw + f_duct_cw) - t_cw) < 0.1
         # Verify hydrodynamic power: P = Q * Omega (where Omega = 2*pi*1400/60 = 146.6077 rad/s)
@@ -56,19 +51,19 @@ class TestTier4RealWorldScenarios:
         assert abs(p_calc_kw - p_cw) < 0.05
         # Verify thrust efficiency: T/P
         assert abs((t_cw / p_cw) - baseline_benchmarks["cw_efficiency_n_kw"]) < 0.1
-        
+
         # 2. Reverse Operation (CCW, -1400 rpm)
         t_ccw = baseline_benchmarks["ccw_thrust_total_n"]
         f_rot_ccw = baseline_benchmarks["ccw_rotor_fx_n"]
         f_duct_ccw = baseline_benchmarks["ccw_duct_fx_n"]
         p_ccw = baseline_benchmarks["ccw_power_kw"]
         q_ccw = baseline_benchmarks["ccw_torque_nm"]
-        
+
         assert abs((abs(f_rot_ccw) + abs(f_duct_ccw)) - t_ccw) < 0.1
         p_ccw_calc_kw = (abs(q_ccw) * omega) / 1000.0
         assert abs(p_ccw_calc_kw - p_ccw) < 0.05
         assert abs((t_ccw / p_ccw) - baseline_benchmarks["ccw_efficiency_n_kw"]) < 0.1
-        
+
         # 3. Asymmetry Ratio Evaluation
         sym_res = analytical_validator.evaluate_reverse_symmetry(t_cw, t_ccw)
         # Baseline ratio is 1262.36 / 2475.37 = 0.510
@@ -91,19 +86,19 @@ class TestTier4RealWorldScenarios:
         )
         # Centrifugal stress at 1400 rpm
         res_c = analytical_validator.calculate_centrifugal_stress(rpm=1400.0)
-        
+
         total_stress_cw = res_cw["peak_stress_mpa"] + res_c["centrifugal_stress_mpa"]
-        
+
         # Acceptance limits: peak von Mises stress <= 50 MPa
         assert total_stress_cw <= material_al6061["stress_limit_mpa"]
         # Safety factor relative to Al 6061-T6 yield strength (276 MPa)
         sf_cw = material_al6061["yield_strength_mpa"] / total_stress_cw
         assert sf_cw >= 2.0  # SF >= 2.0 required
-        
+
         # Blade tip deflection <= 0.1 mm
         assert res_cw["tip_deflection_m"] <= material_al6061["tip_deflection_limit_m"]
         assert res_cw["tip_deflection_mm"] <= 0.10
-        
+
         # Clearance margin: radial tip clearance (1.93 mm) - deflection (0.08 mm) > 1.8 mm
         clearance_margin_mm = (physical_invariants["radial_tip_clearance_m"] * 1000.0) - res_cw["tip_deflection_mm"]
         assert clearance_margin_mm > 1.80, "Sufficient radial tip clearance must remain to prevent duct collision"
@@ -115,25 +110,25 @@ class TestTier4RealWorldScenarios:
         # 1. Initial DoE evaluation (10 sample designs)
         np.random.seed(42)
         pitches = np.linspace(0.18, 0.28, 10)
-        
+
         # True underlying hydrodynamic response (forward thrust [N])
         # Optimum is near pitch = 0.25 m giving ~1420 N thrust
         def true_thrust(p: float) -> float:
             return 1262.36 + 1800.0 * (p - 0.20) - 8000.0 * ((p - 0.24) ** 2)
-            
+
         initial_y = [true_thrust(p) for p in pitches]
         f_best = max(initial_y)
-        
+
         # 2. Sequential EGO infill iterations (4 iterations)
         sample_x = list(pitches)
         sample_y = list(initial_y)
-        
+
         for iteration in range(4):
             # Candidate points across design space
             candidates = np.linspace(0.18, 0.28, 50)
             best_ei = -1.0
             best_cand = None
-            
+
             for c in candidates:
                 # Epistemic uncertainty based on distance to nearest known sample
                 dists = [abs(c - s) for s in sample_x]
@@ -142,12 +137,12 @@ class TestTier4RealWorldScenarios:
                 # GP mean prediction: nearest neighbor + linear trend
                 idx_near = int(np.argmin(dists))
                 mu = sample_y[idx_near] + 50.0 * (c - sample_x[idx_near])
-                
+
                 ei = analytical_validator.compute_expected_improvement(mu, sigma, f_best, maximize=True)
                 if ei > best_ei:
                     best_ei = ei
                     best_cand = c
-                    
+
             assert best_cand is not None
             # Evaluate new infill point
             new_y = true_thrust(best_cand)
@@ -155,7 +150,7 @@ class TestTier4RealWorldScenarios:
             sample_y.append(new_y)
             if new_y > f_best:
                 f_best = new_y
-                
+
         # Optimization must have found improved forward thrust > baseline (1262.36 N)
         assert f_best > 1262.36
         assert f_best > 1350.0
@@ -172,7 +167,7 @@ class TestTier4RealWorldScenarios:
             {"id": "Design_C", "t_cw": 1380.0, "t_ccw": 1180.0, "desc": "Enhanced symmetry, moderate thrust"},
             {"id": "Design_D", "t_cw": 1300.0, "t_ccw": 1250.0, "desc": "Near-symmetric bidirectional thruster"},
         ]
-        
+
         pareto_results = []
         for d in tradeoff_designs:
             sym_res = analytical_validator.evaluate_reverse_symmetry(d["t_cw"], d["t_ccw"])
@@ -189,13 +184,13 @@ class TestTier4RealWorldScenarios:
                 "stress_mpa": res_struct["peak_stress_mpa"],
                 "stress_ok": res_struct["stress_ok"],
             })
-            
+
         # All designs in this curated set must satisfy the 60% symmetry threshold
         for r in pareto_results:
             assert r["sym_ok"] is True
             assert r["ratio"] >= 0.60
             assert r["stress_ok"] is True
-            
+
         # Verify Pareto non-domination property:
         # As T_CW increases, the symmetry ratio strictly decreases (trade-off)
         for i in range(len(pareto_results) - 1):
@@ -210,12 +205,12 @@ class TestTier4RealWorldScenarios:
         assert comsol_env["available"] is True
         assert Path(comsol_env["comsolbatch"]).is_file()
         assert Path(comsol_env["comsolcompile"]).is_file()
-        
+
         # 2. Model files & immutability verification
         cw_path = PROP_TEST2_DIR / "COMSOL_CW_1400rpm" / "V10f-StaticFine-1400rpm.mph"
         assert cw_path.is_file()
         assert compute_file_sha256(cw_path) == baseline_benchmarks["cw_sha256"]
-        
+
         # 3. Simulated Copy-on-Write staging
         working_mph = tmp_path / "working_copy.mph"
         solved_mph = tmp_path / "solved_output.mph"
@@ -223,7 +218,7 @@ class TestTier4RealWorldScenarios:
         working_mph.write_bytes(b"COMSOL_STAGING_MODEL_PLACEHOLDER")
         assert working_mph.is_file()
         assert working_mph != cw_path
-        
+
         # 4. Batch runner command line composition
         batch_exe = comsol_env["comsolbatch"]
         cmd = [
@@ -246,24 +241,24 @@ class TestTier4RealWorldScenarios:
         n_rps = 1400.0 / 60.0  # 23.33 rps
         d_prop = 0.320
         rho = 1025.0
-        
+
         # 1. Bollard Pull (J = 0.0) non-dimensional coefficients
         t_bollard = 1262.36  # N
         q_bollard = 55.11    # N.m
-        
+
         k_t0 = t_bollard / (rho * (n_rps ** 2) * (d_prop ** 4))
         k_q0 = q_bollard / (rho * (n_rps ** 2) * (d_prop ** 5))
-        
+
         # Realistic ducted propeller open-water values: K_T0 ~ 0.20-0.35, 10*K_Q0 ~ 0.25-0.45
         assert 0.20 < k_t0 < 0.35
         assert 0.02 < k_q0 < 0.05
-        
+
         # 2. Cavitation inception margin at various depths (0m surface vs 10m depth vs 50m depth)
         p_atm = 101325.0
         p_vapor = 2338.0
         v_tip = math.pi * n_rps * d_prop  # ~23.46 m/s
         q_dyn = 0.5 * rho * (v_tip ** 2)  # Dynamic pressure ~2.82e5 Pa
-        
+
         # Baseline minimum pressure p_min = -214.4 kPa (gauge) = 101.325 - 214.4 = -113.1 kPa absolute
         # Cavitation occurs when p_abs < p_vapor
         for depth_m in [0.0, 10.0, 50.0]:

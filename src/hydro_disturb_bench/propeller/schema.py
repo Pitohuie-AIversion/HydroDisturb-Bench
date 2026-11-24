@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # Hard non-negotiable geometric and mounting invariants (PROJECT.md § Interface Contracts 1)
@@ -118,7 +119,7 @@ NOMINAL_DESIGN_DICT: dict[str, float] = {
 
 class PropellerDesignVector(BaseModel):
     """13-DOF decision vector for ducted propeller optimization.
-    
+
     Diameter, hub envelope, and duct outer envelope are strictly excluded from free DOFs.
     """
     model_config = ConfigDict(extra="forbid", validate_assignment=True)

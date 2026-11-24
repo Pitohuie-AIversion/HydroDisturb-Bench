@@ -16,9 +16,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from .geometry_guard import GeometryGuard
 from .optimizer import run_nsga2
-from .schema import DEFAULT_BOUNDS, FREE_DOF_NAMES, HARD_INVARIANTS
+from .schema import FREE_DOF_NAMES, HARD_INVARIANTS
 from .surrogate import MultiOutputSurrogate, generate_doe
 
 BASELINE_REF = {

@@ -25,9 +25,6 @@ from scipy.stats import norm
 
 from .conftest import (
     AL_6061_T6,
-    BASELINE_BENCHMARKS,
-    COMSOL_NATIVE_SPEC,
-    PHYSICAL_INVARIANTS,
     PROP_TEST2_DIR,
     REPO_ROOT,
     AnalyticalHydroStructuralValidator,
@@ -152,16 +149,16 @@ class TestFeature2NativeGaussianProcessAPI:
         # Simple 1D test of Matérn 3/2 kernel interpolation
         x_train = np.array([[0.15], [0.20], [0.25]])
         y_train = np.array([1100.0, 1262.36, 1420.0])
-        l = 0.05
+        length_scale = 0.05
         # Kernel matrix
         d = cdist(x_train, x_train)
-        r = math.sqrt(3.0) * d / l
+        r = math.sqrt(3.0) * d / length_scale
         K = (1.0 + r) * np.exp(-r) + 1e-8 * np.eye(3)
         alpha = np.linalg.solve(K, y_train)
-        
+
         # Predict at training point x = 0.20
         d_test = cdist(np.array([[0.20]]), x_train)
-        r_test = math.sqrt(3.0) * d_test / l
+        r_test = math.sqrt(3.0) * d_test / length_scale
         k_star = (1.0 + r_test) * np.exp(-r_test)
         y_pred = float((k_star @ alpha)[0])
         assert abs(y_pred - 1262.36) < 1e-4, "Kriging must interpolate training points within tolerance"
@@ -181,7 +178,7 @@ class TestFeature3ParetoMultiObjectiveAndUQ:
         tp_cw = 156.25
         t_scale = 1500.0
         tp_scale = 200.0
-        
+
         for w in [0.0, 0.25, 0.5, 0.75, 1.0]:
             j_val = w * (t_cw / t_scale) + (1.0 - w) * (tp_cw / tp_scale)
             assert 0.0 <= j_val <= 1.5
@@ -271,8 +268,8 @@ class TestFeature4CoupledHydroStructuralCoOpt:
 
     def test_f4_coupled_integration_operators(self) -> None:
         """Verify coupling operator contracts against real Java bridge and configured MPH model."""
-        import zipfile
         import io
+        import zipfile
 
         # 1. Verify operator usage in production Java bridge
         propeller_java = REPO_ROOT / "src" / "hydro_disturb_bench" / "comsol_java" / "PropellerBridge.java"
@@ -374,7 +371,7 @@ class TestFeature5ReverseThrustSymmetryConstraint:
         # CW: Rotor = 679.77 N, Duct = 582.58 N
         cw_rotor_share = baseline_benchmarks["cw_rotor_fx_n"] / baseline_benchmarks["cw_thrust_total_n"]
         assert 0.50 < cw_rotor_share < 0.58
-        
+
         # CCW: Rotor = -1387.10 N, Duct = -1088.27 N
         ccw_rotor_share = abs(baseline_benchmarks["ccw_rotor_fx_n"]) / baseline_benchmarks["ccw_thrust_total_n"]
         assert 0.52 < ccw_rotor_share < 0.60
@@ -397,7 +394,7 @@ class TestFeature5ReverseThrustSymmetryConstraint:
         # Case A: T_CW = 1500 N, T_CCW = 800 N -> ratio 800/1500 = 0.533 < 0.60 -> False
         res_a = analytical_validator.evaluate_reverse_symmetry(1500.0, 800.0)
         assert res_a["satisfies_60pct_symmetry"] is False
-        
+
         # Case B: T_CW = 1500 N, T_CCW = 950 N -> ratio 950/1500 = 0.633 >= 0.60 -> True
         res_b = analytical_validator.evaluate_reverse_symmetry(1500.0, 950.0)
         assert res_b["satisfies_60pct_symmetry"] is True
@@ -579,7 +576,7 @@ class TestFeature8RatedMotorPowerLimit:
         res_a = analytical_validator.calculate_shaft_power_and_torque(70.0)
         res_b = analytical_validator.calculate_shaft_power_and_torque(85.0)
         res_c = analytical_validator.calculate_shaft_power_and_torque(95.0)
-        
+
         assert res_a["within_13kw"] is True
         assert res_b["within_13kw"] is True
         assert res_c["within_13kw"] is False
@@ -614,12 +611,12 @@ class TestFeature9FlexibleBladeCountExploration:
         stress_z3 = analytical_validator.calculate_blade_bending(thrust_rotor_n=thrust_rotor_total, blade_count=3)
         stress_z4 = analytical_validator.calculate_blade_bending(thrust_rotor_n=thrust_rotor_total, blade_count=4)
         stress_z5 = analytical_validator.calculate_blade_bending(thrust_rotor_n=thrust_rotor_total, blade_count=5)
-        
+
         # Load per blade: F_blade = F_total / Z
         assert stress_z3["f_per_blade_n"] == 250.0
         assert stress_z4["f_per_blade_n"] == 187.5
         assert stress_z5["f_per_blade_n"] == 150.0
-        
+
         # Individual blade root stress decreases monotonically with Z for constant root section
         assert stress_z3["peak_stress_mpa"] > stress_z4["peak_stress_mpa"] > stress_z5["peak_stress_mpa"]
 
@@ -647,7 +644,7 @@ class TestFeature9FlexibleBladeCountExploration:
             {"z": 4, "thrust_n": 1550.0, "power_kw": 9.8},
             {"z": 5, "thrust_n": 1720.0, "power_kw": 11.2},
         ]
-        
+
         for p in z_perf:
             assert p["power_kw"] <= 13.0, f"Z={p['z']} power must be within 13 kW envelope"
             eff = analytical_validator.evaluate_thrust_per_kw(p["thrust_n"], p["power_kw"])
@@ -666,7 +663,7 @@ class TestFeature10NativePrototypeImplementation:
         repo_root = Path(__file__).resolve().parents[2]
         java_dir = repo_root / "src" / "hydro_disturb_bench" / "comsol_java"
         assert java_dir.is_dir()
-        
+
         # Verify official Java files
         bridge_java = java_dir / "ComsolBridge.java"
         propeller_java = java_dir / "PropellerBridge.java"
@@ -713,8 +710,8 @@ class TestFeature10NativePrototypeImplementation:
 
     def test_f10_native_study_feature_opt_syntax(self) -> None:
         """Verify Optimization study feature syntax in architecture blueprint and configured MPH model."""
-        import zipfile
         import io
+        import zipfile
 
         # 1. Architecture specification Java blueprint verification
         arch_spec = REPO_ROOT / "docs" / "COMSOL_NATIVE_OPTIMIZATION_ARCHITECTURE.md"
@@ -778,11 +775,11 @@ class TestFeature11ProgrammaticReferenceVerification:
         cw_path = PROP_TEST2_DIR / "COMSOL_CW_1400rpm" / "V10f-StaticFine-1400rpm.mph"
         ccw_path = PROP_TEST2_DIR / "COMSOL_CCW_1400rpm" / "V10f-CCWFine-1400rpm.mph"
         xt_path = PROP_TEST2_DIR / "3_320kgf_v10f.x_t"
-        
+
         assert cw_path.is_file(), f"CW baseline model missing: {cw_path}"
         assert ccw_path.is_file(), f"CCW baseline model missing: {ccw_path}"
         assert xt_path.is_file(), f"CAD Parasolid missing: {xt_path}"
-        
+
         # Verify SHA-256 digests
         assert compute_file_sha256(cw_path) == baseline_benchmarks["cw_sha256"]
         assert compute_file_sha256(ccw_path) == baseline_benchmarks["ccw_sha256"]
@@ -837,7 +834,7 @@ class TestFeature11ProgrammaticReferenceVerification:
         max_mass_imbalance_pct = 1.0  # < 1.0% mass imbalance
         actual_cw_mass_imbalance_pct = 0.30
         actual_cw_farfield_imbalance_pct = 0.028
-        
+
         assert actual_cw_mass_imbalance_pct < max_mass_imbalance_pct
         assert actual_cw_farfield_imbalance_pct < max_mass_imbalance_pct
         assert max_rel_residual <= 0.005

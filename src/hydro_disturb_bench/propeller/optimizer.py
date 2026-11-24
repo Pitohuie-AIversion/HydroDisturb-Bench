@@ -19,13 +19,11 @@ Enforces:
 from __future__ import annotations
 
 import json
-import math
 from collections.abc import Callable
 from typing import Any
 
 import numpy as np
 
-from .geometry_guard import GeometryGuard
 from .schema import DEFAULT_BOUNDS, FREE_DOF_NAMES, HARD_INVARIANTS
 
 

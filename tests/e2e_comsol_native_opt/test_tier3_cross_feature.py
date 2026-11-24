@@ -25,9 +25,6 @@ import pytest
 
 from .conftest import (
     AL_6061_T6,
-    BASELINE_BENCHMARKS,
-    COMSOL_NATIVE_SPEC,
-    PHYSICAL_INVARIANTS,
     PROP_TEST2_DIR,
     AnalyticalHydroStructuralValidator,
     compute_file_sha256,
@@ -47,22 +44,22 @@ class TestTier3CrossFeatureCombinations:
         x_train = np.array([0.18, 0.20, 0.24, 0.28])
         y_train = np.array([1150.0, 1262.36, 1380.0, 1420.0])
         f_best = float(np.max(y_train))
-        
+
         # Candidate points across design space
         x_candidates = np.linspace(0.16, 0.30, 15)
-        
+
         # Simplified Gaussian Process posterior mean and uncertainty
-        l = 0.04
+        length_scale = 0.04
         eis = []
         for xc in x_candidates:
             # Distance to nearest sample point governs epistemic uncertainty sigma
             min_dist = float(np.min(np.abs(x_train - xc)))
-            sigma = 80.0 * (1.0 - math.exp(-3.0 * (min_dist / l)))
+            sigma = 80.0 * (1.0 - math.exp(-3.0 * (min_dist / length_scale)))
             # Trend model: quadratic interpolation of thrust
             mu = 1262.36 + 1800.0 * (xc - 0.20) - 4000.0 * ((xc - 0.20) ** 2)
             ei = analytical_validator.compute_expected_improvement(mu, sigma, f_best, maximize=True)
             eis.append(ei)
-            
+
         eis = np.array(eis)
         # Verify that active learning identifies an infill candidate with positive Expected Improvement
         best_infill_idx = int(np.argmax(eis))
@@ -78,19 +75,19 @@ class TestTier3CrossFeatureCombinations:
         c1 = {"t_cw": 1600.0, "t_ccw": 850.0}  # ratio 0.531 < 0.60 -> Infeasible
         # Candidate 2: Balanced bidirectional thrust
         c2 = {"t_cw": 1450.0, "t_ccw": 1050.0}  # ratio 0.724 >= 0.60 -> Feasible
-        
+
         eval1 = analytical_validator.evaluate_reverse_symmetry(c1["t_cw"], c1["t_ccw"])
         eval2 = analytical_validator.evaluate_reverse_symmetry(c2["t_cw"], c2["t_ccw"])
-        
+
         assert eval1["satisfies_60pct_symmetry"] is False
         assert eval2["satisfies_60pct_symmetry"] is True
-        
+
         # Constrained acquisition CEI penalizes infeasible Candidate 1
         ei_c1 = 45.0
         ei_c2 = 30.0
         p_feas_c1 = 0.0  # Violated
         p_feas_c2 = 0.95  # Feasible
-        
+
         cei_1 = ei_c1 * p_feas_c1
         cei_2 = ei_c2 * p_feas_c2
         assert cei_2 > cei_1, "EGO CEI must prefer feasible candidate despite slightly lower raw EI"
@@ -105,7 +102,7 @@ class TestTier3CrossFeatureCombinations:
             {"thrust_rotor": 900.0, "root_thick": 0.011, "desc": "higher thrust, moderate root"},
             {"thrust_rotor": 1200.0, "root_thick": 0.007, "desc": "aggressive thrust, thin root"},
         ]
-        
+
         feasible_count = 0
         for c in candidates:
             res = analytical_validator.calculate_blade_bending(
@@ -118,7 +115,7 @@ class TestTier3CrossFeatureCombinations:
             )
             if is_feasible:
                 feasible_count += 1
-                
+
         # Candidate 1 and 2 are feasible, Candidate 3 violates structural limits
         assert feasible_count >= 1
 
@@ -130,13 +127,13 @@ class TestTier3CrossFeatureCombinations:
         p_cw = baseline_benchmarks["cw_power_kw"]
         t_ccw = baseline_benchmarks["ccw_thrust_total_n"]
         p_ccw = baseline_benchmarks["ccw_power_kw"]
-        
+
         # Forward and reverse efficiencies
         eff_cw = t_cw / p_cw  # N/kW
         eff_ccw = t_ccw / p_ccw  # N/kW
         assert abs(eff_cw - 156.25) < 0.1
         assert abs(eff_ccw - 200.84) < 0.1
-        
+
         # Mean thrust across forward and reverse operating envelope
         t_mean = 0.5 * (t_cw + t_ccw)
         assert abs(t_mean - 1868.865) < 0.1
@@ -150,7 +147,7 @@ class TestTier3CrossFeatureCombinations:
         # Blade active span is strictly determined by frozen D_prop and D_hub
         span = physical_invariants["R_prop_m"] - physical_invariants["R_hub_m"]
         assert abs(span - 0.118) < 1e-4  # 0.160 - 0.042 = 0.118 m
-        
+
         # Peak baseline hydrodynamic load: 679.77 N on 3 blades
         res = analytical_validator.calculate_blade_bending(
             thrust_rotor_n=baseline_benchmarks["cw_rotor_fx_n"]
@@ -169,7 +166,7 @@ class TestTier3CrossFeatureCombinations:
             {"t_cw": 1490.0, "t_ccw": 1020.0, "stress": 47.0, "delta": 0.082}, # eta = 0.685
             {"t_cw": 1540.0, "t_ccw": 980.0, "stress": 52.0, "delta": 0.105},  # Violates limits!
         ]
-        
+
         feasible_pareto = []
         for pt in pareto_points:
             sym_ok = (pt["t_ccw"] / pt["t_cw"]) >= 0.60
@@ -177,7 +174,7 @@ class TestTier3CrossFeatureCombinations:
             deflection_ok = pt["delta"] <= 0.10
             if sym_ok and stress_ok and deflection_ok:
                 feasible_pareto.append(pt)
-                
+
         # First 3 points form the valid feasible non-dominated Pareto frontier
         assert len(feasible_pareto) == 3
         for pt in feasible_pareto:
@@ -189,7 +186,7 @@ class TestTier3CrossFeatureCombinations:
         repo_root = Path(__file__).resolve().parents[2]
         java_bridge = repo_root / "src" / "hydro_disturb_bench" / "comsol_java" / "PropellerBridge.java"
         content = java_bridge.read_text(encoding="utf-8")
-        
+
         # Verify MRF frozen rotor and physics setup methods exist in native Java class
         assert "createMRFStudy" in content or "setupPhysics" in content or "handleEval" in content
         assert "ModelUtil" in content
@@ -202,7 +199,7 @@ class TestTier3CrossFeatureCombinations:
         assert cw_model.is_file()
         current_hash = compute_file_sha256(cw_model)
         assert current_hash == baseline_benchmarks["cw_sha256"]
-        
+
         # Verify non-negotiable physical dimensions match baseline configuration
         assert physical_invariants["D_prop_m"] == 0.320
         assert physical_invariants["D_hub_m"] == 0.084
@@ -215,16 +212,16 @@ class TestTier3CrossFeatureCombinations:
         # Simulated closed-loop evaluation step:
         # Design candidate: pitch = 24 deg, chord = 0.075 m, root_thick = 0.012 m
         rpm = 1400.0
-        
+
         # 1. Hydrodynamic MRF CFD calculation
         t_cw_cand = 1380.0   # N
         t_ccw_cand = 950.0   # N
         rotor_fx = 740.0     # N
-        
+
         # 2. Reverse thrust symmetry check (F5)
         sym_res = analytical_validator.evaluate_reverse_symmetry(t_cw_cand, t_ccw_cand)
         assert sym_res["satisfies_60pct_symmetry"] is True
-        
+
         # 3. Structural linear elasticity check (F6 + F7)
         struct_res = analytical_validator.calculate_blade_bending(
             thrust_rotor_n=rotor_fx,
@@ -235,7 +232,7 @@ class TestTier3CrossFeatureCombinations:
         total_stress_mpa = struct_res["peak_stress_mpa"] + centrif_res["centrifugal_stress_mpa"]
         assert total_stress_mpa <= 50.0
         assert struct_res["deflection_ok"] is True
-        
+
         # 4. EGO Expected Improvement calculation (F1 + F2)
         f_best_known = 1262.36
         mu_cand = t_cw_cand
@@ -250,7 +247,7 @@ class TestTier3CrossFeatureCombinations:
         np.random.seed(42)
         chords = np.random.normal(0.075, 0.0005, n_mc)
         thicknesses = np.random.normal(0.012, 0.0002, n_mc)
-        
+
         # Calculate bending stress across sample population for constant load 680 N
         stresses = []
         for c, t in zip(chords, thicknesses):
@@ -258,11 +255,11 @@ class TestTier3CrossFeatureCombinations:
             m_b = (680.0 / 3.0) * (0.70 * 0.118)
             sigma = (m_b * (t / 2.0)) / i_xx / 1e6  # MPa
             stresses.append(sigma)
-            
+
         stresses = np.array(stresses)
         mean_stress = float(np.mean(stresses))
         std_stress = float(np.std(stresses))
-        
+
         # All manufacturing tolerance variants must satisfy peak stress <= 50 MPa
         assert np.max(stresses) <= 50.0
         assert std_stress > 0.0
@@ -276,18 +273,18 @@ class TestTier3CrossFeatureCombinations:
         # Baseline CCW operates very close to 13 kW ceiling (84.07 / 88.67 = 94.8% motor rating)
         res_cw = analytical_validator.calculate_shaft_power_and_torque(torque_nm=55.11)
         res_ccw = analytical_validator.calculate_shaft_power_and_torque(torque_nm=84.07)
-        
+
         assert res_cw["within_13kw"] is True
         assert res_ccw["within_13kw"] is True
         assert res_cw["power_kw"] <= 13.0
         assert res_ccw["power_kw"] <= 13.0
-        
+
         # Candidate optimized thruster:
         # T_CW = 1450 N (Q = 62 N*m -> P = 9.09 kW <= 13 kW)
         # T_CCW = 1050 N (Q = 58 N*m -> P = 8.50 kW <= 13 kW)
         cand_sym = analytical_validator.evaluate_reverse_symmetry(1450.0, 1050.0)
         assert cand_sym["satisfies_60pct_symmetry"] is True
-        
+
         cand_p_cw = analytical_validator.calculate_shaft_power_and_torque(62.0)
         cand_p_ccw = analytical_validator.calculate_shaft_power_and_torque(58.0)
         assert cand_p_cw["within_13kw"] is True
@@ -303,13 +300,13 @@ class TestTier3CrossFeatureCombinations:
             {"z": 4, "thrust_cw": 1560.0, "torque_nm": 74.0, "desc": "Z=4 increased bollard pull"},
             {"z": 5, "thrust_cw": 1680.0, "torque_nm": 82.0, "desc": "Z=5 high-solidity within 13 kW"},
         ]
-        
+
         for c in cases:
             # Check 13 kW power envelope
             p_info = analytical_validator.calculate_shaft_power_and_torque(c["torque_nm"])
             assert p_info["within_13kw"] is True
             assert p_info["power_kw"] <= 13.0
-            
+
             # Check blade root stress
             f_rotor = c["thrust_cw"] * 0.54
             s_info = analytical_validator.calculate_blade_bending(
@@ -320,7 +317,7 @@ class TestTier3CrossFeatureCombinations:
             )
             assert s_info["peak_stress_mpa"] <= AL_6061_T6["stress_limit_mpa"]
             assert s_info["stress_ok"] is True
-            
+
             # Check thrust-to-power efficiency
             eff = analytical_validator.evaluate_thrust_per_kw(c["thrust_cw"], p_info["power_kw"])
             assert eff >= 135.0

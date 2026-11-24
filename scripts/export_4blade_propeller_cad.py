@@ -10,11 +10,12 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+
 import numpy as np
 
-from hydro_disturb_bench.propeller.schema import HARD_INVARIANTS
+from hydro_disturb_bench.propeller.cad_generator import build_geometry_descriptor, export_iges
 from hydro_disturb_bench.propeller.geometry_guard import GeometryGuard
-from hydro_disturb_bench.propeller.cad_generator import export_iges, build_geometry_descriptor
+from hydro_disturb_bench.propeller.schema import HARD_INVARIANTS
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXPORTS_DIR = REPO_ROOT / "exports"

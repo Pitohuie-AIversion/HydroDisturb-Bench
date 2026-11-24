@@ -241,7 +241,7 @@ def _render_markdown_report(summary: dict[str, Any]) -> str:
         "",
         f"- **Generated (UTC)**: `{summary['generated_at_utc']}`",
         f"- **Provenance**: Prompt label `{PROVENANCE_NOTE['prompt_label']}`; exact 13 R1 values match `{PROVENANCE_NOTE['source_csv']}` Row `{PROVENANCE_NOTE['matched_pareto_row']}` (`{PROVENANCE_NOTE['matched_pareto_candidate_id']}`).",
-        f"- **Execution Mode**: Strict serial (`max_workers=1`) under `comsol_solver_lock`, cold start (`initmethod=init`), `stol=0.0025`, `strict_convergence=true`.",
+        "- **Execution Mode**: Strict serial (`max_workers=1`) under `comsol_solver_lock`, cold start (`initmethod=init`), `stol=0.0025`, `strict_convergence=true`.",
         "",
         "## 1. Baseline Immutability Verification (SHA-256)",
         "",

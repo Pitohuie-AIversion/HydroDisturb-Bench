@@ -14,7 +14,6 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
-import os
 import platform
 import subprocess
 import sys
@@ -67,21 +66,21 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 def build_pytest_args(opts: argparse.Namespace) -> list[str]:
     """Assemble pytest command arguments."""
     cmd = [sys.executable, "-m", "pytest", str(TEST_DIR)]
-    
+
     if opts.tier != "all":
         cmd.extend(["-m", opts.tier])
-        
+
     if opts.verbose:
         cmd.append("-v")
     else:
         cmd.append("-q")
-        
+
     if opts.keyword:
         cmd.extend(["-k", opts.keyword])
-        
+
     if opts.maxfail:
         cmd.extend(["--maxfail", str(opts.maxfail)])
-        
+
     cmd.extend(["--tb=short"])
     return cmd
 
@@ -116,19 +115,19 @@ def run_suite(opts: argparse.Namespace) -> int:
     print(f"Platform        : {platform.system()} {platform.release()} ({platform.machine()})")
     print(f"Python Runtime  : {sys.version.split()[0]}")
     print("-" * 80)
-    
+
     start_time = time.perf_counter()
     utc_start = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    
+
     cmd = build_pytest_args(opts)
     proc = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=False)
-    
+
     elapsed = time.perf_counter() - start_time
     exit_code = proc.returncode
-    
+
     tier_counts = count_tier_tests()
     total_defined = sum(tier_counts.values())
-    
+
     # Generate structured JSON report
     report_data: dict[str, Any] = {
         "suite_name": "COMSOL 6.4 Native Optimization & Hydro-Structural Co-Optimization E2E",
@@ -147,13 +146,13 @@ def run_suite(opts: argparse.Namespace) -> int:
             "repo_root": str(REPO_ROOT),
         },
     }
-    
+
     # Save report
     json_path = Path(opts.json_out)
     json_path.parent.mkdir(parents=True, exist_ok=True)
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(report_data, f, indent=2)
-        
+
     print("-" * 80)
     print(f"Execution Status: {report_data['status']}")
     print(f"Total Tests     : {total_defined} across 4 tiers")
@@ -162,7 +161,7 @@ def run_suite(opts: argparse.Namespace) -> int:
     print(f"Elapsed Time    : {elapsed:.2f} seconds")
     print(f"Report JSON     : {json_path}")
     print("=" * 80)
-    
+
     return exit_code
 
 

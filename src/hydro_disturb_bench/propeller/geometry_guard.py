@@ -15,7 +15,6 @@ from typing import Any
 
 from .schema import (
     HARD_INVARIANTS,
-    GeometryAudit,
     PropellerDesignVector,
     PropellerGeometryAudit,
 )

@@ -40,8 +40,8 @@ from hydro_disturb_bench.propeller.schema import (
     ALLOWED_BLADE_COUNTS,
     HARD_INVARIANTS,
     P_rated_max_kw,
-    max_shaft_torque_nm,
     PropellerGeometryAudit,
+    max_shaft_torque_nm,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

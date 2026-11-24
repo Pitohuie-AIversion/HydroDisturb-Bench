@@ -7,17 +7,12 @@ All tests validate strictly against ORIGINAL_REQUEST.md, PROJECT.md, and TEST_IN
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 import os
-import shutil
-import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-import numpy as np
 import pytest
 
 # Repository root and path constants
@@ -170,7 +165,7 @@ def get_comsol_environment() -> dict[str, Any]:
         default_path = Path("D:/Program Files/COMSOL64/Multiphysics")
         if default_path.is_dir():
             env_root = str(default_path)
-    
+
     if env_root and Path(env_root).is_dir():
         root_path = Path(env_root)
         bin_dir = root_path / "bin" / "win64"
@@ -200,26 +195,26 @@ def get_comsol_environment() -> dict[str, Any]:
 @dataclass
 class AnalyticalHydroStructuralValidator:
     """Analytical verification oracle for ducted marine propeller hydro-structural mechanics.
-    
+
     Provides physics-based validation formulas for:
     - Cantilever beam blade bending stress and tip deflection under CFD hydrodynamic loads.
     - Centrifugal stress and frequency calculations at 1400 rpm.
     - Expected Improvement (EI) calculation for native EGO optimization.
     - Reverse thrust symmetry ratio and cavitation pressure limits.
     """
-    
+
     e_modulus: float = AL_6061_T6["youngs_modulus_pa"]
     density: float = AL_6061_T6["density_kg_m3"]
     yield_strength: float = AL_6061_T6["yield_strength_pa"]
     nu: float = AL_6061_T6["poissons_ratio"]
     r_prop: float = PHYSICAL_INVARIANTS["R_prop_m"]
     r_hub: float = PHYSICAL_INVARIANTS["R_hub_m"]
-    
+
     @property
     def blade_span(self) -> float:
         """Active aerodynamic/hydrodynamic blade span (R_prop - R_hub)."""
         return self.r_prop - self.r_hub  # 0.160 - 0.042 = 0.118 m
-        
+
     def calculate_blade_bending(
         self,
         thrust_rotor_n: float = 679.77,
@@ -228,7 +223,7 @@ class AnalyticalHydroStructuralValidator:
         thickness_root_m: float = 0.012,
     ) -> dict[str, float]:
         """Calculate peak bending stress and blade tip deflection under hydrodynamic thrust load.
-        
+
         Using Euler-Bernoulli beam theory with distributed hydrodynamic loading:
         - Total thrust per blade: F_blade = F_rotor / blade_count
         - Area moment of inertia for root section: I_xx = (chord * thickness^3) / 12
@@ -248,20 +243,20 @@ class AnalyticalHydroStructuralValidator:
         span = self.blade_span
         l_cp = 0.70 * span
         m_b = f_blade * l_cp
-        
+
         # Second moment of area
         i_xx = (chord_root_m * (thickness_root_m ** 3)) / 12.0
-        
+
         # Peak stress at root surface
         sigma_peak_pa = (m_b * (thickness_root_m / 2.0)) / i_xx
         sigma_peak_mpa = sigma_peak_pa / 1e6
-        
+
         # Tip deflection under concentrated equivalent load at 0.70 span
         # For cantilever: delta(L) with point load at a: delta = (F * a^2) / (6 * E * I) * (3L - a)
         a = l_cp
         delta_tip_m = (f_blade * (a ** 2) * (3 * span - a)) / (6.0 * self.e_modulus * i_xx)
         delta_tip_mm = delta_tip_m * 1000.0
-        
+
         return {
             "f_per_blade_n": f_blade,
             "bending_moment_nm": m_b,
@@ -272,7 +267,7 @@ class AnalyticalHydroStructuralValidator:
             "stress_ok": sigma_peak_mpa <= AL_6061_T6["stress_limit_mpa"],
             "deflection_ok": delta_tip_m <= AL_6061_T6["tip_deflection_limit_m"],
         }
-        
+
     def calculate_centrifugal_stress(
         self,
         rpm: float = 1400.0,
@@ -282,11 +277,11 @@ class AnalyticalHydroStructuralValidator:
         omega = 2.0 * math.pi * abs(rpm) / 60.0
         span = span_m if span_m is not None else self.blade_span
         r_mid = self.r_hub + 0.5 * span
-        
+
         # Centrifugal stress sigma_c = 0.5 * rho * omega^2 * (r_tip^2 - r_hub^2)
         sigma_c_pa = 0.5 * self.density * (omega ** 2) * (self.r_prop ** 2 - self.r_hub ** 2)
         sigma_c_mpa = sigma_c_pa / 1e6
-        
+
         return {
             "omega_rad_s": omega,
             "centrifugal_stress_pa": sigma_c_pa,
@@ -307,10 +302,10 @@ class AnalyticalHydroStructuralValidator:
             diff = mu - f_best - xi
         else:
             diff = f_best - mu - xi
-            
+
         if sigma <= 1e-12:
             return max(0.0, float(diff))
-            
+
         z = diff / sigma
         ei = diff * norm.cdf(z) + sigma * norm.pdf(z)
         return max(0.0, float(ei))
@@ -326,7 +321,7 @@ class AnalyticalHydroStructuralValidator:
             ratio = abs_ccw / abs_cw if abs_cw > 0 else 0.0
             # Requirement: CCW reverse thrust >= 60% CW forward thrust
             satisfies_req = ratio >= 0.60
-            
+
         eta_sym_normalized = min(abs_cw, abs_ccw) / max(1e-9, max(abs_cw, abs_ccw))
         return {
             "cw_thrust_magnitude": abs_cw,
@@ -394,7 +389,7 @@ class AnalyticalHydroStructuralValidator:
         self, distribute: bool = False, reusesol: bool = False
     ) -> dict[str, Any]:
         """Validate parametric sweep configuration for cluster / distributed execution.
-        
+
         COMSOL 6.4 contract: Distributed parametric sweep executes parameter values
         in parallel across MPI cluster nodes. It strictly forbids sequential solution
         reuse (reusesol=True), which requires deterministic serial execution.

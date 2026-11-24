@@ -72,7 +72,7 @@ classify_boundaries = classify_spatial_entities
 
 def select_rotation_bcs(speed_rpm: float, far_faces: list[dict[str, Any]]) -> dict[str, list[int]]:
     """Determine upstream and open boundary IDs based on rotational velocity sign.
-    
+
     - CW (+rpm): Flow pushes toward -X; inflow/upstream is +X cap (e.g. [29]), open is [-X cap, lateral] ([1, 2, 3]).
     - CCW (-rpm): Flow pushes toward +X; inflow/upstream is -X cap (e.g. [1]), open is [lateral, +X cap] ([2, 3, 29]).
     """
