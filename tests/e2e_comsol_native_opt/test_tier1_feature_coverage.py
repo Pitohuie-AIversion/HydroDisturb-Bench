@@ -266,6 +266,7 @@ class TestFeature4CoupledHydroStructuralCoOpt:
         assert 0.4 < res["centrifugal_stress_mpa"] < 1.2
         assert res["centrifugal_stress_pa"] < AL_6061_T6["stress_limit_pa"]
 
+    @pytest.mark.artifact
     def test_f4_coupled_integration_operators(self) -> None:
         """Verify coupling operator contracts against real Java bridge and configured MPH model."""
         import io
@@ -700,6 +701,7 @@ class TestFeature10NativePrototypeImplementation:
         assert "entry_point" in comsol_src
         assert "com.comsol.model.util.ModelUtil" in comsol_src
 
+    @pytest.mark.integration
     def test_f10_comsolcompile_executable_and_toolchain(self, comsol_env: dict[str, Any]) -> None:
         """Verify comsolcompile toolchain and Java compiler availability."""
         assert comsol_env["available"] is True
@@ -708,6 +710,7 @@ class TestFeature10NativePrototypeImplementation:
         assert comsol_env["version"] == "6.4"
         assert comsol_env["build"] == "429"
 
+    @pytest.mark.artifact
     def test_f10_native_study_feature_opt_syntax(self) -> None:
         """Verify Optimization study feature syntax in architecture blueprint and configured MPH model."""
         import io
@@ -737,6 +740,7 @@ class TestFeature10NativePrototypeImplementation:
                 assert '<OptSequence tag="optsequence"' in dmodel_xml
                 assert '<optListType T="114">OBJECTIVE</optListType>' in dmodel_xml
 
+    @pytest.mark.artifact
     def test_f10_model_immutability_and_copy_on_write(self, baseline_benchmarks: dict[str, Any]) -> None:
         """Verify Copy-on-Write immutability policy protects baseline models from overwrites."""
         cw_hash = baseline_benchmarks["cw_sha256"]
@@ -768,6 +772,7 @@ class TestFeature10NativePrototypeImplementation:
 class TestFeature11ProgrammaticReferenceVerification:
     """Verifies batch execution, reference models, and quantitative benchmarks."""
 
+    @pytest.mark.artifact
     def test_f11_baseline_mph_models_existence_and_sha256(
         self, baseline_benchmarks: dict[str, Any]
     ) -> None:
@@ -801,6 +806,7 @@ class TestFeature11ProgrammaticReferenceVerification:
         assert baseline_benchmarks["ccw_efficiency_n_kw"] == 200.84
         assert baseline_benchmarks["ccw_pmin_kpa"] == -84.8
 
+    @pytest.mark.integration
     def test_f11_comsolbatch_headless_execution_contract(self, comsol_env: dict[str, Any]) -> None:
         """Verify comsolbatch.exe binary availability and standard command line flags in bridge."""
         assert comsol_env["available"] is True

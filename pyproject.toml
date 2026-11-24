@@ -9,7 +9,9 @@ description = "Case planning and optional COMSOL automation for hidden-disturban
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{name = "HydroDisturb-Bench contributors"}]
-dependencies = []
+dependencies = [
+    "pydantic>=2.0",
+]
 
 [project.optional-dependencies]
 dev = [

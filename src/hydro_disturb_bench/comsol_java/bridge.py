@@ -267,7 +267,7 @@ def _compile_bundled_java(root, sources, required_classes, run_process):
                 "UTF-8",
                 "-proc:none",
                 "-cp",
-                str(root / "plugins" / "*"),
+                str(root / "plugins" / "*") + os.pathsep + ".",
                 *(source.name for source in sources),
             ],
             cwd=work,

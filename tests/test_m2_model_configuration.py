@@ -119,6 +119,7 @@ class TestM2SchemaAndInvariants:
         assert any("blade_count" in r for r in audit_invalid.reasons)
 
 
+@pytest.mark.artifact
 class TestM2ConfiguredModelOfflineInspection:
     """Verifies live COMSOL prototype model comsol_ego_13kw_configured.mph."""
 
@@ -269,6 +270,7 @@ class TestM2PropellerOptModelJavaClass:
         assert "PropellerOptModel.handleConfigure" in bridge_src
 
 
+@pytest.mark.artifact
 class TestM2FEMStructuralAndResonanceValidation:
     """Verifies solved FEM structural metrics from propeller_fem_modal_solved."""
 

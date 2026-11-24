@@ -94,6 +94,7 @@ class TestAdversarialF8VizIsolation:
         assert res.returncode == 0, f"Failed: {res.stderr}"
         assert "PARSER_HELP_OK" in res.stdout
 
+    @pytest.mark.artifact
     def test_cli_dry_run_succeeds_with_uninstalled_viz_dependencies(self):
         """CLI --dry-run must exit 0 even if matplotlib and imageio are blocked from import."""
         code = (
@@ -214,6 +215,7 @@ class TestAdversarialF8ArtifactResolution:
         captured = capsys.readouterr()
         assert "Sequence directory not found" in captured.err
 
+    @pytest.mark.artifact
     def test_main_dry_run_reports_artifacts_dir(self, tmp_path: Path, capsys, monkeypatch):
         """main(--dry-run) must reflect resolved artifacts directory in output."""
         import export_vorticity_videos as evv

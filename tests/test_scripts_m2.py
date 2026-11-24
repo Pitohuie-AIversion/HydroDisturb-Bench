@@ -393,6 +393,7 @@ class TestFeatureF8VorticityVideoConfig:
         resolved = evv.resolve_artifacts_dir(None)
         assert resolved is None
 
+    @pytest.mark.artifact
     def test_export_vorticity_videos_cli_dry_run(self, capsys):
         import export_vorticity_videos as evv
 

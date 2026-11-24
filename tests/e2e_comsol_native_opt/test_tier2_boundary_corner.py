@@ -601,6 +601,7 @@ class TestTier2Feature10NativePrototypeBoundaries:
         with pytest.raises(ModelNotFoundError, match="does not exist"):
             inspect_propeller(non_existent_path)
 
+    @pytest.mark.artifact
     def test_f10_boundary_inplace_overwrite_rejected(self) -> None:
         """Negative: In-place overwrite of baseline model is rejected by Copy-on-Write guard."""
         from hydro_disturb_bench.comsol_java.bridge import build_propeller_geometry

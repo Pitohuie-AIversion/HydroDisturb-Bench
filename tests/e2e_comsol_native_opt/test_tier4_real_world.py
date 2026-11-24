@@ -197,6 +197,7 @@ class TestTier4RealWorldScenarios:
             assert pareto_results[i]["t_cw"] > pareto_results[i + 1]["t_cw"]
             assert pareto_results[i]["ratio"] < pareto_results[i + 1]["ratio"]
 
+    @pytest.mark.integration
     def test_scenario_5_end_to_end_programmatic_batch_pipeline(
         self, comsol_env: dict[str, Any], baseline_benchmarks: dict[str, Any], tmp_path: Path
     ) -> None:

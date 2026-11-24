@@ -191,6 +191,7 @@ class TestTier3CrossFeatureCombinations:
         assert "createMRFStudy" in content or "setupPhysics" in content or "handleEval" in content
         assert "ModelUtil" in content
 
+    @pytest.mark.artifact
     def test_cross_8_programmatic_reference_verification_with_invariants_and_immutability(
         self, baseline_benchmarks: dict[str, Any], physical_invariants: dict[str, Any]
     ) -> None:

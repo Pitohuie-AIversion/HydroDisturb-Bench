@@ -547,7 +547,7 @@ def test_t2_f07_04_blade_count_not_3_rejected(nominal_design_dict) -> None:
     schema_mod = require_contract("hydro_disturb_bench.propeller.schema", ("PropellerDesignVector",))
     guard_mod = require_contract("hydro_disturb_bench.propeller.geometry_guard", ("GeometryGuard",))
     design = schema_mod.PropellerDesignVector(**nominal_design_dict)
-    for bad_count in (0, 2, 4):
+    for bad_count in (0, 1, 2, 6):
         assert not _is_valid(_call_guard_validate(guard_mod.GeometryGuard, design, measured_bbox={"blade_count": bad_count}))
 
 

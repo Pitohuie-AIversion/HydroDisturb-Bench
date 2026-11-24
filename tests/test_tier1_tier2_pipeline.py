@@ -115,6 +115,10 @@ def test_tier2_evaluator_identical_and_deviated_fields():
     assert any("exceeds threshold" in r for r in res_bad.reasons)
 
 
+import pytest
+
+
+@pytest.mark.artifact
 def test_real_case_mesh1_b():
     case_path = Path(r"E:\cfd_3d\01_calibration\c04_re126k_mesh1\B_rtol1e3")
     if not case_path.is_dir():
