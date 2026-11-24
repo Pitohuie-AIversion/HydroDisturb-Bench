@@ -117,8 +117,22 @@ class InversionMetrics:
 
     # Overall composite inversion score in [0.0, 1.0]
     composite_inversion_score: float
+    true_negative: bool = False
 
     def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ConfusionMetrics:
+    """Confusion matrix counts for hydrodynamic disturbance event detection."""
+
+    true_positives: int
+    false_positives: int
+    false_negatives: int
+    true_negatives: int
+
+    def to_dict(self) -> dict[str, int]:
         return asdict(self)
 
 
@@ -146,11 +160,12 @@ def evaluate_disturbance_inversion(
     # 1. Detection classification
     if not truth.active:
         # Negative case (no disturbance)
-        detected_correctly = not pred.detected
+        detected_correctly = False
+        true_negative = not pred.detected
         false_alarm = pred.detected
         missed = False
         delay = None
-        composite_score = 1.0 if detected_correctly else 0.0
+        composite_score = 1.0 if true_negative else 0.0
         return InversionMetrics(
             detected_correctly=detected_correctly,
             false_alarm=false_alarm,
@@ -165,6 +180,7 @@ def evaluate_disturbance_inversion(
             direction_angle_error_deg=None,
             trajectory_tracking_error_m=None,
             composite_inversion_score=composite_score,
+            true_negative=true_negative,
         )
 
     # Positive case (disturbance occurred)
@@ -183,6 +199,7 @@ def evaluate_disturbance_inversion(
             direction_angle_error_deg=None,
             trajectory_tracking_error_m=None,
             composite_inversion_score=0.0,
+            true_negative=False,
         )
 
     # Detection succeeded
@@ -290,6 +307,7 @@ def evaluate_disturbance_inversion(
         direction_angle_error_deg=dir_angle_deg,
         trajectory_tracking_error_m=traj_err,
         composite_inversion_score=composite_score,
+        true_negative=False,
     )
 
 
@@ -377,6 +395,27 @@ class ConvectiveTimeOfFlightEstimator:
         return float(x_sensor - self.u_c * dt)
 
 
+def compute_inversion_confusion_metrics(
+    metrics_list: Sequence[InversionMetrics],
+) -> ConfusionMetrics:
+    """Compute confusion matrix counts (TP, FP, FN, TN) across an inversion evaluation batch."""
+    tp = sum(1 for m in metrics_list if m.detected_correctly and not m.false_alarm)
+    fp = sum(1 for m in metrics_list if m.false_alarm)
+    fn = sum(1 for m in metrics_list if m.missed_detection)
+    tn = sum(
+        1
+        for m in metrics_list
+        if m.true_negative
+        or (not m.detected_correctly and not m.missed_detection and not m.false_alarm)
+    )
+    return ConfusionMetrics(
+        true_positives=tp,
+        false_positives=fp,
+        false_negatives=fn,
+        true_negatives=tn,
+    )
+
+
 def evaluate_inversion_batch(
     evaluations: Sequence[tuple[DisturbanceGroundTruth, DisturbancePrediction]],
     characteristic_length_D: float = 0.30,
@@ -400,10 +439,11 @@ def evaluate_inversion_batch(
         for truth, pred in evaluations
     ]
 
-    tp = sum(1 for m in metrics_list if m.detected_correctly and not m.false_alarm and m.detection_delay_sec is not None)
-    fp = sum(1 for m in metrics_list if m.false_alarm)
-    fn = sum(1 for m in metrics_list if m.missed_detection)
-    tn = sum(1 for m in metrics_list if m.detected_correctly and not m.false_alarm and m.detection_delay_sec is None)
+    conf = compute_inversion_confusion_metrics(metrics_list)
+    tp = conf.true_positives
+    fp = conf.false_positives
+    fn = conf.false_negatives
+    tn = conf.true_negatives
 
     precision = float(tp / (tp + fp)) if (tp + fp) > 0 else 1.0
     recall = float(tp / (tp + fn)) if (tp + fn) > 0 else 1.0

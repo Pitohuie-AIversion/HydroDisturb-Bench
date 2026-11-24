@@ -1,0 +1,22 @@
+{
+  "suite_name": "COMSOL 6.4 Native Optimization & Hydro-Structural Co-Optimization E2E",
+  "status": "PASSED",
+  "timestamp_utc": "2026-11-18T16:08:09.166623+00:00",
+  "duration_seconds": 3.934,
+  "exit_code": 0,
+  "selected_tier": "all",
+  "tier_test_inventory": {
+    "tier1": 56,
+    "tier2": 55,
+    "tier3": 12,
+    "tier4": 6
+  },
+  "total_test_count": 129,
+  "environment": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.14.7 | packaged by Anaconda, Inc. | (main, Aug 14 2026, 10:12:46) [MSC v.1942 64 bit (AMD64)]",
+    "comsol_version": "6.4",
+    "comsol_build": "429",
+    "repo_root": "D:\\\ud83d\udcc1 01_Workspaces (\u4ee3\u7801\u4e0e\u5de5\u7a0b\u533a)\\HydroDisturb-Bench"
+  }
+}

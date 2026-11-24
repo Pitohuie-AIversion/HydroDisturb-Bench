@@ -48,6 +48,8 @@ exclude = [
     "dist",
     "docs/evidence",
     "tmp",
+    "output",
+    "test-results",
     "*budget*",
 ]
 

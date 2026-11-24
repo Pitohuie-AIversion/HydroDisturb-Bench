@@ -333,6 +333,108 @@ def main(argv: list[str] | None = None) -> int:
     )
     bundle_verify.add_argument("--bundle", required=True, help="Path to benchmark bundle NPZ")
 
+    prop_insp = sub.add_parser(
+        "propeller-inspect",
+        help="Read-only 3D inspection of a COMSOL propeller .mph model",
+    )
+    prop_insp.add_argument("--model", default="models/prop test2/COMSOL_CW_1400rpm/V10f-StaticFine-1400rpm.mph", help="Path to 3D propeller .mph model")
+    prop_insp.add_argument("--out", default=None, help="Optional JSON output file path")
+
+    prop_base = sub.add_parser(
+        "propeller-baseline",
+        help="Reproduce CW (+1400 rpm) and CCW (-1400 rpm) V10f 3D propeller baselines safely via CoW",
+    )
+    prop_base.add_argument(
+        "--cw-model",
+        default="models/prop test2/COMSOL_CW_1400rpm/V10f-StaticFine-1400rpm.mph",
+        help="CW baseline .mph path",
+    )
+    prop_base.add_argument(
+        "--ccw-model",
+        default="models/prop test2/COMSOL_CCW_1400rpm/V10f-CCWFine-1400rpm.mph",
+        help="CCW baseline .mph path",
+    )
+    prop_base.add_argument(
+        "--cad-path",
+        default="models/prop test2/3_320kgf_v10f.x_t",
+        help="Baseline Parasolid CAD file path for immutability verification",
+    )
+    prop_base.add_argument(
+        "--output-dir",
+        default="runs/propeller_opt/baseline",
+        help="ASCII output directory under runs/propeller_opt/",
+    )
+    prop_base.add_argument(
+        "--solver-mode",
+        choices=["warm_fine", "pilot_coarse"],
+        default="warm_fine",
+        help="Solver configuration preset",
+    )
+    prop_base.add_argument(
+        "--save-mph",
+        action="store_true",
+        default=False,
+        help="Save reproduced .mph copies inside output-dir",
+    )
+    prop_base.add_argument(
+        "--allow-overwrite",
+        action="store_true",
+        default=False,
+        help="Allow overwriting existing baseline summary/outputs",
+    )
+    prop_base.add_argument(
+        "--inspect-only",
+        action="store_true",
+        default=False,
+        help="Inspect baseline models and check SHA-256 immutability without running CFD",
+    )
+    prop_base.add_argument(
+        "--skip-hash-pin",
+        action="store_true",
+        default=False,
+        help="Skip pinned V10f baseline SHA-256 check (for custom/synthetic models)",
+    )
+
+    prop_opt = sub.add_parser(
+        "propeller-optimize",
+        help="Execute multi-objective constrained optimization for ROV ducted propeller",
+    )
+    prop_opt.add_argument(
+        "--config",
+        default="configs/propeller_opt_v10f.json",
+        help="Path to propeller optimization JSON configuration",
+    )
+    prop_opt.add_argument(
+        "--stage",
+        default="all",
+        choices=["precheck", "doe", "train", "optimize", "verify", "all"],
+        help="Pipeline execution stage",
+    )
+    prop_opt.add_argument(
+        "--output-dir",
+        default="runs/propeller_opt",
+        help="Working directory for optimization outputs and checkpoints",
+    )
+    prop_opt.add_argument("--doe-samples", type=int, default=20, help="Number of LHS DoE samples")
+    prop_opt.add_argument("--pop-size", type=int, default=24, help="NSGA-II population size (even integer >= 4)")
+    prop_opt.add_argument("--gen", type=int, default=15, help="Number of NSGA-II generations")
+    prop_opt.add_argument("--seed", type=int, default=42, help="Random seed for repeatability")
+
+    prop_ver = sub.add_parser(
+        "propeller-verify",
+        help="Back-verify Pareto candidates and compare with V10f baseline",
+    )
+    prop_ver.add_argument(
+        "--candidates",
+        required=True,
+        help="Path to JSON file containing candidate design dictionaries",
+    )
+    prop_ver.add_argument(
+        "--output-dir",
+        default="runs/propeller_opt/verify",
+        help="Output directory for verification report",
+    )
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -584,29 +686,28 @@ def main(argv: list[str] | None = None) -> int:
 
         layout = SensorLayout.load_json(args.layout)
         operator = ObservationOperator(layout)
-        npz_data = np.load(args.dataset)
-
-        channel_names = tuple(
-            npz_data.get(
-                "channel_names",
-                ("u", "v", "p") if layout.dim == 2 else ("u", "v", "w", "p"),
+        with np.load(args.dataset, allow_pickle=False) as npz_data:
+            channel_names = tuple(
+                npz_data.get(
+                    "channel_names",
+                    ("u", "v", "p") if layout.dim == 2 else ("u", "v", "w", "p"),
+                )
             )
-        )
-        if layout.dim == 2:
-            data = npz_data["data"]
-            x_coords = npz_data["x"]
-            y_coords = npz_data["y"]
-            sampled = operator.sample_2d_field(
-                data, x_coords, y_coords, channel_names=channel_names
-            )
-        else:
-            data = npz_data["data"]
-            x_coords = npz_data["x"]
-            y_coords = npz_data["y"]
-            z_coords = npz_data["z"]
-            sampled = operator.sample_3d_field(
-                data, x_coords, y_coords, z_coords, channel_names=channel_names
-            )
+            if layout.dim == 2:
+                data = npz_data["data"]
+                x_coords = npz_data["x"]
+                y_coords = npz_data["y"]
+                sampled = operator.sample_2d_field(
+                    data, x_coords, y_coords, channel_names=channel_names
+                )
+            else:
+                data = npz_data["data"]
+                x_coords = npz_data["x"]
+                y_coords = npz_data["y"]
+                z_coords = npz_data["z"]
+                sampled = operator.sample_3d_field(
+                    data, x_coords, y_coords, z_coords, channel_names=channel_names
+                )
 
         if args.snr is not None:
             sampled = operator.add_sensor_noise(sampled, snr_db=args.snr)
@@ -633,23 +734,24 @@ def main(argv: list[str] | None = None) -> int:
 
         from .probabilistic_metrics import evaluate_field_reconstruction
 
-        pred_npz = np.load(args.pred)
-        true_npz = np.load(args.true)
-        pred_field = pred_npz["data"]
-        true_field = true_npz["data"]
-        mask = true_npz.get("fluid_mask", true_npz.get("mask", None))
-        if mask is not None:
-            mask = np.asarray(mask, dtype=bool)
+        with np.load(args.pred, allow_pickle=False) as pred_npz, np.load(
+            args.true, allow_pickle=False
+        ) as true_npz:
+            pred_field = pred_npz["data"]
+            true_field = true_npz["data"]
+            mask = true_npz.get("fluid_mask", true_npz.get("mask", None))
+            if mask is not None:
+                mask = np.asarray(mask, dtype=bool)
 
-        channel_names = tuple(
-            true_npz.get(
-                "channel_names",
-                ("u", "v", "w", "p") if pred_field.ndim >= 5 else ("u", "v", "p"),
+            channel_names = tuple(
+                true_npz.get(
+                    "channel_names",
+                    ("u", "v", "w", "p") if pred_field.ndim >= 5 else ("u", "v", "p"),
+                )
             )
-        )
-        metrics = evaluate_field_reconstruction(
-            pred_field, true_field, fluid_mask=mask, channel_names=channel_names
-        )
+            metrics = evaluate_field_reconstruction(
+                pred_field, true_field, fluid_mask=mask, channel_names=channel_names
+            )
         if args.out:
             Path(args.out).parent.mkdir(parents=True, exist_ok=True)
             Path(args.out).write_text(
@@ -670,37 +772,37 @@ def main(argv: list[str] | None = None) -> int:
             evaluate_incompressibility_metrics,
         )
 
-        npz = np.load(args.dataset)
-        data = npz["data"]
-        x = npz["x"]
-        y = npz["y"]
-        mask = npz.get("solid_mask", None)
+        with np.load(args.dataset, allow_pickle=False) as npz:
+            data = npz["data"]
+            x = npz["x"]
+            y = npz["y"]
+            mask = npz.get("solid_mask", None)
 
-        if data.ndim == 4 or (data.ndim == 3 and "z" not in npz):
-            # 2D field: shape (T, C, Ny, Nx) or (C, Ny, Nx)
-            if data.ndim == 3:
-                u, v = data[0], data[1]
+            if data.ndim == 4 or (data.ndim == 3 and "z" not in npz):
+                # 2D field: shape (T, C, Ny, Nx) or (C, Ny, Nx)
+                if data.ndim == 3:
+                    u, v = data[0], data[1]
+                else:
+                    u, v = data[:, 0], data[:, 1]
+                vort = compute_vorticity_2d(u, v, x, y, solid_mask=mask)
+                div = compute_divergence_2d(u, v, x, y, solid_mask=mask)
+                q = compute_q_criterion_2d(u, v, x, y, solid_mask=mask)
+                enstrophy = compute_enstrophy(vort, solid_mask=mask)
+                incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
+                dim = 2
             else:
-                u, v = data[:, 0], data[:, 1]
-            vort = compute_vorticity_2d(u, v, x, y, solid_mask=mask)
-            div = compute_divergence_2d(u, v, x, y, solid_mask=mask)
-            q = compute_q_criterion_2d(u, v, x, y, solid_mask=mask)
-            enstrophy = compute_enstrophy(vort, solid_mask=mask)
-            incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
-            dim = 2
-        else:
-            # 3D field: shape (T, C, Nz, Ny, Nx) or (C, Nz, Ny, Nx)
-            z = npz["z"]
-            if data.ndim == 4:
-                u, v, w = data[0], data[1], data[2]
-            else:
-                u, v, w = data[:, 0], data[:, 1], data[:, 2]
-            wx, wy, wz = compute_vorticity_3d(u, v, w, x, y, z, solid_mask=mask)
-            div = compute_divergence_3d(u, v, w, x, y, z, solid_mask=mask)
-            q = compute_q_criterion_3d(u, v, w, x, y, z, solid_mask=mask)
-            enstrophy = compute_enstrophy((wx, wy, wz), solid_mask=mask)
-            incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
-            dim = 3
+                # 3D field: shape (T, C, Nz, Ny, Nx) or (C, Nz, Ny, Nx)
+                z = npz["z"]
+                if data.ndim == 4:
+                    u, v, w = data[0], data[1], data[2]
+                else:
+                    u, v, w = data[:, 0], data[:, 1], data[:, 2]
+                wx, wy, wz = compute_vorticity_3d(u, v, w, x, y, z, solid_mask=mask)
+                div = compute_divergence_3d(u, v, w, x, y, z, solid_mask=mask)
+                q = compute_q_criterion_3d(u, v, w, x, y, z, solid_mask=mask)
+                enstrophy = compute_enstrophy((wx, wy, wz), solid_mask=mask)
+                incomp = evaluate_incompressibility_metrics(div, solid_mask=mask)
+                dim = 3
 
         report = {
             "dataset": str(args.dataset),
@@ -743,29 +845,105 @@ def main(argv: list[str] | None = None) -> int:
 
         from .benchmark_bundle import create_benchmark_bundle
 
-        npz = np.load(args.dataset)
-        times = npz["times"]
-        data = npz["data"]
-        coords = {"x": npz["x"], "y": npz["y"]}
-        if "z" in npz:
-            coords["z"] = npz["z"]
-        mask = npz.get("solid_mask", None)
-        sdf = npz.get("sdf", None)
+        with np.load(args.dataset, allow_pickle=False) as npz:
+            times = npz["times"]
+            data = npz["data"]
+            coords = {"x": npz["x"], "y": npz["y"]}
+            if "z" in npz:
+                coords["z"] = npz["z"]
+            mask = npz.get("solid_mask", None)
+            sdf = npz.get("sdf", None)
 
-        out_path = create_benchmark_bundle(
-            output_path=args.out,
-            times=times,
-            coords=coords,
-            values=data,
-            solid_mask=mask,
-            sdf=sdf,
-            benchmark_name=args.name,
-        )
+            out_path = create_benchmark_bundle(
+                output_path=args.out,
+                times=times,
+                coords=coords,
+                values=data,
+                solid_mask=mask,
+                sdf=sdf,
+                benchmark_name=args.name,
+            )
         print(f"Created benchmark bundle: {out_path}")
     elif args.cmd == "bundle-verify":
         from .benchmark_bundle import verify_benchmark_bundle
 
         res = verify_benchmark_bundle(args.bundle)
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-inspect":
+        from .comsol_java import inspect_propeller
+
+        res = inspect_propeller(Path(args.model))
+        if args.out:
+            out_path = Path(args.out)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(
+                json.dumps(res, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-baseline":
+        from .propeller.baseline import reproduce_propeller_baselines
+
+        res = reproduce_propeller_baselines(
+            cw_model=Path(args.cw_model),
+            ccw_model=Path(args.ccw_model),
+            cad_path=Path(args.cad_path) if args.cad_path else None,
+            output_dir=Path(args.output_dir),
+            solver_mode=args.solver_mode,
+            save_mph=args.save_mph,
+            allow_overwrite=args.allow_overwrite,
+            inspect_only=args.inspect_only,
+            pin_hashes=not args.skip_hash_pin,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-optimize":
+        cfg_path = Path(args.config)
+        if not cfg_path.is_file():
+            sys.stderr.write(f"Configuration file not found: {cfg_path}\n")
+            raise SystemExit(1)
+        try:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            sys.stderr.write(f"Malformed configuration JSON: {exc}\n")
+            raise SystemExit(1)
+
+        from .propeller.evaluator import PropellerEvaluator
+        from .propeller.workflow import run_optimization_pipeline
+
+        ev = PropellerEvaluator(work_dir=args.output_dir, max_workers=1)
+        res = run_optimization_pipeline(
+            work_dir=args.output_dir,
+            stage=args.stage,
+            evaluator_fn=ev.evaluate,
+            doe_samples=args.doe_samples,
+            pop_size=args.pop_size,
+            n_gen=args.gen,
+            seed=args.seed,
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "propeller-verify":
+        cands_path = Path(args.candidates)
+        if not cands_path.is_file():
+            sys.stderr.write(f"Candidates file not found: {cands_path}\n")
+            raise SystemExit(1)
+        try:
+            cands = json.loads(cands_path.read_text(encoding="utf-8"))
+            if isinstance(cands, dict) and "pareto_set" in cands:
+                cands = cands["pareto_set"]
+            elif isinstance(cands, dict) and "pareto_front" in cands:
+                cands = cands["pareto_front"]
+        except Exception as exc:
+            sys.stderr.write(f"Malformed candidates JSON: {exc}\n")
+            raise SystemExit(1)
+
+        from .propeller.evaluator import PropellerEvaluator
+        from .propeller.workflow import verify_candidates
+
+        ev = PropellerEvaluator(work_dir=args.output_dir, max_workers=1)
+        res = verify_candidates(
+            candidates=cands,
+            work_dir=args.output_dir,
+            evaluator_fn=ev.evaluate,
+        )
         print(json.dumps(res, indent=2, ensure_ascii=False))
 
     return 0

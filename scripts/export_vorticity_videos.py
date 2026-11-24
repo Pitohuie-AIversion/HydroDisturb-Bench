@@ -13,6 +13,8 @@ Outputs:
    Clean 16:9 widescreen near-wake vortex shedding animation with HUD telemetry.
 """
 
+import argparse
+import os
 import shutil
 import sys
 import time
@@ -26,21 +28,43 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-import matplotlib
-
-matplotlib.use("Agg")
-import imageio.v3 as iio
-import matplotlib.gridspec as gridspec
-import matplotlib.pyplot as plt
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from hydro_disturb_bench.field_sequence import load_full_field_sequence
 
 
+def _load_viz_modules():
+    """Lazily load visualization dependencies to allow --help and --dry-run in minimal environments."""
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import imageio.v3 as iio
+        import matplotlib.gridspec as gridspec
+        import matplotlib.pyplot as plt
+
+        return matplotlib, plt, gridspec, iio
+    except ImportError as exc:
+        raise ImportError(
+            "Visualization dependencies (matplotlib, imageio) missing. "
+            "Please install them via: pip install hydrodisturb-bench[analysis]"
+        ) from exc
+
+
+def resolve_artifacts_dir(explicit_path: str | Path | None = None) -> Path | None:
+    """Resolve artifacts directory from CLI argument or environment variables."""
+    if explicit_path:
+        return Path(explicit_path)
+    env_art = os.environ.get("HYDRO_ARTIFACTS_DIR") or os.environ.get("ANTIGRAVITY_ARTIFACTS_DIR")
+    if env_art:
+        return Path(env_art)
+    return None
+
+
 def render_dashboard_video(seq_dir: Path, output_dir: Path, fps: int = 15) -> tuple[Path, Path]:
     """Render 3-in-1 multi-physics dashboard video."""
+    _matplotlib, plt, gridspec, iio = _load_viz_modules()
     print("Loading sequence data for dashboard video...")
     seq = load_full_field_sequence(seq_dir)
     values = seq["values"]  # (151, 3, 97, 161)
@@ -246,6 +270,7 @@ def render_dashboard_video(seq_dir: Path, output_dir: Path, fps: int = 15) -> tu
 
 def render_wake_zoom_video(seq_dir: Path, output_dir: Path, fps: int = 15) -> tuple[Path, Path]:
     """Render high-definition 16:9 near-wake zoom video."""
+    _matplotlib, plt, _gridspec, iio = _load_viz_modules()
     print("\nLoading sequence data for wake zoom video...")
     seq = load_full_field_sequence(seq_dir)
     values = seq["values"]
@@ -365,31 +390,75 @@ def render_wake_zoom_video(seq_dir: Path, output_dir: Path, fps: int = 15) -> tu
     return mp4_path, gif_path
 
 
-def main():
-    seq_dir = REPO_ROOT / "runs" / "re100_m3_field_sequence_20261105_verified"
-    reports_dir = REPO_ROOT / "reports"
-    reports_dir.mkdir(exist_ok=True)
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        description="Export vorticity dashboard and wake zoom MP4/GIF videos from verified field sequences."
+    )
+    p.add_argument(
+        "--sequence-dir",
+        default=str(REPO_ROOT / "runs" / "re100_m3_field_sequence_20261105_verified"),
+        help="Directory containing verified field sequence .npz / manifest",
+    )
+    p.add_argument(
+        "--reports-dir",
+        default=str(REPO_ROOT / "reports"),
+        help="Destination directory for exported MP4 and GIF videos",
+    )
+    p.add_argument(
+        "--artifacts-dir",
+        default=None,
+        help="Optional directory to copy video artifacts to (also checks HYDRO_ARTIFACTS_DIR)",
+    )
+    p.add_argument(
+        "--fps",
+        type=int,
+        default=15,
+        help="Video frame rate in fps (default: 15)",
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate configuration and inputs without rendering frames",
+    )
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    seq_dir = Path(args.sequence_dir)
+    reports_dir = Path(args.reports_dir)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    art_dir = resolve_artifacts_dir(args.artifacts_dir)
 
     if not seq_dir.exists():
-        print(f"Error: Sequence directory not found: {seq_dir.name}", file=sys.stderr)
-        sys.exit(1)
+        print(f"Error: Sequence directory not found: {seq_dir}", file=sys.stderr)
+        return 1
 
-    print(f"Starting vorticity video export to: {reports_dir.name}")
+    if args.dry_run:
+        print("[DRY RUN] Vorticity video export configuration:")
+        print(f"  Sequence directory:  {seq_dir} (exists: {seq_dir.exists()})")
+        print(f"  Reports directory:   {reports_dir} (exists: {reports_dir.exists()})")
+        print(f"  Artifacts directory: {art_dir}")
+        print(f"  Frame rate (fps):    {args.fps}")
+        print("[DRY RUN] Pre-flight checks passed successfully.")
+        return 0
+
+    print(f"Starting vorticity video export to: {reports_dir}")
     t0 = time.time()
 
     # 1. Multi-physics dashboard video
-    dash_mp4, dash_gif = render_dashboard_video(seq_dir, reports_dir, fps=15)
+    dash_mp4, dash_gif = render_dashboard_video(seq_dir, reports_dir, fps=args.fps)
 
     # 2. 16:9 Widescreen pure wake zoom video
-    zoom_mp4, zoom_gif = render_wake_zoom_video(seq_dir, reports_dir, fps=15)
+    zoom_mp4, zoom_gif = render_wake_zoom_video(seq_dir, reports_dir, fps=args.fps)
 
     # Copy to artifacts directory
-    art_dir = Path(
-        r"C:\Users\Administrator\.gemini\antigravity-ide\brain\78e0afb2-6233-4e38-b94c-b25dc49b4926"
-    )
-    if art_dir.exists():
+    if art_dir:
+        art_dir.mkdir(parents=True, exist_ok=True)
         for f in [dash_mp4, dash_gif, zoom_mp4, zoom_gif]:
             shutil.copy2(f, art_dir / f.name)
+            print(f"  Copied {f.name} to artifacts: {art_dir / f.name}")
 
     total_time = time.time() - t0
     print(f"\nALL VIDEOS EXPORTED SUCCESSFULLY in {total_time:.1f}s:")
@@ -397,7 +466,8 @@ def main():
     print(f"  - Dashboard GIF: {dash_gif.name} ({dash_gif.stat().st_size / 1e6:.2f} MB)")
     print(f"  - Wake Zoom MP4: {zoom_mp4.name} ({zoom_mp4.stat().st_size / 1e6:.2f} MB)")
     print(f"  - Wake Zoom GIF: {zoom_gif.name} ({zoom_gif.stat().st_size / 1e6:.2f} MB)")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

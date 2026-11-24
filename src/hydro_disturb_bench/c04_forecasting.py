@@ -179,7 +179,8 @@ def score_c04_forecast(
 
         mae_per_lead = sae_per_lead / num_fluid_pts
         rmse_per_lead = np.sqrt(sse_per_lead / num_fluid_pts)
-        rel_l2_per_lead = np.where(tgt_sq_sum > 1e-12, np.sqrt(sse_per_lead / tgt_sq_sum), 0.0)
+        safe_tgt_sq = np.maximum(tgt_sq_sum, 1e-12)
+        rel_l2_per_lead = np.where(tgt_sq_sum > 1e-12, np.sqrt(sse_per_lead / safe_tgt_sq), 0.0)
 
         channel_metrics[ch_name] = {
             "unit": C04_UNITS[c_idx],
@@ -192,11 +193,13 @@ def score_c04_forecast(
             "mean_rel_l2": float(np.mean(rel_l2_per_lead)),
         }
 
-    return {
+    res = {
         "num_leads": H,
         "fluid_points": num_fluid_pts,
         "channels": channel_metrics,
     }
+    res.update(channel_metrics)
+    return res
 
 
 def evaluate_c04_dataset_baselines(

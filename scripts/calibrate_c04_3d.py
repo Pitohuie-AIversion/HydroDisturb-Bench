@@ -54,6 +54,7 @@ for _p in (SRC_DIR, SCRIPTS_DIR):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
+from hydro_disturb_bench.comsol_java.bridge import find_comsol_root, get_comsol_bin_dir
 from verify_and_compare_s1b1 import (
     compute_cycle_half_amplitude,
     compute_demeaned_rms,
@@ -61,13 +62,27 @@ from verify_and_compare_s1b1 import (
     integrate_exact_window,
 )
 
-from hydro_disturb_bench.comsol_java.bridge import find_comsol_root, get_comsol_bin_dir
 
-DEFAULT_CALIB_BASE = Path(r"E:\cfd_3d\01_calibration\c04_re126k\c04_calibrated_base_mesh2.mph")
-DEFAULT_SCRATCH = Path(r"E:\comsol_scratch")
-DEFAULT_INI = Path(r"E:\comsol_scratch\comsolbatch_perf.ini")
-DEFAULT_CALIB_ROOT = Path(r"E:\cfd_3d\01_calibration\c04_re126k")
-DEFAULT_REPORTS_DIR = Path(r"E:\cfd_3d\05_reports_viz")
+def resolve_cfd_drive(requested_drive: str | Path | None = None) -> Path:
+    """Resolve CFD data drive root with environmental precedence and fallback."""
+    if requested_drive:
+        return Path(requested_drive)
+    env_drive = os.environ.get("HYDRO_CFD_DRIVE")
+    if env_drive:
+        return Path(env_drive)
+    if Path("E:\\").exists():
+        return Path("E:\\")
+    anchor = Path.cwd().anchor
+    return Path(anchor if anchor else ".")
+
+
+DEFAULT_DRIVE = resolve_cfd_drive()
+DEFAULT_CALIB_ROOT = DEFAULT_DRIVE / "cfd_3d" / "01_calibration" / "c04_re126k"
+DEFAULT_CALIB_BASE = DEFAULT_CALIB_ROOT / "c04_calibrated_base_mesh2.mph"
+DEFAULT_SCRATCH = DEFAULT_DRIVE / "comsol_scratch"
+DEFAULT_INI = DEFAULT_SCRATCH / "comsolbatch_perf.ini"
+DEFAULT_REPORTS_DIR = DEFAULT_DRIVE / "cfd_3d" / "05_reports_viz"
+DEFAULT_CAMPAIGN_PLAN = DEFAULT_DRIVE / "cfd_3d" / "02_cases_mph" / "c01_c09_campaign_plan.json"
 
 # Default C04 physical reference constants (ITTC 2024 15 degC seawater, D=0.30 m, U0=0.50 m/s)
 C04_D_M = 0.30
@@ -590,12 +605,17 @@ def sha256_file(path: Path) -> str:
 
 def resolve_default_source_s0_mesh2() -> Path:
     candidates = [
+        DEFAULT_CALIB_ROOT / "c04_re126k_s0_mesh2.mph",
         Path(r"E:\cfd_3d\01_calibration\c04_re126k\c04_re126k_s0_mesh2.mph"),
         Path(r"E:\cylinder_3d\c04_re126k_s0_mesh2.mph"),
+        REPO_ROOT / "runs" / "c04_re126k_s0_mesh2.mph",
     ]
     for p in candidates:
-        if p.is_file():
-            return p
+        try:
+            if p.is_file():
+                return p
+        except OSError:
+            continue
     return candidates[0]
 
 
@@ -1710,7 +1730,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Write C01~C09 Dual-Socket worker execution plan JSON",
     )
     plan.add_argument("--matrix", default=None, help="Optional custom JSON matrix of U0/alpha conditions")
-    plan.add_argument("--out", default=r"E:\cfd_3d\02_cases_mph\c01_c09_campaign_plan.json")
+    plan.add_argument("--out", default=str(DEFAULT_CAMPAIGN_PLAN))
     plan.add_argument("--t-end", type=float, default=60.0)
     plan.add_argument("--dt-out", type=float, default=0.06)
     plan.add_argument("--np-per-worker", type=int, default=16)

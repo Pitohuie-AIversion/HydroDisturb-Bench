@@ -168,6 +168,31 @@ public class ComsolBridge {
                 String py = (args.length >= 4) ? args[3] : "0.12";
                 String probeOutputDir = (args.length >= 5) ? args[4] : "";
                 handleInspectProbeAndSolver(args[1], px, py, probeOutputDir);
+            } else if ("inspect-propeller".equals(command)) {
+                if (args.length != 2) {
+                    outputError("INVALID_PARAMETER", "Usage: inspect-propeller <modelPath>", "");
+                    return;
+                }
+                PropellerBridge.handleInspect(args[1]);
+            } else if ("run-propeller-baseline".equals(command) || "eval-propeller".equals(command)) {
+                if (args.length != 4) {
+                    outputError("INVALID_PARAMETER", "Usage: " + command + " <modelPath> <outputMphOrDash> <base64:properties>", "");
+                    return;
+                }
+                PropellerBridge.handleEval(args[1], args[2], args[3], command);
+            } else if ("configure-propeller-opt-model".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: configure-propeller-opt-model <modelPath> <outputPath> [bladeCount]", "");
+                    return;
+                }
+                int z = (args.length >= 4) ? Integer.parseInt(args[3]) : 3;
+                PropellerOptModel.handleConfigure(args[1], args[2], z);
+            } else if ("export-propeller-cad".equals(command)) {
+                if (args.length < 3) {
+                    outputError("INVALID_PARAMETER", "Usage: export-propeller-cad <modelPath> <outputPath>", "");
+                    return;
+                }
+                PropellerOptModel.handleExportCAD(args[1], args[2]);
             } else {
                 outputError("API_UNSUPPORTED", "Unknown command: " + command, "");
             }
@@ -1959,7 +1984,7 @@ public class ComsolBridge {
         }
     }
 
-    static void branchDistinctPaths(String source, String output) {
+    public static void branchDistinctPaths(String source, String output) {
         String a = java.nio.file.Paths.get(source).toAbsolutePath().normalize().toString();
         String b = java.nio.file.Paths.get(output).toAbsolutePath().normalize().toString();
         if (a.equalsIgnoreCase(b)) throw new IllegalArgumentException("Source and output must differ");
@@ -2556,7 +2581,7 @@ public class ComsolBridge {
         } catch (Throwable ignored) {}
     }
 
-    private static void safeRemoveNumerical(Model model, String tag) {
+    public static void safeRemoveNumerical(Model model, String tag) {
         try {
             for (String t : model.result().numerical().tags()) {
                 if (tag.equals(t)) {
@@ -3174,7 +3199,7 @@ public class ComsolBridge {
         }
     }
 
-    private static void outputError(String errorCode, String message, String details) {
+    public static void outputError(String errorCode, String message, String details) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append("  \"status\": \"ERROR\",\n");
@@ -3337,7 +3362,7 @@ public class ComsolBridge {
         }
     }
 
-    private static String doubleArrayToJson(double[] arr) {
+    public static String doubleArrayToJson(double[] arr) {
         if (arr == null) return "[]";
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < arr.length; i++) {
@@ -3348,13 +3373,13 @@ public class ComsolBridge {
         return sb.toString();
     }
 
-    static void emitResult(String json) {
+    public static void emitResult(String json) {
         System.out.println(JSON_START);
         System.out.println(json);
         System.out.println(JSON_END);
     }
 
-    static String quote(String s) {
+    public static String quote(String s) {
         if (s == null) return "null";
         StringBuilder sb = new StringBuilder("\"");
         for (char c : s.toCharArray()) {
@@ -3379,7 +3404,7 @@ public class ComsolBridge {
         return sb.toString();
     }
 
-    private static String stringArrayToJson(String[] arr) {
+    public static String stringArrayToJson(String[] arr) {
         if (arr == null) return "[]";
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < arr.length; i++) {
@@ -3390,7 +3415,7 @@ public class ComsolBridge {
         return sb.toString();
     }
 
-    private static String intArrayToJson(int[] arr) {
+    public static String intArrayToJson(int[] arr) {
         if (arr == null) return "[]";
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < arr.length; i++) {
@@ -3411,7 +3436,7 @@ public class ComsolBridge {
         }
     }
 
-    static String getStackTrace(Throwable t) {
+    public static String getStackTrace(Throwable t) {
         StringWriter sw = new StringWriter();
         t.printStackTrace(new PrintWriter(sw));
         return sw.toString();

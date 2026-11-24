@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "name": "ROV Ducted Propeller V10f Optimization Configuration",
+  "invariants": {
+    "D_prop_m": 0.320,
+    "R_prop_m": 0.160,
+    "radius_tol_m": 0.0001,
+    "diameter_tol_m": 0.0002,
+    "D_hub_m": 0.084,
+    "R_hub_m": 0.042,
+    "hub_x_min_m": 0.065,
+    "hub_x_max_m": 0.130,
+    "duct_x_min_m": 0.009966,
+    "duct_x_max_m": 0.202606,
+    "duct_outer_max_d_m": 0.388856,
+    "rotorflow_r_m": 0.1625,
+    "tip_clearance_min_m": 0.0015,
+    "tip_clearance_max_m": 0.0060,
+    "blade_count": 3,
+    "forbidden_dof_names": [
+      "diameter",
+      "D_prop",
+      "d_prop",
+      "prop_diameter",
+      "D_hub",
+      "hub_diameter"
+    ]
+  },
+  "baseline": {
+    "cw_mph": "models/prop test2/COMSOL_CW_1400rpm/V10f-StaticFine-1400rpm.mph",
+    "ccw_mph": "models/prop test2/COMSOL_CCW_1400rpm/V10f-CCWFine-1400rpm.mph",
+    "cad_xt": "models/prop test2/3_320kgf_v10f.x_t",
+    "cw_sha256": "C8968A46A4BE1398AAAB377CCA21CE1BF6E581CFACE1710774B676E5D04E41D4",
+    "ccw_sha256": "194072E12EF86E433B3F857257A8EAD598BEF82E17E1403D547BE247178B1205"
+  },
+  "bounds": {
+    "pitch_r04_deg": [15.0, 45.0],
+    "pitch_r07_deg": [12.0, 40.0],
+    "pitch_r10_deg": [8.0, 32.0],
+    "chord_r04_m": [0.035, 0.095],
+    "chord_r07_m": [0.045, 0.110],
+    "chord_r10_m": [0.025, 0.080],
+    "max_camber_ratio": [0.0, 0.035],
+    "max_thickness_ratio": [0.045, 0.140],
+    "skew_tip_deg": [0.0, 30.0],
+    "rake_tip_m": [-0.010, 0.015],
+    "tip_clearance_m": [0.0015, 0.0060],
+    "duct_inlet_lip_ratio": [1.02, 1.25],
+    "duct_diffuser_angle_deg": [-2.0, 12.0]
+  },
+  "constraints": {
+    "eta_sym_floor": 0.75,
+    "p_min_cav_kpa": -99.0,
+    "stress_safety_factor_min": 2.0,
+    "modal_bpf_sep_min": 0.15,
+    "solver_rel_err_max": 0.0025,
+    "mass_imbalance_max_pct": 1.0,
+    "momentum_closure_max_pct": 5.0
+  },
+  "solver": {
+    "max_workers": 1,
+    "timeout_s": 900.0,
+    "fidelity": "comsol_3d"
+  }
+}

@@ -18,6 +18,7 @@ import argparse
 import ctypes
 import hashlib
 import json
+import math
 import os
 import re
 import subprocess
@@ -509,6 +510,112 @@ def run_single_worker(
     }
 
 
+def _safe_float(v: Any, default: float = 0.0) -> float:
+    """Safely coerce any value to a finite float, returning default on invalid input.
+
+    Rejects None, boolean flags, non-numeric strings ('N/A', '-'), uncoercible containers,
+    and non-finite IEEE values (NaN, Inf, -Inf).
+    """
+    if v is None or isinstance(v, bool):
+        return float(default)
+    try:
+        val = float(v)
+        if math.isnan(val) or math.isinf(val):
+            return float(default)
+        return val
+    except (ValueError, TypeError):
+        return float(default)
+
+
+def compute_speedups(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compute single-job and aggregate throughput speedups relative to baseline.
+
+    Guards against ZeroDivisionError from microsecond solves (mean_solve_s <= 0),
+    zero baseline throughput, failed benchmark profiles, None values, and non-numeric strings.
+    """
+    base = next((r for r in results if r.get("ok")), None)
+    for r in results:
+        r.setdefault("single_job_speedup", 0.0)
+        r.setdefault("throughput_speedup", 0.0)
+        wall_s = _safe_float(r.get("wall_s"), 0.0)
+        if not base or not r.get("ok") or wall_s <= 0.0:
+            continue
+
+        is_same_as_base = (r is base) or (r.get("profile") is not None and r.get("profile") == base.get("profile"))
+        base_solve = _safe_float(base.get("mean_solve_s"), 0.0)
+        m_solve = _safe_float(r.get("mean_solve_s"), 0.0)
+        if base_solve > 0.0 and m_solve > 0.0:
+            r["single_job_speedup"] = round(base_solve / m_solve, 3)
+        elif is_same_as_base:
+            r["single_job_speedup"] = 1.0
+        else:
+            r["single_job_speedup"] = 0.0
+
+        base_tput = _safe_float(base.get("throughput_jobs_per_hr"), 0.0)
+        r_tput = _safe_float(r.get("throughput_jobs_per_hr"), 0.0)
+        if base_tput > 0.0 and r_tput >= 0.0:
+            r["throughput_speedup"] = round(r_tput / base_tput, 3)
+        elif is_same_as_base:
+            r["throughput_speedup"] = 1.0
+        else:
+            r["throughput_speedup"] = 0.0
+    return results
+
+
+compute_numa_speedups = compute_speedups
+
+
+def render_markdown_table_rows(results: list[dict[str, Any]]) -> list[str]:
+    """Format benchmark result rows for Markdown reporting with safe float coercions."""
+    md_lines: list[str] = []
+    for r in results:
+        if not isinstance(r, dict):
+            r = {}
+        profile = r.get("profile") or "unknown"
+        nw = r.get("n_workers")
+        try:
+            n_workers = int(nw) if nw is not None else 0
+        except (ValueError, TypeError):
+            n_workers = 0
+
+        wall_s = _safe_float(r.get("wall_s"))
+        mean_solve_s = _safe_float(r.get("mean_solve_s"))
+        s_speed = _safe_float(r.get("single_job_speedup"))
+        tput = _safe_float(r.get("throughput_jobs_per_hr"))
+        t_speed = _safe_float(r.get("throughput_speedup"))
+
+        workers = r.get("workers") or []
+        if not isinstance(workers, list):
+            workers = []
+        phys = max(
+            (_safe_float(w.get("peak_phys_gb")) for w in workers if isinstance(w, dict)),
+            default=0.0,
+        )
+        virt = max(
+            (_safe_float(w.get("peak_virt_gb")) for w in workers if isinstance(w, dict)),
+            default=0.0,
+        )
+
+        tel = r.get("system_telemetry")
+        if not isinstance(tel, dict):
+            tel = {}
+        cpu_avg = tel.get("avg_cpu_pct")
+        cpu_max = tel.get("max_cpu_pct")
+        cpu_str = f"{cpu_avg if cpu_avg is not None else '-'}/{cpu_max if cpu_max is not None else '-'}"
+        ram_val = tel.get("peak_sys_used_ram_gb")
+        ram_str = f"{ram_val if ram_val is not None else '-'}"
+
+        md_lines.append(
+            f"| `{profile}` | {n_workers} | {wall_s:.2f} | {mean_solve_s:.2f} | "
+            f"{s_speed:.2f}x | {tput:.2f} ({t_speed:.2f}x) | "
+            f"{cpu_str} | {ram_str} | {phys:.2f} / {virt:.2f} |"
+        )
+    return md_lines
+
+
+render_benchmark_markdown_table = render_markdown_table_rows
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Benchmark Dual-Xeon NUMA scaling for 3D COMSOL C04")
     parser.add_argument(
@@ -564,7 +671,29 @@ def main(argv: list[str] | None = None) -> int:
         default=r"E:\cfd_3d\05_reports_viz",
         help="Report output directory",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate configuration and show planned worker invocations without launching comsolbatch",
+    )
     args = parser.parse_args(argv)
+
+    selected = [p.strip() for p in args.profiles.split(",") if p.strip()]
+    for name in selected:
+        if name not in DEFAULT_PROFILES:
+            raise ValueError(f"Unknown profile '{name}'. Choices: {list(DEFAULT_PROFILES)}")
+
+    if args.dry_run:
+        print("[DRY-RUN] Validating profiles and worker configuration:")
+        for name in selected:
+            spec = DEFAULT_PROFILES[name]
+            print(f"  Profile '{name}': {spec['description']} ({len(spec['workers'])} workers)")
+            for idx, w in enumerate(spec["workers"]):
+                print(f"    Worker {idx}: np={w['np']} numasets={w['numasets']} numafirst={w['numafirst']} mpmode={w['mpmode']}")
+        print(f"[DRY-RUN] Model: {args.model} (exists: {Path(args.model).is_file()})")
+        print(f"[DRY-RUN] Workload: {args.workload}, Allocator: {args.alloc}, Priority: {args.priority}")
+        print("[DRY-RUN] Pre-flight checks passed successfully.")
+        return 0
 
     model_path = Path(args.model).resolve()
     if not model_path.is_file():
@@ -582,11 +711,6 @@ def main(argv: list[str] | None = None) -> int:
     comsol_root = find_comsol_root()
     comsolbatch = get_comsol_bin_dir(comsol_root) / "comsolbatch.exe"
     class_file = ensure_probe_compiled(comsol_root, work_dir)
-
-    selected = [p.strip() for p in args.profiles.split(",") if p.strip()]
-    for name in selected:
-        if name not in DEFAULT_PROFILES:
-            raise ValueError(f"Unknown profile '{name}'. Choices: {list(DEFAULT_PROFILES)}")
 
     hash_before = sha256_file(model_path)
     print(f"[INFO] Source model: {model_path} (SHA256: {hash_before[:16]}...)")
@@ -674,15 +798,8 @@ def main(argv: list[str] | None = None) -> int:
     if hash_before != hash_after:
         raise RuntimeError(f"Source model SHA256 changed unexpectedly! {hash_before} -> {hash_after}")
 
-    # Baseline comparison vs first ok profile
-    base = next((r for r in results if r["ok"]), None)
-    if base:
-        for r in results:
-            if r["ok"] and r["wall_s"] > 0:
-                r["single_job_speedup"] = round(base["mean_solve_s"] / r["mean_solve_s"], 3)
-                r["throughput_speedup"] = round(
-                    r["throughput_jobs_per_hr"] / base["throughput_jobs_per_hr"], 3
-                )
+    # Baseline comparison vs first ok profile (guarded against zero-division)
+    results = compute_speedups(results)
 
     report = {
         "timestamp": datetime.now().isoformat(),
@@ -709,17 +826,7 @@ def main(argv: list[str] | None = None) -> int:
         "| Profile | Workers | Wall (s) | Mean Solve (s) | Single-Job Speedup | Aggregate Throughput (jobs/hr) | Avg/Max CPU % | Sys Peak RAM (GB) | Worker Peak Phys/Virt (GB) |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
-    for r in results:
-        phys = max((w.get("peak_phys_gb") or 0.0) for w in r["workers"])
-        virt = max((w.get("peak_virt_gb") or 0.0) for w in r["workers"])
-        tel = r.get("system_telemetry") or {}
-        cpu_str = f"{tel.get('avg_cpu_pct', '-')}/{tel.get('max_cpu_pct', '-')}"
-        ram_str = f"{tel.get('peak_sys_used_ram_gb', '-')}"
-        md_lines.append(
-            f"| `{r['profile']}` | {r['n_workers']} | {r['wall_s']:.2f} | {r['mean_solve_s']:.2f} | "
-            f"{r.get('single_job_speedup', 0):.2f}x | {r['throughput_jobs_per_hr']:.2f} ({r.get('throughput_speedup', 0):.2f}x) | "
-            f"{cpu_str} | {ram_str} | {phys:.2f} / {virt:.2f} |"
-        )
+    md_lines.extend(render_markdown_table_rows(results))
     md_path = out_dir / f"{base_name}.md"
     md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
     print(f"\n[SAVED] {json_path}")

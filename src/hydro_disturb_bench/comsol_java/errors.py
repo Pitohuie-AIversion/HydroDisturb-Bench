@@ -16,7 +16,10 @@ class ComsolError(Exception):
     """Base exception for COMSOL bridge operations."""
 
     def __init__(self, error_code: str, message: str, details: str = "") -> None:
-        super().__init__(f"[{error_code}] {message}")
+        full_msg = f"[{error_code}] {message}"
+        if details:
+            full_msg += f"\n--- COMSOL Details ---\n{details.strip()}"
+        super().__init__(full_msg)
         self.error_code = error_code
         self.message = message
         self.details = details

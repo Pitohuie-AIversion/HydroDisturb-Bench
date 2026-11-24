@@ -25,6 +25,8 @@ runs/
 .vscode/
 *.class
 *.status
+*.console
+models/**/logs/
 .comsol/
 scratch*
 # Temporary locks and staging
@@ -43,3 +45,8 @@ qa_*.py
 *.pdf
 export_pdf.ps1
 render_pdf.ps1
+
+# Multi-agent coordination and E2E test outputs
+.agents/teamwork/
+output/
+test-results/
