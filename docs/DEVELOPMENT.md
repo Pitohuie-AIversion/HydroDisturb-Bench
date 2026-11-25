@@ -52,6 +52,7 @@ PDF 规划中的局部定向高斯体力已新增独立参数入口，实际回�
 | 零分支 / 单脉冲 | 同原生 `sol1 / solnum 901 / t=180 s`；分别比较 Z−B 与 P−Z，区分重启差异和响应 | [报告](STAGE_M3_BRANCH_PULSE_20261105.md)、[零分支回读](evidence/m3_branch_pulse_20261105/zero_readback_summary.json)、[脉冲回读](evidence/m3_branch_pulse_20261105/pulse_readback_summary.json) |
 | 多幅值组 | 复用零分支及 0.005；新增 0.0025、0.010；只改变预注册幅值及其源积分参考值 | [阶段报告](reports/M3_PULSE_AMPLITUDE_SERIES_20261106.md)、[系列结果](evidence/m3_pulse_amplitude_series_20261106/analysis/report.json)、[完整精度指标](evidence/m3_pulse_amplitude_series_20261106/series_metrics.json) |
 | C04 三维流场世界模型基准 | Re=126,167 单圆柱绕流 1.55M 网格基线；严格对齐 COMSOL 展向坐标映射；三维滑窗索引与无拟合直接外推时空基线 | [基准规范](C04_WORLD_MODEL_BENCHMARK.md)、[三维模型说明](../models/cylinder_3d/README.md) |
+| 世界模型 GPU 训练数据流 | 11 组 Re 黄金 HDF5 v2.0 归档、4 通道 BFloat16 Memmap 转换与 PyTorch GPU 零拷贝读取 / 端到端涡量与受力算子 | [GPU 训练数据流规范](WORLD_MODEL_TRAINING_PIPELINE.md) |
 | 稀疏观测算子与评测体系 | 下游 2D/3D 耙式测线、柱体表面测环与移动 AUV 轨迹；测量噪声注入；移动扰动源几何准入；CRPS/SSR 与流体受限全域重构评测 | [观测算子规范](OBSERVATION_OPERATORS.md)、[测试](../tests/test_observation_operator.py) |
 | 涡动力学与反演基准 | 2D/3D 涡量、Q 准则涡核识别、拟涡能与不可压缩连续性残差；隐式扰动反演评测指标、能量异常检测与对流渡越时间反投影；自包含 SHA-256 加密基准 Bundle 打包 | [涡动力学规范](VORTICITY_AND_KINEMATICS.md)、[反演评测规范](DISTURBANCE_INVERSION_BENCHMARK.md) |
 
@@ -125,6 +126,7 @@ python -X utf8 docs/evidence/m3_pulse_amplitude_series_20261106/audit_delivery.p
 | `hydrobench vorticity-eval` | 流场全域涡量、Q 准则涡核识别、拟涡能及连续性质量守恒残差计算与诊断 |
 | `hydrobench inversion-eval` | 隐式水动力学扰动反演参数识别误差打分（定位、时序、幅值、方向、轨迹追踪） |
 | `hydrobench bundle-create` / `bundle-verify` | 自包含防篡改基准数据集 NPZ 打包与 SHA-256 数字清单完整性核验 |
+| `hydrobench convert-memmap` / `benchmark-memmap` | 黄金 HDF5 v2.0 解包至 4 通道 BFloat16 Memmap（剥离静态几何与对齐 `/aerodynamics`）及 GPU 读取压测 |
 | [check_git_attributes.py](../check_git_attributes.py) `--attributes .gitattributes` | Git 属性、真实暂存行为及清单检查；仅在归档规则或相应证据改变时按需运行 |
 
 旧五帧/151 帧脚本按源码定位仓库内的固定历史 `runs/` 路径。幅值系列入口支持 `HYDRO_DATA_ROOT`，其冻结相对路径必须指向持有旧模型、checkpoint 和样本的数据根目录；该环境变量不是所有旧入口统一支持的重定向参数。不要以改哈希、删除检查或重算历史模型来绕过缺数据。

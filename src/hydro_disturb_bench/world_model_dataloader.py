@@ -1,12 +1,14 @@
 """Production PyTorch Zero-Copy World Model DataLoader for 3D CFD Flow Fields.
 
-Supports two interchangeable high-throughput backends:
+Supports three interchangeable high-throughput backends:
 1. ``mode="ram_pool"``: Direct zero-copy attach to the resident Shared Memory RAM
    pool (``cfd_ram_pool_v1``) via ``multiprocessing.shared_memory`` (Python 3.8+)
    or Windows named ``mmap`` (Python 3.7+ compatibility). Eliminates disk I/O
    and yields microsecond-level tensor access for FNO / U-Net / Transformer training.
 2. ``mode="hdf5"``: Lazy per-worker chunked HDF5 streaming from
    ``E:\\cfd_3d\\03_world_model_dataset\\*.h5`` or a unified ``manifest.json``.
+3. ``WorldModelMemmapDataset``: Zero-copy ``np.memmap`` window sampler over unpacked
+   4-channel BFloat16/Float32 dynamic fields with shared static geometry attached in GPU VRAM.
 
 Sample contract:
     Each ``__getitem__(idx)`` returns a 3-tuple ``(x_t, x_next, cond)``:
@@ -465,6 +467,301 @@ def create_world_model_dataloader(
         num_workers=num_workers,
         pin_memory=pin_memory,
     )
+
+
+class WorldModelMemmapDataset(Dataset):
+    """Zero-copy sliding-window sampler over 4-channel Memmap CFD trajectories.
+
+    Each ``__getitem__`` returns a dict with keys:
+    - ``x_ctx``: ``(context_len, 4, 64, 96, 192)`` (``bfloat16`` or ``float32``)
+    - ``y_fut``: ``(pred_len, 4, 64, 96, 192)``
+    - ``cond``:  ``(3,)`` = ``[log10(Re), U0, D]``
+    - ``cd``:    ``(context_len + pred_len,)`` aligned drag coefficient
+    - ``cl``:    ``(context_len + pred_len,)`` aligned lift coefficient
+    """
+
+    def __init__(
+        self,
+        cache_dir: str | Path,
+        context_len: int = 4,
+        pred_len: int = 4,
+        stride: int = 1,
+        regime: str = "stationary",
+        cases: Sequence[str] | None = None,
+        return_bf16: bool = True,
+        return_torch: bool | None = None,
+    ) -> None:
+        if regime not in ("stationary", "transient", "full"):
+            raise ValueError(f"Unsupported regime '{regime}'; expected stationary|transient|full")
+
+        self.cache_dir = Path(cache_dir).resolve()
+        index_path = self.cache_dir / "memmap_index.json"
+        if not index_path.is_file():
+            raise FileNotFoundError(f"memmap_index.json not found in {self.cache_dir}")
+
+        self.index = json.loads(index_path.read_text(encoding="utf-8"))
+        self.storage_dtype: str = self.index["dtype"]
+        self.np_dtype = np.uint16 if self.storage_dtype == "bf16" else np.float32
+        self.context_len = int(context_len)
+        self.pred_len = int(pred_len)
+        self.window_len = self.context_len + self.pred_len
+        self.stride = max(1, int(stride))
+        self.return_bf16 = bool(return_bf16)
+        self.return_torch = HAS_TORCH if return_torch is None else bool(return_torch)
+        if self.return_torch and not HAS_TORCH:
+            raise ImportError("PyTorch is required when return_torch=True.")
+
+        selected_cases = list(self.index["cases"])
+        if cases is not None:
+            case_set = {c.lower() for c in cases}
+            selected_cases = [c for c in selected_cases if c["case"].lower() in case_set]
+        if not selected_cases:
+            raise ValueError("No matching cases found in memmap_index.json")
+
+        self.cases_meta: list[dict[str, Any]] = []
+        self.aux_data: list[dict[str, np.ndarray]] = []
+        self.sample_map: list[tuple[int, int]] = []
+
+        for meta in selected_cases:
+            n_steps = int(meta["shape"][0])
+            stat_idx = int(meta["stationary_start_idx"])
+            if regime == "stationary":
+                t_start, t_end = stat_idx, n_steps
+            elif regime == "transient":
+                t_start, t_end = 0, min(stat_idx + self.window_len, n_steps)
+            else:
+                t_start, t_end = 0, n_steps
+
+            if t_end - t_start < self.window_len:
+                continue
+
+            with np.load(str(self.cache_dir / meta["aux_file"])) as aux_npz:
+                aux_dict = {k: aux_npz[k] for k in aux_npz.files}
+
+            self.cases_meta.append(meta)
+            self.aux_data.append(aux_dict)
+            c_idx = len(self.cases_meta) - 1
+            for t0 in range(t_start, t_end - self.window_len + 1, self.stride):
+                self.sample_map.append((c_idx, t0))
+
+        if not self.sample_map:
+            raise RuntimeError(
+                f"No valid ({self.context_len}+{self.pred_len})-frame windows found in regime '{regime}'."
+            )
+
+        self._worker_mmaps: dict[int, np.memmap] = {}
+        geom_file = self.cache_dir / self.index["shared_geometry"]["geometry_file"]
+        self.static_geometry_np = np.load(str(geom_file)).astype(np.float32)
+        self.grid_spacing_star: tuple[float, float, float] = tuple(
+            float(v) for v in self.index["shared_geometry"]["grid_spacing_star"]
+        )  # type: ignore[assignment]
+
+    def _get_mmap(self, case_idx: int) -> np.memmap:
+        mm = self._worker_mmaps.get(case_idx)
+        if mm is None:
+            meta = self.cases_meta[case_idx]
+            mm = np.memmap(
+                str(self.cache_dir / meta["dat_file"]),
+                dtype=self.np_dtype,
+                mode="r",
+                shape=tuple(meta["shape"]),
+            )
+            self._worker_mmaps[case_idx] = mm
+        return mm
+
+    def get_static_geometry_tensor(
+        self,
+        device: Any = "cuda",
+        dtype: Any = None,
+    ) -> Any:
+        """Return (2, 64, 96, 192) static [sdf_star, solid_mask] ready for GPU VRAM."""
+        if not HAS_TORCH:
+            raise ImportError("PyTorch is required for get_static_geometry_tensor.")
+        t = torch.from_numpy(self.static_geometry_np)
+        if dtype is None:
+            dtype = torch.bfloat16 if self.return_bf16 else torch.float32
+        return t.to(device=device, dtype=dtype, non_blocking=True)
+
+    def __len__(self) -> int:
+        return len(self.sample_map)
+
+    def __getitem__(self, idx: int) -> dict[str, Any]:
+        from .memmap_cache import bf16_u16_to_float32
+
+        case_idx, t0 = self.sample_map[idx]
+        t1 = t0 + self.window_len
+        mm = self._get_mmap(case_idx)
+        raw_win = np.array(mm[t0:t1], copy=True)
+
+        meta = self.cases_meta[case_idx]
+        aux = self.aux_data[case_idx]
+        cond_np = build_condition_vector(
+            float(meta["reynolds_number"]),
+            float(meta["u0_m_s"]),
+            float(meta.get("cylinder_diameter_m", 0.3)),
+        )
+        cd_np = (
+            aux["flow_aligned_cd"][t0:t1].copy()
+            if "flow_aligned_cd" in aux
+            else np.zeros(self.window_len, dtype=np.float32)
+        )
+        cl_np = (
+            aux["flow_aligned_cl"][t0:t1].copy()
+            if "flow_aligned_cl" in aux
+            else np.zeros(self.window_len, dtype=np.float32)
+        )
+
+        if not self.return_torch:
+            win_arr = bf16_u16_to_float32(raw_win) if self.storage_dtype == "bf16" else raw_win
+            return {
+                "x_ctx": win_arr[: self.context_len],
+                "y_fut": win_arr[self.context_len :],
+                "cond": cond_np,
+                "cd": cd_np,
+                "cl": cl_np,
+            }
+
+        if self.storage_dtype == "bf16":
+            # Reinterpret uint16 payload via int16 view so torch.from_numpy works across PyTorch 1.x-2.x.
+            win_t = torch.from_numpy(raw_win.view(np.int16)).view(torch.bfloat16)
+            if not self.return_bf16:
+                win_t = win_t.to(torch.float32)
+        else:
+            win_t = torch.from_numpy(raw_win)
+            if self.return_bf16:
+                win_t = win_t.to(torch.bfloat16)
+
+        return {
+            "x_ctx": win_t[: self.context_len],
+            "y_fut": win_t[self.context_len :],
+            "cond": torch.from_numpy(cond_np),
+            "cd": torch.from_numpy(cd_np),
+            "cl": torch.from_numpy(cl_np),
+        }
+
+
+def attach_static_geometry_gpu(fields_4ch: Any, static_geom: Any) -> Any:
+    """Concatenate static [sdf_star, solid_mask] onto (..., 4, Z, Y, X) fields without copy I/O."""
+    if isinstance(fields_4ch, np.ndarray):
+        if fields_4ch.ndim not in (5, 6):
+            raise ValueError(f"Expected 5D or 6D array, got shape {fields_4ch.shape}")
+        nz, ny, nx = fields_4ch.shape[-3:]
+        prefix = fields_4ch.shape[:-3]
+        target_shape = (*prefix[:-1], 2, nz, ny, nx) if fields_4ch.ndim == 6 else (prefix[0], 2, nz, ny, nx)
+        b_view = static_geom.reshape((1,) * (fields_4ch.ndim - 4) + (2, nz, ny, nx))
+        return np.concatenate([fields_4ch, np.broadcast_to(b_view.astype(fields_4ch.dtype), target_shape)], axis=-4)
+
+    if not HAS_TORCH:
+        raise ImportError("PyTorch is required to attach GPU tensor geometry.")
+    if fields_4ch.ndim not in (5, 6):
+        raise ValueError(f"Expected 5D or 6D tensor, got shape {tuple(fields_4ch.shape)}")
+    nz, ny, nx = fields_4ch.shape[-3:]
+    view_shape = (1,) * (fields_4ch.ndim - 4) + (2, nz, ny, nx)
+    expand_shape = (*fields_4ch.shape[:-4], 2, nz, ny, nx)
+    geom = static_geom.to(dtype=fields_4ch.dtype).view(*view_shape).expand(*expand_shape)
+    return torch.cat([fields_4ch, geom], dim=-4)
+
+
+def compute_vorticity_3d_gpu(
+    uvw: Any,
+    spacing_zyx: tuple[float, float, float] = (0.0625, 0.0625, 0.0625),
+) -> Any:
+    """Compute 3D vorticity (omega_x, omega_y, omega_z) on GPU via torch.gradient."""
+    if not HAS_TORCH:
+        raise ImportError("PyTorch is required for compute_vorticity_3d_gpu.")
+    u = uvw[..., 0, :, :, :]
+    v = uvw[..., 1, :, :, :]
+    w = uvw[..., 2, :, :, :]
+    dz, dy, dx = spacing_zyx
+    du_dz, du_dy = torch.gradient(u, spacing=(dz, dy), dim=(-3, -2), edge_order=1)
+    dv_dz, dv_dx = torch.gradient(v, spacing=(dz, dx), dim=(-3, -1), edge_order=1)
+    dw_dy, dw_dx = torch.gradient(w, spacing=(dy, dx), dim=(-2, -1), edge_order=1)
+    return torch.stack([dw_dy - dv_dz, du_dz - dw_dx, dv_dx - du_dy], dim=-4)
+
+
+def create_memmap_dataloader(
+    cache_dir: str | Path,
+    batch_size: int = 4,
+    context_len: int = 4,
+    pred_len: int = 4,
+    stride: int = 1,
+    regime: str = "stationary",
+    num_workers: int = 8,
+    prefetch_factor: int = 4,
+    shuffle: bool = True,
+    return_bf16: bool = True,
+    cases: Sequence[str] | None = None,
+) -> tuple[WorldModelMemmapDataset, Any]:
+    """Instantiate a pin-memory, persistent-worker DataLoader over WorldModelMemmapDataset."""
+    if not HAS_TORCH:
+        raise ImportError("PyTorch is required for create_memmap_dataloader.")
+    ds = WorldModelMemmapDataset(
+        cache_dir=cache_dir,
+        context_len=context_len,
+        pred_len=pred_len,
+        stride=stride,
+        regime=regime,
+        cases=cases,
+        return_bf16=return_bf16,
+        return_torch=True,
+    )
+    loader = DataLoader(
+        ds,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        pin_memory=True,
+        persistent_workers=(num_workers > 0),
+        prefetch_factor=(prefetch_factor if num_workers > 0 else None),
+        drop_last=True,
+    )
+    return ds, loader
+
+
+def benchmark_memmap_dataloader(
+    cache_dir: str | Path,
+    batch_size: int = 4,
+    context_len: int = 4,
+    pred_len: int = 4,
+    num_workers: int = 8,
+    max_batches: int = 30,
+) -> dict[str, Any]:
+    """Benchmark full NVMe Memmap -> Pin Memory -> GPU H2D + static attach + vorticity pipeline."""
+    if not HAS_TORCH:
+        raise ImportError("PyTorch is required for benchmark_memmap_dataloader.")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    ds, loader = create_memmap_dataloader(
+        cache_dir=cache_dir,
+        batch_size=batch_size,
+        context_len=context_len,
+        pred_len=pred_len,
+        num_workers=num_workers,
+    )
+    static_gpu = ds.get_static_geometry_tensor(device=device)
+    t0 = time.perf_counter()
+    bytes_transferred = 0
+    batches_run = 0
+    for batch in loader:
+        x = batch["x_ctx"].to(device, non_blocking=True)
+        y = batch["y_fut"].to(device, non_blocking=True)
+        x_full = attach_static_geometry_gpu(x, static_gpu)
+        _ = compute_vorticity_3d_gpu(x_full[:, :, :3].float(), ds.grid_spacing_star)
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        bytes_transferred += x.numel() * x.element_size() + y.numel() * y.element_size()
+        batches_run += 1
+        if batches_run >= max_batches:
+            break
+    dt = max(time.perf_counter() - t0, 1e-9)
+    frames = batches_run * batch_size * (context_len + pred_len)
+    return {
+        "device": str(device),
+        "windows": len(ds),
+        "batches_run": batches_run,
+        "frames_streamed": frames,
+        "frames_per_sec": round(frames / dt, 1),
+        "throughput_gib_s": round(bytes_transferred / (1024**3) / dt, 3),
+    }
 
 
 def run_self_test(

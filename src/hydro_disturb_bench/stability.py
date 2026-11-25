@@ -56,9 +56,10 @@ def extract_cycles(
         val_trough = float(cl_sub[trough_idx])
         amp_half = float((val_peak - val_trough) / 2.0)
 
-        mean_cl = float(np.trapezoid(cl_sub, t_sub) / period)
-        rms_cl = float(np.sqrt(np.trapezoid((cl_sub - mean_cl) ** 2, t_sub) / period))
-        mean_cd = float(np.trapezoid(cd_sub, t_sub) / period)
+        _trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
+        mean_cl = float(_trapz(cl_sub, t_sub) / period)
+        rms_cl = float(np.sqrt(_trapz((cl_sub - mean_cl) ** 2, t_sub) / period))
+        mean_cd = float(_trapz(cd_sub, t_sub) / period)
 
         cycles.append(
             {

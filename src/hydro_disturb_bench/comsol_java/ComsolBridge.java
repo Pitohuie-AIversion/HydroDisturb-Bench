@@ -91,12 +91,13 @@ public class ComsolBridge {
                 handleExportC04Slice(args[1], args[2], dsetTag, solnum);
             } else if ("export-c04-volume".equals(command)) {
                 if (args.length < 3) {
-                    outputError("INVALID_PARAMETER", "Usage: export-c04-volume <modelPath> <outputTxtPath> [datasetTag] [solnum]", "");
+                    outputError("INVALID_PARAMETER", "Usage: export-c04-volume <modelPath> <outputTxtPath> [datasetTag] [solnum] [includeCoords]", "");
                     return;
                 }
                 String dsetTag = (args.length >= 4) ? args[3] : "auto";
                 String solnum = (args.length >= 5) ? args[4] : "auto";
-                handleExportC04Volume(args[1], args[2], dsetTag, solnum);
+                boolean includeCoords = (args.length >= 6) ? Boolean.parseBoolean(args[5]) : true;
+                handleExportC04Volume(args[1], args[2], dsetTag, solnum, includeCoords);
             } else if ("inspect-datasets".equals(command)) {
                 if (args.length < 2) {
                     outputError("INVALID_PARAMETER", "Usage: inspect-datasets <modelPath>", "");
@@ -1540,6 +1541,10 @@ public class ComsolBridge {
     }
 
     private static void handleExportC04Volume(String modelPath, String outputTxtPath, String dsetTag, String solnum) {
+        handleExportC04Volume(modelPath, outputTxtPath, dsetTag, solnum, true);
+    }
+
+    private static void handleExportC04Volume(String modelPath, String outputTxtPath, String dsetTag, String solnum, boolean includeCoords) {
         Model model;
         try {
             model = ModelUtil.loadCopy("Model", modelPath);
@@ -1595,7 +1600,7 @@ public class ComsolBridge {
             exporter.set("gridz3", gridz);
             exporter.set("header", "on");
             exporter.set("fullprec", "on");
-            exporter.set("includecoords", true);
+            exporter.set("includecoords", includeCoords);
             exporter.set("includenan", true);
 
             if (solnum != null && solnum.contains(",")) {

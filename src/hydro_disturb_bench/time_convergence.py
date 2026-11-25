@@ -35,7 +35,8 @@ def integrate_exact_window(
     t_eval = np.concatenate(([t_start], t[inside], [t_end]))
     y_eval = np.interp(t_eval, t, y)
 
-    integral_val = float(np.trapezoid(y_eval, t_eval))
+    _trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
+    integral_val = float(_trapz(y_eval, t_eval))
     mean_val = float(integral_val / duration)
     return integral_val, mean_val
 
@@ -71,7 +72,8 @@ def compute_demeaned_rms(
     y_eval = np.interp(t_eval, t, y)
 
     demeaned = y_eval - y_bar
-    rms_val = float(np.sqrt(np.trapezoid(demeaned**2, t_eval) / duration))
+    _trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
+    rms_val = float(np.sqrt(_trapz(demeaned**2, t_eval) / duration))
     return y_bar, rms_val
 
 

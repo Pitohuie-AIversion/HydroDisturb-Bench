@@ -253,7 +253,8 @@ def _integrals(totals, times, reference, pulse, *, solved):
     error = float(np.max(np.linalg.norm(totals - expected, axis=0)))
     relative = error / scale if scale else (0. if error == 0 else float("inf"))
     peak = totals[:, int(np.argmax(gate))]
-    impulse = np.trapezoid(totals, times, axis=1) if solved else peak * reference["temporal_integral_s"]
+    _trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
+    impulse = _trapz(totals, times, axis=1) if solved else peak * reference["temporal_integral_s"]
     expected_impulse = np.array([*reference["impulse_vector_Ns_per_m"], 0.])
     impulse_scale = reference["impulse_per_depth_N_s_m"]
     impulse_error = float(np.linalg.norm(impulse - expected_impulse))

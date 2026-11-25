@@ -2,6 +2,14 @@
 
 本文件按 Git 提交日期记录已合入 `main` 的开发里程碑；实验目录日期可能早于提交日期。项目包版本仍为 `0.1.0`，这里不另行虚构版本发布。当前状态、入口与验证边界见 [开发文档](docs/DEVELOPMENT.md)。历史测试数字来自对应归档，不表示本次文档更新重跑了这些测试；定向测试不与回归总数相加。
 
+## 2026-11-25
+
+### 世界模型 GPU 训练数据流与 Memmap/BFloat16 工程化
+
+- 新增 [`memmap_cache`](src/hydro_disturb_bench/memmap_cache.py)：支持将 `WorldModel-CFD-v2.0-SOTA` Compressed HDF5 解包至无锁只读 4 通道 `BFloat16`/`Float32` `np.memmap`，全工况剥离共享 `geometry_static.npy`（`-33.3%` 读取体量），并自动提取 `/aerodynamics` 对齐受力与 `stationary_vortex_shedding_ctu` 平稳区段起点。
+- 扩展 [`world_model_dataloader`](src/hydro_disturb_bench/world_model_dataloader.py) 与 [`cli`](src/hydro_disturb_bench/cli.py)：增加 `WorldModelMemmapDataset`、`attach_static_geometry_gpu`、`compute_vorticity_3d_gpu`、`create_memmap_dataloader` 及 CLI 子命令 `convert-memmap` / `benchmark-memmap`，统一三维条件向量契约为 `[log10(Re), U0, D]`。
+- 新增端到端规范文档 [GPU 训练数据流](docs/WORLD_MODEL_TRAINING_PIPELINE.md) 与离线测试 [`test_memmap_training_pipeline.py`](tests/test_memmap_training_pipeline.py)，同步在工作区固化 `world-model-gpu-training` Agent Skill。
+
 ## 2026-11-09
 
 ### 局部体力方向与持续时间对照

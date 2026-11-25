@@ -435,6 +435,30 @@ def main(argv: list[str] | None = None) -> int:
         help="Output directory for verification report",
     )
 
+    conv_mm = sub.add_parser(
+        "convert-memmap",
+        help="Convert compressed 6ch HDF5 trajectories into 4ch BFloat16/Float32 Memmap cache",
+    )
+    conv_mm.add_argument("--input-dir", required=True, help="Directory with *_wm_full_trajectory.h5")
+    conv_mm.add_argument("--output-dir", default=None, help="Output directory on local NVMe SSD")
+    conv_mm.add_argument("--dtype", choices=["bf16", "fp32"], default="bf16")
+    conv_mm.add_argument("--workers", type=int, default=4)
+    conv_mm.add_argument("--chunk-frames", type=int, default=32)
+    conv_mm.add_argument("--cases", default="", help="Optional comma-separated case filter")
+    conv_mm.add_argument("--verify", action="store_true")
+    conv_mm.add_argument("--benchmark", action="store_true")
+
+    bench_mm = sub.add_parser(
+        "benchmark-memmap",
+        help="Benchmark raw Memmap random read and (if PyTorch installed) GPU DataLoader throughput",
+    )
+    bench_mm.add_argument("--cache-dir", required=True, help="Directory containing memmap_index.json")
+    bench_mm.add_argument("--num-reads", type=int, default=64)
+    bench_mm.add_argument("--gpu-loader", action="store_true", help="Also run PyTorch GPU DataLoader benchmark")
+    bench_mm.add_argument("--batch-size", type=int, default=4)
+    bench_mm.add_argument("--num-workers", type=int, default=8)
+    bench_mm.add_argument("--max-batches", type=int, default=30)
+
     args = parser.parse_args(argv)
 
     if args.cmd == "plan":
@@ -945,6 +969,42 @@ def main(argv: list[str] | None = None) -> int:
             evaluator_fn=ev.evaluate,
         )
         print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.cmd == "convert-memmap":
+        from .memmap_cache import benchmark_memmap_read, convert_h5_archive_to_memmap
+
+        case_list = [x.strip() for x in args.cases.split(",") if x.strip()] or None
+        report = convert_h5_archive_to_memmap(
+            input_dir=args.input_dir,
+            output_dir=args.output_dir,
+            dtype_mode=args.dtype,
+            workers=args.workers,
+            chunk_frames=args.chunk_frames,
+            cases=case_list,
+            verify=args.verify,
+        )
+        if args.benchmark:
+            out_path = (
+                Path(args.output_dir).resolve()
+                if args.output_dir
+                else Path(args.input_dir).resolve().parent
+                / f"{Path(args.input_dir).resolve().name}_memmap_{args.dtype}"
+            )
+            report["benchmark"] = benchmark_memmap_read(out_path, report["cases"])
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    elif args.cmd == "benchmark-memmap":
+        from .memmap_cache import benchmark_memmap_read
+
+        report: dict[str, object] = {"raw_memmap": benchmark_memmap_read(args.cache_dir, num_reads=args.num_reads)}
+        if args.gpu_loader:
+            from .world_model_dataloader import benchmark_memmap_dataloader
+
+            report["gpu_dataloader"] = benchmark_memmap_dataloader(
+                cache_dir=args.cache_dir,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                max_batches=args.max_batches,
+            )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
 
     return 0
 

@@ -572,22 +572,35 @@ def _run_bridge(
         startup_failure = None
     else:
         extra_batch_args = _extra_comsolbatch_args()
+        exec_class_file = class_file
+        exec_cwd = class_file.parent
+        custom_tmp = os.environ.get("HYDROBENCH_COMSOL_TMPDIR") or os.environ.get("HYDROBENCH_TEMP_DIR")
+        if custom_tmp:
+            bridge_bin_dir = Path(custom_tmp) / "bridge_bin"
+            bridge_bin_dir.mkdir(parents=True, exist_ok=True)
+            for f in class_file.parent.glob("*.class"):
+                dest = bridge_bin_dir / f.name
+                if not dest.is_file() or dest.stat().st_mtime < f.stat().st_mtime:
+                    shutil.copy2(f, dest)
+            exec_class_file = bridge_bin_dir / class_file.name
+            exec_cwd = bridge_bin_dir
+
         cmd = [
             str(comsolbatch),
             "-nosave",
         ]
         if args and args[0] in PROPELLER_COMMANDS:
-            cmd.extend(["-classpathadd", to_safe_path(class_file.parent)])
+            cmd.extend(["-classpathadd", to_safe_path(exec_class_file.parent)])
         cmd.extend(extra_batch_args)
         cmd.extend([
             "-inputfile",
-            str(class_file),
+            str(exec_class_file),
         ])
         cmd.extend(args)
 
         proc = run_process(
             cmd,
-            cwd=str(class_file.parent),
+            cwd=str(exec_cwd),
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -613,12 +626,13 @@ def _run_bridge(
             launch_mode = "standalone_java_api"
 
     # Clean up comsolbatch status file if created in the directory
-    status_file = class_file.with_name(f"{class_file.name}.status")
-    if status_file.is_file():
-        try:
-            status_file.unlink()
-        except OSError:
-            pass
+    for cf in {class_file, exec_class_file if "exec_class_file" in locals() else class_file}:
+        status_file = cf.with_name(f"{cf.name}.status")
+        if status_file.is_file():
+            try:
+                status_file.unlink()
+            except OSError:
+                pass
 
     stdout = proc.stdout or ""
     start_tag = "<<<JSON_START>>>"
